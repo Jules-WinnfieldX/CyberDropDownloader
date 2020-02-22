@@ -1,5 +1,5 @@
 # CyberDropDownloader
-Bulk Gallery Downloader for Cyberdrop.me
+**Bulk Gallery Downloader for Cyberdrop.me**
 
 Created Using Python 3.7.4
 https://www.python.org/downloads/release/python-374/
