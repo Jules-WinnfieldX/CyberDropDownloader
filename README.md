@@ -9,6 +9,7 @@ So how do you use it?
 
 Install Python
 Make sure you add Python to path by clicking this box seen here: https://datatofish.com/wp-content/uploads/2018/10/0001_add_Python_to_Path.png
+
 Make sure you do the full installation, not a custom installation.
 
 If you already have a similar version of python installed, make sure you have pip installed.
