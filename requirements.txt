@@ -16,3 +16,4 @@ six==1.13.0
 soupsieve==1.9.5
 urllib3==1.25.7
 wrapt==1.11.2
+html5lib
