@@ -31,4 +31,5 @@ Common Issues:
 
 
 ModuleNotFoundError: No module named 'requests'
+
 For some reason, when you ran the start.bat file, it didn't work as intended. Open command prompt, and navigate to the folder containing the files using CD, and type the following: "pip install -r requirements.txt"
