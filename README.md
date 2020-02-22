@@ -25,6 +25,8 @@ Double click on start.bat, it will download the needed libraries using PIP and r
 If the program errors out the first time before anything happens, that's normal. Just close the window and start it again.
 
 
+
+
 Common Issues:
 
 ModuleNotFoundError: No module named 'requests'
