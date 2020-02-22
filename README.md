@@ -12,7 +12,7 @@ If there are no links in URLs.txt, it will instantly close and nothing will happ
 So how do you use it?
 
 Install Python
-Make sure you add Python to path by clicking this box seen here: https://datatofish.com/wp-content/uploads/2018/10/0001_add_Python_to_Path.png
+Make sure you add Python to path by clicking this box seen here: ![alt tag](https://datatofish.com/wp-content/uploads/2018/10/0001_add_Python_to_Path.png)
 
 Make sure you do the full installation, not a custom installation.
 
@@ -27,13 +27,3 @@ Each link you add has to go on it's own line. (paste link, press enter, repeat).
 Double click on start.bat, it will download the needed libraries using PIP and run the program.
 
 If the program errors out the first time before anything happens, that's normal. Just close the window and start it again.
-
-
-
-
-Common Issues:
-
-
-ModuleNotFoundError: No module named 'requests'
-
-For some reason, when you ran the start.bat file, it didn't work as intended. Open command prompt, and navigate to the folder containing the files using CD, and type the following: "pip install -r requirements.txt"
