@@ -4,6 +4,10 @@ Bulk Gallery Downloader for Cyberdrop.me
 Created Using Python 3.7.4
 https://www.python.org/downloads/release/python-374/
 
+The program will take the title of the archive and create a new folder for it, and download all of the images to that folder. It'll repeat for every link you have in URLs.txt.
+If there are no links in URLs.txt, it will instantly close and nothing will happen.
+
+
 
 So how do you use it?
 
