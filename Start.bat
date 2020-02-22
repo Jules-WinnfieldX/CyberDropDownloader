@@ -1,2 +1,2 @@
-start cmd.exe /c "pip install -r requirements.txt"
-cmd.exe /k "py downloader.py"
+py -m pip install -r requirements.txt
+py downloader.py
