@@ -29,6 +29,7 @@ for line in file_object:
     di = a1[a1.find("<title>") + 7 : a1.find("</title>")]
     di = di.split("–")[0]
     di = di[7:-1]
+    di = re.sub('[^\w\-_()\. ]', '_', di)
     di = di + "/"
 
     links = []
