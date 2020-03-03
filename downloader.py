@@ -20,6 +20,15 @@ paths = pathlib.Path(__file__).parent.absolute()
 
 clear()
 
+if os.path.isfile("URLs.txt"):
+    print("URLs.txt exists")
+else:
+    f = open("URLs.txt", "w+");
+    print("URLs.txt exists now")
+    
+if os.stat("URLs.txt").st_size == 0:
+    print("Please put URLs in URLs.txt");
+
 file_object = open("URLs.txt", "r")
 for line in file_object:
     url = line.rstrip()
@@ -98,3 +107,4 @@ for line in file_object:
         else:
             print("Download Succesful")
             print()
+ex = input("Press enter to quit.")
