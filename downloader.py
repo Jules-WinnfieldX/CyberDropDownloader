@@ -31,6 +31,8 @@ if os.stat("URLs.txt").st_size == 0:
 
 file_object = open("URLs.txt", "r")
 for line in file_object:
+    if line in ['\n', '\r\n']:
+        continue
     url = line.rstrip()
 
     n = requests.get(url, headers=hearders)
