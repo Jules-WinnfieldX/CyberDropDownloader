@@ -22,12 +22,10 @@ def download(passed_from_main):
     try:
         while(True):
             try:
-                print("Downloading " + item + " ...")
                 filename = item[item.rfind("/") + 1:]
                 url = item
 
                 if os.path.isfile(path+str(filename)):
-                    print("File Already Exists")
                     break
                 
                 response = requests.get(url, stream=True)
@@ -41,20 +39,13 @@ def download(passed_from_main):
             except Exception as e:
                 print(e)
                 os.remove(path+str(filename))
-                print("\nFailed attempt " + str(i)+ " for "+ filename +"\n")
-                print("Retrying "+ filename + "...\n")
+                print("Failed attempt " + str(i)+ " for "+ filename +"\n")
+                print("Retrying "+ filename + "...")
                 i+=1
                 
     except Exception as e:
         print(e)
-        print()
-        print()
         print("Failed to Download")
-        print()
-        print()
-    else:
-        print("Download of "+ filename +" Succesful")
-        print()
             
 if __name__ == '__main__':
     hearders = {'headers':'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:51.0) Gecko/20100101 Firefox/51.0'}
@@ -86,7 +77,7 @@ if __name__ == '__main__':
         di = di + "/"
 
         links = []
-        print("Collecting file links from given URL...")
+        print("\nCollecting file links from given URL...")
         links = Extrair_Links(url)
 
         if links == None:
@@ -118,8 +109,10 @@ if __name__ == '__main__':
             pass_to_func.append([path, link])
             i += 1
             
+        print("Downloading....")
         pool = Pool(processes = multiprocessing.cpu_count())
         proc = pool.map_async(download, pass_to_func)
         proc.wait()
+        pool.close()
                 
-    ex = input("Press enter to quit.")
+    ex = input("\nFinished. Press enter to quit.")
