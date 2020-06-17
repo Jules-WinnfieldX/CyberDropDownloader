@@ -27,3 +27,6 @@ Each link you add has to go on it's own line. (paste link, press enter, repeat).
 Double click on Start.bat (or Start.sh for Mac OS/Linux), it will download the needed libraries using PIP and run the program.
 
 If the program errors out the first time before anything happens, that's normal. Just close the window and start it again.
+
+
+NOTE: Mac OS X / Linux users will likely have to run the command "chmod +x Start.sh" before they can execute the script.
