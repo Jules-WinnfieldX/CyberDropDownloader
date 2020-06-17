@@ -10,7 +10,7 @@ def Extrair_Links(u):
         soup = BeautifulSoup(data, features="html5lib")
         links = []
         linksP = [] #temp
-        for link in soup.find_all('a'):
+        for link in soup.find_all(id="file"):
             lis = link.get('href')
             if len(str(lis)) > 30:
                 links.append(lis)
