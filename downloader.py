@@ -24,7 +24,10 @@ def download(passed_from_main):
             try:
                 filename = item[item.rfind("/") + 1:]
                 url = item
-
+                
+                if filename == "cyberdrop.me-downloaders":
+                    break
+                
                 if os.path.isfile(path+str(filename)):
                     break
                 
