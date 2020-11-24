@@ -13,6 +13,7 @@ def Extrair_Links(u):
         for link in soup.find_all(id="file"):
             lis = link.get('href')
             if len(str(lis)) > 30:
+                lis = lis.replace('.nl/', '.cc/')
                 links.append(lis)
         linksP = list(dict.fromkeys(links))
     except Exception as e:
