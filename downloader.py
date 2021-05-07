@@ -87,7 +87,8 @@ if __name__ == '__main__':
         di = a1[a1.find("<title>") + 7 : a1.find("</title>")]
         di = di.split("–")[0]
         di = di[7:-1]
-        di = re.sub('[^\w\-_()\. ]', '_', di)
+        di = re.findall('^[^\[]*', di)
+        di = di[0].rstrip()
         di += "/"
 
         links = []
