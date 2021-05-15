@@ -10,6 +10,7 @@ from colorama import Fore, Style
 from geturls import Extrair_Links
 from multiprocessing import Pool
 import multiprocessing
+import traceback
 
 
 def log(text, style):
@@ -49,7 +50,8 @@ def download(passed_from_main):
                 if out_file:
                     break
             except Exception as e:
-                log(e, Fore.RED)
+                track = traceback.format_exc()
+                log(track, Fore.RED)
                 os.remove(_path + str(filename))
                 log("Failed attempt " + str(j) + " for " + filename + "\n", Fore.RED)
                 log("Retrying "+ filename + "...", Fore.YELLOW)
