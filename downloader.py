@@ -10,6 +10,7 @@ from colorama import Fore, Style
 from geturls import Extrair_Links
 from multiprocessing import Pool
 import multiprocessing
+import traceback
 
 
 def log(text, style):
@@ -42,7 +43,7 @@ def download(passed_from_main):
 
                 response = requests.get(_url, stream=True)
                 with open(_path+str(filename), "wb") as out_file:
-                    for chunk in response.iter_content(chunk_size=None):
+                    for chunk in response.iter_content(chunk_size=50000):
                         if chunk:
                             out_file.write(chunk)
                 del response
@@ -52,8 +53,11 @@ def download(passed_from_main):
                 log(e, Fore.RED)
                 os.remove(_path + str(filename))
                 log("Failed attempt " + str(j) + " for " + filename + "\n", Fore.RED)
-                log("Retrying "+ filename + "...", Fore.YELLOW)
-                j += 1
+                if i<6:
+                    log("Retrying "+ filename + "...", Fore.YELLOW)
+                    j += 1
+                else:
+                    break
 
     except Exception as e:
         print(e)
