@@ -1,23 +1,41 @@
-#Cyberdrop Gallery Downloader Originally by nixxin
-#Made better(?) by Jules--Winnfield
+# Cyberdrop Gallery Downloader Originally by nixxin
+# Made better(?) by Jules--Winnfield
 
 import requests
 import os
 import re
-import json #test
 import pathlib
 from colorama import Fore, Style
 from geturls import Extrair_Links
 from multiprocessing import Pool
 import multiprocessing
-import traceback
+
+
+class Error(Exception):
+    """Base class for exceptions in this module."""
+    pass
+
+
+class SizeError(Error):
+    """Exception raised for errors in the input.
+
+    Attributes:
+        expression -- input expression in which the error occurred
+        message -- explanation of the error
+    """
+
+    def __init__(self, expression, message):
+        self.expression = expression
+        self.message = message
 
 
 def log(text, style):
+    # Log function for printing to command line
     print(style + str(text) + Style.RESET_ALL)
 
 
 def clear():
+    # Clears command window
     os.system('cls' if os.name == 'nt' else 'clear')
 
 
@@ -32,7 +50,6 @@ def download(passed_from_main):
                 _url = _item
 
                 if filename == "cyberdrop.me-downloaders":
-
                     break
 
                 if os.path.isfile(_path + str(filename)):
@@ -42,26 +59,30 @@ def download(passed_from_main):
                 log("        Downloading " + filename + "...", Fore.LIGHTBLACK_EX)
 
                 response = requests.get(_url, stream=True)
+                fileSizeIncoming = int(response.headers['Content-length'])
                 with open(_path+str(filename), "wb") as out_file:
                     for chunk in response.iter_content(chunk_size=50000):
                         if chunk:
                             out_file.write(chunk)
                 del response
                 if out_file:
-                    break
+                    fileSizeStored = os.path.getsize(_path + str(filename))
+                    if fileSizeIncoming == fileSizeStored:
+                        break
+                    else:
+                        raise SizeError("File Size Specified: {} bytes, File Size Obtained: {} bytes".format(
+                            fileSizeIncoming, fileSizeStored), "These file sizes don't match")
             except Exception as e:
                 log(e, Fore.RED)
                 os.remove(_path + str(filename))
-                log("Failed attempt " + str(j) + " for " + filename + "\n", Fore.RED)
-                if i<6:
-                    log("Retrying "+ filename + "...", Fore.YELLOW)
-                    j += 1
-                else:
-                    break
+                log("        Failed attempt " + str(j) + " for " + filename, Fore.RED)
+                log("        Retrying " + filename + "...", Fore.YELLOW)
+                j += 1
 
     except Exception as e:
         print(e)
         print("Failed to Download")
+
 
 if __name__ == '__main__':
     log("", Fore.RESET)
