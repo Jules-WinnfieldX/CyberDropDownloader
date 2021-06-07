@@ -11,9 +11,9 @@ isort==4.3.21
 lazy-object-proxy==1.4.3
 mccabe==0.6.1
 pylint==2.4.4
-requests==2.22.0
 six==1.13.0
 soupsieve==1.9.5
 urllib3==1.26.5
 wrapt==1.11.2
 html5lib
+requests
