@@ -132,6 +132,7 @@ if __name__ == '__main__':
                 total += 1
 
         path = str(paths) + "/" + di
+        path = path.replace('.', '')
         print()
         print("       URL       " + url)
         print("       DIR       " + di)
