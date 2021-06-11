@@ -141,9 +141,9 @@ if __name__ == '__main__':
             try:
                 os.mkdir(path)
                 print()
-                log("Creation of directory {dir} failed: {err}".format(dir=path, err=e), Fore.YELLOW)
+                log("Created directory {dir}".format(dir=path, err=e), Fore.GREEN)
             except OSError as e:
-                log("Creation of directory %s failed" % path, Fore.YELLOW)
+                log("Creation of directory {dir} failed: {err}".format(dir=path, err=e), Fore.RED)
         print()
 
         pass_to_func = []
