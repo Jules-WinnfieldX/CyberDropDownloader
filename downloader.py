@@ -115,7 +115,10 @@ if __name__ == '__main__':
             dirName = dirName[7:-1]
             dirName = re.findall('^[^\[]*', dirName)
             dirName = dirName[0].rstrip()
+        rstr = r"[\/\\\:\*\?\"\<\>\|]"  # '/ \ : * ? " < > |'
+        dirName = re.sub(rstr, "_", dirName)
         dirName += "/"
+
 
         print("\n======================================================\n")
 
