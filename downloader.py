@@ -68,6 +68,7 @@ def download(passed_from_main):
                 if out_file:
                     storedFileSize = os.path.getsize(_path + str(filename))
                     if incomingFileSize == storedFileSize:
+                        log("        Finished " + filename, Fore.GREEN)
                         break
                     else:
                         raise SizeError("File Size Specified: {} bytes, File Size Obtained: {} bytes".format(
