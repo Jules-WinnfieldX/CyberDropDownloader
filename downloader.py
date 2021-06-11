@@ -141,7 +141,7 @@ if __name__ == '__main__':
             try:
                 os.mkdir(path)
                 print()
-                log("Created directory {dir}".format(dir=path, err=e), Fore.GREEN)
+                log("Created directory {dir}".format(dir=path), Fore.GREEN)
             except OSError as e:
                 log("Creation of directory {dir} failed: {err}".format(dir=path, err=e), Fore.RED)
         print()
