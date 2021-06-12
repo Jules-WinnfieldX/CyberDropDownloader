@@ -18,7 +18,6 @@ class Error(Exception):
 
 class SizeError(Error):
     """Exception raised for errors in the input.
-
     Attributes:
         expression -- input expression in which the error occurred
         message -- explanation of the error
@@ -60,7 +59,7 @@ def download(passed_from_main):
 
                 response = requests.get(_url, stream=True)
                 incomingFileSize = int(response.headers['Content-length'])
-                with open(_path+str(filename), "wb") as out_file:
+                with open(_path + str(filename), "wb") as out_file:
                     for chunk in response.iter_content(chunk_size=50000):
                         if chunk:
                             out_file.write(chunk)
@@ -91,8 +90,6 @@ if __name__ == '__main__':
     headers = {'headers': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:51.0) Gecko/20100101 Firefox/51.0'}
 
     totalFiles = 0
-    paths = pathlib.Path(__file__).parent.absolute()
-
     clear()
 
     if os.path.isfile("URLs.txt"):
@@ -119,7 +116,7 @@ if __name__ == '__main__':
         rstr = r"[\/\\\:\*\?\"\<\>\|]"  # '/ \ : * ? " < > |'
         dirName = re.sub(rstr, "_", dirName)
         dirName += "/"
-
+        path = './'+dirName
 
         print("\n======================================================\n")
 
@@ -131,11 +128,9 @@ if __name__ == '__main__':
             input(url + " Couldn't find pictures.")
             exit()
 
-        path = str(paths) + "/" + dirName
-        path = path.replace('.', '')
         print()
         print("       URL       " + url)
-        print("       DIR       " + dirName)
+        print("       DIR       " + path)
         print()
         if not (os.path.isdir(dirName)):
             try:
@@ -155,5 +150,5 @@ if __name__ == '__main__':
         proc = pool.map_async(download, pass_to_func)
         proc.wait()
         pool.close()
-                
+
     exitText = input("\nFinished. Press enter to quit.")
