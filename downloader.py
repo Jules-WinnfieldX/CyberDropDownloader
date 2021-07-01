@@ -85,10 +85,11 @@ def download(passed_from_main):
 
 
 if __name__ == '__main__':
+    print("We are running 1")
     log("", Fore.RESET)
-
+    print("We are running 2")
     headers = {'headers': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:51.0) Gecko/20100101 Firefox/51.0'}
-
+    print("We are running 3")
     totalFiles = 0
     clear()
 
