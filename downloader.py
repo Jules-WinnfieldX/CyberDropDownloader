@@ -70,7 +70,7 @@ def download(passed_from_main):
                         if chunk:
                             out_file.write(chunk)
                 del response
-                if out_file:
+                if os.path.isfile(_path + str(filename)):
                     storedFileSize = os.path.getsize(_path + str(filename))
                     if incomingFileSize == storedFileSize:
                         log("        Finished " + filename, Fore.GREEN)
@@ -78,6 +78,9 @@ def download(passed_from_main):
                     else:
                         raise SizeError("File Size Specified: {} bytes, File Size Obtained: {} bytes".format(
                             incomingFileSize, storedFileSize), "These file sizes don't match")
+                else:
+                    log("        Something went wrong" + " for " + filename + "retrying", Fore.RED)
+                    attempts += 1
             except Exception as e:
                 log(e, Fore.RED)
                 os.remove(_path + str(filename))
@@ -95,7 +98,7 @@ if __name__ == '__main__':
 
     response = requests.get("https://api.github.com/repos/Jules-WinnfieldX/CyberDropDownloader/releases/latest")
     latestVersion = response.json()["tag_name"]
-    currentVersion = "1.2.6"
+    currentVersion = "1.2.7"
 
     if latestVersion != currentVersion:
         print("A new version of CyberDropDownloader is available\n"
