@@ -4,11 +4,11 @@
 import requests
 import os
 import re
-import pathlib
 from colorama import Fore, Style
 from geturls import Extrair_Links
 from multiprocessing import Pool
 import multiprocessing
+import settings
 
 
 class Error(Exception):
@@ -51,14 +51,20 @@ def download(passed_from_main):
                 if filename == "cyberdrop.me-downloaders":
                     break
 
+                response = requests.get(_url, stream=True)
+                incomingFileSize = int(response.headers['Content-length'])
+
                 if os.path.isfile(_path + str(filename)):
-                    log("           " + filename + " already exists.", Fore.LIGHTBLACK_EX)
-                    break
+                    storedFileSize = os.path.getsize(_path + str(filename))
+                    if incomingFileSize == storedFileSize:
+                        log("           " + filename + " already exists.", Fore.LIGHTBLACK_EX)
+                        break
+                    else:
+                        log("           " + filename + " already exists, but is corrupt", Fore.LIGHTBLACK_EX)
+                        os.remove(_path + str(filename))
 
                 log("        Downloading " + filename + "...", Fore.LIGHTBLACK_EX)
 
-                response = requests.get(_url, stream=True)
-                incomingFileSize = int(response.headers['Content-length'])
                 with open(_path + str(filename), "wb") as out_file:
                     for chunk in response.iter_content(chunk_size=50000):
                         if chunk:
@@ -87,7 +93,25 @@ def download(passed_from_main):
 if __name__ == '__main__':
     log("", Fore.RESET)
 
+    response = requests.get("https://api.github.com/repos/Jules-WinnfieldX/CyberDropDownloader/releases/latest")
+    latestVersion = response.json()["tag_name"]
+    currentVersion = "1.2.6"
+
+    if latestVersion != currentVersion:
+        print("A new version of CyberDropDownloader is available\n"
+              "Download it here: https://github.com/Jules-WinnfieldX/CyberDropDownloader/releases/latest\n")
+
     headers = {'headers': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:51.0) Gecko/20100101 Firefox/51.0'}
+
+    cpu_count = settings.threads if settings.threads != 0 else multiprocessing.cpu_count()
+    downloadFolder = settings.download_folder
+
+    if downloadFolder == "./Downloads/":
+        if not os.path.exists(downloadFolder):
+            os.makedirs(downloadFolder)
+    else:
+        if not os.path.exists(downloadFolder):
+            log("The download folder specified (" + downloadFolder + ") does not exist ", Fore.RED)
 
     totalFiles = 0
     clear()
@@ -116,7 +140,7 @@ if __name__ == '__main__':
         rstr = r"[\/\\\:\*\?\"\<\>\|]"  # '/ \ : * ? " < > |'
         dirName = re.sub(rstr, "_", dirName)
         dirName += "/"
-        path = './'+dirName
+        path = downloadFolder+dirName
 
         print("\n======================================================\n")
 
@@ -132,7 +156,7 @@ if __name__ == '__main__':
         print("       URL       " + url)
         print("       DIR       " + path)
         print()
-        if not (os.path.isdir(dirName)):
+        if not (os.path.isdir(path)):
             try:
                 os.mkdir(path)
                 print()
@@ -146,7 +170,7 @@ if __name__ == '__main__':
             pass_to_func.append([path, link])
 
         print("Downloading " + str(len(pass_to_func)) + " files...")
-        pool = Pool(processes=multiprocessing.cpu_count())
+        pool = Pool(processes=cpu_count)
         proc = pool.map_async(download, pass_to_func)
         proc.wait()
         pool.close()
