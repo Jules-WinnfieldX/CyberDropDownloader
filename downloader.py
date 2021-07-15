@@ -81,7 +81,7 @@ def download(passed_from_main):
                             incomingFileSize, storedFileSize), "These file sizes don't match")
                 else:
                     log("        Something went wrong" + " for " + filename, Fore.RED)
-                    if attemptsToTry != 0 and attemptsToTry >= attempts:
+                    if attemptsToTry != 0 and attempts >= attemptsToTry:
                         log("        Hit user specified attempt limit" + " for " + filename + "skipping file", Fore.RED)
                         break
                     log("        Retrying " + filename + "...", Fore.YELLOW)
@@ -90,7 +90,7 @@ def download(passed_from_main):
                 log(e, Fore.RED)
                 os.remove(_path + str(filename))
                 log("        Failed attempt " + str(attempts) + " for " + filename, Fore.RED)
-                if attemptsToTry != 0 and attemptsToTry >= attempts:
+                if attemptsToTry != 0 and attempts >= attemptsToTry:
                     log("        Hit user specified attempt limit" + " for " + filename + "skipping file", Fore.RED)
                     break
                 log("        Retrying " + filename + "...", Fore.YELLOW)
