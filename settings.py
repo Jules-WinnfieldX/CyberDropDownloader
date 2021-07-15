@@ -6,4 +6,4 @@
 
 threads = 0
 download_folder = "./Downloads/"
-file_attempts = 2
+file_attempts = 0
