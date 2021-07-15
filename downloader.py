@@ -42,6 +42,7 @@ def download(passed_from_main):
     _path = passed_from_main[0]
     _item = passed_from_main[1]
     attempts = 1
+    attemptsToTry = settings.file_attempts
     try:
         while True:
             try:
@@ -79,12 +80,19 @@ def download(passed_from_main):
                         raise SizeError("File Size Specified: {} bytes, File Size Obtained: {} bytes".format(
                             incomingFileSize, storedFileSize), "These file sizes don't match")
                 else:
-                    log("        Something went wrong" + " for " + filename + "retrying", Fore.RED)
+                    log("        Something went wrong" + " for " + filename, Fore.RED)
+                    if attemptsToTry != 0 and attemptsToTry >= attempts:
+                        log("        Hit user specified attempt limit" + " for " + filename + "skipping file", Fore.RED)
+                        break
+                    log("        Retrying " + filename + "...", Fore.YELLOW)
                     attempts += 1
             except Exception as e:
                 log(e, Fore.RED)
                 os.remove(_path + str(filename))
                 log("        Failed attempt " + str(attempts) + " for " + filename, Fore.RED)
+                if attemptsToTry != 0 and attemptsToTry >= attempts:
+                    log("        Hit user specified attempt limit" + " for " + filename + "skipping file", Fore.RED)
+                    break
                 log("        Retrying " + filename + "...", Fore.YELLOW)
                 attempts += 1
 
@@ -98,7 +106,7 @@ if __name__ == '__main__':
 
     response = requests.get("https://api.github.com/repos/Jules-WinnfieldX/CyberDropDownloader/releases/latest")
     latestVersion = response.json()["tag_name"]
-    currentVersion = "1.2.8"
+    currentVersion = "1.2.9"
 
     if latestVersion != currentVersion:
         print("A new version of CyberDropDownloader is available\n"
