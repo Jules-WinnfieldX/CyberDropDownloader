@@ -42,59 +42,57 @@ def download(passed_from_main):
     _path = passed_from_main[0]
     _item = passed_from_main[1]
     attempts = 1
-    attemptsToTry = settings.file_attempts
+    attemptsToTry = settings.file_attempts + 1
     try:
         while True:
-            try:
-                filename = _item[_item.rfind("/") + 1:]
-                _url = _item
+            filename = _item[_item.rfind("/") + 1:]
+            _url = _item
 
-                if filename == "cyberdrop.me-downloaders":
-                    break
-
-                response = requests.get(_url, stream=True)
-                incomingFileSize = int(response.headers['Content-length'])
-
-                if os.path.isfile(_path + str(filename)):
-                    storedFileSize = os.path.getsize(_path + str(filename))
-                    if incomingFileSize == storedFileSize:
-                        log("           " + filename + " already exists.", Fore.LIGHTBLACK_EX)
-                        break
-                    else:
-                        log("           " + filename + " already exists, but is corrupt", Fore.LIGHTBLACK_EX)
-                        os.remove(_path + str(filename))
-
-                log("        Downloading " + filename + "...", Fore.LIGHTBLACK_EX)
-
-                with open(_path + str(filename), "wb") as out_file:
-                    for chunk in response.iter_content(chunk_size=50000):
-                        if chunk:
-                            out_file.write(chunk)
-                del response
-                if os.path.isfile(_path + str(filename)):
-                    storedFileSize = os.path.getsize(_path + str(filename))
-                    if incomingFileSize == storedFileSize:
-                        log("        Finished " + filename, Fore.GREEN)
-                        break
-                    else:
-                        raise SizeError("File Size Specified: {} bytes, File Size Obtained: {} bytes".format(
-                            incomingFileSize, storedFileSize), "These file sizes don't match")
-                else:
-                    log("        Something went wrong" + " for " + filename, Fore.RED)
-                    if attemptsToTry != 0 and attempts >= attemptsToTry:
-                        log("        Hit user specified attempt limit" + " for " + filename + "skipping file", Fore.RED)
-                        break
+            if attemptsToTry != 0 and attempts >= attemptsToTry:
+                log("        Hit user specified attempt limit" + " for " + filename + " skipping file", Fore.RED)
+                break
+            else:
+                if attempts != 1:
                     log("        Retrying " + filename + "...", Fore.YELLOW)
+                try:
+                    if filename == "cyberdrop.me-downloaders":
+                        break
+
+                    response = requests.get(_url, stream=True)
+                    incomingFileSize = int(response.headers['Content-length'])
+
+                    if os.path.isfile(_path + str(filename)):
+                        storedFileSize = os.path.getsize(_path + str(filename))
+                        if incomingFileSize == storedFileSize:
+                            log("           " + filename + " already exists.", Fore.LIGHTBLACK_EX)
+                            break
+                        else:
+                            log("           " + filename + " already exists, but is corrupt", Fore.LIGHTBLACK_EX)
+                            os.remove(_path + str(filename))
+
+                    log("        Downloading " + filename + "...", Fore.LIGHTBLACK_EX)
+
+                    with open(_path + str(filename), "wb") as out_file:
+                        for chunk in response.iter_content(chunk_size=50000):
+                            if chunk:
+                                out_file.write(chunk)
+                    del response
+                    if os.path.isfile(_path + str(filename)):
+                        storedFileSize = os.path.getsize(_path + str(filename))
+                        if incomingFileSize == storedFileSize:
+                            log("        Finished " + filename, Fore.GREEN)
+                            break
+                        else:
+                            raise SizeError("File Size Specified: {} bytes, File Size Obtained: {} bytes".format(
+                                incomingFileSize, storedFileSize), "These file sizes don't match")
+                    else:
+                        log("        Something went wrong" + " for " + filename, Fore.RED)
+                        attempts += 1
+                except Exception as e:
+                    # log(e, Fore.RED)
+                    os.remove(_path + str(filename))
+                    log("        Failed attempt " + str(attempts) + " for " + filename, Fore.RED)
                     attempts += 1
-            except Exception as e:
-                log(e, Fore.RED)
-                os.remove(_path + str(filename))
-                log("        Failed attempt " + str(attempts) + " for " + filename, Fore.RED)
-                if attemptsToTry != 0 and attempts >= attemptsToTry:
-                    log("        Hit user specified attempt limit" + " for " + filename + "skipping file", Fore.RED)
-                    break
-                log("        Retrying " + filename + "...", Fore.YELLOW)
-                attempts += 1
 
     except Exception as e:
         print(e)
@@ -106,7 +104,7 @@ if __name__ == '__main__':
 
     response = requests.get("https://api.github.com/repos/Jules-WinnfieldX/CyberDropDownloader/releases/latest")
     latestVersion = response.json()["tag_name"]
-    currentVersion = "1.3.0"
+    currentVersion = "1.3.1"
 
     if latestVersion != currentVersion:
         print("A new version of CyberDropDownloader is available\n"
