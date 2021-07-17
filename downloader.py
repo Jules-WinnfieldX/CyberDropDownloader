@@ -42,7 +42,7 @@ def download(passed_from_main):
     _path = passed_from_main[0]
     _item = passed_from_main[1]
     attempts = 1
-    attemptsToTry = settings.file_attempts + 1
+    attemptsToTry = (settings.file_attempts + 1) if settings.file_attempts != 0 else 0
     try:
         while True:
             filename = _item[_item.rfind("/") + 1:]
@@ -104,7 +104,7 @@ if __name__ == '__main__':
 
     response = requests.get("https://api.github.com/repos/Jules-WinnfieldX/CyberDropDownloader/releases/latest")
     latestVersion = response.json()["tag_name"]
-    currentVersion = "1.3.1"
+    currentVersion = "1.3.2"
 
     if latestVersion != currentVersion:
         print("A new version of CyberDropDownloader is available\n"
