@@ -1,8 +1,15 @@
 # CyberDropDownloader
 **Bulk Gallery Downloader for Cyberdrop.me**
 
+# Supported Sites
+Cyberdrop.me
+DMCA.Gripe
+
+In progress:
+Putmega
+Pixl
+
 # Information
-**Now Supports DMCA.Gripe links**
 
 Created Using Python 3.7.4
 https://www.python.org/downloads/release/python-374/
