@@ -47,6 +47,7 @@ def download(passed_from_main):
     try:
         while True:
             filename = _item[_item.rfind("/") + 1:]
+            filenameTemp = f'{filename}.download'
             _url = _item
 
             if attemptsToTry != 0 and attempts >= attemptsToTry:
@@ -59,10 +60,21 @@ def download(passed_from_main):
                     if filename == "cyberdrop.me-downloaders":
                         break
 
-                    response = requests.get(_url, stream=True)
-                    incomingFileSize = int(response.headers['Content-length'])
+                    headers = {}
+                    resume = False
 
-                    if os.path.isfile(_path + str(filename)):
+                    if os.path.isfile(_path + str(filenameTemp)):
+                        storedFileSize = os.path.getsize(_path + str(filenameTemp))
+                        log("           " + filename + f" already exists (partial, {storedFileSize} B).", Fore.LIGHTBLACK_EX)
+                        headers['Range'] = f'bytes={storedFileSize}-'
+                        resume = True
+
+                    head_response = requests.head(_url)
+                    incomingFileSize = int(head_response.headers['Content-length'])
+                    del head_response
+                    response = requests.get(_url, stream=True, timeout=30, headers=headers)
+
+                    if not resume and os.path.isfile(_path + str(filename)):
                         storedFileSize = os.path.getsize(_path + str(filename))
                         if incomingFileSize == storedFileSize:
                             log("           " + filename + " already exists.", Fore.LIGHTBLACK_EX)
@@ -73,14 +85,15 @@ def download(passed_from_main):
 
                     log("        Downloading " + filename + "...", Fore.LIGHTBLACK_EX)
 
-                    with open(_path + str(filename), "wb") as out_file:
+                    with open(_path + str(filenameTemp), "ab" if resume else "wb") as out_file:
                         for chunk in response.iter_content(chunk_size=50000):
                             if chunk:
                                 out_file.write(chunk)
                     del response
-                    if os.path.isfile(_path + str(filename)):
-                        storedFileSize = os.path.getsize(_path + str(filename))
+                    if os.path.isfile(_path + str(filenameTemp)):
+                        storedFileSize = os.path.getsize(_path + str(filenameTemp))
                         if incomingFileSize == storedFileSize:
+                            os.rename(_path + str(filenameTemp), _path + str(filename))
                             log("        Finished " + filename, Fore.GREEN)
                             break
                         else:
@@ -91,7 +104,6 @@ def download(passed_from_main):
                         attempts += 1
                 except Exception as e:
                     # log(e, Fore.RED)
-                    os.remove(_path + str(filename))
                     log("        Failed attempt " + str(attempts) + " for " + filename, Fore.RED)
                     attempts += 1
 
