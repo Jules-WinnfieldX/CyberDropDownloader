@@ -7,6 +7,7 @@ import re
 from colorama import Fore, Style
 from geturls import Extrair_Links
 from multiprocessing import Pool
+from bs4 import BeautifulSoup, SoupStrainer
 import multiprocessing
 import settings
 
@@ -106,6 +107,8 @@ if __name__ == '__main__':
     latestVersion = response.json()["tag_name"]
     currentVersion = "1.3.2"
 
+    clear()
+
     if latestVersion != currentVersion:
         print("A new version of CyberDropDownloader is available\n"
               "Download it here: https://github.com/Jules-WinnfieldX/CyberDropDownloader/releases/latest\n")
@@ -123,7 +126,6 @@ if __name__ == '__main__':
             log("The download folder specified (" + downloadFolder + ") does not exist ", Fore.RED)
 
     totalFiles = 0
-    clear()
 
     if os.path.isfile("URLs.txt"):
         print("URLs.txt exists")
@@ -138,14 +140,22 @@ if __name__ == '__main__':
     for line in file_object:
         url = line.rstrip()
 
-        html = requests.get(url, headers=headers)
-        htmlAsText = html.text
-        dirName = htmlAsText[htmlAsText.find("<title>") + 7:htmlAsText.find("</title>")]
+        page = requests.get(url)
+        soup = BeautifulSoup(page.text, "html.parser")
+
         if 'cyberdrop' in url.lower():
+            dirName = soup.select('h1.has-text-centered')[0].text.strip()
+            print(dirName)
             dirName = dirName.split("–")[0]
-            dirName = dirName[7:-1]
             dirName = re.findall('^[^\[]*', dirName)
             dirName = dirName[0].rstrip()
+
+        elif 'putme.ga' or 'pixl' in url.lower():
+            dirName = soup.find("meta", {"property": "og:title"}).attrs['content']
+
+        elif 'bunk' in url.lower():
+            dirName = soup.select('h1.title')[0].text.strip()
+
         rstr = r"[\/\\\:\*\?\"\<\>\|\.]"  # '/ \ : * ? " < > | .'
         dirName = re.sub(rstr, "_", dirName)
         dirName += "/"
