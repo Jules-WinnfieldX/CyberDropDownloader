@@ -42,6 +42,7 @@ def clear():
 def download(passed_from_main):
     _path = passed_from_main[0]
     _item = passed_from_main[1]
+    _timeout = passed_from_main[2]
     attempts = 1
     attemptsToTry = (settings.file_attempts + 1) if settings.file_attempts != 0 else 0
     try:
@@ -74,7 +75,7 @@ def download(passed_from_main):
                         headers['Range'] = f'bytes={storedFileSize}-'
                         resume = True
 
-                    response = requests.get(_url, stream=True, timeout=30, headers=headers)
+                    response = requests.get(_url, stream=True, timeout=_timeout, headers=headers)
                     incomingFileSize = int(response.headers['Content-length'])
 
                     log("        Downloading " + filename + "...", Fore.LIGHTBLACK_EX)
@@ -125,6 +126,7 @@ if __name__ == '__main__':
 
     cpu_count = settings.threads if settings.threads != 0 else multiprocessing.cpu_count()
     downloadFolder = settings.download_folder
+    timeout = settings.timeout
 
     if downloadFolder == "./Downloads/":
         if not os.path.exists(downloadFolder):
@@ -194,7 +196,7 @@ if __name__ == '__main__':
 
         pass_to_func = []
         for link in links:
-            pass_to_func.append([path, link])
+            pass_to_func.append([path, link, timeout])
 
         print("Downloading " + str(len(pass_to_func)) + " files...")
         pool = Pool(processes=cpu_count)
