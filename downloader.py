@@ -157,14 +157,12 @@ if __name__ == '__main__':
             dirName = soup.select('h1.has-text-centered')[0].text.strip()
             print(dirName)
             dirName = dirName.split("–")[0]
-            dirName = re.findall('^[^\[]*', dirName)
-            dirName = dirName[0].rstrip()
-
-        elif 'putme.ga' or 'pixl' in url.lower():
-            dirName = soup.find("meta", {"property": "og:title"}).attrs['content']
 
         elif 'bunk' in url.lower():
             dirName = soup.select('h1.title')[0].text.strip()
+
+        elif 'putme.ga' or 'pixl' in url.lower():
+            dirName = soup.find("meta", {"property": "og:title"}).attrs['content']
 
         rstr = r"[\/\\\:\*\?\"\<\>\|\.]"  # '/ \ : * ? " < > | .'
         dirName = re.sub(rstr, "_", dirName)
