@@ -63,25 +63,19 @@ def download(passed_from_main):
                     headers = {}
                     resume = False
 
+                    if not resume and os.path.isfile(_path + str(filename)):
+                        log("           " + filename + " already exists.", Fore.LIGHTBLACK_EX)
+                        break
+
+                    storedFileSize = None
                     if os.path.isfile(_path + str(filenameTemp)):
                         storedFileSize = os.path.getsize(_path + str(filenameTemp))
                         log("           " + filename + f" already exists (partial, {storedFileSize} B).", Fore.LIGHTBLACK_EX)
                         headers['Range'] = f'bytes={storedFileSize}-'
                         resume = True
 
-                    head_response = requests.head(_url)
-                    incomingFileSize = int(head_response.headers['Content-length'])
-                    del head_response
                     response = requests.get(_url, stream=True, timeout=30, headers=headers)
-
-                    if not resume and os.path.isfile(_path + str(filename)):
-                        storedFileSize = os.path.getsize(_path + str(filename))
-                        if incomingFileSize == storedFileSize:
-                            log("           " + filename + " already exists.", Fore.LIGHTBLACK_EX)
-                            break
-                        else:
-                            log("           " + filename + " already exists, but is corrupt", Fore.LIGHTBLACK_EX)
-                            os.remove(_path + str(filename))
+                    incomingFileSize = int(response.headers['Content-length'])
 
                     log("        Downloading " + filename + "...", Fore.LIGHTBLACK_EX)
 
@@ -91,19 +85,21 @@ def download(passed_from_main):
                                 out_file.write(chunk)
                     del response
                     if os.path.isfile(_path + str(filenameTemp)):
+                        totalFileSize = incomingFileSize if storedFileSize is None else (
+                                        incomingFileSize + storedFileSize)
                         storedFileSize = os.path.getsize(_path + str(filenameTemp))
-                        if incomingFileSize == storedFileSize:
+                        if totalFileSize == storedFileSize:
                             os.rename(_path + str(filenameTemp), _path + str(filename))
                             log("        Finished " + filename, Fore.GREEN)
                             break
                         else:
                             raise SizeError("File Size Specified: {} bytes, File Size Obtained: {} bytes".format(
-                                incomingFileSize, storedFileSize), "These file sizes don't match")
+                                totalFileSize, storedFileSize), "These file sizes don't match")
                     else:
                         log("        Something went wrong" + " for " + filename, Fore.RED)
                         attempts += 1
                 except Exception as e:
-                    # log(e, Fore.RED)
+                    log(e, Fore.RED)
                     log("        Failed attempt " + str(attempts) + " for " + filename, Fore.RED)
                     attempts += 1
 
