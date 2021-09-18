@@ -22,10 +22,24 @@ If there are no links in URLs.txt, it will instantly close and nothing will happ
 
 # Installation
 
-Make sure python 3.7 or greater is installed
-
 Download a release from https://github.com/Jules-WinnfieldX/CyberDropDownloader/releases
 Extract all of the files to a single directory.
+
+**MAC**
+
+https://www.python.org/ftp/python/3.9.6/python-3.9.6-macos11.pkg
+Use this installer, make sure you select the box that says "ADD TO PATH"
+
+**PC**
+
+https://www.python.org/ftp/python/3.9.6/python-3.9.6-amd64.exe
+Use this installer, make sure you select the box that says "ADD TO PATH"
+
+**BOTH**
+
+Then double click the start.bat file to run the program.
+
+Make sure you have URL's in the urls.txt file or it won't do anything and will instantly close.
 
 # Usage
 Copy and paste links into URLs.txt. 
