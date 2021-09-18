@@ -37,12 +37,6 @@ https://www.python.org/ftp/python/3.9.6/python-3.9.6-amd64.exe
 
 Use this installer, make sure you select the box that says "ADD TO PATH"
 
-**BOTH**
-
-Then double click the start.bat file to run the program.
-
-Make sure you have URL's in the urls.txt file or it won't do anything and will instantly close.
-
 # Usage
 Copy and paste links into URLs.txt. 
 Each link you add has to go on it's own line. (paste link, press enter, repeat).
