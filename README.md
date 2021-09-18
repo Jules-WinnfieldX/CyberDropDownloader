@@ -28,11 +28,13 @@ Extract all of the files to a single directory.
 **MAC**
 
 https://www.python.org/ftp/python/3.9.6/python-3.9.6-macos11.pkg
+
 Use this installer, make sure you select the box that says "ADD TO PATH"
 
 **PC**
 
 https://www.python.org/ftp/python/3.9.6/python-3.9.6-amd64.exe
+
 Use this installer, make sure you select the box that says "ADD TO PATH"
 
 **BOTH**
