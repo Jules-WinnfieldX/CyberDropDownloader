@@ -80,10 +80,14 @@ def download(passed_from_main):
 
                     log("        Downloading " + filename + "...", Fore.LIGHTBLACK_EX)
 
-                    with open(_path + str(filenameTemp), "ab" if resume else "wb") as out_file:
-                        for chunk in response.iter_content(chunk_size=50000):
-                            if chunk:
-                                out_file.write(chunk)
+                    if response.status_code == 200 or response.status_code == 206:
+                        with open(_path + str(filenameTemp), "ab" if resume else "wb") as out_file:
+                            for chunk in response.iter_content(chunk_size=50000):
+                                if chunk:
+                                    out_file.write(chunk)
+                    else:
+                        raise Exception("HTTP response code " + str(response.status_code))
+
                     del response
                     if os.path.isfile(_path + str(filenameTemp)):
                         totalFileSize = incomingFileSize if storedFileSize is None else (
@@ -158,11 +162,11 @@ if __name__ == '__main__':
             print(dirName)
             dirName = dirName.split("–")[0]
 
-        elif 'bunk' in url.lower():
-            dirName = soup.select('h1.title')[0].text.strip()
-
         elif 'putme.ga' or 'pixl' in url.lower():
             dirName = soup.find("meta", {"property": "og:title"}).attrs['content']
+
+        elif 'bunk' in url.lower():
+            dirName = soup.select('h1.title')[0].text.strip()
 
         rstr = r"[\/\\\:\*\?\"\<\>\|\.]"  # '/ \ : * ? " < > | .'
         dirName = re.sub(rstr, "_", dirName)

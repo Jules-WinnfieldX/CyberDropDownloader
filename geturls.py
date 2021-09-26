@@ -26,6 +26,8 @@ def Extrair_Links(baseURL):
         elif 'bunk' in baseURL.lower():
             for link in soup.find_all(class_="image"):
                 lis = link.get('href')
+                if '.mp4' in lis:
+                    lis = lis.replace('https://cdn.bunkr.to/', 'https://cdn.bunkr.to/s/')
                 links.append(lis)
 
         # If dmca.gripe find 'a', {'class': 'download-button'} href links
