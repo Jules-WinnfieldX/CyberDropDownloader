@@ -167,6 +167,8 @@ if __name__ == '__main__':
 
         elif 'bunk' in url.lower():
             dirName = soup.select('h1.title')[0].text.strip()
+            # Artificial limit to bypass rate limitting
+            cpu_count = cpu_count if cpu_count < 3 else 2
 
         rstr = r"[\/\\\:\*\?\"\<\>\|\.]"  # '/ \ : * ? " < > | .'
         dirName = re.sub(rstr, "_", dirName)
