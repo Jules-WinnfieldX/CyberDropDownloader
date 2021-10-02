@@ -37,6 +37,12 @@ https://www.python.org/ftp/python/3.9.6/python-3.9.6-amd64.exe
 
 Use this installer to install python, make sure you select the box that says "ADD TO PATH"
 
+**Arch Linux**
+
+There is a package on the AUR named [`cyberdropdownloader-bin`](https://aur.archlinux.org/packages/cyberdropdownloader-bin/).
+
+This can be installed using your preffered AUR helper with a command like `paru -Sy cyberdropdownloader-bin`. You can then run the program by running `$ cyberdrop-downloader`. This will create a `URLS.txt` file in your current path which you can populate to proceed with your downloads.
+
 # Usage
 Copy and paste links into URLs.txt. 
 Each link you add has to go on it's own line. (paste link, press enter, repeat).
