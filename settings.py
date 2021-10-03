@@ -5,7 +5,7 @@
 # file_attempts = 0 (will try infinitely), making it 5 as an example will try to download 5 times and then skip.
 # timeout is measured in seconds
 
-threads = 2
+threads = 0
 download_folder = "./Downloads/"
 file_attempts = 0
 timeout = 30

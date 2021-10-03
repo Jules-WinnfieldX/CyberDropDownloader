@@ -162,13 +162,13 @@ if __name__ == '__main__':
             print(dirName)
             dirName = dirName.split("–")[0]
 
-        elif 'putme.ga' or 'pixl' in url.lower():
+        elif 'putme.ga' in url.lower() or 'pixl' in url.lower():
             dirName = soup.find("meta", {"property": "og:title"}).attrs['content']
 
         elif 'bunk' in url.lower():
             dirName = soup.select('h1.title')[0].text.strip()
             # Artificial limit to bypass rate limitting
-            cpu_count = cpu_count if cpu_count < 3 else 2
+            cpu_count = cpu_count if cpu_count < 4 else 3
 
         rstr = r"[\/\\\:\*\?\"\<\>\|\.]"  # '/ \ : * ? " < > | .'
         dirName = re.sub(rstr, "_", dirName)
