@@ -26,7 +26,8 @@ def Extrair_Links(baseURL):
         elif 'bunk' in baseURL.lower():
             for link in soup.find_all(class_="image"):
                 lis = link.get('href')
-                if '.mp4' in lis:
+                check = [ext for ext in videoExtensions if (ext in lis)]
+                if bool(check):
                     lis = lis.replace('https://cdn.bunkr.to/', 'https://stream.bunkr.to/d/')
                 links.append(lis)
 
