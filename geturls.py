@@ -2,7 +2,7 @@ import requests
 import os
 from bs4 import BeautifulSoup, SoupStrainer
 
-videoExtensions = ['.mp4', '.wmv', '.m4v']
+videoExtensions = ['.mp4', '.wmv', '.m4v', '.mov']
 
 
 def Extrair_Links(baseURL):
