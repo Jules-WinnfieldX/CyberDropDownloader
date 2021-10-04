@@ -26,8 +26,7 @@ def Extrair_Links(baseURL):
         elif 'bunk' in baseURL.lower():
             for link in soup.find_all(class_="image"):
                 lis = link.get('href')
-                check = [ext for ext in videoExtensions if (ext in lis)]
-                if bool(check):
+                if any(videoExtension in lis.lower() for videoExtension in videoExtensions):
                     lis = lis.replace('https://cdn.bunkr.to/', 'https://stream.bunkr.to/d/')
                 links.append(lis)
 
@@ -35,7 +34,7 @@ def Extrair_Links(baseURL):
         elif 'dmca.gripe' in baseURL.lower():
             for link in soup.find_all('a', {'class': 'download-button'}):
                 lis = link.get('href')
-                if any(videoExtension in lis for videoExtension in videoExtensions):
+                if any(videoExtension in lis.lower() for videoExtension in videoExtensions):
                     # if it's a video, redo the process in gripeVideo
                     links.append(gripeVideo(lis))
                 elif len(str(lis)) > 30:
