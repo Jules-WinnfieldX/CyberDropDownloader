@@ -42,7 +42,7 @@ def Extrair_Links(baseURL):
 
         # If putme.ga or pixl, correct any bad urls, find all pages in album,
         # find all image links and then correct all image links
-        elif 'putme.ga' or 'pixl' in baseURL.lower():
+        elif 'putme.ga' in baseURL.lower() or 'pixl' in baseURL.lower():
             # First correct any 'bad' URLs by getting the real embedded url from the page itself
             url = soup.find(attrs={"data-text": "album-name"}).get('href')
             pages.append(url)
