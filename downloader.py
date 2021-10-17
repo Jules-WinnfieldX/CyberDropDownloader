@@ -118,7 +118,7 @@ if __name__ == '__main__':
 
     response = requests.get("https://api.github.com/repos/Jules-WinnfieldX/CyberDropDownloader/releases/latest")
     latestVersion = response.json()["tag_name"]
-    currentVersion = "1.4.1"
+    currentVersion = "1.4.2"
 
     clear()
 
@@ -157,18 +157,23 @@ if __name__ == '__main__':
         page = requests.get(url)
         soup = BeautifulSoup(page.text, "html.parser")
 
-        if 'cyberdrop' in url.lower():
-            dirName = soup.select('h1.has-text-centered')[0].text.strip()
-            print(dirName)
-            dirName = dirName.split("–")[0]
+        try:
+            if 'cyberdrop' in url.lower():
+                dirName = soup.select('h1.has-text-centered')[0].text.strip()
+                print(dirName)
+                dirName = dirName.split("–")[0]
 
-        elif 'putme.ga' in url.lower() or 'pixl' in url.lower():
-            dirName = soup.find("meta", {"property": "og:title"}).attrs['content']
+            elif 'putme.ga' in url.lower() or 'pixl' in url.lower():
+                dirName = soup.find("meta", {"property": "og:title"}).attrs['content']
 
-        elif 'bunk' in url.lower():
-            dirName = soup.select('h1.title')[0].text.strip()
-            # Artificial limit to bypass rate limitting
-            cpu_count = cpu_count if cpu_count < 4 else 3
+            elif 'bunk' in url.lower():
+                dirName = soup.select('h1.title')[0].text.strip()
+                # Artificial limit to bypass rate limitting
+                cpu_count = cpu_count if cpu_count < 4 else 3
+        except:
+            print("Skipping URL: {}".format(url))
+            print("Please check the URL and if it's valid please create a github issue.")
+            continue
 
         rstr = r"[\/\\\:\*\?\"\<\>\|\.]"  # '/ \ : * ? " < > | .'
         dirName = re.sub(rstr, "_", dirName)
