@@ -27,7 +27,7 @@ def Extrair_Links(baseURL):
             for link in soup.find_all(class_="image"):
                 lis = link.get('href')
                 if any(videoExtension in lis.lower() for videoExtension in videoExtensions):
-                    lis = lis.replace('https://cdn.bunkr.to/', 'https://stream.bunkr.to/d/')
+                    lis = lis.replace('https://cdn.bunkr.is/', 'https://stream.bunkr.is/d/')
                 links.append(lis)
 
         # If dmca.gripe find 'a', {'class': 'download-button'} href links
