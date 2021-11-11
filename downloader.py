@@ -41,21 +41,21 @@ def download(passed_from_main):
     _timeout = passed_from_main[3]
 
     attempts = 1
-    attemptsToTry = (settings.file_attempts + 1) if settings.file_attempts != 0 else 0
+    allowed_attempts = (settings.file_attempts + 1) if settings.file_attempts != 0 else 0
 
     try:
         while True:
             filename = _item[_item.rfind("/") + 1:]
-            filenameTemp = f'{filename}.download'
+            temp_filename = f'{filename}.download'
             _url = _item
 
-            if attemptsToTry != 0 and attempts >= attemptsToTry:
-                log("        Hit user specified attempt limit" + " for " + filename + " skipping file", Fore.RED)
+            if allowed_attempts != 0 and attempts >= allowed_attempts:
+                log("\tHit user specified attempt limit" + " for " + filename + " skipping file", Fore.RED)
                 break
 
             else:
                 if attempts != 1:
-                    log("        Retrying " + filename + "...", Fore.YELLOW)
+                    log("\tRetrying " + filename + "...", Fore.YELLOW)
                 try:
                     if filename == "cyberdrop.me-downloaders":
                         break
@@ -67,37 +67,37 @@ def download(passed_from_main):
                         log("           " + filename + " already exists.", Fore.LIGHTBLACK_EX)
                         break
 
-                    storedFileSize = None
-                    if os.path.isfile(_path + str(filenameTemp)):
-                        storedFileSize = os.path.getsize(_path + str(filenameTemp))
-                        log("           " + filename + f" already exists (partial, {storedFileSize} B).", Fore.LIGHTBLACK_EX)
-                        headers['Range'] = f'bytes={storedFileSize}-'
+                    stored_file_size = None
+                    if os.path.isfile(_path + str(temp_filename)):
+                        stored_file_size = os.path.getsize(_path + str(temp_filename))
+                        log("           " + filename + f"already exists (partial, {stored_file_size} B).", Fore.LIGHTBLACK_EX)
+                        headers['Range'] = f'bytes={stored_file_size}-'
                         resume = True
 
-                    log("        Downloading " + filename + "...", Fore.LIGHTBLACK_EX)
+                    log("\tDownloading " + filename + "...", Fore.LIGHTBLACK_EX)
 
                     try:
                         response = requests.get(_url, stream=True, timeout=_timeout, headers=headers)
                         response.raise_for_status()
-                        incomingFileSize = int(response.headers['Content-length'])
-                        with open(_path + str(filenameTemp), "ab" if resume else "wb") as out_file:
+                        incoming_file_size = int(response.headers['Content-length'])
+                        with open(_path + str(temp_filename), "ab" if resume else "wb") as out_file:
                             for chunk in response.iter_content(chunk_size=50000):
                                 if chunk:
                                     out_file.write(chunk)
                     except requests.exceptions.HTTPError as err:
                         print(err)
 
-                    if os.path.isfile(_path + str(filenameTemp)):
-                        totalFileSize = incomingFileSize if storedFileSize is None else (
-                                        incomingFileSize + storedFileSize)
-                        storedFileSize = os.path.getsize(_path + str(filenameTemp))
-                        if totalFileSize == storedFileSize:
-                            os.rename(_path + str(filenameTemp), _path + str(filename))
+                    if os.path.isfile(_path + str(temp_filename)):
+                        total_file_size = incoming_file_size if stored_file_size is None else (
+                                        incoming_file_size + stored_file_size)
+                        stored_file_size = os.path.getsize(_path + str(temp_filename))
+                        if total_file_size == stored_file_size:
+                            os.rename(_path + str(temp_filename), _path + str(filename))
                             log("        Finished " + filename, Fore.GREEN)
                             break
                         else:
                             raise SizeError("File Size Specified: {} bytes, File Size Obtained: {} bytes".format(
-                                totalFileSize, storedFileSize), "These file sizes don't match")
+                                total_file_size, stored_file_size), "These file sizes don't match")
                     else:
                         log("        Something went wrong" + " for " + filename, Fore.RED)
                         attempts += 1
@@ -116,13 +116,14 @@ if __name__ == '__main__':
 
     response = requests.get("https://api.github.com/repos/Jules-WinnfieldX/CyberDropDownloader/releases/latest")
     latestVersion = response.json()["tag_name"]
-    currentVersion = "1.4.2"
+    currentVersion = "1.4.1"
 
     clear()
 
     if latestVersion != currentVersion:
-        print("A new version of CyberDropDownloader is available\n"
-              "Download it here: https://github.com/Jules-WinnfieldX/CyberDropDownloader/releases/latest\n")
+        log("A new version of CyberDropDownloader is available\n"
+            "Download it here: https://github.com/Jules-WinnfieldX/CyberDropDownloader/releases/latest\n", Fore.RED)
+        input("To continue anyways press enter")
 
     headers = {'headers': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:51.0) Gecko/20100101 Firefox/51.0'}
 
