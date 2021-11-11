@@ -160,7 +160,6 @@ if __name__ == '__main__':
         try:
             if 'cyberdrop' in url.lower():
                 directory_name = soup.select('h1.has-text-centered')[0].text.strip()
-                print(directory_name)
                 directory_name = directory_name.split("–")[0]
 
             elif 'putme.ga' in url.lower() or 'pixl' in url.lower():
