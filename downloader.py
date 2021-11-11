@@ -7,17 +7,12 @@ import re
 from colorama import Fore, Style
 from geturls import Extrair_Links
 from multiprocessing import Pool
-from bs4 import BeautifulSoup, SoupStrainer
+from bs4 import BeautifulSoup
 import multiprocessing
 import settings
 
 
-class Error(Exception):
-    """Base class for exceptions in this module."""
-    pass
-
-
-class SizeError(Error):
+class SizeError(Exception):
     """Exception raised for errors in the input.
     Attributes:
         expression -- input expression in which the error occurred

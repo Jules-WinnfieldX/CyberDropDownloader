@@ -1,6 +1,5 @@
 import requests
-import os
-from bs4 import BeautifulSoup, SoupStrainer
+from bs4 import BeautifulSoup
 
 videoExtensions = ['.mp4', '.wmv', '.m4v', '.mov']
 
