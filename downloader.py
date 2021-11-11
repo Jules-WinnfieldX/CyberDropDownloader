@@ -36,10 +36,13 @@ def clear():
 
 def download(passed_from_main):
     _path = passed_from_main[0]
-    _item = passed_from_main[1]
-    _timeout = passed_from_main[2]
+    _referer = passed_from_main[1]
+    _item = passed_from_main[2]
+    _timeout = passed_from_main[3]
+
     attempts = 1
     attemptsToTry = (settings.file_attempts + 1) if settings.file_attempts != 0 else 0
+
     try:
         while True:
             filename = _item[_item.rfind("/") + 1:]
@@ -49,6 +52,7 @@ def download(passed_from_main):
             if attemptsToTry != 0 and attempts >= attemptsToTry:
                 log("        Hit user specified attempt limit" + " for " + filename + " skipping file", Fore.RED)
                 break
+
             else:
                 if attempts != 1:
                     log("        Retrying " + filename + "...", Fore.YELLOW)
@@ -56,7 +60,7 @@ def download(passed_from_main):
                     if filename == "cyberdrop.me-downloaders":
                         break
 
-                    headers = {}
+                    headers = {'referer': _referer}
                     resume = False
 
                     if not resume and os.path.isfile(_path + str(filename)):
@@ -70,20 +74,19 @@ def download(passed_from_main):
                         headers['Range'] = f'bytes={storedFileSize}-'
                         resume = True
 
-                    response = requests.get(_url, stream=True, timeout=_timeout, headers=headers)
-                    incomingFileSize = int(response.headers['Content-length'])
-
                     log("        Downloading " + filename + "...", Fore.LIGHTBLACK_EX)
 
-                    if response.status_code == 200 or response.status_code == 206:
+                    try:
+                        response = requests.get(_url, stream=True, timeout=_timeout, headers=headers)
+                        response.raise_for_status()
+                        incomingFileSize = int(response.headers['Content-length'])
                         with open(_path + str(filenameTemp), "ab" if resume else "wb") as out_file:
                             for chunk in response.iter_content(chunk_size=50000):
                                 if chunk:
                                     out_file.write(chunk)
-                    else:
-                        raise Exception("HTTP response code " + str(response.status_code))
+                    except requests.exceptions.HTTPError as err:
+                        print(err)
 
-                    del response
                     if os.path.isfile(_path + str(filenameTemp)):
                         totalFileSize = incomingFileSize if storedFileSize is None else (
                                         incomingFileSize + storedFileSize)
