@@ -64,13 +64,13 @@ def download(passed_from_main):
                     resume = False
 
                     if not resume and os.path.isfile(_path + str(filename)):
-                        log("           " + filename + " already exists.", Fore.LIGHTBLACK_EX)
+                        log("\t" + filename + " already exists.", Fore.GREEN)
                         break
 
                     stored_file_size = None
                     if os.path.isfile(_path + str(temp_filename)):
                         stored_file_size = os.path.getsize(_path + str(temp_filename))
-                        log("           " + filename + f"already exists (partial, {stored_file_size} B).", Fore.LIGHTBLACK_EX)
+                        log("\t" + filename + f" already exists (partial, {stored_file_size} B).", Fore.LIGHTBLACK_EX)
                         headers['Range'] = f'bytes={stored_file_size}-'
                         resume = True
 
@@ -85,7 +85,10 @@ def download(passed_from_main):
                                 if chunk:
                                     out_file.write(chunk)
                     except requests.exceptions.HTTPError as err:
-                        print(err)
+                        log("\t"+str(err), Fore.RED)
+                        log("        Failed attempt " + str(attempts) + " for " + filename, Fore.RED)
+                        attempts += 1
+                        continue
 
                     if os.path.isfile(_path + str(temp_filename)):
                         total_file_size = incoming_file_size if stored_file_size is None else (
@@ -93,17 +96,17 @@ def download(passed_from_main):
                         stored_file_size = os.path.getsize(_path + str(temp_filename))
                         if total_file_size == stored_file_size:
                             os.rename(_path + str(temp_filename), _path + str(filename))
-                            log("        Finished " + filename, Fore.GREEN)
+                            log("\tFinished " + filename, Fore.GREEN)
                             break
                         else:
                             raise SizeError("File Size Specified: {} bytes, File Size Obtained: {} bytes".format(
                                 total_file_size, stored_file_size), "These file sizes don't match")
                     else:
-                        log("        Something went wrong" + " for " + filename, Fore.RED)
+                        log("\tSomething went wrong" + " for " + filename, Fore.RED)
                         attempts += 1
                 except Exception as e:
                     log(e, Fore.RED)
-                    log("        Failed attempt " + str(attempts) + " for " + filename, Fore.RED)
+                    log("\tFailed attempt " + str(attempts) + " for " + filename, Fore.RED)
                     attempts += 1
 
     except Exception as e:
@@ -115,12 +118,12 @@ if __name__ == '__main__':
     log("", Fore.RESET)
 
     response = requests.get("https://api.github.com/repos/Jules-WinnfieldX/CyberDropDownloader/releases/latest")
-    latestVersion = response.json()["tag_name"]
-    currentVersion = "1.4.1"
+    latest_version = response.json()["tag_name"]
+    current_version = "1.4.2"
 
     clear()
 
-    if latestVersion != currentVersion:
+    if latest_version != current_version:
         log("A new version of CyberDropDownloader is available\n"
             "Download it here: https://github.com/Jules-WinnfieldX/CyberDropDownloader/releases/latest\n", Fore.RED)
         input("To continue anyways press enter")
@@ -128,17 +131,15 @@ if __name__ == '__main__':
     headers = {'headers': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:51.0) Gecko/20100101 Firefox/51.0'}
 
     cpu_count = settings.threads if settings.threads != 0 else multiprocessing.cpu_count()
-    downloadFolder = settings.download_folder
+    download_folder = settings.download_folder
     timeout = settings.timeout
 
-    if downloadFolder == "./Downloads/":
-        if not os.path.exists(downloadFolder):
-            os.makedirs(downloadFolder)
+    if download_folder == "./Downloads/":
+        if not os.path.exists(download_folder):
+            os.makedirs(download_folder)
     else:
-        if not os.path.exists(downloadFolder):
-            log("The download folder specified (" + downloadFolder + ") does not exist ", Fore.RED)
-
-    totalFiles = 0
+        if not os.path.exists(download_folder):
+            log("The download folder specified (" + download_folder + ") does not exist ", Fore.RED)
 
     if os.path.isfile("URLs.txt"):
         print("URLs.txt exists")
@@ -158,15 +159,15 @@ if __name__ == '__main__':
 
         try:
             if 'cyberdrop' in url.lower():
-                dirName = soup.select('h1.has-text-centered')[0].text.strip()
-                print(dirName)
-                dirName = dirName.split("–")[0]
+                directory_name = soup.select('h1.has-text-centered')[0].text.strip()
+                print(directory_name)
+                directory_name = directory_name.split("–")[0]
 
             elif 'putme.ga' in url.lower() or 'pixl' in url.lower():
-                dirName = soup.find("meta", {"property": "og:title"}).attrs['content']
+                directory_name = soup.find("meta", {"property": "og:title"}).attrs['content']
 
             elif 'bunk' in url.lower():
-                dirName = soup.select('h1.title')[0].text.strip()
+                directory_name = soup.select('h1.title')[0].text.strip()
                 # Artificial limit to bypass rate limitting
                 cpu_count = cpu_count if cpu_count < 4 else 3
         except:
@@ -175,23 +176,24 @@ if __name__ == '__main__':
             continue
 
         rstr = r"[\/\\\:\*\?\"\<\>\|\.]"  # '/ \ : * ? " < > | .'
-        dirName = re.sub(rstr, "_", dirName)
-        dirName += "/"
-        path = downloadFolder+dirName
+        directory_name = re.sub(rstr, "_", directory_name)
+        directory_name += "/"
+        path = download_folder+directory_name
 
         print("\n======================================================\n")
 
         print("\nCollecting file links from " + url + "...")
         links = Extrair_Links(url)
+        links = {k: v for k, v in links.items() if v is not None}
 
-        if links is None:
+        if not links:
             print()
             input(url + " Couldn't find pictures.")
             exit()
 
         print()
-        print("       URL       " + url)
-        print("       DIR       " + path)
+        print("\tURL\t" + url)
+        print("\tDIR\t" + path)
         print()
         if not (os.path.isdir(path)):
             try:
@@ -203,8 +205,9 @@ if __name__ == '__main__':
         print()
 
         pass_to_func = []
-        for link in links:
-            pass_to_func.append([path, link, timeout])
+        for referer, link_list in links.items():
+            for link in link_list:
+                pass_to_func.append([path, referer, link, timeout])
 
         print("Downloading " + str(len(pass_to_func)) + " files...")
         pool = Pool(processes=cpu_count)

@@ -5,28 +5,40 @@ video_extensions = ['.mp4', '.wmv', '.m4v', '.mov']
 
 
 def cyberdrop_extractor(soup, base_URL):
-    links = {base_URL: []}
+    links = {base_URL: None}
     if 'cyberdrop' in base_URL.lower():
         for link in soup.find_all(id="file"):
             final_link = link.get('href')
             if len(str(final_link)) > 30:
                 final_link = final_link.replace('.nl/', '.cc/')
-                links[base_URL].append(final_link)
+                if isinstance(links[base_URL], list):
+                    links[base_URL].append(final_link)
+                else:
+                    links[base_URL] = [final_link]
     return links
 
 
 def bunkr_extractor(soup, base_URL):
-    links = {base_URL: []}
+    links = {base_URL: None}
     for link in soup.find_all(class_="image"):
         final_link = link.get('href')
         if any(video_extension in final_link.lower() for video_extension in video_extensions):
+            new_base_URL = final_link.replace('https://cdn.bunkr.is/', 'https://stream.bunkr.is/v/')
             final_link = final_link.replace('https://cdn.bunkr.is/', 'https://stream.bunkr.is/d/')
-        links[base_URL].append(final_link)
+            if new_base_URL in links:
+                links[new_base_URL].append(final_link)
+            else:
+                links[new_base_URL] = [final_link]
+            continue
+        if isinstance(links[base_URL], list):
+            links[base_URL].append(final_link)
+        else:
+            links[base_URL] = [final_link]
     return links
 
 
 def dmca_gripe_extractor(soup, base_URL):
-    links = {base_URL: []}
+    links = {base_URL: None}
     for link in soup.find_all('a', {'class': 'download-button'}):
         potential_final_link = link.get('href')
         if any(videoExtension in potential_final_link.lower() for videoExtension in video_extensions):
@@ -46,7 +58,10 @@ def dmca_gripe_extractor(soup, base_URL):
                 print(e)
                 return None
         elif len(str(potential_final_link)) > 30:
-            links[base_URL].append(potential_final_link)
+            if isinstance(links[base_URL], list):
+                links[base_URL].append(potential_final_link)
+            else:
+                links[base_URL] = [potential_final_link]
     return links
 
 
@@ -54,7 +69,7 @@ def multi_page_extractor(soup, base_URL):
     # First correct any 'bad' URLs by getting the real embedded url from the page itself
     url = soup.find(attrs={"data-text": "album-name"}).get('href')
     pages = [url]
-    links = {base_URL: []}
+    links = {base_URL: None}
 
     # Find all the pages within the album
     while True:
