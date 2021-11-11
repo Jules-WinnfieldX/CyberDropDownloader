@@ -1,99 +1,121 @@
 import requests
 from bs4 import BeautifulSoup
 
-videoExtensions = ['.mp4', '.wmv', '.m4v', '.mov']
+video_extensions = ['.mp4', '.wmv', '.m4v', '.mov']
 
 
-def Extrair_Links(baseURL):
+def cyberdrop_extractor(soup, base_URL):
+    links = {base_URL: []}
+    if 'cyberdrop' in base_URL.lower():
+        for link in soup.find_all(id="file"):
+            final_link = link.get('href')
+            if len(str(final_link)) > 30:
+                final_link = final_link.replace('.nl/', '.cc/')
+                links[base_URL].append(final_link)
+    return links
+
+
+def bunkr_extractor(soup, base_URL):
+    links = {base_URL: []}
+    for link in soup.find_all(class_="image"):
+        final_link = link.get('href')
+        if any(video_extension in final_link.lower() for video_extension in video_extensions):
+            final_link = final_link.replace('https://cdn.bunkr.is/', 'https://stream.bunkr.is/d/')
+        links[base_URL].append(final_link)
+    return links
+
+
+def dmca_gripe_extractor(soup, base_URL):
+    links = {base_URL: []}
+    for link in soup.find_all('a', {'class': 'download-button'}):
+        potential_final_link = link.get('href')
+        if any(videoExtension in potential_final_link.lower() for videoExtension in video_extensions):
+            # extract direct video links from download page. This will likely break eventually.
+            try:
+                page = requests.get(potential_final_link)
+                data = page.text
+                soup = BeautifulSoup(data, features="html5lib")
+
+                for link in soup.find_all('a', {'class': 'btn btn-dl'}):
+                    suffix = link.get('href')
+                if isinstance(links[potential_final_link], list):
+                    links[potential_final_link].append("https://share.dmca.gripe" + suffix)
+                else:
+                    links[potential_final_link] = ["https://share.dmca.gripe" + suffix]
+            except Exception as e:
+                print(e)
+                return None
+        elif len(str(potential_final_link)) > 30:
+            links[base_URL].append(potential_final_link)
+    return links
+
+
+def multi_page_extractor(soup, base_URL):
+    # First correct any 'bad' URLs by getting the real embedded url from the page itself
+    url = soup.find(attrs={"data-text": "album-name"}).get('href')
+    pages = [url]
+    links = {base_URL: []}
+
+    # Find all the pages within the album
+    while True:
+        # Searches for links within the page
+        request = requests.get(url)
+        soup = BeautifulSoup(request.text, 'html.parser')
+        # Searches for next page link
+        nextPage = soup.find("li", {'class': 'pagination-next'})
+        if nextPage is None:
+            break
+        else:
+            for child in nextPage.children:
+                childURL = child.get("href")
+                if childURL:
+                    pages.append(childURL)
+            if not childURL:
+                break
+            else:
+                url = childURL
+
+    # Searches through links for image urls
+    request = requests.Session()
+    for link in pages:
+        with request.get(link) as r:
+            soup = BeautifulSoup(r.text, 'html.parser')
+            new = soup.find('div', {'class': 'pad-content-listing'})
+            broken_links = [image["src"] for image in new.findAll("img")]
+            for brokenLink in broken_links:
+                final_link = brokenLink.replace('.md.', '.').replace('.th.', '.')
+                if isinstance(links[link], list):
+                    links[link].append(final_link)
+                else:
+                    links[link] = [final_link]
+    return links
+
+
+def Extrair_Links(base_URL):
     # Extract links from gallery
     try:
-        page = requests.get(baseURL)
+        page = requests.get(base_URL)
         data = page.text
         soup = BeautifulSoup(data, features="html5lib")
-        links = []
-        pages = []
+        links = {}
 
-        # If cyberdrop, find id="file" href links
-        if 'cyberdrop' in baseURL.lower():
-            for link in soup.find_all(id="file"):
-                lis = link.get('href')
-                if len(str(lis)) > 30:
-                    lis = lis.replace('.nl/', '.cc/')
-                    links.append(lis)
+        if 'cyberdrop' in base_URL.lower():
+            links = cyberdrop_extractor(soup, base_URL)
 
-        # If bunkr or bunkerleaks, find class="image" href links
-        elif 'bunk' in baseURL.lower():
-            for link in soup.find_all(class_="image"):
-                lis = link.get('href')
-                if any(videoExtension in lis.lower() for videoExtension in videoExtensions):
-                    lis = lis.replace('https://cdn.bunkr.is/', 'https://stream.bunkr.is/d/')
-                links.append(lis)
+        elif 'bunkr' in base_URL.lower():
+            links = bunkr_extractor(soup, base_URL)
 
         # If dmca.gripe find 'a', {'class': 'download-button'} href links
-        elif 'dmca.gripe' in baseURL.lower():
-            for link in soup.find_all('a', {'class': 'download-button'}):
-                lis = link.get('href')
-                if any(videoExtension in lis.lower() for videoExtension in videoExtensions):
-                    # if it's a video, redo the process in gripeVideo
-                    links.append(gripeVideo(lis))
-                elif len(str(lis)) > 30:
-                    links.append(lis)
+        elif 'dmca.gripe' in base_URL.lower():
+            links = dmca_gripe_extractor(soup, base_URL)
 
         # If putme.ga or pixl, correct any bad urls, find all pages in album,
         # find all image links and then correct all image links
-        elif 'putme.ga' in baseURL.lower() or 'pixl' in baseURL.lower():
-            # First correct any 'bad' URLs by getting the real embedded url from the page itself
-            url = soup.find(attrs={"data-text": "album-name"}).get('href')
-            pages.append(url)
-
-            # Find all the pages within the album
-            while True:
-                # Searches for links within the page
-                request = requests.get(url)
-                soup = BeautifulSoup(request.text, 'html.parser')
-                # Searches for next page link
-                nextPage = soup.find("li", {'class': 'pagination-next'})
-                if nextPage is None:
-                    break
-                else:
-                    for child in nextPage.children:
-                        childURL = child.get("href")
-                        if childURL:
-                            pages.append(childURL)
-                    if not childURL:
-                        break
-                    else:
-                        url = childURL
-
-            # Searches through links for image urls
-            request = requests.Session()
-            for link in pages:
-                with request.get(link) as r:
-                    soup = BeautifulSoup(r.text, 'html.parser')
-                    new = soup.find('div', {'class': 'pad-content-listing'})
-                    brokenLinks = [image["src"] for image in new.findAll("img")]
-                    for brokenLink in brokenLinks:
-                        link = brokenLink.replace('.md.', '.').replace('.th.', '.')
-                        links.append(link)
-        linksDict = list(dict.fromkeys(links))
+        elif 'putme.ga' in base_URL.lower() or 'pixl' in base_URL.lower():
+            links = multi_page_extractor(soup, base_URL)
 
     except Exception as e:
         print(e)
         return None
     else:
-        return linksDict
-
-
-def gripeVideo(url):
-    # extract direct video links from download page. This will likely break eventually.
-    try:
-        page = requests.get(url)
-        data = page.text
-        soup = BeautifulSoup(data, features="html5lib")
-
-        for link in soup.find_all('a', {'class': 'btn btn-dl'}):
-            suffix = link.get('href')
-        return "https://share.dmca.gripe" + suffix
-    except Exception as e:
-        print(e)
-        return None
+        return links
