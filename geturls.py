@@ -68,42 +68,33 @@ def dmca_gripe_extractor(soup, base_URL):
 def multi_page_extractor(soup, base_URL):
     # First correct any 'bad' URLs by getting the real embedded url from the page itself
     url = soup.find(attrs={"data-text": "album-name"}).get('href')
-    pages = [url]
     links = {base_URL: None}
 
-    # Find all the pages within the album
     while True:
-        # Searches for links within the page
         request = requests.get(url)
         soup = BeautifulSoup(request.text, 'html.parser')
-        # Searches for next page link
-        nextPage = soup.find("li", {'class': 'pagination-next'})
-        if nextPage is None:
-            break
-        else:
-            for child in nextPage.children:
-                childURL = child.get("href")
-                if childURL:
-                    pages.append(childURL)
-            if not childURL:
-                break
+        # Get image links
+        html_filter = soup.find('div', {'class': 'pad-content-listing'})
+        broken_links = [image["src"] for image in html_filter.findAll("img")]
+        for brokenLink in broken_links:
+            final_link = brokenLink.replace('.md.', '.').replace('.th.', '.')
+            if url in links:
+                if isinstance(links[url], list):
+                    links[url].append(final_link)
             else:
-                url = childURL
-
-    # Searches through links for image urls
-    request = requests.Session()
-    for link in pages:
-        with request.get(link) as r:
-            soup = BeautifulSoup(r.text, 'html.parser')
-            new = soup.find('div', {'class': 'pad-content-listing'})
-            broken_links = [image["src"] for image in new.findAll("img")]
-            for brokenLink in broken_links:
-                final_link = brokenLink.replace('.md.', '.').replace('.th.', '.')
-                if isinstance(links[link], list):
-                    links[link].append(final_link)
+                links[url] = [final_link]
+        
+        # Searches for next page link
+        next_page = soup.find("li", {'class': 'pagination-next'})
+        if next_page is None:
+            return links
+        else:
+            for child in next_page.children:
+                child_URL = child.get("href")
+                if child_URL:
+                    url = child_URL
                 else:
-                    links[link] = [final_link]
-    return links
+                    return links
 
 
 def Extrair_Links(base_URL):
@@ -120,12 +111,9 @@ def Extrair_Links(base_URL):
         elif 'bunkr' in base_URL.lower():
             links = bunkr_extractor(soup, base_URL)
 
-        # If dmca.gripe find 'a', {'class': 'download-button'} href links
         elif 'dmca.gripe' in base_URL.lower():
             links = dmca_gripe_extractor(soup, base_URL)
 
-        # If putme.ga or pixl, correct any bad urls, find all pages in album,
-        # find all image links and then correct all image links
         elif 'putme.ga' in base_URL.lower() or 'pixl' in base_URL.lower():
             links = multi_page_extractor(soup, base_URL)
 
