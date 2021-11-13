@@ -36,7 +36,7 @@ def clear():
 
 def download(passed_from_main):
     _path = passed_from_main[0]
-    _referer = passed_from_main[1]
+    _referer = bytes(passed_from_main[1], "utf-8")
     _item = passed_from_main[2]
     _timeout = passed_from_main[3]
 
