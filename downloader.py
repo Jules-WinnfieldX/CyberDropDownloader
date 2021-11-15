@@ -127,7 +127,7 @@ if __name__ == '__main__':
 
     response = requests.get("https://api.github.com/repos/Jules-WinnfieldX/CyberDropDownloader/releases/latest")
     latest_version = response.json()["tag_name"]
-    current_version = "1.5.5"
+    current_version = "1.5.6"
 
     clear()
 
@@ -176,7 +176,7 @@ if __name__ == '__main__':
             elif 'bunk' in url.lower():
                 directory_name = soup.select('h1.title')[0].text.strip()
                 # Artificial limit to bypass rate limitting
-                #cpu_count = cpu_count if cpu_count < 4 else 3
+                cpu_count = cpu_count if cpu_count < 3 else 2
         except:
             print("Skipping URL: {}".format(url))
             print("Please check the URL and if it's valid please create a github issue.")
