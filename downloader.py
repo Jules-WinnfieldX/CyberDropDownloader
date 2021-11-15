@@ -89,8 +89,9 @@ def download(passed_from_main):
                         log("\t"+str(err), Fore.RED)
 
                         if response.status_code == 429:
-                            time_to_sleep = response.headers['Retry-after']
-                            log("\tFailed attempt {} for {}. Sleeping thread for {} seconds.".format(attempts, filename, time_to_sleep))
+                            # Bunkr doesn't return a 'retry-at' header element for some godly reason.
+                            time_to_sleep = 5*attempts
+                            log("\tFailed attempt {} for {}. Sleeping thread for {} seconds.".format(attempts, filename, time_to_sleep), Fore.RED)
                             time.sleep(int(time_to_sleep))
                         else:
                             log("\tFailed attempt {} for {}.".format(attempts, filename), Fore.RED)
@@ -126,7 +127,7 @@ if __name__ == '__main__':
 
     response = requests.get("https://api.github.com/repos/Jules-WinnfieldX/CyberDropDownloader/releases/latest")
     latest_version = response.json()["tag_name"]
-    current_version = "1.5.4"
+    current_version = "1.5.5"
 
     clear()
 
@@ -175,7 +176,7 @@ if __name__ == '__main__':
             elif 'bunk' in url.lower():
                 directory_name = soup.select('h1.title')[0].text.strip()
                 # Artificial limit to bypass rate limitting
-                cpu_count = cpu_count if cpu_count < 3 else 2
+                #cpu_count = cpu_count if cpu_count < 4 else 3
         except:
             print("Skipping URL: {}".format(url))
             print("Please check the URL and if it's valid please create a github issue.")
