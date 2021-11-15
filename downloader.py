@@ -4,6 +4,7 @@
 import requests
 import os
 import re
+import time
 from colorama import Fore, Style
 from geturls import Extrair_Links
 from multiprocessing import Pool
@@ -86,7 +87,13 @@ def download(passed_from_main):
                                     out_file.write(chunk)
                     except requests.exceptions.HTTPError as err:
                         log("\t"+str(err), Fore.RED)
-                        log("        Failed attempt " + str(attempts) + " for " + filename, Fore.RED)
+
+                        if response.status_code == 429:
+                            time_to_sleep = response.headers['Retry-after']
+                            log("\tFailed attempt {} for {}. Sleeping thread for {} seconds.".format(attempts, filename, time_to_sleep))
+                            time.sleep(time_to_sleep)
+                        else:
+                            log("\tFailed attempt {} for {}.".format(attempts, filename), Fore.RED)
                         attempts += 1
                         continue
 
@@ -119,7 +126,7 @@ if __name__ == '__main__':
 
     response = requests.get("https://api.github.com/repos/Jules-WinnfieldX/CyberDropDownloader/releases/latest")
     latest_version = response.json()["tag_name"]
-    current_version = "1.5.2"
+    current_version = "1.5.4"
 
     clear()
 
