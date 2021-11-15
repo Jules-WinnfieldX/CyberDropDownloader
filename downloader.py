@@ -91,7 +91,7 @@ def download(passed_from_main):
                         if response.status_code == 429:
                             time_to_sleep = response.headers['Retry-after']
                             log("\tFailed attempt {} for {}. Sleeping thread for {} seconds.".format(attempts, filename, time_to_sleep))
-                            time.sleep(time_to_sleep)
+                            time.sleep(int(time_to_sleep))
                         else:
                             log("\tFailed attempt {} for {}.".format(attempts, filename), Fore.RED)
                         attempts += 1
