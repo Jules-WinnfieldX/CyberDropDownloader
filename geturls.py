@@ -68,6 +68,7 @@ def dmca_gripe_extractor(soup, base_URL):
 def multi_page_extractor(soup, base_URL):
     # First correct any 'bad' URLs by getting the real embedded url from the page itself
     url = soup.find(attrs={"data-text": "album-name"}).get('href')
+    url += "/?sort=date_asc&page=1"
     links = {base_URL: None}
 
     while True:
