@@ -34,6 +34,7 @@ FILE_FORMATS = {
 CPU_COUNT = settings.threads if settings.threads != 0 else multiprocessing.cpu_count()
 DOWNLOAD_FOLDER = settings.download_folder
 
+
 def log(text, style):
     # Log function for printing to command line
     print(style + str(text) + Style.RESET_ALL)
@@ -90,7 +91,7 @@ async def main():
         scrapper = get_scrapper(url)
 
         with scrapper:
-            title = sanitize_filename(scrapper.get_soup().select_one('title').text)
+            title = DOWNLOAD_FOLDER + sanitize_filename(scrapper.get_soup().select_one('title').text)
             links = scrapper.result_links()
 
             if not links:
@@ -98,7 +99,7 @@ async def main():
                 raise ValueError('No links found, check the URL.')
 
         downloaders = get_downloaders(links, folder=Path(
-            title), max_workers=cpu_count)
+            title), max_workers=CPU_COUNT)
 
         for downloader in downloaders:
             await downloader.download_content()
