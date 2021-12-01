@@ -3,8 +3,8 @@ import argparse
 import asyncio
 from pathlib import Path
 from urllib.parse import urlparse
-from utilities.downloader import get_downloaders
-from utilities.geturls import get_scrapper
+from utils.downloaders import get_downloaders
+from utils.scrapers import get_scrapper
 import settings
 
 from colorama import Fore, Style
