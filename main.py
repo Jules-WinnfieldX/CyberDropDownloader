@@ -60,7 +60,6 @@ def classify_media_files(path: Path) -> None:
     videos_folder.mkdir(exist_ok=True)
 
     # Move the images and videos to appropriate directories
-
     for image in images:
         image.rename(images_folder / image.name)
     for video in videos:
@@ -96,10 +95,9 @@ async def main():
 
             if not links:
                 logging.error(f'ValueError No links: {links}')
-                raise ValueError('No links found, check the URL.')
+                raise ValueError('No links found, check the URL.txt')
 
-        downloaders = get_downloaders(links, folder=Path(
-            title), max_workers=CPU_COUNT)
+        downloaders = get_downloaders(links, folder=Path(title), max_workers=CPU_COUNT)
 
         for downloader in downloaders:
             await downloader.download_content()
