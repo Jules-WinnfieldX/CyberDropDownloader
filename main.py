@@ -31,10 +31,8 @@ FILE_FORMATS = {
     }
 }
 
-cpu_count = settings.threads if settings.threads != 0 else multiprocessing.cpu_count()
-download_folder = settings.download_folder
-timeout = settings.timeout
-
+CPU_COUNT = settings.threads if settings.threads != 0 else multiprocessing.cpu_count()
+DOWNLOAD_FOLDER = settings.download_folder
 
 def log(text, style):
     # Log function for printing to command line
