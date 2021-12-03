@@ -60,6 +60,7 @@ class Downloader:
     async def download_file(
             self,
             url: str,
+            filename: str,
             session: aiohttp.ClientSession,
             headers: Optional[CaseInsensitiveDict] = None,
             show_progress: bool = True
@@ -72,7 +73,7 @@ class Downloader:
             with tqdm(
                 total=total, unit_scale=True,
                 unit='B', leave=False,
-                desc=url, disable=(not show_progress)
+                desc=filename, disable=(not show_progress)
             ) as progress:
                 async for chunk, _ in resp.content.iter_chunks():
                     downloaded.extend(chunk)
@@ -98,7 +99,7 @@ class Downloader:
             logger.debug(str(self.folder / self.title / filename) + " Already Exists")
         else:
             logger.debug("Working on " + url)
-            data = await self.download_file(url, session, headers=headers, show_progress=show_progress)
+            data = await self.download_file(url, filename=filename, session=session, headers=headers, show_progress=show_progress)
             await self.store_file(data, filename)
 
     async def download_all(
@@ -111,7 +112,7 @@ class Downloader:
         """Download the data from all given links and store them into corresponding files."""
         coros = [self.download_and_store(
             link, session, headers, show_progress) for link in links]
-        for func in tqdm(asyncio.as_completed(coros), total=len(coros), desc='Processing'):
+        for func in tqdm(asyncio.as_completed(coros), total=len(coros), desc=self.title, unit='FILES'):
             await func
 
     async def download_content(
@@ -161,12 +162,13 @@ class BunkrDownloader(Downloader):
     async def download_file(
             self,
             url: str,
+            filename: str,
             session: aiohttp.ClientSession,
             headers: Optional[CaseInsensitiveDict] = None,
             show_progress: bool = True
     ) -> bytearray:
         url = self.bunkr_parse(url)
-        return await super().download_file(url, session, headers=headers, show_progress=show_progress)
+        return await super().download_file(url, filename=filename, session=session, headers=headers, show_progress=show_progress)
 
     async def download_all(
             self,
