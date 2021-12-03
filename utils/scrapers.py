@@ -1,147 +1,104 @@
-from abc import ABC, abstractmethod
-from typing import Iterable, Iterator, Optional, Set, Type
-from types import TracebackType
+from scrapy import signals, Spider
+from scrapy.crawler import CrawlerProcess
+from scrapy.utils.project import get_project_settings
+from scrapy.http.request import Request
+from scrapy.signalmanager import dispatcher
 from urllib.parse import urlparse
-import requests
-from bs4 import BeautifulSoup
 import logging
-
-logger = logging.getLogger(__name__)
-
-
-class Scraper(ABC):
-    """This class handles scraping links from a given page."""
-    def __init__(self, start_url: str):
-        self.session = requests.Session()
-        self.url = start_url
-
-    def __enter__(self) -> 'Scraper':
-        return self
-
-    def __exit__(self, exc_type: Type[Exception], exc_val: Exception, exc_tb: TracebackType) -> None:
-        self.session.close()
-
-    def get_soup(self) -> BeautifulSoup:
-        """Get the HTML from the url and return a BeautifulSoup from it
-
-        Returns:
-            BeautifulSoup
-        """
-        response = self.session.get(self.url)
-        response.raise_for_status()
-        soup = BeautifulSoup(response.text, 'html.parser')
-        return soup
-
-    def fetch_all_links(self) -> Iterator[Set[str]]:
-        """Scrape the URL and generate a list of href links from found anchors per page.
-
-        Yielding will change the internal url variable to next page (until we hit last page).
-
-        Raises:
-            ValueError: Url is not in sets
-        Yields:
-            Iterator[Set[str]]
-        """
-        yield self.get_page_links()
-
-        if self.next_page_url is not None:
-            self.url = self.next_page_url
-            yield from self.fetch_all_links()
-
-    @abstractmethod
-    def get_page_links(self) -> Iterable[str]:
-        """Scrape the page and return a list of href links from found anchors.
-
-        This method is expected to be overridden since each site will have different
-        structure and obtaining links will differ.
-        """
-        raise NotImplementedError
-
-    @property
-    @abstractmethod
-    def next_page_url(self) -> Optional[str]:
-        """
-        Gets the URL for the next page scraped from current page.
-
-        This method is expected to be overridden since each site will have the link
-        to next page in a different place.
-
-        If there is no next page, we return `None`
-        """
-        raise NotImplementedError
-
-    @property
-    @abstractmethod
-    def previous_page_url(self) -> Optional[str]:
-        """Gets the URL for the previous page scraped from current page.
-
-        This method is expected to be overridden since each site will have the link
-        to next page in a different place.
-        """
-
-        raise NotImplementedError
-
-    def result_links(self) -> Set[str]:
-        """Get all links across all pages from the start page url.
-
-        Returns:
-            Set[str]: Set of urls
-        """
-        return {url for page_urls in self.fetch_all_links() for url in page_urls}
+import re
 
 
-class ChibisafeScraper(Scraper):
-    """Handles Scraping websites built on chibisafe project."""
+class ShareXSpider(Spider):
+    name = 'ShareX'
 
-    def get_page_links(self) -> Iterable[str]:
-        soup = self.get_soup().select_one('#table')
-        return {anchor['href'] for anchor in soup.findAll('a', href=True)}
+    def __init__(self, *args, **kwargs):
+        self.myurls = kwargs.get('myurls', [])
+        super(ShareXSpider, self).__init__(*args, **kwargs)
 
-    @property
-    def next_page_url(self) -> Optional[str]:
-        # Chibisafe project doesn't have pagination support
-        return None
+    def start_requests(self):
+        for url in self.myurls:
+            yield Request(url, self.parse)
 
-    @property
-    def previous_page_url(self) -> Optional[str]:
-        # Chibisafe project doesn't have pagination support
-        return None
+    def parse(self, response):
+        list_recent = response.css('a[id=list-most-recent-link]::attr(href)').get()
+        title = response.css('title::text').get()
+        yield Request(list_recent, callback=self.get_list_links, meta={'title': title})
 
+    def get_list_links(self, response):
+        links = response.meta.get('links', [])
+        title = response.meta.get('title')
+        links.extend(response.css('a[href*=image] img::attr(src)').getall())
 
-class SharexScraper(Scraper):
-    """Handles scraping websites built on sharex project."""
-    def get_page_links(self) -> Iterable[str]:
-        soup = self.get_soup().select_one('#list-most-recent')
-        return {
-            anchor['src']
-            for content in soup.findAll('div', {'class': 'pad-content-listing'})
-            for anchor in content.find_all('img')
-        }
-
-    @property
-    def next_page_url(self) -> Optional[str]:
-        soup = self.get_soup().select_one('#list-most-recent')
-        next_page = soup.find('a', {'data-pagination': 'next'}, href=True)
+        next_page = response.css('li.pagination-next a::attr("href")').get()
+        meta = {'links': links, 'title': title}
         if next_page is not None:
-            return next_page.get('href')
-        return None
-
-    @property
-    def previous_page_url(self) -> Optional[str]:
-        # TODO: Implement this (even though it may not be needed at the moment
-        # since we have next_page_url, it kind of makes sense to have previous
-        # page too, you never know what you'll want to do with the class eventually
-        # (or if it's a library, what others will want to do with it)
-        raise NotImplementedError
+            yield Request(url=next_page, callback=self.get_list_links, meta=meta)
+        else:
+            for link in links:
+                netloc = urlparse(link).netloc
+                yield {'netloc': netloc, 'url': link.replace('.md.', '.').replace('.th.', '.'), 'title': title}
 
 
-def get_scrapper(url: str) -> Scraper:
-    """This function is responsible for returning a proper Scrape class given the URL."""
-    mapping = {
-        "cyberdrop.me": ChibisafeScraper,
-        "bunkr.is": ChibisafeScraper,
-        "pixl.is": SharexScraper,
-        "putme.ga": SharexScraper
-    }
-    url_netloc = urlparse(url).netloc
-    return mapping[url_netloc](url)
+class ChibisafeSpider(Spider):
+    name = 'ShareX'
+
+    def __init__(self, *args, **kwargs):
+        self.myurls = kwargs.get('myurls', [])
+        super(ChibisafeSpider, self).__init__(*args, **kwargs)
+
+    def start_requests(self):
+        for url in self.myurls:
+            yield Request(url, self.parse)
+
+    def parse(self, response):
+        links = response.css('a[class=image]::attr(href)').getall()
+        title = response.css('title::text').get()
+        for link in links:
+            netloc = urlparse(link).netloc
+            yield {'netloc': netloc, 'url': link, 'title': title}
+
+
+def sanitize_key(key):
+    if "bunkr" in key:
+        key = "bunkr.is"
+    elif "pixl" in key:
+        key = "pixl.is"
+    elif "cyberdrop" in key:
+        key = "cyberdrop.to"
+    elif "putme.ga" in key:
+        key = "putme.ga"
+    return key
+
+
+def scrape(urls):
+    mapping_ShareX = ["pixl.is", "putme.ga"]
+    mapping_Chibisafe = ["cyberdrop.me", "bunkr.is"]
+
+
+    ShareX_urls = []
+    Chibisafe_urls = []
+    unsupported_urls = []
+    result_links = {}
+
+    for url in urls:
+        base_domain = urlparse(url).netloc
+        if base_domain in mapping_ShareX:
+            ShareX_urls.append(url)
+        elif base_domain in mapping_Chibisafe:
+            Chibisafe_urls.append(url)
+        else:
+            unsupported_urls.append(url)
+
+    def crawler_results(signal, sender, item, response, spider):
+        domain = sanitize_key(item['netloc'])
+        title = re.sub(r'[\\/*?:"<>|.]',"", item['title'])
+        result_links.setdefault(domain, {}).setdefault(title, []).append(item['url'])
+
+    dispatcher.connect(crawler_results, signal=signals.item_scraped)
+    settings = get_project_settings()
+    settings.set('LOG_LEVEL', logging.CRITICAL)
+    process = CrawlerProcess(settings)
+    if Chibisafe_urls: process.crawl(ChibisafeSpider, myurls=Chibisafe_urls)
+    if ShareX_urls: process.crawl(ShareXSpider, myurls=ShareX_urls)
+    process.start()
+    return result_links
