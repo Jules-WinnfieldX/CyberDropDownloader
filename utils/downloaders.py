@@ -10,6 +10,7 @@ import aiohttp.client_exceptions
 from requests.structures import CaseInsensitiveDict
 from tqdm import tqdm
 import logging
+from sanitize_filename import sanitize
 
 logger = logging.getLogger(__name__)
 
@@ -18,9 +19,9 @@ T_Func = TypeVar("T_Func", bound=Callable)
 
 
 def retry(
-    attempts: int,
-    timeout: Union[int, float] = 0,
-    exceptions: Iterable[Type[Exception]] = (Exception, )
+        attempts: int,
+        timeout: Union[int, float] = 0,
+        exceptions: Iterable[Type[Exception]] = (Exception,)
 ) -> Callable:
     def inner(func: T_Func) -> T_Func:
         @wraps(func)
@@ -36,29 +37,32 @@ def retry(
                         raise exc
                     times_tried += 1
                     await asyncio.sleep(timeout)
+
         return cast(T_Func, wrapper)
+
     return inner
 
 
 class Downloader:
-    def __init__(self, links: List[str], folder: Path, max_workers: int):
+    def __init__(self, links: List[str], folder: Path, title: str, max_workers: int):
         self.links = links
         self.folder = folder
+        self.title = title
         self.max_workers = max_workers
         self._semaphore = asyncio.Semaphore(max_workers)
 
     @retry(attempts=10, timeout=4, exceptions=(
-        aiohttp.client_exceptions.ClientPayloadError,
-        aiohttp.client_exceptions.ClientOSError,
-        aiohttp.client_exceptions.ServerDisconnectedError,
-        asyncio.TimeoutError
+            aiohttp.client_exceptions.ClientPayloadError,
+            aiohttp.client_exceptions.ClientOSError,
+            aiohttp.client_exceptions.ServerDisconnectedError,
+            asyncio.TimeoutError
     ))
     async def download_file(
-        self,
-        url: str,
-        session: aiohttp.ClientSession,
-        headers: Optional[CaseInsensitiveDict] = None,
-        show_progress: bool = True
+            self,
+            url: str,
+            session: aiohttp.ClientSession,
+            headers: Optional[CaseInsensitiveDict] = None,
+            show_progress: bool = True
     ) -> bytearray:
         """Download the content of given URL and return the obtained bytes."""
         downloaded = bytearray()
@@ -77,27 +81,32 @@ class Downloader:
 
     async def store_file(self, data: bytearray, filename: str) -> None:
         """Store given data into a file."""
-        async with aiofiles.open(self.folder / filename, mode='wb') as f:
+        async with aiofiles.open(self.folder / self.title / filename, mode='wb') as f:
             await f.write(data)
+        logger.debug("Finished " + filename)
 
     async def download_and_store(
-        self,
-        url: str,
-        session: aiohttp.ClientSession,
-        headers: Optional[CaseInsensitiveDict] = None,
-        show_progress: bool = True
+            self,
+            url: str,
+            session: aiohttp.ClientSession,
+            headers: Optional[CaseInsensitiveDict] = None,
+            show_progress: bool = True
     ) -> None:
         """Download the content of given URL and store it in a file."""
-        data = await self.download_file(url, session, headers=headers, show_progress=show_progress)
-        filename = url.split("/")[-1]
-        await self.store_file(data, filename)
+        filename = sanitize(url.split("/")[-1])
+        if (self.folder / self.title / filename).exists():
+            logger.debug(str(self.folder / self.title / filename) + " Already Exists")
+        else:
+            logger.debug("Working on " + url)
+            data = await self.download_file(url, session, headers=headers, show_progress=show_progress)
+            await self.store_file(data, filename)
 
     async def download_all(
-        self,
-        links: Iterable[str],
-        session: aiohttp.ClientSession,
-        headers: Optional[CaseInsensitiveDict] = None,
-        show_progress: bool = True
+            self,
+            links: Iterable[str],
+            session: aiohttp.ClientSession,
+            headers: Optional[CaseInsensitiveDict] = None,
+            show_progress: bool = True
     ) -> None:
         """Download the data from all given links and store them into corresponding files."""
         coros = [self.download_and_store(
@@ -106,12 +115,12 @@ class Downloader:
             await func
 
     async def download_content(
-        self,
-        headers: Optional[CaseInsensitiveDict] = None,
-        show_progress: bool = True
+            self,
+            headers: Optional[CaseInsensitiveDict] = None,
+            show_progress: bool = True
     ) -> None:
         """Download the content of all links and save them as files."""
-        self.folder.mkdir(exist_ok=True)
+        (self.folder / self.title).mkdir(parents=True, exist_ok=True)
         async with aiohttp.ClientSession() as session:
             await self.download_all(self.links, session, headers=headers, show_progress=show_progress)
 
@@ -135,7 +144,7 @@ class BunkrDownloader(Downloader):
         # Make a singleton value so that we can work on iterable that
         # would contain None objects as well.
         FILLVALUE = object()
-        iters = (iter(it), ) * chunk_size
+        iters = (iter(it),) * chunk_size
         for tup in itertools.zip_longest(*iters, fillvalue=FILLVALUE):
             if len(tup) == chunk_size:
                 yield tup
@@ -150,21 +159,21 @@ class BunkrDownloader(Downloader):
                 return tuple(lst)
 
     async def download_file(
-        self,
-        url: str,
-        session: aiohttp.ClientSession,
-        headers: Optional[CaseInsensitiveDict] = None,
-        show_progress: bool = True
+            self,
+            url: str,
+            session: aiohttp.ClientSession,
+            headers: Optional[CaseInsensitiveDict] = None,
+            show_progress: bool = True
     ) -> bytearray:
         url = self.bunkr_parse(url)
         return await super().download_file(url, session, headers=headers, show_progress=show_progress)
 
     async def download_all(
-        self,
-        links: Iterable[str],
-        session: aiohttp.ClientSession,
-        headers: Optional[CaseInsensitiveDict] = None,
-        show_progress: bool = True
+            self,
+            links: Iterable[str],
+            session: aiohttp.ClientSession,
+            headers: Optional[CaseInsensitiveDict] = None,
+            show_progress: bool = True
     ) -> None:
         """Download the data from all given links and store them into corresponding files.
 
@@ -176,7 +185,7 @@ class BunkrDownloader(Downloader):
             await super().download_all(links, session, headers=headers, show_progress=show_progress)
 
 
-def get_downloaders(urls: Iterable[str], folder: Path, max_workers: int) -> List[Downloader]:
+def get_downloaders(urls: dict[dict[list[str]]], folder: Path, max_workers: int) -> List[Downloader]:
     """Get a list of downloaders for each supported type of URLs.
 
     We shouldn't just assume that each URL will have the same netloc as
@@ -191,17 +200,13 @@ def get_downloaders(urls: Iterable[str], folder: Path, max_workers: int) -> List
         'putme.ga': Downloader,
         'cyberdrop.to': Downloader
     }
-    downloader_links = {}
-    for url in urls:
-        domain = '.'.join(urlparse(url).netloc.split('.')[-2:])
-        lst = downloader_links.setdefault(domain, [])
-        lst.append(url)
+
     downloaders = []
-    for domain, urls in downloader_links.items():
+    for domain, url_object in urls.items():
         if domain not in mapping:
             logging.error('Invalid URL!')
             raise ValueError('Invalid URL!')
-        downloader = mapping[domain](
-            urls, folder=folder, max_workers=max_workers)
-        downloaders.append(downloader)
+        for title, urls in url_object.items():
+            downloader = mapping[domain](urls, title=title, folder=folder, max_workers=max_workers)
+            downloaders.append(downloader)
     return downloaders

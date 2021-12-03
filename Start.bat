@@ -1,2 +1,4 @@
 py -m pip install -r requirements.txt  --user
-py downloader.py
+pause
+py main.py
+pause

@@ -4,21 +4,20 @@
 # Supported Sites
 Cyberdrop.me
 
-DMCA.Gripe
+Putme.ga
 
-Putmega
-
-Pixl
+Pixl.is
 
 Bunkr.to
 
+~~DMCA.Gripe~~ (It's dead)
+
 # Information
 
-Created Using Python 3.7.4
-https://www.python.org/downloads/release/python-374/
+Created Using Python 3.9.6
+https://www.python.org/downloads/release/python-396/
 
-The program will take the title of the archive and create a new folder for it, and download all of the images to that folder. It'll repeat for every link you have in URLs.txt.
-If there are no links in URLs.txt, it will instantly close and nothing will happen.
+The program will take the title of the archive and create a new folder for it, and download all of the avilable media to that folder. It'll repeat for every link you have in URLs.txt.
 
 # Installation
 
@@ -37,11 +36,11 @@ https://www.python.org/ftp/python/3.9.6/python-3.9.6-amd64.exe
 
 Use this installer to install python, make sure you select the box that says "ADD TO PATH"
 
-**Arch Linux**
+**Arch Linux** (Not maintained by me)
 
 There is a package on the AUR named [`cyberdropdownloader-bin`](https://aur.archlinux.org/packages/cyberdropdownloader-bin/).
 
-This can be installed using your preffered AUR helper with a command like `paru -Sy cyberdropdownloader-bin`. You can then run the program by running `$ cyberdrop-downloader`. This will create a `URLS.txt` file in your current path which you can populate to proceed with your downloads.
+This can be installed using your preferred AUR helper with a command like `paru -Sy cyberdropdownloader-bin`. You can then run the program by running `$ cyberdrop-downloader`. This will create a `URLS.txt` file in your current path which you can populate to proceed with your downloads.
 
 # Usage
 Copy and paste links into URLs.txt. 
@@ -50,3 +49,9 @@ Each link you add has to go on it's own line. (paste link, press enter, repeat).
 Double click on Start.bat (or Start.sh for Mac OS/Linux), it will download the needed libraries using PIP and run the program.
 
 NOTE: Mac OS X / Linux users will likely have to run the command "chmod +x Start.sh" before they can execute the script.
+
+# Credit
+
+The majority of the new download methodology came from alexdotis' [Chibisafe-Sharex-Scraper](https://github.com/alexdotis/Chibisafe-Sharex-Scraper).
+Added to his code was the ability to take a more descriptive url object containing the album title, netloc and content urls. 
+The download methodology now also checks for existing files.
