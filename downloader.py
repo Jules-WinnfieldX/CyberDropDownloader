@@ -129,7 +129,7 @@ if __name__ == '__main__':
 
     response = requests.get("https://api.github.com/repos/Jules-WinnfieldX/CyberDropDownloader/releases/latest")
     latest_version = response.json()["tag_name"]
-    current_version = "1.5.7"
+    current_version = "1.5.8"
 
     clear()
 
