@@ -47,6 +47,8 @@ def download(passed_from_main):
     try:
         while True:
             filename = _item[_item.rfind("/") + 1:]
+            rstr = r"[\/\\\:\*\?\"\<\>\|\.]"  # '/ \ : * ? " < > | .'
+            filename = re.sub(rstr, "_", filename)
             temp_filename = f'{filename}.download'
             _url = _item
 
