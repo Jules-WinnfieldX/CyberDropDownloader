@@ -91,7 +91,7 @@ def scrape(urls):
 
     def crawler_results(signal, sender, item, response, spider):
         domain = sanitize_key(item['netloc'])
-        title = re.sub(r'[\\/*?:"<>|.]',"-", item['title'])
+        title = re.sub(r'[\\/*?:"<>|.]', "-", item['title'])
         result_links.setdefault(domain, {}).setdefault(title, []).append(item['url'])
 
     dispatcher.connect(crawler_results, signal=signals.item_scraped)
