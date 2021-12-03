@@ -65,7 +65,7 @@ async def main():
     for downloader in downloaders:
         await downloader.download_content()
     log('Finished scraping. Enjoy :)', Fore.WHITE)
-    print(repr(readchar.readchar()))
+    repr(readchar.readchar())
 
 
 if __name__ == '__main__':
