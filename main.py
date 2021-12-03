@@ -1,8 +1,8 @@
 import logging
 import asyncio
 from pathlib import Path
-from utilities.scraper import scrape
-from utilities.downloaders import get_downloaders
+from utils.scrapers import scrape
+from utils.downloaders import get_downloaders
 import settings
 from colorama import Fore, Style
 import requests
