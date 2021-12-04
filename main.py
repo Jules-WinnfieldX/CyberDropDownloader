@@ -46,6 +46,7 @@ def version_check() -> None:
 
 async def main():
     clear()
+    version_check()
     if os.path.isfile("URLs.txt"):
         log("URLs.txt exists", Fore.WHITE)
     else:
