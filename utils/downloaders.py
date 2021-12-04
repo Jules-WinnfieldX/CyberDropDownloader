@@ -130,6 +130,8 @@ class BunkrDownloader(Downloader):
     @staticmethod
     def bunkr_parse(url: str) -> str:
         """Fix the URL for bunkr.is and construct the headers."""
+        if ".mp3" in url:
+            return url
         changed_url = url.replace('cdn.bunkr', 'stream.bunkr').split('/')
         changed_url.insert(3, 'v')
         changed_url = ''.join(map(lambda x: urljoin('/', x), changed_url))
@@ -142,22 +144,9 @@ class BunkrDownloader(Downloader):
         If the elements can't be evenely split, the last tuple will be
         shrunk to accommodate the rest of the elements.
         """
-        # Make a singleton value so that we can work on iterable that
-        # would contain None objects as well.
-        FILLVALUE = object()
-        iters = (iter(it),) * chunk_size
-        for tup in itertools.zip_longest(*iters, fillvalue=FILLVALUE):
-            if len(tup) == chunk_size:
-                yield tup
-            else:
-                # Adjust the size of the last tuple to only contain the
-                # remaining elements
-                lst = []
-                for el in tup:
-                    if el is FILLVALUE:
-                        break
-                    lst.append(el)
-                return tuple(lst)
+        split_it = [it[i:i+chunk_size] for i in range(0, len(it), chunk_size)]
+        for part in split_it:
+            yield tuple(part)
 
     async def download_file(
             self,
