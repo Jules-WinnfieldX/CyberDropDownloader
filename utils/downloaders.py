@@ -145,8 +145,7 @@ class BunkrDownloader(Downloader):
         shrunk to accommodate the rest of the elements.
         """
         split_it = [it[i:i+chunk_size] for i in range(0, len(it), chunk_size)]
-        for part in split_it:
-            yield tuple(part)
+        return map(tuple, split_it)
 
     async def download_file(
             self,
