@@ -2,7 +2,7 @@ import asyncio
 import itertools
 from functools import wraps
 from pathlib import Path
-from typing import Any, Callable, Iterable, List, Optional, Tuple, Type, TypeVar, Union, cast
+from typing import Any, Callable, Iterable, List, Optional, Tuple, Type, TypeVar, Union, cast, Dict
 from urllib.parse import urljoin, urlparse
 import aiofiles
 import aiohttp
@@ -175,7 +175,7 @@ class BunkrDownloader(Downloader):
             await super().download_all(links, session, headers=headers, show_progress=show_progress)
 
 
-def get_downloaders(urls: dict[dict[list[str]]], folder: Path, max_workers: int) -> List[Downloader]:
+def get_downloaders(urls: Dict[str, Dict[str, List[str]]], folder: Path, max_workers: int) -> List[Downloader]:
     """Get a list of downloaders for each supported type of URLs.
 
     We shouldn't just assume that each URL will have the same netloc as
