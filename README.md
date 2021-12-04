@@ -54,4 +54,4 @@ NOTE: Mac OS X / Linux users will likely have to run the command "chmod +x Start
 
 The majority of the new download methodology came from alexdotis' [Chibisafe-Sharex-Scraper](https://github.com/alexdotis/Chibisafe-Sharex-Scraper).
 Added to his code was the ability to take a more descriptive url object containing the album title, netloc and content urls. 
-The download methodology now also checks for existing files.
+The download methodology now also checks for existing files. Simplified bunkr pairing to stop blank objects from being created and passed to the rest of the program.
