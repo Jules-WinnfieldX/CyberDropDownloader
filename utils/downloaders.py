@@ -139,11 +139,7 @@ class BunkrDownloader(Downloader):
 
     @staticmethod
     def pairwise_skipping(it: Iterable[T], chunk_size: int) -> Tuple[T, ...]:
-        """Iterate over tuples of the iterable of size `chunk_size` at a time.
-
-        If the elements can't be evenely split, the last tuple will be
-        shrunk to accommodate the rest of the elements.
-        """
+        """Iterate over tuples of the iterable of size `chunk_size` at a time."""
         split_it = [it[i:i+chunk_size] for i in range(0, len(it), chunk_size)]
         return map(tuple, split_it)
 
