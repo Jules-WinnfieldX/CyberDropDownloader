@@ -18,6 +18,11 @@ T = TypeVar("T")
 T_Func = TypeVar("T_Func", bound=Callable)
 
 
+class FailureException(Exception):
+    """Basic failure exception I can throw to force a retry."""
+    pass
+
+
 def retry(
         attempts: int,
         timeout: Union[int, float] = 0,
@@ -51,12 +56,8 @@ class Downloader:
         self.max_workers = max_workers
         self._semaphore = asyncio.Semaphore(max_workers)
 
-    @retry(attempts=10, timeout=4, exceptions=(
-            aiohttp.client_exceptions.ClientPayloadError,
-            aiohttp.client_exceptions.ClientOSError,
-            aiohttp.client_exceptions.ServerDisconnectedError,
-            asyncio.TimeoutError
-    ))
+    """Changed from aiohttp exceptions caught to FailureException to allow for partial downloads."""
+    @retry(attempts=10, timeout=4, exceptions=FailureException)
     async def download_file(
             self,
             url: str,
@@ -64,26 +65,49 @@ class Downloader:
             session: aiohttp.ClientSession,
             headers: Optional[CaseInsensitiveDict] = None,
             show_progress: bool = True
-    ) -> bytearray:
-        """Download the content of given URL and return the obtained bytes."""
+    ) -> None:
+        """Download the content of given URL"""
+        temp_file = (self.folder / self.title / filename).with_suffix(".download")
+        resume_point = 0
         downloaded = bytearray()
-        async with self._semaphore:
-            resp = await session.get(url, headers=headers)
-            total = int(resp.headers.get('Content-Length', 0))
-            with tqdm(
-                total=total, unit_scale=True,
-                unit='B', leave=False,
-                desc=filename, disable=(not show_progress)
-            ) as progress:
-                async for chunk, _ in resp.content.iter_chunks():
-                    downloaded.extend(chunk)
-                    progress.update(len(chunk))
-        return downloaded
 
-    async def store_file(self, data: bytearray, filename: str) -> None:
-        """Store given data into a file."""
-        async with aiofiles.open(self.folder / self.title / filename, mode='wb') as f:
-            await f.write(data)
+        if temp_file.exists():
+            resume_point = temp_file.stat().st_size
+            if headers:
+                headers['Range'] = 'bytes=%d-' % resume_point
+            else:
+                headers = {'Range': 'bytes=%d-' % resume_point}
+        try:
+            async with self._semaphore:
+                resp = await session.get(url, headers=headers)
+                total = int(resp.headers.get('Content-Length', 0)) + resume_point
+                with tqdm(
+                    total=total, unit_scale=True,
+                    unit='B', leave=False, initial=resume_point,
+                    desc=filename, disable=(not show_progress)
+                ) as progress:
+                    async with aiofiles.open(temp_file, mode='ab') as f:
+                        async for chunk, _ in resp.content.iter_chunks():
+                            downloaded.extend(chunk)
+                            progress.update(len(chunk))
+            await write_partial(temp_file, downloaded)
+
+        except (aiohttp.client_exceptions.ClientPayloadError, aiohttp.client_exceptions.ClientOSError,
+                aiohttp.client_exceptions.ServerDisconnectedError, asyncio.TimeoutError) as e:
+            await write_partial(temp_file, downloaded)
+            raise FailureException("We've stored the partial result and will retry")
+
+    async def write_partial(self, filename: Path, downloaded: bytesarray) -> None:
+        """Store partial or full data into file"""
+        async with aiofiles.open(filename, mode='ab') as f:
+            await f.write(downloaded)
+
+    async def rename_file(self, filename: str) -> None:
+        """Rename complete file."""
+        complete_file = (self.folder / self.title / filename)
+        temp_file = complete_file.with_suffix(".download")
+
+        temp_file.rename(complete_file)
         logger.debug("Finished " + filename)
 
     async def download_and_store(
@@ -99,8 +123,8 @@ class Downloader:
             logger.debug(str(self.folder / self.title / filename) + " Already Exists")
         else:
             logger.debug("Working on " + url)
-            data = await self.download_file(url, filename=filename, session=session, headers=headers, show_progress=show_progress)
-            await self.store_file(data, filename)
+            await self.download_file(url, filename=filename, session=session, headers=headers, show_progress=show_progress)
+            await self.rename_file(filename)
 
     async def download_all(
             self,
