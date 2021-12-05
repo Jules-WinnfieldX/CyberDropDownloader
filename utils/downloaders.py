@@ -97,7 +97,7 @@ class Downloader:
             await write_partial(temp_file, downloaded)
             raise FailureException("We've stored the partial result and will retry")
 
-    async def write_partial(self, filename: Path, downloaded: bytesarray) -> None:
+    async def write_partial(self, filename: Path, downloaded: bytearray) -> None:
         """Store partial or full data into file"""
         async with aiofiles.open(filename, mode='ab') as f:
             await f.write(downloaded)
