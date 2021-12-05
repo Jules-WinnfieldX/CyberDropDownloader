@@ -7,3 +7,4 @@ aiohttp~=3.8.1
 tqdm~=4.62.3
 sanitize-filename~=1.2.0
 readchar~=3.0.4
+certifi~=2021.10.8
