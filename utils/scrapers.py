@@ -21,7 +21,8 @@ class ShareXSpider(Spider):
 
     def parse(self, response):
         list_recent = response.css('a[id=list-most-recent-link]::attr(href)').get()
-        title = response.css('title::text').get()
+        title = response.css('a[data-text=album-name]::text').get()
+        title = title.replace(r"\n", "").strip()
         yield Request(list_recent, callback=self.get_list_links, meta={'title': title})
 
     def get_list_links(self, response):
@@ -52,7 +53,8 @@ class ChibisafeSpider(Spider):
 
     def parse(self, response):
         links = response.css('a[class=image]::attr(href)').getall()
-        title = response.css('title::text').get()
+        title = response.css('h1[id=title]::text').get()
+        title = title.replace(r"\n", "").strip()
         for link in links:
             netloc = urlparse(link).netloc
             yield {'netloc': netloc, 'url': link, 'title': title}
