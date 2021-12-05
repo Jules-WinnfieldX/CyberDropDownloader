@@ -11,6 +11,8 @@ from requests.structures import CaseInsensitiveDict
 from tqdm import tqdm
 import logging
 from sanitize_filename import sanitize
+import ssl
+import certifi
 
 logger = logging.getLogger(__name__)
 
@@ -70,6 +72,7 @@ class Downloader:
         temp_file = (self.folder / self.title / filename).with_suffix(".download")
         resume_point = 0
         downloaded = bytearray()
+        ssl_context = ssl.create_default_context(cafile=certifi.where())
 
         if temp_file.exists():
             resume_point = temp_file.stat().st_size
@@ -79,17 +82,16 @@ class Downloader:
                 headers = {'Range': 'bytes=%d-' % resume_point}
         try:
             async with self._semaphore:
-                resp = await session.get(url, headers=headers)
+                resp = await session.get(url, headers=headers, ssl=ssl_context)
                 total = int(resp.headers.get('Content-Length', 0)) + resume_point
                 with tqdm(
                     total=total, unit_scale=True,
                     unit='B', leave=False, initial=resume_point,
                     desc=filename, disable=(not show_progress)
                 ) as progress:
-                    async with aiofiles.open(temp_file, mode='ab') as f:
-                        async for chunk, _ in resp.content.iter_chunks():
-                            downloaded.extend(chunk)
-                            progress.update(len(chunk))
+                    async for chunk, _ in resp.content.iter_chunks():
+                        downloaded.extend(chunk)
+                        progress.update(len(chunk))
             await self.write_partial(temp_file, downloaded)
 
         except (aiohttp.client_exceptions.ClientPayloadError, aiohttp.client_exceptions.ClientOSError,
