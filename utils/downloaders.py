@@ -90,7 +90,7 @@ class Downloader:
                         async for chunk, _ in resp.content.iter_chunks():
                             downloaded.extend(chunk)
                             progress.update(len(chunk))
-            await write_partial(temp_file, downloaded)
+            await self.write_partial(temp_file, downloaded)
 
         except (aiohttp.client_exceptions.ClientPayloadError, aiohttp.client_exceptions.ClientOSError,
                 aiohttp.client_exceptions.ServerDisconnectedError, asyncio.TimeoutError) as e:
