@@ -20,6 +20,25 @@ T = TypeVar("T")
 T_Func = TypeVar("T_Func", bound=Callable)
 
 
+FILE_FORMATS = {
+    'Images': {
+        '.jpg', '.jpeg', '.png', '.gif',
+        '.gif', '.webp', '.jpe', '.svg',
+        '.tif', '.tiff', '.jif',
+    },
+    'Videos': {
+        '.mpeg', '.avchd', '.webm', '.mpv',
+        '.swf', '.avi', '.m4p', '.wmv',
+        '.mp2', '.m4v', '.qt', '.mpe',
+        '.mp4', '.flv', '.mov', '.mpg',
+        '.ogg'
+    },
+    'Audio': {
+        '.mp3', '.flac', '.wav', '.m4a'
+    }
+}
+
+
 class FailureException(Exception):
     """Basic failure exception I can throw to force a retry."""
     pass
@@ -97,7 +116,7 @@ class Downloader:
         except (aiohttp.client_exceptions.ClientPayloadError, aiohttp.client_exceptions.ClientOSError,
                 aiohttp.client_exceptions.ServerDisconnectedError, asyncio.TimeoutError) as e:
             await self.write_partial(temp_file, downloaded)
-            raise FailureException("We've stored the partial result and will retry")
+            raise FailureException(e)
 
     async def write_partial(self, filename: Path, downloaded: bytearray) -> None:
         """Store partial or full data into file"""
@@ -156,12 +175,16 @@ class BunkrDownloader(Downloader):
     @staticmethod
     def bunkr_parse(url: str) -> str:
         """Fix the URL for bunkr.is and construct the headers."""
-        if ".mp3" in url:
-            return url
-        changed_url = url.replace('cdn.bunkr', 'stream.bunkr').split('/')
-        changed_url.insert(3, 'v')
-        changed_url = ''.join(map(lambda x: urljoin('/', x), changed_url))
-        return changed_url.replace('/v/', '/d/')
+        extension = '.' + url.split('.')[-1]
+        if extension in FILE_FORMATS['Videos']:
+            changed_url = url.replace('cdn.bunkr', 'stream.bunkr').split('/')
+            changed_url.insert(3, 'v')
+            changed_url = ''.join(map(lambda x: urljoin('/', x), changed_url))
+            return changed_url.replace('/v/', '/d/')
+        if extension in FILE_FORMATS['Images']:
+            changed_url = url.replace('cdn.bunkr', 'i.bunkr')
+            return changed_url
+        return url
 
     @staticmethod
     def pairwise_skipping(it: Iterable[T], chunk_size: int) -> Tuple[T, ...]:
