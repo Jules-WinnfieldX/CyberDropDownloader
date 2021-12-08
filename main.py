@@ -60,7 +60,7 @@ async def main():
     content_object = scrape(urls)
     if not content_object:
         logging.error(f'ValueError No links: {content_object}')
-        raise ValueError('No links found, check the URL.txt')
+        raise ValueError('No links found, check the URL.txt\nNote: This utility only supports album links, not direct links to pictures or videos.')
 
     downloaders = get_downloaders(content_object, folder=Path(DOWNLOAD_FOLDER), max_workers=CPU_COUNT)
 
