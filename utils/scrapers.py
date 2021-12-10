@@ -36,7 +36,7 @@ class ShareXSpider(Spider):
             yield Request(url=next_page, callback=self.get_list_links, meta=meta)
         else:
             for link in links:
-                netloc = urlparse(link).netloc
+                netloc = urlparse(link).netloc.replace('www.', '')
                 yield {'netloc': netloc, 'url': link.replace('.md.', '.').replace('.th.', '.'), 'title': title}
 
 
@@ -56,7 +56,7 @@ class ChibisafeSpider(Spider):
         title = response.css('h1[id=title]::text').get()
         title = title.replace(r"\n", "").strip()
         for link in links:
-            netloc = urlparse(link).netloc
+            netloc = urlparse(link).netloc.replace('www.', '')
             yield {'netloc': netloc, 'url': link, 'title': title}
 
 
@@ -83,7 +83,7 @@ def scrape(urls):
     result_links = {}
 
     for url in urls:
-        base_domain = urlparse(url).netloc
+        base_domain = urlparse(url).netloc.replace('www.', '')
         if base_domain in mapping_ShareX:
             ShareX_urls.append(url)
         elif base_domain in mapping_Chibisafe:
