@@ -74,7 +74,7 @@ def sanitize_key(key):
 
 def scrape(urls):
     mapping_ShareX = ["pixl.is", "putme.ga"]
-    mapping_Chibisafe = ["cyberdrop.me", "bunkr.is"]
+    mapping_Chibisafe = ["cyberdrop.me", "bunkr.is", "bunkr.to"]
 
 
     ShareX_urls = []
