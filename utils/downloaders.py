@@ -31,7 +31,7 @@ FILE_FORMATS = {
         '.swf', '.avi', '.m4p', '.wmv',
         '.mp2', '.m4v', '.qt', '.mpe',
         '.mp4', '.flv', '.mov', '.mpg',
-        '.ogg'
+        '.ogg',
     },
     'Audio': {
         '.mp3', '.flac', '.wav', '.m4a'
@@ -176,12 +176,12 @@ class BunkrDownloader(Downloader):
     def bunkr_parse(url: str) -> str:
         """Fix the URL for bunkr.is and construct the headers."""
         extension = '.' + url.split('.')[-1]
-        if extension in FILE_FORMATS['Videos']:
+        if extension.lower() in FILE_FORMATS['Videos']:
             changed_url = url.replace('cdn.bunkr', 'stream.bunkr').split('/')
             changed_url.insert(3, 'v')
             changed_url = ''.join(map(lambda x: urljoin('/', x), changed_url))
             return changed_url.replace('/v/', '/d/')
-        if extension in FILE_FORMATS['Images']:
+        if extension.lower() in FILE_FORMATS['Images']:
             changed_url = url.replace('cdn.bunkr', 'i.bunkr')
             return changed_url
         return url
