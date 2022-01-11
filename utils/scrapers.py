@@ -69,11 +69,13 @@ def sanitize_key(key):
         key = "cyberdrop.to"
     elif "putme.ga" in key:
         key = "putme.ga"
+    elif "putmega" in key:
+        key = 'putme.ga'
     return key
 
 
 def scrape(urls):
-    mapping_ShareX = ["pixl.is", "putme.ga"]
+    mapping_ShareX = ["pixl.is", "putme.ga", "putmega.com"]
     mapping_Chibisafe = ["cyberdrop.me", "bunkr.is", "bunkr.to"]
 
 

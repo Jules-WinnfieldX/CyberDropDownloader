@@ -17,7 +17,7 @@ logging.basicConfig(level=logging.DEBUG, filename='logs.log',
                     filemode='w')
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
-SUPPORTED_URLS = {'cyberdrop.me', 'bunkr.is', "bunkr.to", 'pixl.is', 'putme.ga'}
+SUPPORTED_URLS = {'cyberdrop.me', 'bunkr.is', "bunkr.to", 'pixl.is', 'putme.ga', 'putmega.com'}
 
 CPU_COUNT = settings.threads if settings.threads != 0 else multiprocessing.cpu_count()
 DOWNLOAD_FOLDER = settings.download_folder
@@ -36,7 +36,7 @@ def clear():
 def version_check() -> None:
     response = requests.get("https://api.github.com/repos/Jules-WinnfieldX/CyberDropDownloader/releases/latest")
     latest_version = response.json()["tag_name"]
-    current_version = "2.1.6"
+    current_version = "2.1.7"
     logging.debug(f"We are running version {current_version} of Cyberdrop Downloader")
     if latest_version != current_version:
         log("A new version of CyberDropDownloader is available\n"
