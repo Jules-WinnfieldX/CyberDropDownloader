@@ -233,6 +233,7 @@ def get_downloaders(urls: Dict[str, Dict[str, List[str]]], folder: Path, max_wor
         'bunkr.is': BunkrDownloader,
         'pixl.is': Downloader,
         'putme.ga': Downloader,
+        'putmega.com': Downloader,
         'cyberdrop.to': Downloader
     }
 
