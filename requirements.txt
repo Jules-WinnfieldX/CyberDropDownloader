@@ -8,3 +8,5 @@ tqdm~=4.62.3
 sanitize-filename~=1.2.0
 readchar~=3.0.4
 certifi~=2021.10.8
+selenium~=4.1.0
+chromedriver_autoinstaller~=0.3.1

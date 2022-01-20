@@ -1,9 +1,9 @@
 import asyncio
-import itertools
+import http
 from functools import wraps
 from pathlib import Path
-from typing import Any, Callable, Iterable, List, Optional, Tuple, Type, TypeVar, Union, cast, Dict
-from urllib.parse import urljoin, urlparse
+from typing import Any, Callable, Iterable, List, Optional, Type, TypeVar, Union, cast, Dict
+from urllib.parse import urljoin
 import aiofiles
 import aiohttp
 import aiohttp.client_exceptions
@@ -13,6 +13,7 @@ import logging
 from sanitize_filename import sanitize
 import ssl
 import certifi
+from http.cookies import SimpleCookie
 
 logger = logging.getLogger(__name__)
 
@@ -47,7 +48,7 @@ class FailureException(Exception):
 def retry(
         attempts: int,
         timeout: Union[int, float] = 0,
-        exceptions: Iterable[Type[Exception]] = (Exception,)
+        exceptions: Type[Exception] = Exception
 ) -> Callable:
     def inner(func: T_Func) -> T_Func:
         @wraps(func)
@@ -70,8 +71,9 @@ def retry(
 
 
 class Downloader:
-    def __init__(self, links: List[str], folder: Path, title: str, max_workers: int):
+    def __init__(self, links: List[List[str]], morsels, folder: Path, title: str, max_workers: int):
         self.links = links
+        self.morsels = morsels
         self.folder = folder
         self.title = title
         self.max_workers = max_workers
@@ -82,6 +84,7 @@ class Downloader:
     async def download_file(
             self,
             url: str,
+            referal: str,
             filename: str,
             session: aiohttp.ClientSession,
             headers: Optional[CaseInsensitiveDict] = None,
@@ -92,13 +95,14 @@ class Downloader:
         resume_point = 0
         downloaded = bytearray()
         ssl_context = ssl.create_default_context(cafile=certifi.where())
+        user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.71 Safari/537.36'
+
+        headers = {'Referer': referal, 'user-agent': user_agent}
 
         if temp_file.exists():
             resume_point = temp_file.stat().st_size
-            if headers:
-                headers['Range'] = 'bytes=%d-' % resume_point
-            else:
-                headers = {'Range': 'bytes=%d-' % resume_point}
+            headers['Range'] = 'bytes=%d-' % resume_point
+
         try:
             async with self._semaphore:
                 resp = await session.get(url, headers=headers, ssl=ssl_context)
@@ -133,23 +137,26 @@ class Downloader:
 
     async def download_and_store(
             self,
-            url: str,
+            url_object: list,
             session: aiohttp.ClientSession,
             headers: Optional[CaseInsensitiveDict] = None,
             show_progress: bool = True
     ) -> None:
         """Download the content of given URL and store it in a file."""
+        url = url_object[0]
+        referal = url_object[1]
+
         filename = sanitize(url.split("/")[-1])
         if (self.folder / self.title / filename).exists():
             logger.debug(str(self.folder / self.title / filename) + " Already Exists")
         else:
             logger.debug("Working on " + url)
-            await self.download_file(url, filename=filename, session=session, headers=headers, show_progress=show_progress)
+            await self.download_file(url, referal=referal, filename=filename, session=session, headers=headers, show_progress=show_progress)
             await self.rename_file(filename)
 
     async def download_all(
             self,
-            links: Iterable[str],
+            links: Iterable[List[str]],
             session: aiohttp.ClientSession,
             headers: Optional[CaseInsensitiveDict] = None,
             show_progress: bool = True
@@ -168,10 +175,11 @@ class Downloader:
         """Download the content of all links and save them as files."""
         (self.folder / self.title).mkdir(parents=True, exist_ok=True)
         async with aiohttp.ClientSession() as session:
+            session.cookie_jar.update_cookies(self.morsels)
             await self.download_all(self.links, session, headers=headers, show_progress=show_progress)
 
 
-class BunkrDownloader(Downloader):
+class LimitDownloader(Downloader):
     @staticmethod
     def bunkr_parse(url: str) -> str:
         """Fix the URL for bunkr.is and construct the headers."""
@@ -187,7 +195,7 @@ class BunkrDownloader(Downloader):
         return url
 
     @staticmethod
-    def pairwise_skipping(it: Iterable[T], chunk_size: int) -> Tuple[T, ...]:
+    def pairwise_skipping(it: List[T], chunk_size: int):
         """Iterate over tuples of the iterable of size `chunk_size` at a time."""
         split_it = [it[i:i+chunk_size] for i in range(0, len(it), chunk_size)]
         return map(tuple, split_it)
@@ -195,17 +203,19 @@ class BunkrDownloader(Downloader):
     async def download_file(
             self,
             url: str,
+            referal: str,
             filename: str,
             session: aiohttp.ClientSession,
             headers: Optional[CaseInsensitiveDict] = None,
             show_progress: bool = True
-    ) -> bytearray:
-        url = self.bunkr_parse(url)
-        return await super().download_file(url, filename=filename, session=session, headers=headers, show_progress=show_progress)
+    ):
+        if 'bunkr' in url:
+            url = self.bunkr_parse(url)
+        await super().download_file(url, referal=referal, filename=filename, session=session, headers=headers, show_progress=show_progress)
 
     async def download_all(
             self,
-            links: Iterable[str],
+            links: Iterable[List[str]],
             session: aiohttp.ClientSession,
             headers: Optional[CaseInsensitiveDict] = None,
             show_progress: bool = True
@@ -220,7 +230,22 @@ class BunkrDownloader(Downloader):
             await super().download_all(links, session, headers=headers, show_progress=show_progress)
 
 
-def get_downloaders(urls: Dict[str, Dict[str, List[str]]], folder: Path, max_workers: int) -> List[Downloader]:
+def simple_cookies(cookies):
+    morsels = {}
+    for cookie in cookies:
+        # https://docs.python.org/3/library/http.cookies.html#morsel-objects
+        morsel = http.cookies.Morsel()
+        morsel.set(cookie["name"], cookie["value"], cookie["value"])
+        morsel["domain"] = cookie["domain"]
+        morsel["httponly"] = cookie["httpOnly"]
+        morsel["path"] = cookie["path"]
+        morsel["secure"] = cookie["secure"]
+
+        morsels[cookie["name"]] = morsel
+    return morsels
+
+
+def get_downloaders(urls: Dict[str, Dict[str, List[str]]], cookies: Iterable[str], folder: Path, max_workers: int) -> List[Downloader]:
     """Get a list of downloaders for each supported type of URLs.
 
     We shouldn't just assume that each URL will have the same netloc as
@@ -230,19 +255,22 @@ def get_downloaders(urls: Dict[str, Dict[str, List[str]]], folder: Path, max_wor
     """
     mapping = {
         'cyberdrop.me': Downloader,
-        'bunkr.is': BunkrDownloader,
+        'bunkr.is': LimitDownloader,
         'pixl.is': Downloader,
         'putme.ga': Downloader,
         'putmega.com': Downloader,
-        'cyberdrop.to': Downloader
+        'cyberdrop.to': Downloader,
+        'gofile.io': Downloader
     }
 
     downloaders = []
+    morsels = simple_cookies(cookies)
+
     for domain, url_object in urls.items():
         if domain not in mapping:
             logging.error('Invalid URL!')
             raise ValueError('Invalid URL!')
         for title, urls in url_object.items():
-            downloader = mapping[domain](urls, title=title, folder=folder, max_workers=max_workers)
+            downloader = mapping[domain](urls, morsels=morsels, title=title, folder=folder, max_workers=max_workers)
             downloaders.append(downloader)
     return downloaders
