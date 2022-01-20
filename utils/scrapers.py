@@ -4,6 +4,11 @@ from scrapy.utils.project import get_project_settings
 from scrapy.http.request import Request
 from scrapy.signalmanager import dispatcher
 from urllib.parse import urlparse
+import chromedriver_autoinstaller
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.wait import WebDriverWait
 import logging
 import re
 
@@ -19,7 +24,7 @@ class ShareXSpider(Spider):
         for url in self.myurls:
             yield Request(url, self.parse)
 
-    def parse(self, response):
+    def parse(self, response, **kwargs):
         list_recent = response.css('a[id=list-most-recent-link]::attr(href)').get()
         title = response.css('a[data-text=album-name]::text').get()
         title = title.replace(r"\n", "").strip()
@@ -37,7 +42,7 @@ class ShareXSpider(Spider):
         else:
             for link in links:
                 netloc = urlparse(link).netloc.replace('www.', '')
-                yield {'netloc': netloc, 'url': link.replace('.md.', '.').replace('.th.', '.'), 'title': title}
+                yield {'netloc': netloc, 'url': link.replace('.md.', '.').replace('.th.', '.'), 'title': title, 'referal': response.url, 'cookies': ''}
 
 
 class ChibisafeSpider(Spider):
@@ -51,13 +56,41 @@ class ChibisafeSpider(Spider):
         for url in self.myurls:
             yield Request(url, self.parse)
 
-    def parse(self, response):
+    def parse(self, response, **kwargs):
         links = response.css('a[class=image]::attr(href)').getall()
         title = response.css('h1[id=title]::text').get()
         title = title.replace(r"\n", "").strip()
         for link in links:
             netloc = urlparse(link).netloc.replace('www.', '')
-            yield {'netloc': netloc, 'url': link, 'title': title}
+            yield {'netloc': netloc, 'url': link, 'title': title, 'referal': response.url, 'cookies': ''}
+
+
+class GoFileSpider(Spider):
+    name = 'GoFile'
+
+    def __init__(self, *args, **kwargs):
+        self.myurls = kwargs.get('myurls', [])
+        chromedriver_autoinstaller.install()
+        self.driver = webdriver.Chrome()
+        super(GoFileSpider, self).__init__(*args, **kwargs)
+
+    def start_requests(self):
+        for url in self.myurls:
+            yield Request(url, self.parse)
+
+    def parse(self, response, **kwargs):
+        self.driver.get(response.url)
+        element = WebDriverWait(self.driver, 10).until(
+            EC.presence_of_element_located((By.ID, 'contentId-download'))
+        )
+        cookies = self.driver.get_cookies()
+        links = self.driver.find_elements(By.XPATH, "//button[@id='contentId-download']/..")
+        title = self.driver.find_element(By.ID, 'rowFolder-folderName').text
+        for link in links:
+            link = link.get_attribute("href")
+            netloc = urlparse(link).netloc.replace('www.', '')
+            yield {'netloc': netloc, 'url': link, 'title': title, 'referal': response.url, 'cookies': cookies}
+        self.driver.close()
 
 
 def sanitize_key(key):
@@ -71,17 +104,23 @@ def sanitize_key(key):
         key = "putme.ga"
     elif "putmega" in key:
         key = 'putme.ga'
+    elif "gofile" in key:
+        key = 'gofile.io'
     return key
 
 
 def scrape(urls):
     mapping_ShareX = ["pixl.is", "putme.ga", "putmega.com"]
     mapping_Chibisafe = ["cyberdrop.me", "bunkr.is", "bunkr.to"]
+    mapping_GoFile = ["gofile.io"]
 
 
     ShareX_urls = []
     Chibisafe_urls = []
+    GoFile_urls = []
     unsupported_urls = []
+
+    cookies = []
     result_links = {}
 
     for url in urls:
@@ -90,13 +129,18 @@ def scrape(urls):
             ShareX_urls.append(url)
         elif base_domain in mapping_Chibisafe:
             Chibisafe_urls.append(url)
+        elif base_domain in mapping_GoFile:
+            GoFile_urls.append(url)
         else:
             unsupported_urls.append(url)
 
     def crawler_results(signal, sender, item, response, spider):
         domain = sanitize_key(item['netloc'])
         title = re.sub(r'[\\/*?:"<>|.]', "-", item['title'])
-        result_links.setdefault(domain, {}).setdefault(title, []).append(item['url'])
+        referal = item['referal']
+        url = item['url']
+        cookies.extend(x for x in item['cookies'] if x not in cookies)
+        result_links.setdefault(domain, {}).setdefault(title, []).append([url, referal])
 
     dispatcher.connect(crawler_results, signal=signals.item_scraped)
     settings = get_project_settings()
@@ -104,5 +148,7 @@ def scrape(urls):
     process = CrawlerProcess(settings)
     if Chibisafe_urls: process.crawl(ChibisafeSpider, myurls=Chibisafe_urls)
     if ShareX_urls: process.crawl(ShareXSpider, myurls=ShareX_urls)
+    if GoFile_urls: process.crawl(GoFileSpider, myurls=GoFile_urls)
     process.start()
-    return result_links
+
+    return cookies, result_links
