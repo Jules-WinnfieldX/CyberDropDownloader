@@ -10,6 +10,8 @@ Pixl.is
 
 Bunkr.to
 
+GoFile (Requires Chrome to be installed on the system)
+
 ~~DMCA.Gripe~~ (It's dead)
 
 # Information

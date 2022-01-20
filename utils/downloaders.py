@@ -1,10 +1,9 @@
 import asyncio
 import http
-import itertools
 from functools import wraps
 from pathlib import Path
-from typing import Any, Callable, Iterable, List, Optional, Tuple, Type, TypeVar, Union, cast, Dict
-from urllib.parse import urljoin, urlparse
+from typing import Any, Callable, Iterable, List, Optional, Type, TypeVar, Union, cast, Dict
+from urllib.parse import urljoin
 import aiofiles
 import aiohttp
 import aiohttp.client_exceptions
@@ -231,7 +230,7 @@ class LimitDownloader(Downloader):
             await super().download_all(links, session, headers=headers, show_progress=show_progress)
 
 
-def simple_cookies(cookies: Iterable[str]):
+def simple_cookies(cookies):
     morsels = {}
     for cookie in cookies:
         # https://docs.python.org/3/library/http.cookies.html#morsel-objects
