@@ -9,6 +9,7 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
+from selenium.webdriver.chrome.options import Options
 import logging
 import re
 
@@ -71,7 +72,9 @@ class GoFileSpider(Spider):
     def __init__(self, *args, **kwargs):
         self.myurls = kwargs.get('myurls', [])
         chromedriver_autoinstaller.install()
-        self.driver = webdriver.Chrome()
+        chrome_options = Options()
+        chrome_options.add_argument("--headless")
+        self.driver = webdriver.Chrome(options=chrome_options)
         super(GoFileSpider, self).__init__(*args, **kwargs)
 
     def start_requests(self):
