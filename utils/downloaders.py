@@ -130,9 +130,11 @@ class Downloader:
     async def rename_file(self, filename: str) -> None:
         """Rename complete file."""
         complete_file = (self.folder / self.title / filename)
-        temp_file = complete_file.with_suffix(".download")
-
-        temp_file.rename(complete_file)
+        if complete_file.exists():
+            logger.debug(str(self.folder / self.title / filename) + " Already Exists")
+        else:
+            temp_file = complete_file.with_suffix(".download")
+            temp_file.rename(complete_file)
         logger.debug("Finished " + filename)
 
     async def download_and_store(
