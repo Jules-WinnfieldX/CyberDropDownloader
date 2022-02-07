@@ -14,48 +14,30 @@ import logging
 import re
 
 
-class ShareXAlbum(Spider):
+# Scrapes all files from an Album
+class ShareX_Spider(Spider):
     name = 'ShareX'
 
     def __init__(self, *args, **kwargs):
         self.myurls = kwargs.get('myurls', [])
-        super(ShareXAlbum, self).__init__(*args, **kwargs)
+        super(ShareX_Spider, self).__init__(*args, **kwargs)
 
     def start_requests(self):
         for url in self.myurls:
-            yield Request(url, self.parse)
+            if '/album/' in url:
+                yield Request(url, self.parse)
+            elif '/albums' in url:
+                yield Request(url, self.get_albums)
+            elif '/image/' in url:
+                yield Request(url, self.get_singular)
+            else:
+                yield Request(url, self.parse_profile)
 
-    def parse(self, response, **kwargs):
+    def parse_profile(self, response):
         list_recent = response.css('a[id=list-most-recent-link]::attr(href)').get()
-        title = response.css('a[data-text=album-name]::text').get()
+        title = response.css('div[class=header] h1 strong::text').get()
         title = title.replace(r"\n", "").strip()
         yield Request(list_recent, callback=self.get_list_links, meta={'title': title})
-
-    def get_list_links(self, response):
-        links = response.meta.get('links', [])
-        title = response.meta.get('title')
-        links.extend(response.css('a[href*=image] img::attr(src)').getall())
-
-        next_page = response.css('li.pagination-next a::attr("href")').get()
-        meta = {'links': links, 'title': title}
-        if next_page is not None:
-            yield Request(url=next_page, callback=self.get_list_links, meta=meta)
-        else:
-            for link in links:
-                netloc = urlparse(link).netloc.replace('www.', '')
-                yield {'netloc': netloc, 'url': link.replace('.md.', '.').replace('.th.', '.'), 'title': title, 'referal': response.url, 'cookies': ''}
-
-
-class ShareXAlbums(Spider):
-    name = 'ShareX_Albums'
-
-    def __init__(self, *args, **kwargs):
-        self.myurls = kwargs.get('myurls', [])
-        super(ShareXAlbums, self).__init__(*args, **kwargs)
-
-    def start_requests(self):
-        for url in self.myurls:
-            yield Request(url, self.get_albums)
 
     def get_albums(self, response):
         albums = response.css("a[class='image-container --media']::attr(href)").getall()
@@ -68,69 +50,25 @@ class ShareXAlbums(Spider):
         title = title.replace(r"\n", "").strip()
         yield Request(list_recent, callback=self.get_list_links, meta={'title': title})
 
-    def get_list_links(self, response):
-        links = response.meta.get('links', [])
-        title = response.meta.get('title')
-        links.extend(response.css('a[href*=image] img::attr(src)').getall())
-
-        next_page = response.css('li.pagination-next a::attr("href")').get()
-        meta = {'links': links, 'title': title}
-        if next_page is not None:
-            yield Request(url=next_page, callback=self.get_list_links, meta=meta)
-        else:
-            for link in links:
-                netloc = urlparse(link).netloc.replace('www.', '')
-                yield {'netloc': netloc, 'url': link.replace('.md.', '.').replace('.th.', '.'), 'title': title, 'referal': response.url, 'cookies': ''}
-
-
-class ShareXProfile(Spider):
-    name = 'ShareX'
-
-    def __init__(self, *args, **kwargs):
-        self.myurls = kwargs.get('myurls', [])
-        super(ShareXProfile, self).__init__(*args, **kwargs)
-
-    def start_requests(self):
-        for url in self.myurls:
-            yield Request(url, self.parse)
-
-    def parse(self, response, **kwargs):
-        list_recent = response.css('a[id=list-most-recent-link]::attr(href)').get()
-        title = response.css('div[class=header] h1 strong::text').get()
-        title = title.replace(r"\n", "").strip()
-        yield Request(list_recent, callback=self.get_list_links, meta={'title': title})
-
-    def get_list_links(self, response):
-        links = response.meta.get('links', [])
-        title = response.meta.get('title')
-        links.extend(response.css('a[href*=image] img::attr(src)').getall())
-
-        next_page = response.css('li.pagination-next a::attr("href")').get()
-        meta = {'links': links, 'title': title}
-        if next_page is not None:
-            yield Request(url=next_page, callback=self.get_list_links, meta=meta)
-        else:
-            for link in links:
-                netloc = urlparse(link).netloc.replace('www.', '')
-                yield {'netloc': netloc, 'url': link.replace('.md.', '.').replace('.th.', '.'), 'title': title, 'referal': response.url, 'cookies': ''}
-
-
-class ShareXSingular(Spider):
-    name = 'ShareX_Singular'
-
-    def __init__(self, *args, **kwargs):
-        self.myurls = kwargs.get('myurls', [])
-        super(ShareXSingular, self).__init__(*args, **kwargs)
-
-    def start_requests(self):
-        for url in self.myurls:
-            yield Request(url, self.get_list_links)
-
-    def get_list_links(self, response):
-        link = response.css('input[id=embed-code-2]::attr(value)').getall()
+    def get_singular(self, response):
+        link = response.css('input[id=embed-code-2]::attr(value)').get()
         title = "ShareX Loose Files"
         netloc = urlparse(link).netloc.replace('www.', '')
         yield {'netloc': netloc, 'url': link.replace('.md.', '.').replace('.th.', '.'), 'title': title, 'referal': response.url, 'cookies': ''}
+
+    def get_list_links(self, response):
+        links = response.meta.get('links', [])
+        title = response.meta.get('title')
+        links.extend(response.css('a[href*=image] img::attr(src)').getall())
+
+        next_page = response.css('li.pagination-next a::attr("href")').get()
+        meta = {'links': links, 'title': title}
+        if next_page is not None:
+            yield Request(url=next_page, callback=self.get_list_links, meta=meta)
+        else:
+            for link in links:
+                netloc = urlparse(link).netloc.replace('www.', '')
+                yield {'netloc': netloc, 'url': link.replace('.md.', '.').replace('.th.', '.'), 'title': title, 'referal': response.url, 'cookies': ''}
 
 
 class ChibisafeSpider(Spider):
@@ -204,14 +142,9 @@ def scrape(urls):
     mapping_Chibisafe = ["cyberdrop.me", "bunkr.is", "bunkr.to"]
     mapping_GoFile = ["gofile.io"]
 
-    ShareX_album_urls = []
-    ShareX_profile_albums = []
-    ShareX_profile = []
-    ShareX_singular_urls = []
-
+    ShareX_urls = []
     Chibisafe_urls = []
     GoFile_urls = []
-
     unsupported_urls = []
 
     cookies = []
@@ -220,14 +153,7 @@ def scrape(urls):
     for url in urls:
         base_domain = urlparse(url).netloc.replace('www.', '')
         if base_domain in mapping_ShareX:
-            if '/album/' in url:
-                ShareX_album_urls.append(url)
-            elif '/image/' in url:
-                ShareX_singular_urls.append(url)
-            elif '/albums' in url:
-                ShareX_profile_albums.append(url)
-            else:
-                ShareX_profile.append(url)
+            ShareX_urls.append(url)
         elif base_domain in mapping_Chibisafe:
             Chibisafe_urls.append(url)
         elif base_domain in mapping_GoFile:
@@ -248,11 +174,7 @@ def scrape(urls):
     settings.set('LOG_LEVEL', logging.CRITICAL)
     process = CrawlerProcess(settings)
 
-    if ShareX_album_urls: process.crawl(ShareXAlbum, myurls=ShareX_album_urls)
-    if ShareX_profile_albums: process.crawl(ShareXAlbums, myurls=ShareX_profile_albums)
-    if ShareX_profile: process.crawl(ShareXProfile, myurls=ShareX_profile)
-    if ShareX_singular_urls: process.crawl(ShareXSingular, myurls=ShareX_singular_urls)
-
+    if ShareX_urls: process.crawl(ShareX_Spider, myurls=ShareX_urls)
     if Chibisafe_urls: process.crawl(ChibisafeSpider, myurls=Chibisafe_urls)
     if GoFile_urls: process.crawl(GoFileSpider, myurls=GoFile_urls)
     process.start()
