@@ -2,15 +2,16 @@
 **Bulk Gallery Downloader for Cyberdrop.me**
 
 # Supported Sites
-Cyberdrop.me
 
-Putme.ga
+| Website | Supported Link Types |
+| ------------- | ------------- |
+| Cyberdrop  | Albums: cyberdrop.me/a/... <br> Direct Videos: fs-0#.cyberdrop.cc <br> Direct Images: img-0#.cyberdrop.to|
+| Putmega | Albums: putmega.com/album/... <br> Direct Images: putmega.com/image/... <br> User Profile: putmega.com/<USER> <br> All User Albums: putmega.com/<USER>/albums |
+| Pixl | Albums: pixl.is/album/... <br> Direct Images: pixl.is/image/... <br> User Profile: pixl.is/#USER# <br> All User Albums: pixl.is/#USER#/albums |
+| Bunkr | Albums: bunkr.is/a/... <br> Direct Videos: stream.bunkr.is/v/... <br> Direct Images: i.bunkr.is/... |
+| GoFile | Albums: gofile.io/d/... |
 
-Pixl.is
-
-Bunkr.to
-
-GoFile (Requires Chrome to be installed on the system)
+GoFile Requires Chrome to be installed on the system
 
 ~~DMCA.Gripe~~ (It's dead)
 
