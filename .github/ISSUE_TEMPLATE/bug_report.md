@@ -8,7 +8,7 @@ assignees: Jules-WinnfieldX
 ---
 
 **Describe the bug**
-A clear and concise description of what the bug is.
+A clear and concise description of what the bug is. INCLUDE THE FULL STACK TRACE.
 
 **To Help Reproduce**
 Steps to help reproduce the behavior:
