@@ -10,6 +10,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.chrome.options import Options
+from collections import OrderedDict
 import logging
 import re
 
@@ -148,7 +149,7 @@ def scrape(urls):
     unsupported_urls = []
 
     cookies = []
-    result_links = {}
+    result_links = OrderedDict()
 
     for url in urls:
         base_domain = urlparse(url).netloc.replace('www.', '')
@@ -167,7 +168,7 @@ def scrape(urls):
         referal = item['referal']
         url = item['url']
         cookies.extend(x for x in item['cookies'] if x not in cookies)
-        result_links.setdefault(domain, {}).setdefault(title, []).append([url, referal])
+        result_links.setdefault(domain, OrderedDict()).setdefault(title, []).append([url, referal])
 
     dispatcher.connect(crawler_results, signal=signals.item_scraped)
     settings = get_project_settings()
