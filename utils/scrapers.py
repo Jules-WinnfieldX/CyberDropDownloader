@@ -46,8 +46,26 @@ class ShareXSpider(Spider):
                 yield {'netloc': netloc, 'url': link.replace('.md.', '.').replace('.th.', '.'), 'title': title, 'referal': response.url, 'cookies': ''}
 
 
+class ShareXSingular(Spider):
+    name = 'ShareX_Singular'
+
+    def __init__(self, *args, **kwargs):
+        self.myurls = kwargs.get('myurls', [])
+        super(ShareXSingular, self).__init__(*args, **kwargs)
+
+    def start_requests(self):
+        for url in self.myurls:
+            yield Request(url, self.get_list_links)
+
+    def get_list_links(self, response):
+        link = response.css('input[id=embed-code-2]::attr(value)').getall()
+        title = "ShareX Loose Files"
+        netloc = urlparse(link).netloc.replace('www.', '')
+        yield {'netloc': netloc, 'url': link.replace('.md.', '.').replace('.th.', '.'), 'title': title, 'referal': response.url, 'cookies': ''}
+
+
 class ChibisafeSpider(Spider):
-    name = 'ShareX'
+    name = 'Chibisafe'
 
     def __init__(self, *args, **kwargs):
         self.myurls = kwargs.get('myurls', [])
@@ -117,10 +135,14 @@ def scrape(urls):
     mapping_Chibisafe = ["cyberdrop.me", "bunkr.is", "bunkr.to"]
     mapping_GoFile = ["gofile.io"]
 
+    ShareX_album_urls = []
+    ShareX_profile_albums = []
+    ShareX_profile = []
+    ShareX_singular_urls = []
 
-    ShareX_urls = []
     Chibisafe_urls = []
     GoFile_urls = []
+
     unsupported_urls = []
 
     cookies = []
@@ -129,7 +151,14 @@ def scrape(urls):
     for url in urls:
         base_domain = urlparse(url).netloc.replace('www.', '')
         if base_domain in mapping_ShareX:
-            ShareX_urls.append(url)
+            if '/album/' in url:
+                ShareX_album_urls.append(url)
+            elif '/image/' in url:
+                ShareX_singular_urls.append(url)
+            elif '/albums' in url:
+                ShareX_profile_albums.append(url)
+            else:
+                ShareX_profile.append(url)
         elif base_domain in mapping_Chibisafe:
             Chibisafe_urls.append(url)
         elif base_domain in mapping_GoFile:
@@ -149,8 +178,12 @@ def scrape(urls):
     settings = get_project_settings()
     settings.set('LOG_LEVEL', logging.CRITICAL)
     process = CrawlerProcess(settings)
+    if ShareX_album_urls: process.crawl(ShareXSpider, myurls=ShareX_album_urls)
+    if ShareX_profile_albums: process.crawl(ShareXSpider, myurls=ShareX_album_urls)
+    if ShareX_profile: process.crawl(ShareXSpider, myurls=ShareX_album_urls)
+    if ShareX_singular_urls: process.crawl(ShareXSingular, myurls=ShareX_singular_urls)
+
     if Chibisafe_urls: process.crawl(ChibisafeSpider, myurls=Chibisafe_urls)
-    if ShareX_urls: process.crawl(ShareXSpider, myurls=ShareX_urls)
     if GoFile_urls: process.crawl(GoFileSpider, myurls=GoFile_urls)
     process.start()
 
