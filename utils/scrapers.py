@@ -81,7 +81,22 @@ class ChibisafeSpider(Spider):
 
     def start_requests(self):
         for url in self.myurls:
-            yield Request(url, self.parse)
+            if '/a/' in url:
+                yield Request(url, self.parse)
+            elif '/i.' in url:
+                yield Request(url, self.individual_file)
+            elif '/img' in url or '/fs-' in url:
+                yield Request(url, self.individual_file)
+            elif '/v/' in url:
+                yield Request(url, self.individual_bunkr_video, meta={'dont_redirect': True, 'handle_httpstatus_list': [302]})
+
+    def individual_file(self, response):
+        netloc = urlparse(response.url).netloc.replace('www.', '')
+        yield {'netloc': netloc, 'url': response.url, 'title': "Chibisafe Loose Files", 'referal': response.url, 'cookies': ''}
+
+    def individual_bunkr_video(self, response):
+        netloc = urlparse(response.url).netloc.replace('www.', '')
+        yield {'netloc': netloc, 'url': response.url.replace('stream.bunkr.is/v/', 'cdn.bunkr.is/'), 'title': "Chibisafe Loose Files", 'referal': response.url, 'cookies': ''}
 
     def parse(self, response, **kwargs):
         links = response.css('a[class=image]::attr(href)').getall()
@@ -140,8 +155,16 @@ def sanitize_key(key):
 
 def scrape(urls):
     mapping_ShareX = ["pixl.is", "putme.ga", "putmega.com"]
-    mapping_Chibisafe = ["cyberdrop.me", "bunkr.is", "bunkr.to"]
+    mapping_Chibisafe = ["cyberdrop.me", "cyberdrop.cc", "cyberdrop.to", "bunkr.is", "bunkr.to"]
     mapping_GoFile = ["gofile.io"]
+
+    replacements = [
+        ('fs-...', ''),
+        ('img-...', ''),
+        ('i\.', ''),
+        ('stream.', ''),
+        ('www.', '')
+    ]
 
     ShareX_urls = []
     Chibisafe_urls = []
@@ -152,7 +175,10 @@ def scrape(urls):
     result_links = OrderedDict()
 
     for url in urls:
-        base_domain = urlparse(url).netloc.replace('www.', '')
+        base_domain = urlparse(url).netloc
+        for old, new in replacements:
+            base_domain = re.sub(old, new, base_domain)
+
         if base_domain in mapping_ShareX:
             ShareX_urls.append(url)
         elif base_domain in mapping_Chibisafe:
