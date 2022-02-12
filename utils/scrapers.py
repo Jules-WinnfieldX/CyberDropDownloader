@@ -15,6 +15,25 @@ import logging
 import re
 
 
+FILE_FORMATS = {
+    'Images': {
+        '.jpg', '.jpeg', '.png', '.gif',
+        '.gif', '.webp', '.jpe', '.svg',
+        '.tif', '.tiff', '.jif',
+    },
+    'Videos': {
+        '.mpeg', '.avchd', '.webm', '.mpv',
+        '.swf', '.avi', '.m4p', '.wmv',
+        '.mp2', '.m4v', '.qt', '.mpe',
+        '.mp4', '.flv', '.mov', '.mpg',
+        '.ogg',
+    },
+    'Audio': {
+        '.mp3', '.flac', '.wav', '.m4a'
+    }
+}
+
+
 # Scrapes all files from an Album
 class ShareX_Spider(Spider):
     name = 'ShareX'
@@ -81,14 +100,13 @@ class ChibisafeSpider(Spider):
 
     def start_requests(self):
         for url in self.myurls:
+            ext = "."+url.split('.')[-1]
             if '/a/' in url:
                 yield Request(url, self.parse)
-            elif '/i.' in url:
+            elif ext in FILE_FORMATS['Images']:
                 yield Request(url, self.individual_file)
-            elif '/img' in url or '/fs-' in url:
-                yield Request(url, self.individual_file)
-            elif '/v/' in url:
-                yield Request(url, self.individual_bunkr_video, meta={'dont_redirect': True, 'handle_httpstatus_list': [302]})
+            elif ext in FILE_FORMATS['Videos']:
+                yield Request(url, self.individual_bunkr_video, meta={'dont_redirect': True, 'handle_httpstatus_list': [301, 302]})
 
     def individual_file(self, response):
         netloc = urlparse(response.url).netloc.replace('www.', '')
@@ -163,7 +181,8 @@ def scrape(urls):
         ('img-...', ''),
         ('i\.', ''),
         ('stream.', ''),
-        ('www.', '')
+        ('www.', ''),
+        ('cdn.', '')
     ]
 
     ShareX_urls = []
@@ -175,6 +194,7 @@ def scrape(urls):
     result_links = OrderedDict()
 
     for url in urls:
+        url = url.replace('\n', '')
         base_domain = urlparse(url).netloc
         for old, new in replacements:
             base_domain = re.sub(old, new, base_domain)
@@ -198,7 +218,7 @@ def scrape(urls):
 
     dispatcher.connect(crawler_results, signal=signals.item_scraped)
     settings = get_project_settings()
-    settings.set('LOG_LEVEL', logging.CRITICAL)
+    settings.set('LOG_FILE', 'logs.log')
     process = CrawlerProcess(settings)
 
     if ShareX_urls: process.crawl(ShareX_Spider, myurls=ShareX_urls)
