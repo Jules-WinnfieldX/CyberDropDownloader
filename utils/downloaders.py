@@ -16,6 +16,7 @@ import ssl
 import certifi
 from http.cookies import SimpleCookie
 import settings
+from colorama import Fore, Style
 
 logger = logging.getLogger(__name__)
 
@@ -42,6 +43,11 @@ FILE_FORMATS = {
 }
 
 
+def log(text, style):
+    # Log function for printing to command line
+    print(style + str(text) + Style.RESET_ALL)
+
+
 class FailureException(Exception):
     """Basic failure exception I can throw to force a retry."""
     pass
@@ -55,15 +61,14 @@ def retry(
     def inner(func: T_Func) -> T_Func:
         @wraps(func)
         async def wrapper(*args, **kwargs) -> Any:
-            times_tried = 0
+            times_tried = 1
             while True:
                 try:
                     return await func(*args, **kwargs)
                 except exceptions as exc:
                     # logger.exception(exc)
-                    if times_tried > attempts:
+                    if times_tried >= attempts:
                         logger.exception(f'Raised {exc} exceeded times_tried')
-                        input("We've reached exception")
                         raise exc
                     times_tried += 1
                     await asyncio.sleep(timeout)
@@ -157,8 +162,11 @@ class Downloader:
             logger.debug(str(self.folder / self.title / filename) + " Already Exists")
         else:
             logger.debug("Working on " + url)
-            await self.download_file(url, referal=referal, filename=filename, session=session, headers=headers, show_progress=show_progress)
-            await self.rename_file(filename)
+            try:
+                await self.download_file(url, referal=referal, filename=filename, session=session, headers=headers, show_progress=show_progress)
+                await self.rename_file(filename)
+            except:
+                log(f"\nSkipping {filename}: likely exceeded download attempts\nRe-run program after exit to continue download.", Fore.WHITE)
 
     async def download_all(
             self,
