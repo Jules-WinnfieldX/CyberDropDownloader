@@ -5,10 +5,10 @@
 
 | Website | Supported Link Types |
 | ------------- | ------------- |
-| Cyberdrop  | Albums: cyberdrop.me/a/... <br> Direct Videos: fs-0#.cyberdrop.cc <br> Direct Images: img-0#.cyberdrop.to|
-| Putmega | Albums: putmega.com/album/... <br> Direct Images: putmega.com/image/... <br> User Profile: putmega.com/#USER# <br> All User Albums: putmega.com/#USER#/albums |
-| Pixl | Albums: pixl.is/album/... <br> Direct Images: pixl.is/image/... <br> User Profile: pixl.is/#USER# <br> All User Albums: pixl.is/#USER#/albums |
-| Bunkr | Albums: bunkr.is/a/... <br> Direct Videos: stream.bunkr.is/v/... <br> Direct Videos: cdn.bunkr.is/... <br> Direct Images: i.bunkr.is/... |
+| Cyberdrop  | Albums: cyberdrop.me/a/... <br> Direct Videos: fs-0#.cyberdrop.me/... <br> Direct Videos: f.cyberdrop.me/... <br> Direct Images: img-0#.cyberdrop.me/... <br> Direct Images: f.cyberdrop.me/... <br> Also works with .cc, .to, and .nl |
+| Putmega | Albums: putmega.com/album/... <br> Direct Images: s#.putmega.com/... <br> Direct Images: putmega.com/image/... <br> User Profile: putmega.com/#USER# <br> All User Albums: putmega.com/#USER#/albums <br> Also works with putme.ga|
+| Pixl | Albums: pixl.is/album/... <br> Direct Images: pixl.is/image/...  <br> User Profile: pixl.is/#USER# <br> All User Albums: pixl.is/#USER#/albums |
+| Bunkr | Albums: bunkr.is/a/... <br> Direct Videos: stream.bunkr.is/v/... <br> Direct Videos: cdn.bunkr.is/... <br> Direct Images: i.bunkr.is/... <br> Also works with Bunkr.to |
 | GoFile | Albums: gofile.io/d/... |
 
 GoFile Requires Chrome to be installed on the system
