@@ -15,6 +15,7 @@ from sanitize_filename import sanitize
 import ssl
 import certifi
 from http.cookies import SimpleCookie
+import settings
 
 logger = logging.getLogger(__name__)
 
@@ -62,6 +63,7 @@ def retry(
                     # logger.exception(exc)
                     if times_tried > attempts:
                         logger.exception(f'Raised {exc} exceeded times_tried')
+                        input("We've reached exception")
                         raise exc
                     times_tried += 1
                     await asyncio.sleep(timeout)
@@ -81,7 +83,7 @@ class Downloader:
         self._semaphore = asyncio.Semaphore(max_workers)
 
     """Changed from aiohttp exceptions caught to FailureException to allow for partial downloads."""
-    @retry(attempts=10, timeout=4, exceptions=FailureException)
+    @retry(attempts=settings.download_attempts, timeout=4, exceptions=FailureException)
     async def download_file(
             self,
             url: str,
@@ -259,11 +261,15 @@ def get_downloaders(urls: Dict[str, Dict[str, List[str]]], cookies: Iterable[str
     """
     mapping = {
         'cyberdrop.me': Downloader,
+        'cyberdrop.cc': Downloader,
+        'cyberdrop.to': Downloader,
+        'cyberdrop.nl': Downloader,
         'bunkr.is': LimitDownloader,
+        'bunkr.to': LimitDownloader,
         'pixl.is': Downloader,
+        'rpcs0112.b-cdn.net': Downloader,
         'putme.ga': Downloader,
         'putmega.com': Downloader,
-        'cyberdrop.to': Downloader,
         'gofile.io': Downloader
     }
 
@@ -272,8 +278,8 @@ def get_downloaders(urls: Dict[str, Dict[str, List[str]]], cookies: Iterable[str
 
     for domain, url_object in urls.items():
         if domain not in mapping:
-            logging.error('Invalid URL!')
-            raise ValueError('Invalid URL!')
+            logging.error('Invalid domain '+domain)
+            raise ValueError('Invalid domain '+domain)
         for title, urls in url_object.items():
             downloader = mapping[domain](urls, morsels=morsels, title=title, folder=folder, max_workers=max_workers)
             downloaders.append(downloader)

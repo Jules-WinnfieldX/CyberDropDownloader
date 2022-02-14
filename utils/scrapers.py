@@ -171,18 +171,27 @@ def sanitize_key(key):
     return key
 
 
+def check_direct(url):
+    mapping_direct = ['i.pixl.is', r's..putmega.com', r's..putme.ga', 'img-...cyberdrop...', 'f.cyberdrop...', 'fs-...cyberdrop...', 'cdn.bunkr...']
+    for domain in mapping_direct:
+        if re.search(domain, url): return True
+    return False
+
+
 def scrape(urls):
     mapping_ShareX = ["pixl.is", "putme.ga", "putmega.com"]
-    mapping_Chibisafe = ["cyberdrop.me", "cyberdrop.cc", "cyberdrop.to", "bunkr.is", "bunkr.to"]
+    mapping_Chibisafe = ["cyberdrop.me", "cyberdrop.cc", "cyberdrop.to", "cyberdrop.nl", "bunkr.is", "bunkr.to"]
     mapping_GoFile = ["gofile.io"]
 
     replacements = [
         ('fs-...', ''),
+        ('f\.', ''),
         ('img-...', ''),
         ('i\.', ''),
-        ('stream.', ''),
-        ('www.', ''),
-        ('cdn.', '')
+        ('stream\.', ''),
+        ('www\.', ''),
+        ('cdn\.', ''),
+        ('s.\.', '')
     ]
 
     ShareX_urls = []
@@ -198,11 +207,16 @@ def scrape(urls):
         base_domain = urlparse(url).netloc
         for old, new in replacements:
             base_domain = re.sub(old, new, base_domain)
-
         if base_domain in mapping_ShareX:
-            ShareX_urls.append(url)
+            if check_direct(url):
+                result_links.setdefault(base_domain, OrderedDict()).setdefault("ShareX Loose Files", []).append([url, url])
+            else:
+                ShareX_urls.append(url)
         elif base_domain in mapping_Chibisafe:
-            Chibisafe_urls.append(url)
+            if check_direct(url):
+                result_links.setdefault(base_domain, OrderedDict()).setdefault("Chibisafe Loose Files", []).append([url, url])
+            else:
+                Chibisafe_urls.append(url)
         elif base_domain in mapping_GoFile:
             GoFile_urls.append(url)
         else:

@@ -60,7 +60,7 @@ async def main():
     cookies, content_object = scrape(urls)
     if not content_object:
         logging.error(f'ValueError No links: {content_object}')
-        raise ValueError('No links found, check the URL.txt\nNote: This utility only supports album links, not direct links to pictures or videos.')
+        raise ValueError('No links found, check the URL.txt\nIf the link works in your web browser, please open an issue ticket with me.')
 
     downloaders = get_downloaders(content_object, cookies=cookies, folder=Path(DOWNLOAD_FOLDER), max_workers=CPU_COUNT)
 

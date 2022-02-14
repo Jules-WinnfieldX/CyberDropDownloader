@@ -5,3 +5,4 @@
 
 threads = 0
 download_folder = "./Downloads/"
+download_attempts = 1
