@@ -172,7 +172,7 @@ def sanitize_key(key):
 
 
 def check_direct(url):
-    mapping_direct = ['i.pixl.is', r's..putmega.com', r's..putme.ga', 'img-...cyberdrop...', 'f.cyberdrop...', 'fs-...cyberdrop...', 'cdn.bunkr...']
+    mapping_direct = ['i.pixl.is', r's..putmega.com', r's..putme.ga', r'img-...cyberdrop...', r'f.cyberdrop...', r'fs-...cyberdrop...', r'cdn.bunkr...', r'media-files.bunkr...']
     for domain in mapping_direct:
         if re.search(domain, url): return True
     return False
@@ -189,6 +189,7 @@ def scrape(urls):
         ('img-...', ''),
         ('i\.', ''),
         ('stream\.', ''),
+        ('media-files', ''),
         ('www\.', ''),
         ('cdn\.', ''),
         ('s.\.', '')
