@@ -114,7 +114,7 @@ class ChibisafeSpider(Spider):
 
     def individual_bunkr_video(self, response):
         netloc = urlparse(response.url).netloc.replace('www.', '')
-        yield {'netloc': netloc, 'url': response.url.replace('stream.bunkr.is/v/', 'cdn.bunkr.is/'), 'title': "Chibisafe Loose Files", 'referal': response.url, 'cookies': ''}
+        yield {'netloc': netloc, 'url': response.url.replace('stream.bunkr.is/v/', 'media-files.bunkr.is/'), 'title': "Chibisafe Loose Files", 'referal': response.url, 'cookies': ''}
 
     def parse(self, response, **kwargs):
         links = response.css('a[class=image]::attr(href)').getall()

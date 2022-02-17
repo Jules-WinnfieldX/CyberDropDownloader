@@ -197,6 +197,7 @@ class LimitDownloader(Downloader):
     @staticmethod
     def bunkr_parse(url: str) -> str:
         """Fix the URL for bunkr.is and construct the headers."""
+        """No Longer in use with latest bunkr changes to use cdn for images and media-files for videos"""
         extension = '.' + url.split('.')[-1]
         if extension.lower() in FILE_FORMATS['Videos']:
             changed_url = url.replace('cdn.bunkr', 'stream.bunkr').split('/')
@@ -223,8 +224,8 @@ class LimitDownloader(Downloader):
             headers: Optional[CaseInsensitiveDict] = None,
             show_progress: bool = True
     ):
-        if 'bunkr' in url:
-            url = self.bunkr_parse(url)
+        # if 'bunkr' in url:
+        #     url = self.bunkr_parse(url)
         await super().download_file(url, referal=referal, filename=filename, session=session, headers=headers, show_progress=show_progress)
 
     async def download_all(
