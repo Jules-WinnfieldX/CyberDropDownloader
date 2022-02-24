@@ -7,6 +7,7 @@ import settings
 from colorama import Fore, Style
 import requests
 import os
+import re
 import multiprocessing
 import warnings
 import readchar
@@ -45,6 +46,11 @@ def version_check() -> None:
         clear()
 
 
+def regex_links(urls) -> list:
+    all_links = [x.group().replace(".md.", ".") for x in re.finditer(r"(?:http.*?)(?=('|$|\n|\r\n|\r)|\")", urls)]
+    return all_links
+
+
 async def main():
     clear()
     version_check()
@@ -56,7 +62,8 @@ async def main():
         exit()
 
     file_object = open("URLs.txt", "r")
-    urls = [line for line in file_object]
+    urls = file_object.read()
+    urls = regex_links(urls)
     cookies, content_object = scrape(urls)
     if not content_object:
         logging.error(f'ValueError No links: {content_object}')
