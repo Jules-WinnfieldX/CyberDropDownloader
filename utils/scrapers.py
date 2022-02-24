@@ -54,9 +54,13 @@ class ShareX_Spider(Spider):
                 yield Request(url, self.parse_profile)
 
     def parse_profile(self, response):
+        try:
+            title = response.css('div[class=header] h1 strong::text').get()
+            title = title.replace(r"\n", "").strip()
+        except Exception as e:
+            title = response.url.split('/')[-1]
+
         list_recent = response.css('a[id=list-most-recent-link]::attr(href)').get()
-        title = response.css('div[class=header] h1 strong::text').get()
-        title = title.replace(r"\n", "").strip()
         yield Request(list_recent, callback=self.get_list_links, meta={'title': title})
 
     def get_albums(self, response):
@@ -65,9 +69,13 @@ class ShareX_Spider(Spider):
             yield Request(url, callback=self.parse)
 
     def parse(self, response, **kwargs):
+        try:
+            title = response.css('a[data-text=album-name]::text').get()
+            title = title.replace(r"\n", "").strip()
+        except Exception as e:
+            title = response.url.split('/')[-1]
+
         list_recent = response.css('a[id=list-most-recent-link]::attr(href)').get()
-        title = response.css('a[data-text=album-name]::text').get()
-        title = title.replace(r"\n", "").strip()
         yield Request(list_recent, callback=self.get_list_links, meta={'title': title})
 
     def get_singular(self, response):
@@ -78,8 +86,12 @@ class ShareX_Spider(Spider):
 
     def get_list_links(self, response):
         links = response.meta.get('links', [])
-        title = response.meta.get('title')
         links.extend(response.css('a[href*=image] img::attr(src)').getall())
+
+        try:
+            title = response.meta.get('title')
+        except Exception as e:
+            title = response.url.split('/')[-1]
 
         next_page = response.css('li.pagination-next a::attr("href")').get()
         meta = {'links': links, 'title': title}
@@ -118,8 +130,11 @@ class ChibisafeSpider(Spider):
 
     def parse(self, response, **kwargs):
         links = response.css('a[class=image]::attr(href)').getall()
-        title = response.css('h1[id=title]::text').get()
-        title = title.replace(r"\n", "").strip()
+        try:
+            title = response.css('h1[id=title]::text').get()
+            title = title.replace(r"\n", "").strip()
+        except Exception as e:
+            title = response.url.split('/')[-1]
         for link in links:
             netloc = urlparse(link).netloc.replace('www.', '')
             yield {'netloc': netloc, 'url': link, 'title': title, 'referal': response.url, 'cookies': ''}
