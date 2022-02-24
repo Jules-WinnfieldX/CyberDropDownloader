@@ -13,6 +13,7 @@ from selenium.webdriver.chrome.options import Options
 from collections import OrderedDict
 import logging
 import re
+import settings
 
 
 FILE_FORMATS = {
@@ -58,7 +59,8 @@ class ShareX_Spider(Spider):
             title = response.css('div[class=header] h1 strong::text').get()
             title = title.replace(r"\n", "").strip()
         except Exception as e:
-            title = response.url.split('/')[-1]
+            title = response.url.split('/')
+            title = [s for s in title if "." in s][-1]
 
         list_recent = response.css('a[id=list-most-recent-link]::attr(href)').get()
         yield Request(list_recent, callback=self.get_list_links, meta={'title': title})
@@ -73,7 +75,8 @@ class ShareX_Spider(Spider):
             title = response.css('a[data-text=album-name]::text').get()
             title = title.replace(r"\n", "").strip()
         except Exception as e:
-            title = response.url.split('/')[-1]
+            title = response.url.split('/')
+            title = [s for s in title if "." in s][-1]
 
         list_recent = response.css('a[id=list-most-recent-link]::attr(href)').get()
         yield Request(list_recent, callback=self.get_list_links, meta={'title': title})
@@ -87,11 +90,7 @@ class ShareX_Spider(Spider):
     def get_list_links(self, response):
         links = response.meta.get('links', [])
         links.extend(response.css('a[href*=image] img::attr(src)').getall())
-
-        try:
-            title = response.meta.get('title')
-        except Exception as e:
-            title = response.url.split('/')[-1]
+        title = response.meta.get('title')
 
         next_page = response.css('li.pagination-next a::attr("href")').get()
         meta = {'links': links, 'title': title}
@@ -162,7 +161,12 @@ class GoFileSpider(Spider):
         )
         cookies = self.driver.get_cookies()
         links = self.driver.find_elements(By.XPATH, "//button[@id='contentId-download']/..")
-        title = self.driver.find_element(By.ID, 'rowFolder-folderName').text
+
+        try:
+            title = self.driver.find_element(By.ID, 'rowFolder-folderName').text
+        except Exception as e:
+            title = response.url.split('/')[-1]
+
         for link in links:
             link = link.get_attribute("href")
             netloc = urlparse(link).netloc.replace('www.', '')
