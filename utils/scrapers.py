@@ -16,6 +16,9 @@ import re
 import settings
 
 
+title_setting = settings.include_id_in_download_folder_name
+
+
 FILE_FORMATS = {
     'Images': {
         '.jpg', '.jpeg', '.png', '.gif',
@@ -58,6 +61,10 @@ class ShareX_Spider(Spider):
         try:
             title = response.css('div[class=header] h1 strong::text').get()
             title = title.replace(r"\n", "").strip()
+            if title_setting:
+                titlep2 = response.url.split('/')
+                titlep2 = [s for s in titlep2 if "." in s][-1]
+                title = title + " - " + titlep2
         except Exception as e:
             title = response.url.split('/')
             title = [s for s in title if "." in s][-1]
@@ -74,6 +81,10 @@ class ShareX_Spider(Spider):
         try:
             title = response.css('a[data-text=album-name]::text').get()
             title = title.replace(r"\n", "").strip()
+            if title_setting:
+                titlep2 = response.url.split('/')
+                titlep2 = [s for s in titlep2 if "." in s][-1]
+                title = title + " - " + titlep2
         except Exception as e:
             title = response.url.split('/')
             title = [s for s in title if "." in s][-1]
@@ -132,6 +143,8 @@ class ChibisafeSpider(Spider):
         try:
             title = response.css('h1[id=title]::text').get()
             title = title.replace(r"\n", "").strip()
+            if title_setting:
+                title = title + " - " + response.url.split('/')[-1]
         except Exception as e:
             title = response.url.split('/')[-1]
         for link in links:
@@ -164,6 +177,8 @@ class GoFileSpider(Spider):
 
         try:
             title = self.driver.find_element(By.ID, 'rowFolder-folderName').text
+            if title_setting:
+                title = title + " - " + response.url.split('/')[-1]
         except Exception as e:
             title = response.url.split('/')[-1]
 
