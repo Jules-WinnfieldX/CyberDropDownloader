@@ -188,7 +188,7 @@ class Downloader:
     ) -> None:
         """Download the content of all links and save them as files."""
         (self.folder / self.title).mkdir(parents=True, exist_ok=True)
-        async with aiohttp.ClientSession() as session:
+        async with aiohttp.ClientSession(raise_for_status=True) as session:
             session.cookie_jar.update_cookies(self.morsels)
             await self.download_all(self.links, session, headers=headers, show_progress=show_progress)
 
