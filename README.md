@@ -17,7 +17,7 @@ GoFile Requires Chrome to be installed on the system
 
 # Information
 
-Created Using Python 3.9.6 (**Requires Python 3.6 or higher**)
+Created Using Python 3.9.6 (**Requires Python 3.7 or higher**)
 https://www.python.org/downloads/release/python-396/
 
 The program will take the title of the archive and create a new folder for it, and download all of the avilable media to that folder. It'll repeat for every link you have in URLs.txt.
