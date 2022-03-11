@@ -14,11 +14,6 @@ import warnings
 import readchar
 import sys
 
-try:
-    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
-except:
-    pass
-
 logging.basicConfig(level=logging.DEBUG, filename='logs.log',
                     format='%(asctime)s:%(levelname)s:%(module)s:%(filename)s:%(lineno)d:%(message)s',
                     filemode='w')
@@ -85,4 +80,8 @@ async def main():
 
 
 if __name__ == '__main__':
+    try:
+        asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+    except:
+        pass
     asyncio.get_event_loop().run_until_complete(main())
