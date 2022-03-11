@@ -1,3 +1,4 @@
+import asyncio
 from scrapy import signals, Spider
 from scrapy.crawler import CrawlerProcess
 from scrapy.utils.project import get_project_settings
@@ -5,16 +6,15 @@ from scrapy.http.request import Request
 from scrapy.signalmanager import dispatcher
 from urllib.parse import urlparse
 import chromedriver_autoinstaller
+from scrapy.utils.reactor import install_reactor
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.chrome.options import Options
 from collections import OrderedDict
-import logging
 import re
 import settings
-
 
 title_setting = settings.include_id_in_download_folder_name
 

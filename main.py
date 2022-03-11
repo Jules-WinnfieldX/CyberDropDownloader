@@ -1,5 +1,6 @@
 import logging
 import asyncio
+import scrapy
 from pathlib import Path
 from utils.scrapers import scrape
 from utils.downloaders import get_downloaders
@@ -11,7 +12,12 @@ import re
 import multiprocessing
 import warnings
 import readchar
+import sys
 
+try:
+    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+except:
+    pass
 
 logging.basicConfig(level=logging.DEBUG, filename='logs.log',
                     format='%(asctime)s:%(levelname)s:%(module)s:%(filename)s:%(lineno)d:%(message)s',
