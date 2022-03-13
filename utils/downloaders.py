@@ -18,6 +18,7 @@ from http.cookies import SimpleCookie
 import settings
 from colorama import Fore, Style
 
+asyncio.get_event_loop()
 logger = logging.getLogger(__name__)
 
 T = TypeVar("T")
@@ -277,6 +278,7 @@ def get_downloaders(urls: Dict[str, Dict[str, List[str]]], cookies: Iterable[str
         'rpcs0112.b-cdn.net': Downloader,
         'putme.ga': Downloader,
         'putmega.com': Downloader,
+        'jpg.church': Downloader,
         'gofile.io': Downloader
     }
 

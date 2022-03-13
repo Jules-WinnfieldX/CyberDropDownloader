@@ -202,6 +202,8 @@ def sanitize_key(key):
         key = 'putme.ga'
     elif "gofile" in key:
         key = 'gofile.io'
+    elif "church" in key:
+        key = "jpg.church"
     return key
 
 
@@ -213,7 +215,7 @@ def check_direct(url):
 
 
 def scrape(urls):
-    mapping_ShareX = ["pixl.is", "putme.ga", "putmega.com"]
+    mapping_ShareX = ["pixl.is", "putme.ga", "putmega.com", "jpg.church"]
     mapping_Chibisafe = ["cyberdrop.me", "cyberdrop.cc", "cyberdrop.to", "cyberdrop.nl", "bunkr.is", "bunkr.to"]
     mapping_GoFile = ["gofile.io"]
 
@@ -268,6 +270,7 @@ def scrape(urls):
     dispatcher.connect(crawler_results, signal=signals.item_scraped)
     settings = get_project_settings()
     settings.set('LOG_FILE', 'logs.log')
+    settings.set('TWISTED_REACTOR', "twisted.internet.asyncioreactor.AsyncioSelectorReactor")
     process = CrawlerProcess(settings)
 
     if ShareX_urls: process.crawl(ShareX_Spider, myurls=ShareX_urls)

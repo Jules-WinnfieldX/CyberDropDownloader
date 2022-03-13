@@ -1,5 +1,7 @@
 import logging
 import asyncio
+asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+import nest_asyncio
 import scrapy
 from pathlib import Path
 from utils.scrapers import scrape
@@ -53,6 +55,7 @@ def regex_links(urls) -> list:
 
 
 async def main():
+    nest_asyncio.apply()
     clear()
     version_check()
     if os.path.isfile("URLs.txt"):
@@ -80,8 +83,4 @@ async def main():
 
 
 if __name__ == '__main__':
-    try:
-        asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
-    except:
-        pass
     asyncio.get_event_loop().run_until_complete(main())
