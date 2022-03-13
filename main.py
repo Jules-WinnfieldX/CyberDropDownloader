@@ -1,6 +1,11 @@
 import logging
 import asyncio
-asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+
+try:
+    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+except:
+    pass
+
 import nest_asyncio
 import scrapy
 from pathlib import Path
