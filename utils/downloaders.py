@@ -159,6 +159,8 @@ class Downloader:
         referal = url_object[1]
 
         filename = sanitize(url.split("/")[-1])
+        if "?v=" in url:
+            filename = filename.split('v=')[0]
         if (self.folder / self.title / filename).exists():
             logger.debug(str(self.folder / self.title / filename) + " Already Exists")
         else:
@@ -279,6 +281,7 @@ def get_downloaders(urls: Dict[str, Dict[str, List[str]]], cookies: Iterable[str
         'putme.ga': Downloader,
         'putmega.com': Downloader,
         'jpg.church': Downloader,
+        'erome.com': Downloader,
         'gofile.io': Downloader
     }
 

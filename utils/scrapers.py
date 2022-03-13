@@ -156,6 +156,34 @@ class ChibisafeSpider(Spider):
             yield {'netloc': netloc, 'url': link, 'title': title, 'referal': response.url, 'cookies': ''}
 
 
+class EromeSpider(Spider):
+    name = 'Chibisafe'
+
+    def __init__(self, *args, **kwargs):
+        self.myurls = kwargs.get('myurls', [])
+        super(EromeSpider, self).__init__(*args, **kwargs)
+
+    def start_requests(self):
+        for url in self.myurls:
+            yield Request(url, self.parse)
+
+    def parse(self, response, **kwargs):
+        img_links = response.css('img[class="img-front lasyload"]::attr(data-src)').getall()
+        vid_links = response.css('div[class=media-group] div[class=video-lg] video source::attr(src)').getall()
+        try:
+            title = response.css('div[class="col-sm-12 page-content"] h1::text').get()
+            if title_setting:
+                title = title + " - " + response.url.split('/')[-1]
+        except Exception as e:
+            title = response.url.split('/')[-1]
+        for link in img_links:
+            netloc = urlparse(link).netloc.replace('www.', '')
+            yield {'netloc': netloc, 'url': link, 'title': title, 'referal': response.url, 'cookies': ''}
+        for link in vid_links:
+            netloc = urlparse(link).netloc.replace('www.', '')
+            yield {'netloc': netloc, 'url': link, 'title': title, 'referal': response.url, 'cookies': ''}
+
+
 class GoFileSpider(Spider):
     name = 'GoFile'
 
@@ -205,9 +233,11 @@ def sanitize_key(key):
     elif "putmega" in key:
         key = 'putme.ga'
     elif "gofile" in key:
-        key = 'gofile.io'
+        key = "gofile.io"
     elif "church" in key:
         key = "jpg.church"
+    elif "erome" in key:
+        key = "erome.com"
     return key
 
 
@@ -221,6 +251,7 @@ def check_direct(url):
 def scrape(urls):
     mapping_ShareX = ["pixl.is", "putme.ga", "putmega.com", "jpg.church"]
     mapping_Chibisafe = ["cyberdrop.me", "cyberdrop.cc", "cyberdrop.to", "cyberdrop.nl", "bunkr.is", "bunkr.to"]
+    mapping_Erome = ["erome.com"]
     mapping_GoFile = ["gofile.io"]
 
     replacements = [
@@ -237,6 +268,7 @@ def scrape(urls):
 
     ShareX_urls = []
     Chibisafe_urls = []
+    Erome_urls = []
     GoFile_urls = []
     unsupported_urls = []
 
@@ -258,6 +290,8 @@ def scrape(urls):
                 result_links.setdefault(base_domain, OrderedDict()).setdefault("Chibisafe Loose Files", []).append([url, url])
             else:
                 Chibisafe_urls.append(url)
+        elif base_domain in mapping_Erome:
+            Erome_urls.append(url)
         elif base_domain in mapping_GoFile:
             GoFile_urls.append(url)
         else:
@@ -279,6 +313,7 @@ def scrape(urls):
 
     if ShareX_urls: process.crawl(ShareX_Spider, myurls=ShareX_urls)
     if Chibisafe_urls: process.crawl(ChibisafeSpider, myurls=Chibisafe_urls)
+    if Erome_urls: process.crawl(EromeSpider, myurls=Erome_urls)
     if GoFile_urls: process.crawl(GoFileSpider, myurls=GoFile_urls)
     process.start()
 
