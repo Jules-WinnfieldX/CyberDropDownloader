@@ -21,7 +21,7 @@ logging.basicConfig(level=logging.DEBUG, filename='logs.log',
                     filemode='w')
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
-SUPPORTED_URLS = {'cyberdrop.me', 'bunkr.is', "bunkr.to", 'pixl.is', 'putme.ga', 'putmega.com', 'gofile.io'}
+SUPPORTED_URLS = {'cyberdrop.me', 'bunkr.is', "bunkr.to", 'pixl.is', 'putme.ga', 'putmega.com', 'gofile.io', 'jpg.church'}
 
 CPU_COUNT = settings.threads if settings.threads != 0 else multiprocessing.cpu_count()
 DOWNLOAD_FOLDER = settings.download_folder

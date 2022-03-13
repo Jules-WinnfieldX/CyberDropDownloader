@@ -48,11 +48,15 @@ class ShareX_Spider(Spider):
 
     def start_requests(self):
         for url in self.myurls:
+            if "jpg.church" in url:
+                url += '/?agree-consent'
             if '/album/' in url:
                 yield Request(url, self.parse)
             elif '/albums' in url:
                 yield Request(url, self.get_albums)
             elif '/image/' in url:
+                yield Request(url, self.get_singular)
+            elif '/images/' in url:
                 yield Request(url, self.get_singular)
             else:
                 yield Request(url, self.parse_profile)
@@ -208,7 +212,7 @@ def sanitize_key(key):
 
 
 def check_direct(url):
-    mapping_direct = ['i.pixl.is', r's..putmega.com', r's..putme.ga', r'img-...cyberdrop...', r'f.cyberdrop...', r'fs-...cyberdrop...', r'cdn.bunkr...', r'media-files.bunkr...']
+    mapping_direct = ['i.pixl.is', r's..putmega.com', r's..putme.ga', r'img-...cyberdrop...', r'f.cyberdrop...', r'fs-...cyberdrop...', r'cdn.bunkr...', r'media-files.bunkr...', r'jpg.church/images/...']
     for domain in mapping_direct:
         if re.search(domain, url): return True
     return False
