@@ -72,6 +72,7 @@ class ShareX_Spider(Spider):
         except Exception as e:
             title = response.url.split('/')
             title = [s for s in title if "." in s][-1]
+        title = re.sub(r'[/]', "-", title)
 
         list_recent = response.css('a[id=list-most-recent-link]::attr(href)').get()
         yield Request(list_recent, callback=self.get_list_links, meta={'title': title})
@@ -92,6 +93,7 @@ class ShareX_Spider(Spider):
         except Exception as e:
             title = response.url.split('/')
             title = [s for s in title if "." in s][-1]
+        title = re.sub(r'[/]', "-", title)
 
         list_recent = response.css('a[id=list-most-recent-link]::attr(href)').get()
         yield Request(list_recent, callback=self.get_list_links, meta={'title': title})
@@ -144,6 +146,7 @@ class ChibisafeSpider(Spider):
 
     def parse(self, response, **kwargs):
         links = response.css('a[class=image]::attr(href)').getall()
+
         try:
             title = response.css('h1[id=title]::text').get()
             title = title.replace(r"\n", "").strip()
@@ -151,6 +154,8 @@ class ChibisafeSpider(Spider):
                 title = title + " - " + response.url.split('/')[-1]
         except Exception as e:
             title = response.url.split('/')[-1]
+        title = re.sub(r'[/]', "-", title)
+
         for link in links:
             netloc = urlparse(link).netloc.replace('www.', '')
             yield {'netloc': netloc, 'url': link, 'title': title, 'referal': response.url, 'cookies': ''}
@@ -170,12 +175,15 @@ class EromeSpider(Spider):
     def parse(self, response, **kwargs):
         img_links = response.css('img[class="img-front lasyload"]::attr(data-src)').getall()
         vid_links = response.css('div[class=media-group] div[class=video-lg] video source::attr(src)').getall()
+
         try:
             title = response.css('div[class="col-sm-12 page-content"] h1::text').get()
             if title_setting:
                 title = title + " - " + response.url.split('/')[-1]
         except Exception as e:
             title = response.url.split('/')[-1]
+        title = re.sub(r'[/]', "-", title)
+
         for link in img_links:
             netloc = urlparse(link).netloc.replace('www.', '')
             yield {'netloc': netloc, 'url': link, 'title': title, 'referal': response.url, 'cookies': ''}
@@ -214,6 +222,7 @@ class GoFileSpider(Spider):
                 title = title + " - " + response.url.split('/')[-1]
         except Exception as e:
             title = response.url.split('/')[-1]
+        title = re.sub(r'[/]', "-", title)
 
         for folder_link in folder_links:
             link = folder_link.get_attribute("href")
@@ -242,6 +251,7 @@ class GoFileSpider(Spider):
                 title = title + " - " + response.url.split('/')[-1]
         except Exception as e:
             title = response.url.split('/')[-1]
+        title = re.sub(r'[/]', "-", title)
 
         title = og_title + "/" + title
         for link in links:
