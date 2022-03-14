@@ -95,6 +95,14 @@ class ShareX_Spider(Spider):
             title = [s for s in title if "." in s][-1]
         title = re.sub(r'[/]', "-", title)
 
+        try:
+            title = response.meta.get('title') + "/" + title
+        except:
+            pass
+
+        sub_albums = response.css('a[id=tab-sub-link]::attr(href)').get()
+        yield Request(sub_albums, callback=self.get_sub_albums_links, meta={'title': title})
+
         list_recent = response.css('a[id=list-most-recent-link]::attr(href)').get()
         yield Request(list_recent, callback=self.get_list_links, meta={'title': title})
 
@@ -103,6 +111,11 @@ class ShareX_Spider(Spider):
         title = "ShareX Loose Files"
         netloc = urlparse(link).netloc.replace('www.', '')
         yield {'netloc': netloc, 'url': link.replace('.md.', '.').replace('.th.', '.'), 'title': title, 'referal': response.url, 'cookies': ''}
+
+    def get_sub_albums_links(self, response):
+        albums = response.css('div[class=pad-content-listing] div::attr(data-url-short)').getall()
+        for album in albums:
+            yield Request(album, self.parse, meta=response.meta)
 
     def get_list_links(self, response):
         links = response.meta.get('links', [])
