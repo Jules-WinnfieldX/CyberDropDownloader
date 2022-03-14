@@ -213,49 +213,31 @@ class GoFileSpider(Spider):
             EC.presence_of_element_located((By.ID, 'contentId-download'))
         )
         cookies = self.driver.get_cookies()
-        folder_links = self.driver.find_elements(By.CSS_SELECTOR, "div[class='col-md text-center text-md-right'] a[class=ajaxLink]")
+        folder_links = self.driver.find_elements(By.CSS_SELECTOR,
+                                                 "div[class='col-md text-center text-md-right'] a[class=ajaxLink]")
         links = self.driver.find_elements(By.XPATH, "//button[@id='contentId-download']/..")
 
         try:
             title = self.driver.find_element(By.ID, 'rowFolder-folderName').text
             if title_setting:
                 title = title + " - " + response.url.split('/')[-1]
+            title = re.sub(r'[/]', "-", title)
         except Exception as e:
             title = response.url.split('/')[-1]
-        title = re.sub(r'[/]', "-", title)
+        try:
+            og_title = response.meta.get('title')
+            title = og_title + "/" + title
+        except:
+            pass
 
         for folder_link in folder_links:
             link = folder_link.get_attribute("href")
-            yield Request(link, self.folder_parse, meta={'title': title})
+            yield Request(link, self.parse, meta={'title': title})
 
         for link in links:
             link = link.get_attribute("href")
             if link is None:
                 continue
-            netloc = urlparse(link).netloc.replace('www.', '')
-            yield {'netloc': netloc, 'url': link, 'title': title, 'referal': response.url, 'cookies': cookies}
-
-    def folder_parse(self, response, **kwargs):
-        og_title = response.meta.get('title')
-
-        self.driver.get(response.url)
-        element = WebDriverWait(self.driver, 10).until(
-            EC.presence_of_element_located((By.ID, 'contentId-download'))
-        )
-        cookies = self.driver.get_cookies()
-        links = self.driver.find_elements(By.XPATH, "//button[@id='contentId-download']/..")
-
-        try:
-            title = self.driver.find_element(By.ID, 'rowFolder-folderName').text
-            if title_setting:
-                title = title + " - " + response.url.split('/')[-1]
-        except Exception as e:
-            title = response.url.split('/')[-1]
-        title = re.sub(r'[/]', "-", title)
-
-        title = og_title + "/" + title
-        for link in links:
-            link = link.get_attribute("href")
             netloc = urlparse(link).netloc.replace('www.', '')
             yield {'netloc': netloc, 'url': link, 'title': title, 'referal': response.url, 'cookies': cookies}
 
