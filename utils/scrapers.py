@@ -205,6 +205,7 @@ class GoFileSpider(Spider):
             EC.presence_of_element_located((By.ID, 'contentId-download'))
         )
         cookies = self.driver.get_cookies()
+        folder_links = self.driver.find_elements(By.CSS_SELECTOR, "div[class='col-md text-center text-md-right'] a[class=ajaxLink]")
         links = self.driver.find_elements(By.XPATH, "//button[@id='contentId-download']/..")
 
         try:
@@ -214,10 +215,41 @@ class GoFileSpider(Spider):
         except Exception as e:
             title = response.url.split('/')[-1]
 
+        for folder_link in folder_links:
+            link = folder_link.get_attribute("href")
+            yield Request(link, self.folder_parse, meta={'title': title})
+
+        for link in links:
+            link = link.get_attribute("href")
+            if link is None:
+                continue
+            netloc = urlparse(link).netloc.replace('www.', '')
+            yield {'netloc': netloc, 'url': link, 'title': title, 'referal': response.url, 'cookies': cookies}
+
+    def folder_parse(self, response, **kwargs):
+        og_title = response.meta.get('title')
+
+        self.driver.get(response.url)
+        element = WebDriverWait(self.driver, 10).until(
+            EC.presence_of_element_located((By.ID, 'contentId-download'))
+        )
+        cookies = self.driver.get_cookies()
+        links = self.driver.find_elements(By.XPATH, "//button[@id='contentId-download']/..")
+
+        try:
+            title = self.driver.find_element(By.ID, 'rowFolder-folderName').text
+            if title_setting:
+                title = title + " - " + response.url.split('/')[-1]
+        except Exception as e:
+            title = response.url.split('/')[-1]
+
+        title = og_title + "/" + title
         for link in links:
             link = link.get_attribute("href")
             netloc = urlparse(link).netloc.replace('www.', '')
             yield {'netloc': netloc, 'url': link, 'title': title, 'referal': response.url, 'cookies': cookies}
+
+    def closed(self, reason):
         self.driver.close()
 
 
@@ -299,7 +331,7 @@ def scrape(urls):
 
     def crawler_results(signal, sender, item, response, spider):
         domain = sanitize_key(item['netloc'])
-        title = re.sub(r'[\\/*?:"<>|.]', "-", item['title'])
+        title = re.sub(r'[\\*?:"<>|.]', "-", item['title'])
         referal = item['referal']
         url = item['url']
         cookies.extend(x for x in item['cookies'] if x not in cookies)
