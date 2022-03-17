@@ -162,8 +162,9 @@ class Downloader:
         filename = sanitize(url.split("/")[-1])
         if "?v=" in url:
             filename = filename.split('v=')[0]
-        fileext = filename.split('.')[-1]
-        filename = filename[:MAX_FILENAME_LENGTH]+'.'+fileext
+        if len(filename) > MAX_FILENAME_LENGTH:
+            fileext = filename.split('.')[-1]
+            filename = filename[:MAX_FILENAME_LENGTH]+'.'+fileext
         if (self.folder / self.title / filename).exists():
             logger.debug(str(self.folder / self.title / filename) + " Already Exists")
         else:
