@@ -11,12 +11,13 @@ import aiohttp.client_exceptions
 from requests.structures import CaseInsensitiveDict
 from tqdm import tqdm
 import logging
+from colorama import Fore, Style
 from sanitize_filename import sanitize
 import ssl
 import certifi
 from http.cookies import SimpleCookie
 import settings
-from colorama import Fore, Style
+
 
 asyncio.get_event_loop()
 logger = logging.getLogger(__name__)

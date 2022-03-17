@@ -1,4 +1,3 @@
-import asyncio
 from scrapy import signals, Spider
 from scrapy.crawler import CrawlerProcess
 from scrapy.utils.project import get_project_settings
@@ -6,7 +5,8 @@ from scrapy.http.request import Request
 from scrapy.signalmanager import dispatcher
 from urllib.parse import urlparse
 import chromedriver_autoinstaller
-from scrapy.utils.reactor import install_reactor
+import logging
+from colorama import Fore, Style
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
@@ -16,6 +16,7 @@ from collections import OrderedDict
 import re
 import settings
 
+logger = logging.getLogger(__name__)
 title_setting = settings.include_id_in_download_folder_name
 
 
@@ -38,6 +39,11 @@ FILE_FORMATS = {
 }
 
 
+def log(text, style):
+    # Log function for printing to command line
+    print(style + str(text) + Style.RESET_ALL)
+
+
 # Scrapes all files from an Album
 class ShareX_Spider(Spider):
     name = 'ShareX'
@@ -48,8 +54,6 @@ class ShareX_Spider(Spider):
 
     def start_requests(self):
         for url in self.myurls:
-            if "jpg.church" in url:
-                url += '/?agree-consent'
             if '/album/' in url:
                 yield Request(url, self.parse)
             elif '/albums' in url:
@@ -62,6 +66,7 @@ class ShareX_Spider(Spider):
                 yield Request(url, self.parse_profile)
 
     def parse_profile(self, response):
+        log(f"Scraping Profile: {response.url}", Fore.WHITE)
         try:
             title = response.css('div[class=header] h1 strong::text').get()
             title = title.replace(r"\n", "").strip()
@@ -78,11 +83,13 @@ class ShareX_Spider(Spider):
         yield Request(list_recent, callback=self.get_list_links, meta={'title': title})
 
     def get_albums(self, response):
+        log(f"Scraping Albums From: {response.url}", Fore.WHITE)
         albums = response.css("a[class='image-container --media']::attr(href)").getall()
         for url in albums:
             yield Request(url, callback=self.parse)
 
     def parse(self, response, **kwargs):
+        log(f"Scraping Album: {response.url}", Fore.WHITE)
         try:
             title = response.css('a[data-text=album-name]::text').get()
             title = title.replace(r"\n", "").strip()
@@ -114,10 +121,13 @@ class ShareX_Spider(Spider):
 
     def get_sub_albums_links(self, response):
         albums = response.css('div[class=pad-content-listing] div::attr(data-url-short)').getall()
-        for album in albums:
-            yield Request(album, self.parse, meta=response.meta)
+        if albums:
+            log(f"Scraping Sub Albums from: {response.url}", Fore.WHITE)
+            for album in albums:
+                yield Request(album, self.parse, meta=response.meta)
 
     def get_list_links(self, response):
+        log(f"Scraping: {response.url}", Fore.WHITE)
         links = response.meta.get('links', [])
         links.extend(response.css('a[href*=image] img::attr(src)').getall())
         title = response.meta.get('title')
@@ -141,6 +151,7 @@ class ChibisafeSpider(Spider):
 
     def start_requests(self):
         for url in self.myurls:
+            log(f"Scraping: {url}", Fore.WHITE)
             ext = "."+url.split('.')[-1]
             if '/a/' in url:
                 yield Request(url, self.parse)
@@ -158,6 +169,7 @@ class ChibisafeSpider(Spider):
         yield {'netloc': netloc, 'url': response.url.replace('stream.bunkr.is/v/', 'media-files.bunkr.is/'), 'title': "Chibisafe Loose Files", 'referal': response.url, 'cookies': ''}
 
     def parse(self, response, **kwargs):
+        log(f"Scraping: {response.url}", Fore.WHITE)
         links = response.css('a[class=image]::attr(href)').getall()
 
         try:
@@ -183,6 +195,7 @@ class EromeSpider(Spider):
 
     def start_requests(self):
         for url in self.myurls:
+            log(f"Scraping: {url}", Fore.WHITE)
             yield Request(url, self.parse)
 
     def parse(self, response, **kwargs):
@@ -221,6 +234,7 @@ class GoFileSpider(Spider):
             yield Request(url, self.parse)
 
     def parse(self, response, **kwargs):
+        log(f"Scraping: {response.url}", Fore.WHITE)
         self.driver.get(response.url)
         element = WebDriverWait(self.driver, 10).until(
             EC.presence_of_element_located((By.ID, 'contentId-download'))
@@ -311,6 +325,9 @@ def scrape(urls):
 
     cookies = []
     result_links = OrderedDict()
+
+    log("Starting Scrape", Fore.WHITE)
+    log("Just because a new URL is scraping, doesn't mean the last one is complete.", Fore.WHITE)
 
     for url in urls:
         url = url.replace('\n', '')
