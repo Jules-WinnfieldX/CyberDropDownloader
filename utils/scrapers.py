@@ -18,7 +18,7 @@ import settings
 
 logger = logging.getLogger(__name__)
 title_setting = settings.include_id_in_download_folder_name
-
+log_scraped_values = settings.post_scraping_readout
 
 FILE_FORMATS = {
     'Images': {
@@ -54,6 +54,7 @@ class ShareX_Spider(Spider):
 
     def start_requests(self):
         for url in self.myurls:
+            log(f"Starting: {url}", Fore.WHITE)
             if '/album/' in url:
                 yield Request(url, self.parse)
             elif '/albums' in url:
@@ -66,7 +67,6 @@ class ShareX_Spider(Spider):
                 yield Request(url, self.parse_profile)
 
     def parse_profile(self, response):
-        log(f"Scraping Profile: {response.url}", Fore.WHITE)
         try:
             title = response.css('div[class=header] h1 strong::text').get()
             title = title.replace(r"\n", "").strip()
@@ -83,13 +83,11 @@ class ShareX_Spider(Spider):
         yield Request(list_recent, callback=self.get_list_links, meta={'title': title})
 
     def get_albums(self, response):
-        log(f"Scraping Albums From: {response.url}", Fore.WHITE)
         albums = response.css("a[class='image-container --media']::attr(href)").getall()
         for url in albums:
             yield Request(url, callback=self.parse)
 
     def parse(self, response, **kwargs):
-        log(f"Scraping Album: {response.url}", Fore.WHITE)
         try:
             title = response.css('a[data-text=album-name]::text').get()
             title = title.replace(r"\n", "").strip()
@@ -115,16 +113,17 @@ class ShareX_Spider(Spider):
 
     def get_singular(self, response):
         link = response.css('input[id=embed-code-2]::attr(value)').get()
+        link = link.replace('.md.', '.').replace('.th.', '.')
         title = "ShareX Loose Files"
         netloc = urlparse(link).netloc.replace('www.', '')
-        yield {'netloc': netloc, 'url': link.replace('.md.', '.').replace('.th.', '.'), 'title': title, 'referal': response.url, 'cookies': ''}
+        if log_scraped_values:
+            log(f"Scraped: {title} - {link}", Fore.WHITE)
+        yield {'netloc': netloc, 'url': link, 'title': title, 'referal': response.url, 'cookies': ''}
 
     def get_sub_albums_links(self, response):
         albums = response.css('div[class=pad-content-listing] div::attr(data-url-short)').getall()
-        if albums:
-            log(f"Scraping Sub Albums from: {response.url}", Fore.WHITE)
-            for album in albums:
-                yield Request(album, self.parse, meta=response.meta)
+        for album in albums:
+            yield Request(album, self.parse, meta=response.meta)
 
     def get_list_links(self, response):
         log(f"Scraping: {response.url}", Fore.WHITE)
@@ -139,7 +138,11 @@ class ShareX_Spider(Spider):
         else:
             for link in links:
                 netloc = urlparse(link).netloc.replace('www.', '')
-                yield {'netloc': netloc, 'url': link.replace('.md.', '.').replace('.th.', '.'), 'title': title, 'referal': response.url, 'cookies': ''}
+                link = link.replace('.md.', '.').replace('.th.', '.')
+                if log_scraped_values:
+                    log(f"Scraped: {title} - {link}", Fore.WHITE)
+                yield {'netloc': netloc, 'url': link, 'title': title, 'referal': response.url, 'cookies': ''}
+        log(f"Finished Scraping: {response.url}", Fore.WHITE)
 
 
 class ChibisafeSpider(Spider):
@@ -151,7 +154,7 @@ class ChibisafeSpider(Spider):
 
     def start_requests(self):
         for url in self.myurls:
-            log(f"Scraping: {url}", Fore.WHITE)
+            log(f"Starting: {url}", Fore.WHITE)
             ext = "."+url.split('.')[-1]
             if '/a/' in url:
                 yield Request(url, self.parse)
@@ -162,11 +165,18 @@ class ChibisafeSpider(Spider):
 
     def individual_file(self, response):
         netloc = urlparse(response.url).netloc.replace('www.', '')
-        yield {'netloc': netloc, 'url': response.url, 'title': "Chibisafe Loose Files", 'referal': response.url, 'cookies': ''}
+        title = "Chibisafe Loose Files"
+        if log_scraped_values:
+            log(f"Scraped: {title} - {response.url}", Fore.WHITE)
+        yield {'netloc': netloc, 'url': response.url, 'title': title, 'referal': response.url, 'cookies': ''}
 
     def individual_bunkr_video(self, response):
         netloc = urlparse(response.url).netloc.replace('www.', '')
-        yield {'netloc': netloc, 'url': response.url.replace('stream.bunkr.is/v/', 'media-files.bunkr.is/'), 'title': "Chibisafe Loose Files", 'referal': response.url, 'cookies': ''}
+        title = "Chibisafe Loose Files"
+        link = response.url.replace('stream.bunkr.is/v/', 'media-files.bunkr.is/')
+        if log_scraped_values:
+            log(f"Scraped: {title} - {link}", Fore.WHITE)
+        yield {'netloc': netloc, 'url': link, 'title': title, 'referal': response.url, 'cookies': ''}
 
     def parse(self, response, **kwargs):
         log(f"Scraping: {response.url}", Fore.WHITE)
@@ -183,7 +193,10 @@ class ChibisafeSpider(Spider):
 
         for link in links:
             netloc = urlparse(link).netloc.replace('www.', '')
+            if log_scraped_values:
+                log(f"Scraped: {title} - {link}", Fore.WHITE)
             yield {'netloc': netloc, 'url': link, 'title': title, 'referal': response.url, 'cookies': ''}
+        log(f"Finished Scraping: {response.url}", Fore.WHITE)
 
 
 class EromeSpider(Spider):
@@ -195,10 +208,11 @@ class EromeSpider(Spider):
 
     def start_requests(self):
         for url in self.myurls:
-            log(f"Scraping: {url}", Fore.WHITE)
+            log(f"Starting: {url}", Fore.WHITE)
             yield Request(url, self.parse)
 
     def parse(self, response, **kwargs):
+        log(f"Scraping: {response.url}", Fore.WHITE)
         img_links = response.css('img[class="img-front lasyload"]::attr(data-src)').getall()
         vid_links = response.css('div[class=media-group] div[class=video-lg] video source::attr(src)').getall()
 
@@ -212,10 +226,15 @@ class EromeSpider(Spider):
 
         for link in img_links:
             netloc = urlparse(link).netloc.replace('www.', '')
+            if log_scraped_values:
+                log(f"Scraped: {title} - {link}", Fore.WHITE)
             yield {'netloc': netloc, 'url': link, 'title': title, 'referal': response.url, 'cookies': ''}
         for link in vid_links:
             netloc = urlparse(link).netloc.replace('www.', '')
+            if log_scraped_values:
+                log(f"Scraped: {title} - {link}", Fore.WHITE)
             yield {'netloc': netloc, 'url': link, 'title': title, 'referal': response.url, 'cookies': ''}
+        log(f"Finished Scraping: {response.url}", Fore.WHITE)
 
 
 class GoFileSpider(Spider):
@@ -231,6 +250,7 @@ class GoFileSpider(Spider):
 
     def start_requests(self):
         for url in self.myurls:
+            log(f"Starting: {url}", Fore.WHITE)
             yield Request(url, self.parse)
 
     def parse(self, response, **kwargs):
@@ -266,7 +286,10 @@ class GoFileSpider(Spider):
             if link is None:
                 continue
             netloc = urlparse(link).netloc.replace('www.', '')
+            if log_scraped_values:
+                log(f"Scraped: {title} - {link}", Fore.WHITE)
             yield {'netloc': netloc, 'url': link, 'title': title, 'referal': response.url, 'cookies': cookies}
+        log(f"Finished Scraping: {response.url}", Fore.WHITE)
 
     def closed(self, reason):
         self.driver.close()
