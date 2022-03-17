@@ -29,19 +29,19 @@ The program will take the title of the archive and create a new folder for it, a
 Download a release from https://github.com/Jules-WinnfieldX/CyberDropDownloader/releases
 Extract all of the files to a single directory.
 
-##**MAC**
+##MAC
 
 https://www.python.org/ftp/python/3.9.6/python-3.9.6-macos11.pkg
 
 Use this installer to install python
 
-##**PC**
+##PC
 
 https://www.python.org/ftp/python/3.9.6/python-3.9.6-amd64.exe
 
 Use this installer to install python, make sure you select the box that says "ADD TO PATH"
 
-##**Arch Linux** (Not maintained by me)
+##Arch Linux (Not maintained by me)
 
 There is a package on the AUR named [`cyberdropdownloader-bin`](https://aur.archlinux.org/packages/cyberdropdownloader-bin/).
 
