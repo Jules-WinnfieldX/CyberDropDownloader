@@ -1,7 +1,7 @@
 import logging
 import asyncio
 
-# Fixes reactor already installed error on windows. This and nest_asyncio are needed for using scrapy inside asyncio, something that wasn't intended use.
+# Fixes reactor already installed error
 try:
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 except:
@@ -46,7 +46,7 @@ def clear():
 def version_check() -> None:
     response = requests.get("https://api.github.com/repos/Jules-WinnfieldX/CyberDropDownloader/releases/latest")
     latest_version = response.json()["tag_name"]
-    current_version = "2.5.4"
+    current_version = "2.5.5"
     logging.debug(f"We are running version {current_version} of Cyberdrop Downloader")
     if latest_version != current_version:
         log("A new version of CyberDropDownloader is available\n"

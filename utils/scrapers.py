@@ -55,13 +55,11 @@ class ShareX_Spider(Spider):
     def start_requests(self):
         for url in self.myurls:
             log(f"Starting: {url}", Fore.WHITE)
-            if '/album/' in url:
+            if '/album/' in url or '/a/' in url:
                 yield Request(url, self.parse)
             elif '/albums' in url:
                 yield Request(url, self.get_albums)
-            elif '/image/' in url:
-                yield Request(url, self.get_singular)
-            elif '/images/' in url:
+            elif '/image/' in url or '/img/' in url or '/images/' in url:
                 yield Request(url, self.get_singular)
             else:
                 yield Request(url, self.parse_profile)
@@ -128,7 +126,10 @@ class ShareX_Spider(Spider):
     def get_list_links(self, response):
         log(f"Scraping: {response.url}", Fore.WHITE)
         links = response.meta.get('links', [])
-        links.extend(response.css('a[href*=image] img::attr(src)').getall())
+        if 'jpg.church' in response.url:
+            links.extend(response.css('a[href*=img] img::attr(src)').getall())
+        else:
+            links.extend(response.css('a[href*=image] img::attr(src)').getall())
         title = response.meta.get('title')
 
         next_page = response.css('li.pagination-next a::attr("href")').get()
