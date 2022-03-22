@@ -1,5 +1,12 @@
 import logging
 import asyncio
+import requests
+import os
+import re
+import warnings
+import readchar
+import settings
+import nest_asyncio
 
 # Fixes reactor already installed error
 try:
@@ -7,17 +14,10 @@ try:
 except:
     pass
 
-import nest_asyncio
 from pathlib import Path
 from utils.scraper import scrape
 from utils.downloaders import get_downloaders
-import settings
 from colorama import Fore, Style
-import requests
-import os
-import re
-import warnings
-import readchar
 from requests.structures import CaseInsensitiveDict
 
 logging.basicConfig(level=logging.DEBUG, filename='logs.log',

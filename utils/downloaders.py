@@ -136,14 +136,10 @@ class Downloader:
             show_progress: bool = True
     ) -> None:
         """Download the content of given URL"""
-        complete_file = (self.folder / self.title / filename)
-        temp_file = complete_file.with_suffix(".download")
+        temp_file = (self.folder / self.title / filename).with_suffix(".download")
         resume_point = 0
-        user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 ' \
-                     '(KHTML, like Gecko) Chrome/99.0.4844.74 Safari/537.36'
-
-        headers['Referer'] = referal
-        headers['user-agent'] = user_agent
+        downloaded = bytearray()
+        user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.74 Safari/537.36'
 
         if temp_file.exists():
             resume_point = temp_file.stat().st_size
@@ -153,23 +149,37 @@ class Downloader:
             async with self._semaphore:
                 await throttle(self, yarl.URL(url))
                 resp = await session.get(url, headers=headers, raise_for_status=True)
-                total = int(resp.headers.get('Content-Length', str(0))) + resume_point
+                total = int(resp.headers.get('Content-Length', 0)) + resume_point
                 with tqdm(
-                    total=total, unit_scale=True,
-                    unit='B', leave=False, initial=resume_point,
-                    desc=filename, disable=(not show_progress)
+                        total=total, unit_scale=True,
+                        unit='B', leave=False, initial=resume_point,
+                        desc=filename, disable=(not show_progress)
                 ) as progress:
-                    # FIX THIS SHIT
-                    async with aiofiles.open(temp_file, mode='ab') as f:
-                        async for chunk, _ in resp.content.iter_chunks():
-                            await f.write(chunk)
-                            progress.update(len(chunk))
-            temp_file.rename(complete_file)
-            logger.debug("Finished " + filename)
+                    async for chunk, _ in resp.content.iter_chunks():
+                        downloaded.extend(chunk)
+                        progress.update(len(chunk))
+            await self.write_partial(temp_file, downloaded)
 
         except (aiohttp.client_exceptions.ClientPayloadError, aiohttp.client_exceptions.ClientOSError,
                 aiohttp.client_exceptions.ServerDisconnectedError, asyncio.TimeoutError) as e:
+            await self.write_partial(temp_file, downloaded)
             raise FailureException(e)
+
+    async def write_partial(self, filename: Path, downloaded: bytearray) -> None:
+        """Store partial or full data into file"""
+        async with aiofiles.open(filename, mode='ab') as f:
+            await f.write(downloaded)
+
+    async def rename_file(self, filename: str) -> None:
+        """Rename complete file."""
+        complete_file = (self.folder / self.title / filename)
+        temp_file = complete_file.with_suffix(".download")
+        if complete_file.exists():
+            logger.debug(str(self.folder / self.title / filename) + " Already Exists")
+            await aiofiles.os.remove(temp_file)
+        else:
+            temp_file.rename(complete_file)
+        logger.debug("Finished " + filename)
 
     async def download_and_store(
             self,
@@ -196,6 +206,7 @@ class Downloader:
             try:
                 await self.download_file(url, referal=referal, filename=filename, session=session, headers=headers,
                                          show_progress=show_progress)
+                await self.rename_file(filename)
             except Exception:
                 logger.debug(traceback.format_exc())
                 log(f"\nSkipping {filename}: likely exceeded download attempts\nRe-run program after "
