@@ -72,14 +72,16 @@ async def main():
     cookies, content_object = scrape(urls)
     if not content_object:
         logging.error(f'ValueError No links: {content_object}')
-        raise ValueError('No links found, check the URL.txt\nIf the link works in your web browser, please open an issue ticket with me.')
+        raise ValueError('No links found, check the URL.txt\nIf the link works in your web browser, '
+                         'please open an issue ticket with me.')
     clear()
     downloaders = get_downloaders(content_object, cookies=cookies, folder=Path(DOWNLOAD_FOLDER))
 
     for downloader in downloaders:
         await downloader.download_content(headers=CaseInsensitiveDict())
     log('Finished scraping. Enjoy :)', Fore.WHITE)
-    log('If you have ".download" files remaining, rerun this program. You most likely ran into download attempts limit', Fore.WHITE)
+    log('If you have ".download" files remaining, rerun this program. You most likely ran into download attempts limit',
+        Fore.WHITE)
     repr(readchar.readchar())
 
 
