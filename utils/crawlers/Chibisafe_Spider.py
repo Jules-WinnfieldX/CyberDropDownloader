@@ -1,8 +1,10 @@
+import re
+import settings
+
 from scrapy import signals, Spider
 from scrapy.http.request import Request
 from urllib.parse import urlparse
-import re
-import settings
+from urllib.parse import urljoin
 
 title_setting = settings.include_id_in_download_folder_name
 
@@ -25,6 +27,19 @@ FILE_FORMATS = {
 }
 
 
+def bunkr_parse(url: str) -> str:
+    """Fix the URL for bunkr.is and construct the headers."""
+    extension = '.' + url.split('.')[-1]
+    if extension.lower() in FILE_FORMATS['Videos']:
+        changed_url = url.replace('cdn.bunkr', 'media-files.bunkr').split('/')
+        changed_url = ''.join(map(lambda x: urljoin('/', x), changed_url))
+        return changed_url
+    if extension.lower() in FILE_FORMATS['Images']:
+        changed_url = url.replace('i.bunkr', 'cdn.bunkr')
+        return changed_url
+    return url
+
+
 class Chibisafe_Spider(Spider):
     name = 'Chibisafe'
 
@@ -45,13 +60,13 @@ class Chibisafe_Spider(Spider):
     def individual_file(self, response):
         netloc = urlparse(response.url).netloc.replace('www.', '')
         title = "Chibisafe Loose Files"
-        yield {'netloc': netloc, 'url': response.url, 'title': title, 'referal': response.url, 'cookies': ''}
+        yield {'netloc': netloc, 'url': bunkr_parse(response.url), 'title': title, 'referal': response.url, 'cookies': ''}
 
     def individual_bunkr_video(self, response):
         netloc = urlparse(response.url).netloc.replace('www.', '')
         title = "Chibisafe Loose Files"
         link = response.url.replace('stream.bunkr.is/v/', 'media-files.bunkr.is/')
-        yield {'netloc': netloc, 'url': link, 'title': title, 'referal': response.url, 'cookies': ''}
+        yield {'netloc': netloc, 'url': bunkr_parse(link), 'title': title, 'referal': response.url, 'cookies': ''}
 
     def parse(self, response, **kwargs):
         links = response.css('a[class=image]::attr(href)').getall()
@@ -67,4 +82,4 @@ class Chibisafe_Spider(Spider):
 
         for link in links:
             netloc = urlparse(link).netloc.replace('www.', '')
-            yield {'netloc': netloc, 'url': link, 'title': title, 'referal': response.url, 'cookies': ''}
+            yield {'netloc': netloc, 'url': bunkr_parse(link), 'title': title, 'referal': response.url, 'cookies': ''}

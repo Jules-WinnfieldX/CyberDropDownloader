@@ -2,25 +2,23 @@ import asyncio
 import http
 import time
 import typing
-from functools import wraps
-from pathlib import Path
-from typing import Any, Callable, Iterable, List, Optional, Type, TypeVar, Union, cast, Dict
-from urllib.parse import urljoin
 import aiofiles
 import aiofiles.os
 import aiohttp
 import aiohttp.client_exceptions
-from requests.structures import CaseInsensitiveDict
-from tqdm import tqdm
 import logging
-from colorama import Fore, Style
-from sanitize_filename import sanitize
-import ssl
-import certifi
-from http.cookies import SimpleCookie
 import settings
 import multiprocessing
 import yarl
+
+from functools import wraps
+from pathlib import Path
+from typing import Any, Callable, Iterable, List, Optional, Type, TypeVar, Union, cast, Dict
+from requests.structures import CaseInsensitiveDict
+from tqdm import tqdm
+from colorama import Fore, Style
+from sanitize_filename import sanitize
+from http.cookies import SimpleCookie
 
 
 asyncio.get_event_loop()
@@ -126,19 +124,6 @@ class Downloader:
         self.delay = {'media-files.bunkr.is': 2}
         self.state = {}
 
-    @staticmethod
-    def bunkr_parse(url: str) -> str:
-        """Fix the URL for bunkr.is and construct the headers."""
-        extension = '.' + url.split('.')[-1]
-        if extension.lower() in FILE_FORMATS['Videos']:
-            changed_url = url.replace('cdn.bunkr', 'media-files.bunkr').split('/')
-            changed_url = ''.join(map(lambda x: urljoin('/', x), changed_url))
-            return changed_url
-        if extension.lower() in FILE_FORMATS['Images']:
-            changed_url = url.replace('i.bunkr', 'cdn.bunkr')
-            return changed_url
-        return url
-
     """Changed from aiohttp exceptions caught to FailureException to allow for partial downloads."""
     @retry(attempts=settings.download_attempts, timeout=4, exceptions=FailureException)
     async def download_file(
@@ -154,11 +139,7 @@ class Downloader:
         temp_file = (self.folder / self.title / filename).with_suffix(".download")
         resume_point = 0
         downloaded = bytearray()
-        ssl_context = ssl.create_default_context(cafile=certifi.where())
         user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.74 Safari/537.36'
-
-        if 'bunkr' in url:
-            url = self.bunkr_parse(url)
 
         headers = {'Referer': referal, 'user-agent': user_agent}
 
@@ -169,7 +150,7 @@ class Downloader:
         try:
             async with self._semaphore:
                 await throttle(self, yarl.URL(url))
-                resp = await session.get(url, headers=headers, ssl=ssl_context, raise_for_status=True)
+                resp = await session.get(url, headers=headers, raise_for_status=True)
                 total = int(resp.headers.get('Content-Length', 0)) + resume_point
                 with tqdm(
                     total=total, unit_scale=True,
