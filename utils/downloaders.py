@@ -1,6 +1,10 @@
 import asyncio
 import http
 import multiprocessing
+import time
+import traceback
+import typing
+
 import aiofiles
 import aiofiles.os
 import aiohttp
@@ -8,6 +12,8 @@ import aiohttp.client_exceptions
 import logging
 import ssl
 import certifi
+import yarl
+
 import settings
 from functools import wraps
 from pathlib import Path
@@ -73,10 +79,35 @@ def retry(
                         raise exc
                     times_tried += 1
                     await asyncio.sleep(timeout)
-
         return cast(T_Func, wrapper)
-
     return inner
+
+
+async def throttle(self, url: yarl.URL) -> None:
+    host = url.host
+    if host is None:
+        return
+    delay = self.delay.get(host)
+    if delay is None:
+        return
+
+    key: typing.Optional[str] = None
+    while True:
+        if key is None:
+            key = 'throttle:{}'.format(host)
+        now = time.time()
+        last = self.throttle_times.get(key, 0.0)
+        elapsed = now - last
+
+        if elapsed >= delay:
+            self.throttle_times[key] = now
+            return
+
+        remaining = delay - elapsed + 1
+
+        log_string = '\nDelaying request to %s for %.2f seconds.' % (host, remaining)
+        logger.debug(log_string)
+        await asyncio.sleep(remaining)
 
 
 class Downloader:
@@ -87,6 +118,8 @@ class Downloader:
         self.title = title
         self.max_workers = max_workers
         self._semaphore = asyncio.Semaphore(max_workers)
+        self.delay = {'media-files.bunkr.is': 2}
+        self.throttle_times = {}
 
     """Changed from aiohttp exceptions caught to FailureException to allow for partial downloads."""
 
@@ -115,6 +148,8 @@ class Downloader:
 
         try:
             async with self._semaphore:
+                if yarl.URL(url).host in self.delay:
+                    await throttle(self, yarl.URL(url))
                 resp = await session.get(url, headers=headers, ssl=ssl_context, raise_for_status=True)
                 total = int(resp.headers.get('Content-Length', 0)) + resume_point
                 with tqdm(
@@ -167,7 +202,8 @@ class Downloader:
             try:
                 await self.download_file(url, referral=referral, filename=filename, session=session, headers=headers,
                                          show_progress=show_progress)
-            except:
+            except Exception:
+                logger.debug(traceback.format_exc())
                 log(f"\nSkipping {filename}: likely exceeded download attempts (or ran into an error)\nRe-run program "
                     f"after exit to continue download.", Fore.WHITE)
 
@@ -247,9 +283,9 @@ def get_downloaders(urls: Dict[str, Dict[str, List[str]]], cookies: Iterable[str
 
     for domain, url_object in urls.items():
         max_workers = settings.threads if settings.threads != 0 else multiprocessing.cpu_count()
-        if 'bunkr' in domain:
-            max_workers = 2 if (max_workers > 2) else max_workers
         for title, urls in url_object.items():
+            if 'bunkr' in domain:
+                max_workers = 2 if (max_workers > 2) else max_workers
             downloader = Downloader(urls, morsels=morsels, title=title, folder=folder, max_workers=max_workers)
             downloaders.append(downloader)
     return downloaders
