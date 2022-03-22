@@ -1,18 +1,14 @@
 import asyncio
 import http
-import random
-import time
-import traceback
-import typing
+import multiprocessing
 import aiofiles
 import aiofiles.os
 import aiohttp
 import aiohttp.client_exceptions
 import logging
+import ssl
+import certifi
 import settings
-import multiprocessing
-import yarl
-
 from functools import wraps
 from pathlib import Path
 from typing import Any, Callable, Iterable, List, Optional, Type, TypeVar, Union, cast, Dict
@@ -21,7 +17,6 @@ from tqdm import tqdm
 from colorama import Fore, Style
 from sanitize_filename import sanitize
 from http.cookies import SimpleCookie
-
 
 asyncio.get_event_loop()
 logger = logging.getLogger(__name__)
@@ -84,56 +79,17 @@ def retry(
     return inner
 
 
-async def jitter(self, url: yarl.URL):
-    host = url.host
-    if host is None:
-        return None
-    return self.delay.get(host) + (random.random() - 0.5) * 2 * 1.1
-
-
-async def throttle(self, url: yarl.URL) -> None:
-    host = url.host
-    if host is None:
-        return
-    try:
-        delay = await jitter(self, url)
-    except Exception:
-        return
-    if delay is None:
-        return
-
-    key: typing.Optional[str] = None
-    while True:
-        if key is None:
-            key = 'throttle:{}'.format(host)
-
-        now = time.time()
-        last = self.throttle_times.get(key, 0.0)
-        elapsed = now - last
-
-        if elapsed >= delay:
-            self.throttle_times[key] = now
-            return
-
-        remaining = delay - elapsed
-
-        # log_string = '\nDelaying request to %s for %.2f seconds.' % (host, remaining)
-        # log(log_string, Fore.WHITE)
-        await asyncio.sleep(remaining)
-
-
 class Downloader:
-    def __init__(self, links: List[str], morsels, folder: Path, title: str, max_workers: int):
+    def __init__(self, links: List[List[str]], morsels, folder: Path, title: str, max_workers: int):
         self.links = links
         self.morsels = morsels
         self.folder = folder
         self.title = title
         self.max_workers = max_workers
         self._semaphore = asyncio.Semaphore(max_workers)
-        self.delay = {'media-files.bunkr.is': 2}
-        self.throttle_times = {}
 
     """Changed from aiohttp exceptions caught to FailureException to allow for partial downloads."""
+
     @retry(attempts=settings.download_attempts, timeout=4, exceptions=FailureException)
     async def download_file(
             self,
@@ -141,14 +97,17 @@ class Downloader:
             referal: str,
             filename: str,
             session: aiohttp.ClientSession,
-            headers: CaseInsensitiveDict,
+            headers: Optional[CaseInsensitiveDict] = None,
             show_progress: bool = True
     ) -> None:
         """Download the content of given URL"""
-        temp_file = (self.folder / self.title / filename).with_suffix(".download")
         resume_point = 0
-        downloaded = bytearray()
-        user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.74 Safari/537.36'
+        complete_file = (self.folder / self.title / filename)
+        temp_file = complete_file.with_suffix(".download")
+        ssl_context = ssl.create_default_context(cafile=certifi.where())
+        user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.71 Safari/537.36'
+
+        headers = {'Referer': referal, 'user-agent': user_agent}
 
         if temp_file.exists():
             resume_point = temp_file.stat().st_size
@@ -156,28 +115,21 @@ class Downloader:
 
         try:
             async with self._semaphore:
-                await throttle(self, yarl.URL(url))
-                resp = await session.get(url, headers=headers, raise_for_status=True)
+                resp = await session.get(url, headers=headers, ssl=ssl_context, raise_for_status=True)
                 total = int(resp.headers.get('Content-Length', 0)) + resume_point
                 with tqdm(
                         total=total, unit_scale=True,
                         unit='B', leave=False, initial=resume_point,
                         desc=filename, disable=(not show_progress)
                 ) as progress:
-                    async for chunk, _ in resp.content.iter_chunks():
-                        downloaded.extend(chunk)
-                        progress.update(len(chunk))
-            await self.write_partial(temp_file, downloaded)
-
+                    async with aiofiles.open(temp_file, mode='ab') as f:
+                        async for chunk, _ in resp.content.iter_chunks():
+                            await f.write(chunk)
+                            progress.update(len(chunk))
+            await self.rename_file(filename)
         except (aiohttp.client_exceptions.ClientPayloadError, aiohttp.client_exceptions.ClientOSError,
                 aiohttp.client_exceptions.ServerDisconnectedError, asyncio.TimeoutError) as e:
-            await self.write_partial(temp_file, downloaded)
             raise FailureException(e)
-
-    async def write_partial(self, filename: Path, downloaded: bytearray) -> None:
-        """Store partial or full data into file"""
-        async with aiofiles.open(filename, mode='ab') as f:
-            await f.write(downloaded)
 
     async def rename_file(self, filename: str) -> None:
         """Rename complete file."""
@@ -192,7 +144,7 @@ class Downloader:
 
     async def download_and_store(
             self,
-            url_object: str,
+            url_object: list,
             session: aiohttp.ClientSession,
             headers: Optional[CaseInsensitiveDict] = None,
             show_progress: bool = True
@@ -206,7 +158,7 @@ class Downloader:
             filename = filename.split('v=')[0]
         if len(filename) > MAX_FILENAME_LENGTH:
             fileext = filename.split('.')[-1]
-            filename = filename[:MAX_FILENAME_LENGTH]+'.'+fileext
+            filename = filename[:MAX_FILENAME_LENGTH] + '.' + fileext
 
         if (self.folder / self.title / filename).exists():
             logger.debug(str(self.folder / self.title / filename) + " Already Exists")
@@ -215,17 +167,15 @@ class Downloader:
             try:
                 await self.download_file(url, referal=referal, filename=filename, session=session, headers=headers,
                                          show_progress=show_progress)
-                await self.rename_file(filename)
-            except Exception:
-                logger.debug(traceback.format_exc())
-                log(f"\nSkipping {filename}: likely exceeded download attempts\nRe-run program after "
-                    f"exit to continue download.", Fore.WHITE)
+            except:
+                log(f"\nSkipping {filename}: likely exceeded download attempts (or ran into an error)\nRe-run program "
+                    f"after exit to continue download.", Fore.WHITE)
 
     async def download_all(
             self,
-            links: List[str],
+            links: Iterable[List[str]],
             session: aiohttp.ClientSession,
-            headers: CaseInsensitiveDict,
+            headers: Optional[CaseInsensitiveDict] = None,
             show_progress: bool = True
     ) -> None:
         """Download the data from all given links and store them into corresponding files."""
@@ -236,7 +186,7 @@ class Downloader:
 
     async def download_content(
             self,
-            headers: CaseInsensitiveDict,
+            headers: Optional[CaseInsensitiveDict] = None,
             show_progress: bool = True
     ) -> None:
         """Download the content of all links and save them as files."""
@@ -244,6 +194,29 @@ class Downloader:
         async with aiohttp.ClientSession() as session:
             session.cookie_jar.update_cookies(self.morsels)
             await self.download_all(self.links, session, headers=headers, show_progress=show_progress)
+
+
+class LimitDownloader(Downloader):
+    @staticmethod
+    def pairwise_skipping(it: List[T], chunk_size: int):
+        """Iterate over tuples of the iterable of size `chunk_size` at a time."""
+        split_it = [it[i:i + chunk_size] for i in range(0, len(it), chunk_size)]
+        return map(tuple, split_it)
+
+    async def download_all(
+            self,
+            links: Iterable[List[str]],
+            session: aiohttp.ClientSession,
+            headers: Optional[CaseInsensitiveDict] = None,
+            show_progress: bool = True
+    ) -> None:
+        """Download the data from all given links and store them into corresponding files.
+        We override this method to only make requests to 2 links at a time,
+        since bunkr.is can't handle more traffic and causes errors.
+        """
+        chunked_links = self.pairwise_skipping(self.links, chunk_size=2)
+        for links in chunked_links:
+            await super().download_all(links, session, headers=headers, show_progress=show_progress)
 
 
 def simple_cookies(cookies):
