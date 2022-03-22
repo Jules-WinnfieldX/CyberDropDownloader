@@ -123,7 +123,7 @@ def scrape(urls):
         else:
             unsupported_urls.append(url)
 
-    def crawler_results(signal, sender, item, response, spider):
+    def crawler_results(item):
         domain = sanitize_key(item['netloc'])
         title = re.sub(r'[\\*?:"<>|.]', "-", item['title'])
         referal = item['referal']
@@ -137,10 +137,14 @@ def scrape(urls):
     settings.set('TWISTED_REACTOR', "twisted.internet.asyncioreactor.AsyncioSelectorReactor")
     process = CrawlerProcess(settings)
 
-    if ShareX_urls: process.crawl(ShareX_Spider, myurls=ShareX_urls)
-    if Chibisafe_urls: process.crawl(Chibisafe_Spider, myurls=Chibisafe_urls)
-    if Erome_urls: process.crawl(Erome_Spider, myurls=Erome_urls)
-    if GoFile_urls: process.crawl(GoFile_Spider, myurls=GoFile_urls)
+    if ShareX_urls:
+        process.crawl(ShareX_Spider, myurls=ShareX_urls)
+    if Chibisafe_urls:
+        process.crawl(Chibisafe_Spider, myurls=Chibisafe_urls)
+    if Erome_urls:
+        process.crawl(Erome_Spider, myurls=Erome_urls)
+    if GoFile_urls:
+        process.crawl(GoFile_Spider, myurls=GoFile_urls)
     process.start()
 
     return cookies, result_links
