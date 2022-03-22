@@ -18,6 +18,7 @@ import os
 import re
 import warnings
 import readchar
+from requests.structures import CaseInsensitiveDict
 
 logging.basicConfig(level=logging.DEBUG, filename='logs.log',
                     format='%(asctime)s:%(levelname)s:%(module)s:%(filename)s:%(lineno)d:%(message)s',
@@ -76,7 +77,7 @@ async def main():
     downloaders = get_downloaders(content_object, cookies=cookies, folder=Path(DOWNLOAD_FOLDER))
 
     for downloader in downloaders:
-        await downloader.download_content()
+        await downloader.download_content(headers=CaseInsensitiveDict())
     log('Finished scraping. Enjoy :)', Fore.WHITE)
     log('If you have ".download" files remaining, rerun this program. You most likely ran into download attempts limit', Fore.WHITE)
     repr(readchar.readchar())

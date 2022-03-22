@@ -86,13 +86,12 @@ async def throttle(self, url: yarl.URL) -> None:
     host = url.host
     if host is None:
         return
+    delay = self.delay.get(host)
+    if delay is None:
+        return
 
     key: typing.Optional[str] = None
     while True:
-        delay = self.delay.get(host)
-        if delay is None:
-            return
-
         if key is None:
             key = 'throttle:{}'.format(host)
 
@@ -114,7 +113,7 @@ async def throttle(self, url: yarl.URL) -> None:
 
 
 class Downloader:
-    def __init__(self, links: List[List[str]], morsels, folder: Path, title: str, max_workers: int):
+    def __init__(self, links: List[str], morsels, folder: Path, title: str, max_workers: int):
         self.links = links
         self.morsels = morsels
         self.folder = folder
@@ -132,18 +131,17 @@ class Downloader:
             referal: str,
             filename: str,
             session: aiohttp.ClientSession,
-            headers: Optional[CaseInsensitiveDict] = None,
+            headers: CaseInsensitiveDict,
             show_progress: bool = True
     ) -> None:
         """Download the content of given URL"""
-        temp_file = (self.folder / self.title / filename).with_suffix(".download")
+        complete_file = (self.folder / self.title / filename)
+        temp_file = complete_file.with_suffix(".download")
         resume_point = 0
         user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.74 Safari/537.36'
 
-        headers = {'Referer': referal, 'user-agent': user_agent}
-
-        complete_file = (self.folder / self.title / filename)
-        temp_file = complete_file.with_suffix(".download")
+        headers['Referer'] = referal
+        headers['user-agent'] = user_agent
 
         if temp_file.exists():
             resume_point = temp_file.stat().st_size
@@ -153,7 +151,7 @@ class Downloader:
             async with self._semaphore:
                 await throttle(self, yarl.URL(url))
                 resp = await session.get(url, headers=headers, raise_for_status=True)
-                total = int(resp.headers.get('Content-Length', 0)) + resume_point
+                total = int(resp.headers.get('Content-Length', str(0))) + resume_point
                 with tqdm(
                     total=total, unit_scale=True,
                     unit='B', leave=False, initial=resume_point,
@@ -172,7 +170,7 @@ class Downloader:
 
     async def download_and_store(
             self,
-            url_object: list,
+            url_object: str,
             session: aiohttp.ClientSession,
             headers: Optional[CaseInsensitiveDict] = None,
             show_progress: bool = True
@@ -199,9 +197,9 @@ class Downloader:
 
     async def download_all(
             self,
-            links: Iterable[List[str]],
+            links: List[str],
             session: aiohttp.ClientSession,
-            headers: Optional[CaseInsensitiveDict] = None,
+            headers: CaseInsensitiveDict,
             show_progress: bool = True
     ) -> None:
         """Download the data from all given links and store them into corresponding files."""
@@ -212,7 +210,7 @@ class Downloader:
 
     async def download_content(
             self,
-            headers: Optional[CaseInsensitiveDict] = None,
+            headers: CaseInsensitiveDict,
             show_progress: bool = True
     ) -> None:
         """Download the content of all links and save them as files."""
