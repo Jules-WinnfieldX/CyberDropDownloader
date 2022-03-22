@@ -51,7 +51,7 @@ def version_check() -> None:
 
 
 def regex_links(urls) -> list:
-    all_links = [x.group().replace(".md.", ".") for x in re.finditer(r"(?:http.*?)(?=('|$|\n|\r\n|\r)|\")", urls)]
+    all_links = [x.group().replace(".md.", ".") for x in re.finditer(r"(?:http.*?)(?=('|$|\n|\r\n|\r|\s)|\")", urls)]
     return all_links
 
 
