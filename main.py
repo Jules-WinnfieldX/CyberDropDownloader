@@ -27,9 +27,6 @@ logging.basicConfig(level=logging.DEBUG, filename='logs.log',
                     filemode='w')
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
-SUPPORTED_URLS = {'cyberdrop.me', 'bunkr.is', "bunkr.to", 'pixl.is', 'putme.ga', 'putmega.com', 'gofile.io', 'jpg.church', 'erome.com'}
-
-CPU_COUNT = settings.threads if settings.threads != 0 else multiprocessing.cpu_count()
 DOWNLOAD_FOLDER = settings.download_folder
 
 
@@ -78,8 +75,8 @@ async def main():
     if not content_object:
         logging.error(f'ValueError No links: {content_object}')
         raise ValueError('No links found, check the URL.txt\nIf the link works in your web browser, please open an issue ticket with me.')
-
-    downloaders = get_downloaders(content_object, cookies=cookies, folder=Path(DOWNLOAD_FOLDER), max_workers=CPU_COUNT)
+    clear()
+    downloaders = get_downloaders(content_object, cookies=cookies, folder=Path(DOWNLOAD_FOLDER))
 
     for downloader in downloaders:
         await downloader.download_content()

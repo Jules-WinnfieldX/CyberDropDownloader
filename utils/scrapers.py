@@ -156,13 +156,14 @@ class ChibisafeSpider(Spider):
     def start_requests(self):
         for url in self.myurls:
             log(f"Starting: {url}", Fore.WHITE)
-            ext = "."+url.split('.')[-1]
+            ext = "." + url.split('.')[-1]
             if '/a/' in url:
                 yield Request(url, self.parse)
             elif ext in FILE_FORMATS['Images']:
                 yield Request(url, self.individual_file)
             elif ext in FILE_FORMATS['Videos']:
-                yield Request(url, self.individual_bunkr_video, meta={'dont_redirect': True, 'handle_httpstatus_list': [301, 302]})
+                yield Request(url, self.individual_bunkr_video,
+                              meta={'dont_redirect': True, 'handle_httpstatus_list': [301, 302]})
 
     def individual_file(self, response):
         netloc = urlparse(response.url).netloc.replace('www.', '')
@@ -317,7 +318,8 @@ def sanitize_key(key):
 
 
 def check_direct(url):
-    mapping_direct = ['i.pixl.is', r's..putmega.com', r's..putme.ga', r'img-...cyberdrop...', r'f.cyberdrop...', r'fs-...cyberdrop...', r'cdn.bunkr...', r'media-files.bunkr...', r'jpg.church/images/...']
+    mapping_direct = ['i.pixl.is', r's..putmega.com', r's..putme.ga', r'img-...cyberdrop...', r'f.cyberdrop...',
+                      r'fs-...cyberdrop...', r'cdn.bunkr...', r'media-files.bunkr...', r'jpg.church/images/...']
     for domain in mapping_direct:
         if re.search(domain, url): return True
     return False
@@ -360,12 +362,14 @@ def scrape(urls):
             base_domain = re.sub(old, new, base_domain)
         if base_domain in mapping_ShareX:
             if check_direct(url):
-                result_links.setdefault(base_domain, OrderedDict()).setdefault("ShareX Loose Files", []).append([url, url])
+                result_links.setdefault(base_domain, OrderedDict()).setdefault("ShareX Loose Files", []).append(
+                    [url, url])
             else:
                 ShareX_urls.append(url)
         elif base_domain in mapping_Chibisafe:
             if check_direct(url):
-                result_links.setdefault(base_domain, OrderedDict()).setdefault("Chibisafe Loose Files", []).append([url, url])
+                result_links.setdefault(base_domain, OrderedDict()).setdefault("Chibisafe Loose Files", []).append(
+                    [url, url])
             else:
                 Chibisafe_urls.append(url)
         elif base_domain in mapping_Erome:
