@@ -1,35 +1,30 @@
 import logging
 import asyncio
+import requests
+import os
+import re
+import warnings
+import readchar
+import settings
+import nest_asyncio
 
 # Fixes reactor already installed error
 try:
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
-except:
+except Exception:
     pass
 
-import nest_asyncio
-import scrapy
 from pathlib import Path
-from utils.scrapers import scrape
+from utils.scraper import scrape
 from utils.downloaders import get_downloaders
-import settings
 from colorama import Fore, Style
-import requests
-import os
-import re
-import multiprocessing
-import warnings
-import readchar
-import sys
+from requests.structures import CaseInsensitiveDict
 
 logging.basicConfig(level=logging.DEBUG, filename='logs.log',
                     format='%(asctime)s:%(levelname)s:%(module)s:%(filename)s:%(lineno)d:%(message)s',
                     filemode='w')
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
-SUPPORTED_URLS = {'cyberdrop.me', 'bunkr.is', "bunkr.to", 'pixl.is', 'putme.ga', 'putmega.com', 'gofile.io', 'jpg.church', 'erome.com'}
-
-CPU_COUNT = settings.threads if settings.threads != 0 else multiprocessing.cpu_count()
 DOWNLOAD_FOLDER = settings.download_folder
 
 
@@ -77,14 +72,16 @@ async def main():
     cookies, content_object = scrape(urls)
     if not content_object:
         logging.error(f'ValueError No links: {content_object}')
-        raise ValueError('No links found, check the URL.txt\nIf the link works in your web browser, please open an issue ticket with me.')
-
-    downloaders = get_downloaders(content_object, cookies=cookies, folder=Path(DOWNLOAD_FOLDER), max_workers=CPU_COUNT)
+        raise ValueError('No links found, check the URL.txt\nIf the link works in your web browser, '
+                         'please open an issue ticket with me.')
+    clear()
+    downloaders = get_downloaders(content_object, cookies=cookies, folder=Path(DOWNLOAD_FOLDER))
 
     for downloader in downloaders:
         await downloader.download_content()
     log('Finished scraping. Enjoy :)', Fore.WHITE)
-    log('If you have ".download" files remaining, rerun this program. You most likely ran into download attempts limit', Fore.WHITE)
+    log('If you have ".download" files remaining, rerun this program. You most likely ran into download attempts limit',
+        Fore.WHITE)
     repr(readchar.readchar())
 
 
