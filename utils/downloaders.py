@@ -94,7 +94,7 @@ class Downloader:
     async def download_file(
             self,
             url: str,
-            referal: str,
+            referral: str,
             filename: str,
             session: aiohttp.ClientSession,
             headers: Optional[CaseInsensitiveDict] = None,
@@ -107,7 +107,7 @@ class Downloader:
         ssl_context = ssl.create_default_context(cafile=certifi.where())
         user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.71 Safari/537.36'
 
-        headers = {'Referer': referal, 'user-agent': user_agent}
+        headers = {'Referer': referral, 'user-agent': user_agent}
 
         if temp_file.exists():
             resume_point = temp_file.stat().st_size
@@ -151,7 +151,7 @@ class Downloader:
     ) -> None:
         """Download the content of given URL and store it in a file."""
         url = url_object[0]
-        referal = url_object[1]
+        referral = url_object[1]
 
         filename = sanitize(url.split("/")[-1])
         if "?v=" in url:
@@ -165,7 +165,7 @@ class Downloader:
         else:
             logger.debug("Working on " + url)
             try:
-                await self.download_file(url, referal=referal, filename=filename, session=session, headers=headers,
+                await self.download_file(url, referral=referral, filename=filename, session=session, headers=headers,
                                          show_progress=show_progress)
             except:
                 log(f"\nSkipping {filename}: likely exceeded download attempts (or ran into an error)\nRe-run program "

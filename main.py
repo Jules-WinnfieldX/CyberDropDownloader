@@ -1,7 +1,5 @@
 import logging
 import asyncio
-import multiprocessing
-
 import requests
 import os
 import re
