@@ -10,3 +10,5 @@ certifi~=2021.10.8
 selenium~=4.1.0
 chromedriver_autoinstaller~=0.3.1
 nest-asyncio~=1.5.4
+asyncio~=3.4.3
+yarl~=1.7.2

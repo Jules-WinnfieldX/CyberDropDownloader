@@ -18,7 +18,6 @@ import os
 import re
 import warnings
 import readchar
-import multiprocessing
 
 logging.basicConfig(level=logging.DEBUG, filename='logs.log',
                     format='%(asctime)s:%(levelname)s:%(module)s:%(filename)s:%(lineno)d:%(message)s',
@@ -26,7 +25,6 @@ logging.basicConfig(level=logging.DEBUG, filename='logs.log',
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 DOWNLOAD_FOLDER = settings.download_folder
-CPU_COUNT = settings.threads if settings.threads != 0 else multiprocessing.cpu_count()
 
 
 def log(text, style):
@@ -75,7 +73,7 @@ async def main():
         logging.error(f'ValueError No links: {content_object}')
         raise ValueError('No links found, check the URL.txt\nIf the link works in your web browser, please open an issue ticket with me.')
     clear()
-    downloaders = get_downloaders(content_object, cookies=cookies, folder=Path(DOWNLOAD_FOLDER), max_workers=CPU_COUNT)
+    downloaders = get_downloaders(content_object, cookies=cookies, folder=Path(DOWNLOAD_FOLDER))
 
     for downloader in downloaders:
         await downloader.download_content()
