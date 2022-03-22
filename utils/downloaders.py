@@ -17,7 +17,6 @@ import ssl
 import certifi
 from http.cookies import SimpleCookie
 import settings
-import multiprocessing
 
 
 asyncio.get_event_loop()
@@ -25,6 +24,7 @@ logger = logging.getLogger(__name__)
 
 T = TypeVar("T")
 T_Func = TypeVar("T_Func", bound=Callable)
+
 
 MAX_FILENAME_LENGTH = 100
 FILE_FORMATS = {
@@ -90,19 +90,6 @@ class Downloader:
         self.max_workers = max_workers
         self._semaphore = asyncio.Semaphore(max_workers)
 
-    @staticmethod
-    def bunkr_parse(url: str) -> str:
-        """Fix the URL for bunkr.is and construct the headers."""
-        extension = '.' + url.split('.')[-1]
-        if extension.lower() in FILE_FORMATS['Videos']:
-            changed_url = url.replace('cdn.bunkr', 'media-files.bunkr').split('/')
-            changed_url = ''.join(map(lambda x: urljoin('/', x), changed_url))
-            return changed_url
-        if extension.lower() in FILE_FORMATS['Images']:
-            changed_url = url.replace('i.bunkr', 'cdn.bunkr')
-            return changed_url
-        return url
-
     """Changed from aiohttp exceptions caught to FailureException to allow for partial downloads."""
     @retry(attempts=settings.download_attempts, timeout=4, exceptions=FailureException)
     async def download_file(
@@ -119,10 +106,7 @@ class Downloader:
         resume_point = 0
         downloaded = bytearray()
         ssl_context = ssl.create_default_context(cafile=certifi.where())
-        user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.74 Safari/537.36'
-
-        if 'bunkr' in url:
-            url = self.bunkr_parse(url)
+        user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.71 Safari/537.36'
 
         headers = {'Referer': referal, 'user-agent': user_agent}
 
@@ -182,7 +166,6 @@ class Downloader:
         if len(filename) > MAX_FILENAME_LENGTH:
             fileext = filename.split('.')[-1]
             filename = filename[:MAX_FILENAME_LENGTH]+'.'+fileext
-
         if (self.folder / self.title / filename).exists():
             logger.debug(str(self.folder / self.title / filename) + " Already Exists")
         else:
@@ -190,8 +173,7 @@ class Downloader:
             try:
                 await self.download_file(url, referal=referal, filename=filename, session=session, headers=headers, show_progress=show_progress)
                 await self.rename_file(filename)
-            except Exception as e:
-                print(e)
+            except:
                 log(f"\nSkipping {filename}: likely exceeded download attempts\nRe-run program after exit to continue download.", Fore.WHITE)
 
     async def download_all(
@@ -219,6 +201,55 @@ class Downloader:
             await self.download_all(self.links, session, headers=headers, show_progress=show_progress)
 
 
+class LimitDownloader(Downloader):
+    @staticmethod
+    def bunkr_parse(url: str) -> str:
+        """Fix the URL for bunkr.is and construct the headers."""
+        extension = '.' + url.split('.')[-1]
+        if extension.lower() in FILE_FORMATS['Videos']:
+            changed_url = url.replace('cdn.bunkr', 'media-files.bunkr').split('/')
+            changed_url = ''.join(map(lambda x: urljoin('/', x), changed_url))
+            return changed_url
+        if extension.lower() in FILE_FORMATS['Images']:
+            changed_url = url.replace('i.bunkr', 'cdn.bunkr')
+            return changed_url
+        return url
+
+    @staticmethod
+    def pairwise_skipping(it: List[T], chunk_size: int):
+        """Iterate over tuples of the iterable of size `chunk_size` at a time."""
+        split_it = [it[i:i+chunk_size] for i in range(0, len(it), chunk_size)]
+        return map(tuple, split_it)
+
+    async def download_file(
+            self,
+            url: str,
+            referal: str,
+            filename: str,
+            session: aiohttp.ClientSession,
+            headers: Optional[CaseInsensitiveDict] = None,
+            show_progress: bool = True
+    ):
+        if 'bunkr' in url:
+            url = self.bunkr_parse(url)
+        await super().download_file(url, referal=referal, filename=filename, session=session, headers=headers, show_progress=show_progress)
+
+    async def download_all(
+            self,
+            links: Iterable[List[str]],
+            session: aiohttp.ClientSession,
+            headers: Optional[CaseInsensitiveDict] = None,
+            show_progress: bool = True
+    ) -> None:
+        """Download the data from all given links and store them into corresponding files.
+        We override this method to only make requests to 2 links at a time,
+        since bunkr.is can't handle more traffic and causes errors.
+        """
+        chunked_links = self.pairwise_skipping(self.links, chunk_size=2)
+        for links in chunked_links:
+            await super().download_all(links, session, headers=headers, show_progress=show_progress)
+
+
 def simple_cookies(cookies):
     morsels = {}
     for cookie in cookies:
@@ -234,23 +265,37 @@ def simple_cookies(cookies):
     return morsels
 
 
-def get_downloaders(urls: Dict[str, Dict[str, List[str]]], cookies: Iterable[str], folder: Path) -> List[Downloader]:
+def get_downloaders(urls: Dict[str, Dict[str, List[str]]], cookies: Iterable[str], folder: Path, max_workers: int) -> List[Downloader]:
     """Get a list of downloaders for each supported type of URLs.
-
     We shouldn't just assume that each URL will have the same netloc as
     the first one, so we need to classify them one by one, sort them to
     corresponding netloc URLs and create downloaders separately for individual
     netloc URLs they support.
     """
+    mapping = {
+        'cyberdrop.me': Downloader,
+        'cyberdrop.cc': Downloader,
+        'cyberdrop.to': Downloader,
+        'cyberdrop.nl': Downloader,
+        'bunkr.is': LimitDownloader,
+        'bunkr.to': LimitDownloader,
+        'pixl.is': Downloader,
+        'rpcs0112.b-cdn.net': Downloader,
+        'putme.ga': Downloader,
+        'putmega.com': Downloader,
+        'jpg.church': Downloader,
+        'erome.com': Downloader,
+        'gofile.io': Downloader
+    }
 
     downloaders = []
     morsels = simple_cookies(cookies)
 
     for domain, url_object in urls.items():
-        max_workers = settings.threads if settings.threads != 0 else multiprocessing.cpu_count()
-        if 'bunkr' in domain:
-            max_workers = 2 if (max_workers > 2) else max_workers
+        if domain not in mapping:
+            logging.error('Invalid domain '+domain)
+            raise ValueError('Invalid domain '+domain)
         for title, urls in url_object.items():
-            downloader = Downloader(urls, morsels=morsels, title=title, folder=folder, max_workers=max_workers)
+            downloader = mapping[domain](urls, morsels=morsels, title=title, folder=folder, max_workers=max_workers)
             downloaders.append(downloader)
     return downloaders

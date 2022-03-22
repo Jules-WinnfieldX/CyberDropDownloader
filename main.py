@@ -8,19 +8,17 @@ except:
     pass
 
 import nest_asyncio
-import scrapy
 from pathlib import Path
-from utils.scrapers import scrape
+from utils.scraper import scrape
 from utils.downloaders import get_downloaders
 import settings
 from colorama import Fore, Style
 import requests
 import os
 import re
-import multiprocessing
 import warnings
 import readchar
-import sys
+import multiprocessing
 
 logging.basicConfig(level=logging.DEBUG, filename='logs.log',
                     format='%(asctime)s:%(levelname)s:%(module)s:%(filename)s:%(lineno)d:%(message)s',
@@ -28,6 +26,7 @@ logging.basicConfig(level=logging.DEBUG, filename='logs.log',
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 DOWNLOAD_FOLDER = settings.download_folder
+CPU_COUNT = settings.threads if settings.threads != 0 else multiprocessing.cpu_count()
 
 
 def log(text, style):
@@ -76,7 +75,7 @@ async def main():
         logging.error(f'ValueError No links: {content_object}')
         raise ValueError('No links found, check the URL.txt\nIf the link works in your web browser, please open an issue ticket with me.')
     clear()
-    downloaders = get_downloaders(content_object, cookies=cookies, folder=Path(DOWNLOAD_FOLDER))
+    downloaders = get_downloaders(content_object, cookies=cookies, folder=Path(DOWNLOAD_FOLDER), max_workers=CPU_COUNT)
 
     for downloader in downloaders:
         await downloader.download_content()
