@@ -1,5 +1,6 @@
 import asyncio
 import http
+import random
 import time
 import traceback
 import typing
@@ -83,11 +84,21 @@ def retry(
     return inner
 
 
+async def jitter(self, url: yarl.URL):
+    host = url.host
+    if host is None:
+        return None
+    return self.delay.get(host) + (random.random() - 0.5) * 2 * 1.1
+
+
 async def throttle(self, url: yarl.URL) -> None:
     host = url.host
     if host is None:
         return
-    delay = self.delay.get(host)
+    try:
+        delay = await jitter(self, url)
+    except Exception:
+        return
     if delay is None:
         return
 
@@ -97,13 +108,11 @@ async def throttle(self, url: yarl.URL) -> None:
             key = 'throttle:{}'.format(host)
 
         now = time.time()
-        last = self.state.get(key)
-        if not isinstance(last, float):
-            last = 0.0
+        last = self.throttle_times.get(key, 0.0)
         elapsed = now - last
 
         if elapsed >= delay:
-            self.state[key] = now
+            self.throttle_times[key] = now
             return
 
         remaining = delay - elapsed
@@ -122,7 +131,7 @@ class Downloader:
         self.max_workers = max_workers
         self._semaphore = asyncio.Semaphore(max_workers)
         self.delay = {'media-files.bunkr.is': 2}
-        self.state = {}
+        self.throttle_times = {}
 
     """Changed from aiohttp exceptions caught to FailureException to allow for partial downloads."""
     @retry(attempts=settings.download_attempts, timeout=4, exceptions=FailureException)

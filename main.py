@@ -11,7 +11,7 @@ import nest_asyncio
 # Fixes reactor already installed error
 try:
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
-except:
+except Exception:
     pass
 
 from pathlib import Path
