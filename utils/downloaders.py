@@ -150,6 +150,7 @@ class Downloader:
             async with self._semaphore:
                 if yarl.URL(url).host in self.delay:
                     await throttle(self, yarl.URL(url))
+
                 resp = await session.get(url, headers=headers, ssl=ssl_context, raise_for_status=True)
                 total = int(resp.headers.get('Content-Length', 0)) + resume_point
                 with tqdm(
@@ -230,29 +231,6 @@ class Downloader:
         async with aiohttp.ClientSession() as session:
             session.cookie_jar.update_cookies(self.morsels)
             await self.download_all(self.links, session, headers=headers, show_progress=show_progress)
-
-
-class LimitDownloader(Downloader):
-    @staticmethod
-    def pairwise_skipping(it: List[T], chunk_size: int):
-        """Iterate over tuples of the iterable of size `chunk_size` at a time."""
-        split_it = [it[i:i + chunk_size] for i in range(0, len(it), chunk_size)]
-        return map(tuple, split_it)
-
-    async def download_all(
-            self,
-            links: Iterable[List[str]],
-            session: aiohttp.ClientSession,
-            headers: Optional[CaseInsensitiveDict] = None,
-            show_progress: bool = True
-    ) -> None:
-        """Download the data from all given links and store them into corresponding files.
-        We override this method to only make requests to 2 links at a time,
-        since bunkr.is can't handle more traffic and causes errors.
-        """
-        chunked_links = self.pairwise_skipping(self.links, chunk_size=2)
-        for links in chunked_links:
-            await super().download_all(links, session, headers=headers, show_progress=show_progress)
 
 
 def simple_cookies(cookies):
