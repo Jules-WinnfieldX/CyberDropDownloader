@@ -1,6 +1,7 @@
 import asyncio
 import http
 import time
+import traceback
 import typing
 import aiofiles
 import aiofiles.os
@@ -138,7 +139,8 @@ class Downloader:
         complete_file = (self.folder / self.title / filename)
         temp_file = complete_file.with_suffix(".download")
         resume_point = 0
-        user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.74 Safari/537.36'
+        user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 ' \
+                     '(KHTML, like Gecko) Chrome/99.0.4844.74 Safari/537.36'
 
         headers['Referer'] = referal
         headers['user-agent'] = user_agent
@@ -157,6 +159,7 @@ class Downloader:
                     unit='B', leave=False, initial=resume_point,
                     desc=filename, disable=(not show_progress)
                 ) as progress:
+                    # FIX THIS SHIT
                     async with aiofiles.open(temp_file, mode='ab') as f:
                         async for chunk, _ in resp.content.iter_chunks():
                             await f.write(chunk)
@@ -191,9 +194,12 @@ class Downloader:
         else:
             logger.debug("Working on " + url)
             try:
-                await self.download_file(url, referal=referal, filename=filename, session=session, headers=headers, show_progress=show_progress)
-            except Exception as e:
-                log(f"\nSkipping {filename}: likely exceeded download attempts\nRe-run program after exit to continue download.", Fore.WHITE)
+                await self.download_file(url, referal=referal, filename=filename, session=session, headers=headers,
+                                         show_progress=show_progress)
+            except Exception:
+                logger.debug(traceback.format_exc())
+                log(f"\nSkipping {filename}: likely exceeded download attempts\nRe-run program after "
+                    f"exit to continue download.", Fore.WHITE)
 
     async def download_all(
             self,
