@@ -78,7 +78,7 @@ async def main():
     downloaders = get_downloaders(content_object, cookies=cookies, folder=Path(DOWNLOAD_FOLDER))
 
     for downloader in downloaders:
-        await downloader.download_content(headers=CaseInsensitiveDict())
+        await downloader.download_content()
     log('Finished scraping. Enjoy :)', Fore.WHITE)
     log('If you have ".download" files remaining, rerun this program. You most likely ran into download attempts limit',
         Fore.WHITE)

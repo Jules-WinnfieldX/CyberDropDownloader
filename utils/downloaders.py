@@ -130,7 +130,6 @@ class Downloader:
             referral: str,
             filename: str,
             session: aiohttp.ClientSession,
-            headers: Optional[CaseInsensitiveDict] = None,
             show_progress: bool = True
     ) -> None:
         """Download the content of given URL"""
@@ -150,7 +149,6 @@ class Downloader:
             async with self._semaphore:
                 if yarl.URL(url).host in self.delay:
                     await throttle(self, yarl.URL(url))
-
                 resp = await session.get(url, headers=headers, ssl=ssl_context, raise_for_status=True)
                 total = int(resp.headers.get('Content-Length', 0)) + resume_point
                 with tqdm(
@@ -182,7 +180,6 @@ class Downloader:
             self,
             url_object: list,
             session: aiohttp.ClientSession,
-            headers: Optional[CaseInsensitiveDict] = None,
             show_progress: bool = True
     ) -> None:
         """Download the content of given URL and store it in a file."""
@@ -201,8 +198,7 @@ class Downloader:
         else:
             logger.debug("Working on " + url)
             try:
-                await self.download_file(url, referral=referral, filename=filename, session=session, headers=headers,
-                                         show_progress=show_progress)
+                await self.download_file(url, referral=referral, filename=filename, session=session, show_progress=show_progress)
             except Exception:
                 logger.debug(traceback.format_exc())
                 log(f"\nSkipping {filename}: likely exceeded download attempts (or ran into an error)\nRe-run program "
@@ -212,25 +208,22 @@ class Downloader:
             self,
             links: Iterable[List[str]],
             session: aiohttp.ClientSession,
-            headers: Optional[CaseInsensitiveDict] = None,
             show_progress: bool = True
     ) -> None:
         """Download the data from all given links and store them into corresponding files."""
-        coros = [self.download_and_store(
-            link, session, headers, show_progress) for link in links]
+        coros = [self.download_and_store(link, session, show_progress) for link in links]
         for func in tqdm(asyncio.as_completed(coros), total=len(coros), desc=self.title, unit='FILES'):
             await func
 
     async def download_content(
             self,
-            headers: Optional[CaseInsensitiveDict] = None,
             show_progress: bool = True
     ) -> None:
         """Download the content of all links and save them as files."""
         (self.folder / self.title).mkdir(parents=True, exist_ok=True)
         async with aiohttp.ClientSession() as session:
             session.cookie_jar.update_cookies(self.morsels)
-            await self.download_all(self.links, session, headers=headers, show_progress=show_progress)
+            await self.download_all(self.links, session, show_progress=show_progress)
 
 
 def simple_cookies(cookies):
