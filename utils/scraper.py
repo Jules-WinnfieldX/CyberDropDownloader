@@ -11,7 +11,7 @@ import settings
 from utils.crawlers.ShareX_Spider import ShareX_Spider
 from utils.crawlers.Erome_Spider import Erome_Spider
 from utils.crawlers.Chibisafe_Spider import Chibisafe_Spider
-from utils.crawlers.GoFile_Spider import GoFile_Spider
+from utils.crawlers.GoFile_Spider import GofileCrawler
 
 logger = logging.getLogger(__name__)
 title_setting = settings.include_id_in_download_folder_name
@@ -144,7 +144,12 @@ def scrape(urls):
     if Erome_urls:
         process.crawl(Erome_Spider, myurls=Erome_urls)
     if GoFile_urls:
-        process.crawl(GoFile_Spider, myurls=GoFile_urls)
+        gofile_crawler = GofileCrawler(links=GoFile_urls)
+        result_links.setdefault('gofile.io', gofile_crawler.build_targets())
+        cookies.append({
+            'name': 'accountToken',
+            'value': gofile_crawler.client.token,
+        })
     process.start()
 
     return cookies, result_links
