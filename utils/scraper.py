@@ -159,7 +159,10 @@ def scrape(urls):
     if Pixeldrain_urls:
         for url in Pixeldrain_urls:
             folder = url.split('/')[-1]
-            result_links.setdefault('pixeldrain.com', OrderedDict()).setdefault("PixelDrain", []).append([f'https://pixeldrain.com/api/file/{folder}?download', url])
+            if url.split('/')[-2] is 'l':
+                result_links.setdefault('pixeldrain.com', OrderedDict()).setdefault("PixelDrain", []).append([f'https://pixeldrain.com/api/list/{folder}/zip', url])
+            else:
+                result_links.setdefault('pixeldrain.com', OrderedDict()).setdefault("PixelDrain", []).append([f'https://pixeldrain.com/api/file/{folder}?download', url])
 
     process.start()
 
