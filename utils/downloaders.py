@@ -232,10 +232,14 @@ def simple_cookies(cookies):
         # https://docs.python.org/3/library/http.cookies.html#morsel-objects
         morsel = http.cookies.Morsel()
         morsel.set(cookie["name"], cookie["value"], cookie["value"])
-        morsel["domain"] = cookie["domain"]
-        morsel["httponly"] = cookie["httpOnly"]
-        morsel["path"] = cookie["path"]
-        morsel["secure"] = cookie["secure"]
+        if "domain" in cookie:
+            morsel["domain"] = cookie["domain"]
+        if "httpOnly" in cookie:
+            morsel["httponly"] = cookie["httpOnly"]
+        if "path" in cookie:
+            morsel["path"] = cookie["path"]
+        if "secure" in cookie:
+            morsel["secure"] = cookie["secure"]
 
         morsels[cookie["name"]] = morsel
     return morsels
