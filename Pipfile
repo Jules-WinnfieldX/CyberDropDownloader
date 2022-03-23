@@ -1,0 +1,17 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+aiofiles = "*"
+aiohttp = "*"
+certifi = "*"
+colorama = "*"
+gofile-client = "*"
+nest-asyncio = "*"
+requests = "*"
+sanitize-filename = "*"
+tqdm = "*"
+yarl = "*"
+Scrapy = "*"

@@ -4,10 +4,7 @@ from urllib.parse import urlparse
 from scrapy import Spider
 from scrapy.http.request import Request
 
-import settings
-
-title_setting = settings.include_id_in_download_folder_name
-
+from ...settings import include_id_in_download_folder_name as title_setting
 
 class ShareX_Spider(Spider):
     name = 'ShareX'

@@ -1,13 +1,11 @@
 import re
-from urllib.parse import urlparse, urljoin
+from urllib.parse import urljoin, urlparse
 
 from scrapy import Spider
 from scrapy.http.request import Request
 
-import settings
+from ...settings import include_id_in_download_folder_name as title_setting
 
-
-title_setting = settings.include_id_in_download_folder_name
 
 FILE_FORMATS = {
     'Images': {

@@ -24,4 +24,4 @@ If applicable, add screenshots to help explain your problem.
  - Cyberdrop Downloader Version #
 
 **Additional context**
-Add any other context about the problem here. Bonus points for uploading your logs.log file.
+Add any other context about the problem here. Bonus points for uploading your download.log file.

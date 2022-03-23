@@ -19,7 +19,7 @@ from sanitize_filename import sanitize
 from tqdm import tqdm
 import yarl
 
-import settings
+from ..settings import *
 
 
 asyncio.get_event_loop()
@@ -121,7 +121,7 @@ class Downloader:
 
     """Changed from aiohttp exceptions caught to FailureException to allow for partial downloads."""
 
-    @retry(attempts=settings.download_attempts, timeout=4, exceptions=FailureException)
+    @retry(attempts=download_attempts, timeout=4, exceptions=FailureException)
     async def download_file(
             self,
             url: str,
@@ -264,7 +264,7 @@ def get_downloaders(urls: dict[str, dict[str, list[str]]], cookies: Iterable[str
     morsels = simple_cookies(cookies)
 
     for domain, url_object in urls.items():
-        max_workers = settings.threads if settings.threads != 0 else multiprocessing.cpu_count()
+        max_workers = threads if threads != 0 else multiprocessing.cpu_count()
         for title, urls in url_object.items():
             if 'bunkr' in domain:
                 max_workers = 2 if (max_workers > 2) else max_workers

@@ -7,12 +7,12 @@ import warnings
 
 from colorama import Fore, Style
 import nest_asyncio
-import readchar
 import requests
 
-import settings
-from utils.scraper import scrape
-from utils.downloaders import get_downloaders
+from cyberdrop_dl import __version__ as VERSION
+import cyberdrop_dl.settings as settings
+from .utils.scraper import scrape
+from .utils.downloaders import get_downloaders
 
 
 # Fixes reactor already installed error (issue using Scrapy with Asyncio)
@@ -21,7 +21,7 @@ try:
 except Exception:
     pass
 
-logging.basicConfig(level=logging.DEBUG, filename='logs.log',
+logging.basicConfig(level=logging.DEBUG, filename='download.log',
                     format='%(asctime)s:%(levelname)s:%(module)s:%(filename)s:%(lineno)d:%(message)s',
                     filemode='w')
 warnings.filterwarnings("ignore", category=DeprecationWarning)
@@ -42,9 +42,8 @@ def clear():
 def version_check() -> None:
     response = requests.get("https://api.github.com/repos/Jules-WinnfieldX/CyberDropDownloader/releases/latest")
     latest_version = response.json()["tag_name"]
-    current_version = "2.6.1"
-    logging.debug(f"We are running version {current_version} of Cyberdrop Downloader")
-    if latest_version != current_version:
+    logging.debug(f"We are running version {VERSION} of Cyberdrop Downloader")
+    if latest_version != VERSION:
         log("A new version of CyberDropDownloader is available\n"
             "Download it here: https://github.com/Jules-WinnfieldX/CyberDropDownloader/releases/latest\n", Fore.RED)
         input("To continue anyways press enter")
@@ -56,7 +55,7 @@ def regex_links(urls) -> list:
     return all_links
 
 
-async def main():
+async def download_all():
     nest_asyncio.apply()
     clear()
     version_check()
@@ -83,8 +82,10 @@ async def main():
     log('Finished scraping. Enjoy :)', Fore.WHITE)
     log('If you have ".download" files remaining, rerun this program. You most likely ran into download attempts limit',
         Fore.WHITE)
-    repr(readchar.readchar())
 
+
+def main():
+    asyncio.get_event_loop().run_until_complete(download_all())
 
 if __name__ == '__main__':
-    asyncio.get_event_loop().run_until_complete(main())
+    main()

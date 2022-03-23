@@ -9,15 +9,13 @@ from scrapy.crawler import CrawlerProcess
 from scrapy.signalmanager import dispatcher
 from scrapy.utils.project import get_project_settings
 
-import settings
-from utils.crawlers.ShareX_Spider import ShareX_Spider
-from utils.crawlers.Erome_Spider import Erome_Spider
-from utils.crawlers.Chibisafe_Spider import Chibisafe_Spider
-from utils.crawlers.GoFile_Spider import GofileCrawler
+from .crawlers.ShareX_Spider import ShareX_Spider
+from .crawlers.Erome_Spider import Erome_Spider
+from .crawlers.Chibisafe_Spider import Chibisafe_Spider
+from .crawlers.GoFile_Spider import GofileCrawler
 
 
 logger = logging.getLogger(__name__)
-title_setting = settings.include_id_in_download_folder_name
 
 FILE_FORMATS = {
     'Images': {
@@ -139,7 +137,7 @@ def scrape(urls):
 
     dispatcher.connect(crawler_results, signal=signals.item_scraped)
     settings = get_project_settings()
-    settings.set('LOG_FILE', 'logs.log')
+    settings.set('LOG_FILE', 'download.log')
     settings.set('TWISTED_REACTOR', "twisted.internet.asyncioreactor.AsyncioSelectorReactor")
     process = CrawlerProcess(settings)
 
