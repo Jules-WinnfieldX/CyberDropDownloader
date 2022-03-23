@@ -11,11 +11,7 @@
 | Pixl       | Albums: pixl.is/album/... <br> Direct Images: pixl.is/image/...  <br> User Profile: pixl.is/#USER# <br> All User Albums: pixl.is/#USER#/albums                                                                                         |
 | Bunkr      | Albums: bunkr.is/a/... <br> Direct Videos: stream.bunkr.is/v/... <br> Direct Videos: cdn.bunkr.is/... <br> Direct Images: i.bunkr.is/... <br> Also works with Bunkr.to                                                                 |
 | GoFile     | Albums: gofile.io/d/...                                                                                                                                                                                                                |
-| Erome      | Albums: erome.com/a/...                                                                                                                                                                                                                |
-
-GoFile Requires Chrome to be installed on the system
-
-~~DMCA.Gripe~~ (It's dead)
+| Erome      | Albums: erome.com/a/...                                                                                                                                                                                                                
 
 # Information
 
