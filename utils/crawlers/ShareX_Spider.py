@@ -6,7 +6,6 @@ from scrapy.http.request import Request
 
 import settings
 
-
 title_setting = settings.include_id_in_download_folder_name
 
 

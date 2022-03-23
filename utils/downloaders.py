@@ -145,6 +145,8 @@ class Downloader:
                     resp = await session.get(url, headers=headers, ssl=ssl_context, raise_for_status=True)
                     filename = resp.content_disposition.filename
                     del resp
+                    if (self.folder / self.title / filename).exists():
+                        return
 
                 resume_point = 0
                 complete_file = (self.folder / self.title / filename)
