@@ -131,22 +131,29 @@ class Downloader:
             show_progress: bool = True
     ) -> None:
         """Download the content of given URL"""
-        resume_point = 0
-        complete_file = (self.folder / self.title / filename)
-        temp_file = complete_file.with_suffix(".download")
-        ssl_context = ssl.create_default_context(cafile=certifi.where())
         user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.71 Safari/537.36'
-
         headers = {'Referer': referral, 'user-agent': user_agent}
-
-        if temp_file.exists():
-            resume_point = temp_file.stat().st_size
-            headers['Range'] = 'bytes=%d-' % resume_point
+        ssl_context = ssl.create_default_context(cafile=certifi.where())
 
         try:
             async with self._semaphore:
                 if yarl.URL(url).host in self.delay:
                     await throttle(self, yarl.URL(url))
+
+                ext = '.'+filename.split('.')[-1]
+                if not (ext in FILE_FORMATS['Images'] or ext in FILE_FORMATS['Videos'] or ext in FILE_FORMATS['Audio']):
+                    resp = await session.get(url, headers=headers, ssl=ssl_context, raise_for_status=True)
+                    filename = resp.content_disposition.filename
+                    del resp
+
+                resume_point = 0
+                complete_file = (self.folder / self.title / filename)
+                temp_file = complete_file.with_suffix(complete_file.suffix + '.part')
+
+                if temp_file.exists():
+                    resume_point = temp_file.stat().st_size
+                    headers['Range'] = 'bytes=%d-' % resume_point
+
                 resp = await session.get(url, headers=headers, ssl=ssl_context, raise_for_status=True)
                 total = int(resp.headers.get('Content-Length', 0)) + resume_point
                 with tqdm(
@@ -166,7 +173,7 @@ class Downloader:
     async def rename_file(self, filename: str) -> None:
         """Rename complete file."""
         complete_file = (self.folder / self.title / filename)
-        temp_file = complete_file.with_suffix(".download")
+        temp_file = complete_file.with_suffix(complete_file.suffix + '.part')
         if complete_file.exists():
             logger.debug(str(self.folder / self.title / filename) + " Already Exists")
             await aiofiles.os.remove(temp_file)

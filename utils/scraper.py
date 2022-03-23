@@ -77,6 +77,7 @@ def scrape(urls):
     mapping_Chibisafe = ["cyberdrop.me", "cyberdrop.cc", "cyberdrop.to", "cyberdrop.nl", "bunkr.is", "bunkr.to"]
     mapping_Erome = ["erome.com"]
     mapping_GoFile = ["gofile.io"]
+    mapping_Pixeldrain = ["pixeldrain.com"]
 
     replacements = [
         ('fs-...', ''),
@@ -94,13 +95,13 @@ def scrape(urls):
     Chibisafe_urls = []
     Erome_urls = []
     GoFile_urls = []
+    Pixeldrain_urls = []
     unsupported_urls = []
 
     cookies = []
     result_links = OrderedDict()
 
     log("Starting Scrape", Fore.WHITE)
-    log("Just because a new URL is scraping, doesn't mean the last one is complete.", Fore.WHITE)
 
     for url in urls:
         url = url.replace('\n', '')
@@ -123,6 +124,8 @@ def scrape(urls):
             Erome_urls.append(url)
         elif base_domain in mapping_GoFile:
             GoFile_urls.append(url)
+        elif base_domain in mapping_Pixeldrain:
+            Pixeldrain_urls.append(url)
         else:
             unsupported_urls.append(url)
 
@@ -153,6 +156,11 @@ def scrape(urls):
             'name': 'accountToken',
             'value': gofile_crawler.client.token,
         })
+    if Pixeldrain_urls:
+        for url in Pixeldrain_urls:
+            folder = url.split('/')[-1]
+            result_links.setdefault('pixeldrain.com', OrderedDict()).setdefault("PixelDrain", []).append([f'https://pixeldrain.com/api/file/{folder}?download', url])
+
     process.start()
 
     return cookies, result_links
