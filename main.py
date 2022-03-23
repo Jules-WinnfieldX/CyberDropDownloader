@@ -8,7 +8,7 @@ import readchar
 import settings
 import nest_asyncio
 
-# Fixes reactor already installed error
+# Fixes reactor already installed error (issue using Scrapy with Asyncio)
 try:
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 except Exception:
@@ -18,7 +18,6 @@ from pathlib import Path
 from utils.scraper import scrape
 from utils.downloaders import get_downloaders
 from colorama import Fore, Style
-from requests.structures import CaseInsensitiveDict
 
 logging.basicConfig(level=logging.DEBUG, filename='logs.log',
                     format='%(asctime)s:%(levelname)s:%(module)s:%(filename)s:%(lineno)d:%(message)s',

@@ -1,18 +1,16 @@
 from typing import Union
-
 from gofile import Gofile
 
 # import settings
-
-
 # title_setting = settings.include_id_in_download_folder_name
+
 
 class GofileCrawler():
     def __init__(self, **kwargs):
         self.client = Gofile()
         self.links: list[str] = kwargs.get("links", [])
 
-    def build_targets(self, targets = {}, **kwargs):
+    def build_targets(self, targets={}, **kwargs):
         links = kwargs.get("links", self.links)
         for link in links:
             content_id = link.split("/")[-1] if link.startswith("https://gofile.io/") else link
