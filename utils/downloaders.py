@@ -1,28 +1,26 @@
 import asyncio
+from functools import wraps
 import http
+import logging
 import multiprocessing
+from pathlib import Path
+import ssl
 import time
 import traceback
-import typing
+from typing import Any, cast, Callable, Iterable, Optional, Type, TypeVar, Union
 
 import aiofiles
 import aiofiles.os
 import aiohttp
 import aiohttp.client_exceptions
-import logging
-import ssl
 import certifi
+from colorama import Fore, Style
+from sanitize_filename import sanitize
+from tqdm import tqdm
 import yarl
 
 import settings
-from functools import wraps
-from pathlib import Path
-from typing import Any, Callable, Iterable, List, Optional, Type, TypeVar, Union, cast, Dict
-from requests.structures import CaseInsensitiveDict
-from tqdm import tqdm
-from colorama import Fore, Style
-from sanitize_filename import sanitize
-from http.cookies import SimpleCookie
+
 
 asyncio.get_event_loop()
 logger = logging.getLogger(__name__)
@@ -91,7 +89,7 @@ async def throttle(self, url: yarl.URL) -> None:
     if delay is None:
         return
 
-    key: typing.Optional[str] = None
+    key: Optional[str] = None
     while True:
         if key is None:
             key = 'throttle:{}'.format(host)
@@ -111,7 +109,7 @@ async def throttle(self, url: yarl.URL) -> None:
 
 
 class Downloader:
-    def __init__(self, links: List[List[str]], morsels, folder: Path, title: str, max_workers: int):
+    def __init__(self, links: list[list[str]], morsels, folder: Path, title: str, max_workers: int):
         self.links = links
         self.morsels = morsels
         self.folder = folder
@@ -206,7 +204,7 @@ class Downloader:
 
     async def download_all(
             self,
-            links: Iterable[List[str]],
+            links: Iterable[list[str]],
             session: aiohttp.ClientSession,
             show_progress: bool = True
     ) -> None:
@@ -245,7 +243,7 @@ def simple_cookies(cookies):
     return morsels
 
 
-def get_downloaders(urls: Dict[str, Dict[str, List[str]]], cookies: Iterable[str], folder: Path) -> List[Downloader]:
+def get_downloaders(urls: dict[str, dict[str, list[str]]], cookies: Iterable[str], folder: Path) -> list[Downloader]:
     """Get a list of downloaders for each supported type of URLs.
     We shouldn't just assume that each URL will have the same netloc as
     the first one, so we need to classify them one by one, sort them to

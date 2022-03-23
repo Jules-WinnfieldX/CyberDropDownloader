@@ -1,8 +1,11 @@
-from scrapy import signals, Spider
-from scrapy.http.request import Request
-from urllib.parse import urlparse
 import re
+from urllib.parse import urlparse
+
+from scrapy import Spider
+from scrapy.http.request import Request
+
 import settings
+
 
 title_setting = settings.include_id_in_download_folder_name
 

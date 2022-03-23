@@ -1,23 +1,25 @@
-import logging
 import asyncio
-import requests
+import logging
 import os
+from pathlib import Path
 import re
 import warnings
-import readchar
-import settings
+
+from colorama import Fore, Style
 import nest_asyncio
+import readchar
+import requests
+
+import settings
+from utils.scraper import scrape
+from utils.downloaders import get_downloaders
+
 
 # Fixes reactor already installed error (issue using Scrapy with Asyncio)
 try:
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 except Exception:
     pass
-
-from pathlib import Path
-from utils.scraper import scrape
-from utils.downloaders import get_downloaders
-from colorama import Fore, Style
 
 logging.basicConfig(level=logging.DEBUG, filename='logs.log',
                     format='%(asctime)s:%(levelname)s:%(module)s:%(filename)s:%(lineno)d:%(message)s',
