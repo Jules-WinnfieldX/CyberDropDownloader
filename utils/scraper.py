@@ -1,17 +1,20 @@
-from scrapy import signals, Spider
-from scrapy.crawler import CrawlerProcess
-from scrapy.utils.project import get_project_settings
-from scrapy.signalmanager import dispatcher
-from urllib.parse import urlparse
-import logging
-from colorama import Fore, Style
 from collections import OrderedDict
+import logging
 import re
+from urllib.parse import urlparse
+
+from colorama import Fore, Style
+from scrapy import signals
+from scrapy.crawler import CrawlerProcess
+from scrapy.signalmanager import dispatcher
+from scrapy.utils.project import get_project_settings
+
 import settings
 from utils.crawlers.ShareX_Spider import ShareX_Spider
 from utils.crawlers.Erome_Spider import Erome_Spider
 from utils.crawlers.Chibisafe_Spider import Chibisafe_Spider
 from utils.crawlers.GoFile_Spider import GofileCrawler
+
 
 logger = logging.getLogger(__name__)
 title_setting = settings.include_id_in_download_folder_name
