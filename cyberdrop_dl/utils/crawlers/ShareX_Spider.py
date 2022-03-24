@@ -4,13 +4,12 @@ from urllib.parse import urlparse
 from scrapy import Spider
 from scrapy.http.request import Request
 
-from ...settings import include_id_in_download_folder_name as title_setting
-
 class ShareX_Spider(Spider):
     name = 'ShareX'
 
     def __init__(self, *args, **kwargs):
         self.myurls = kwargs.get('myurls', [])
+        self.include_id = kwargs.get('include_id', False)
         super(ShareX_Spider, self).__init__(*args, **kwargs)
 
     def start_requests(self):
@@ -28,7 +27,7 @@ class ShareX_Spider(Spider):
         try:
             title = response.css('div[class=header] h1 strong::text').get()
             title = title.replace(r"\n", "").strip()
-            if title_setting:
+            if self.include_id:
                 titlep2 = response.url.split('/')
                 titlep2 = [s for s in titlep2 if "." in s][-1]
                 title = title + " - " + titlep2
@@ -49,7 +48,7 @@ class ShareX_Spider(Spider):
         try:
             title = response.css('a[data-text=album-name]::text').get()
             title = title.replace(r"\n", "").strip()
-            if title_setting:
+            if self.include_id:
                 titlep2 = response.url.split('/')
                 titlep2 = [s for s in titlep2 if "." in s][-1]
                 title = title + " - " + titlep2

@@ -7,7 +7,7 @@ from pathlib import Path
 import ssl
 import time
 import traceback
-from typing import Any, cast, Callable, Iterable, Optional, Type, TypeVar, Union
+from typing import Iterable, Optional
 
 import aiofiles
 import aiofiles.os
@@ -19,14 +19,9 @@ from sanitize_filename import sanitize
 from tqdm import tqdm
 import yarl
 
-from ..settings import *
-
 
 asyncio.get_event_loop()
 logger = logging.getLogger(__name__)
-
-T = TypeVar("T")
-T_Func = TypeVar("T_Func", bound=Callable)
 
 MAX_FILENAME_LENGTH = 100
 FILE_FORMATS = {
@@ -58,27 +53,18 @@ class FailureException(Exception):
     pass
 
 
-def retry(
-        attempts: int,
-        timeout: Union[int, float] = 0,
-        exceptions: Type[Exception] = Exception
-) -> Callable:
-    def inner(func: T_Func) -> T_Func:
-        @wraps(func)
-        async def wrapper(*args, **kwargs) -> Any:
-            times_tried = 1
-            while True:
-                try:
-                    return await func(*args, **kwargs)
-                except exceptions as exc:
-                    # logger.exception(exc)
-                    if times_tried >= attempts:
-                        logger.exception(f'Raised {exc} exceeded times_tried')
-                        raise exc
-                    times_tried += 1
-                    await asyncio.sleep(timeout)
-        return cast(T_Func, wrapper)
-    return inner
+def retry(f):
+    @wraps(f)
+    async def wrapper(self, *args, **kwargs):
+        for i in range(self.attempts):
+            try:
+                return await f(self, *args, **kwargs)
+            except FailureException:
+                if i == self.attempts - 1:
+                    raise
+                logger.debug('Retrying...')
+                time.sleep(4)
+    return wrapper
 
 
 async def throttle(self, url: yarl.URL) -> None:
@@ -109,11 +95,12 @@ async def throttle(self, url: yarl.URL) -> None:
 
 
 class Downloader:
-    def __init__(self, links: list[list[str]], morsels, folder: Path, title: str, max_workers: int):
+    def __init__(self, links: list[list[str]], morsels, folder: Path, title: str, attempts: int, max_workers: int):
         self.links = links
         self.morsels = morsels
         self.folder = folder
         self.title = title
+        self.attempts = attempts
         self.max_workers = max_workers
         self._semaphore = asyncio.Semaphore(max_workers)
         self.delay = {'media-files.bunkr.is': 2}
@@ -121,7 +108,7 @@ class Downloader:
 
     """Changed from aiohttp exceptions caught to FailureException to allow for partial downloads."""
 
-    @retry(attempts=download_attempts, timeout=4, exceptions=FailureException)
+    @retry
     async def download_file(
             self,
             url: str,
@@ -258,7 +245,7 @@ def simple_cookies(cookies):
     return morsels
 
 
-def get_downloaders(urls: dict[str, dict[str, list[str]]], cookies: Iterable[str], folder: Path) -> list[Downloader]:
+def get_downloaders(urls: dict[str, dict[str, list[str]]], cookies: Iterable[str], folder: Path, attempts: int, threads: int) -> list[Downloader]:
     """Get a list of downloaders for each supported type of URLs.
     We shouldn't just assume that each URL will have the same netloc as
     the first one, so we need to classify them one by one, sort them to
@@ -274,6 +261,6 @@ def get_downloaders(urls: dict[str, dict[str, list[str]]], cookies: Iterable[str
         for title, urls in url_object.items():
             if 'bunkr' in domain:
                 max_workers = 2 if (max_workers > 2) else max_workers
-            downloader = Downloader(urls, morsels=morsels, title=title, folder=folder, max_workers=max_workers)
+            downloader = Downloader(urls, morsels=morsels, title=title, folder=folder, attempts=attempts, max_workers=max_workers)
             downloaders.append(downloader)
     return downloaders

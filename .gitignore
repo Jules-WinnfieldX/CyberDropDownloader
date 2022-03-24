@@ -1,7 +1,9 @@
 # project stuff
 Downloads/
-download.log
+*.log
 
 # Python stuff
 .venv/
 __pycache__/
+*.egg-info/
+build/
