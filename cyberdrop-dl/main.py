@@ -21,7 +21,7 @@ try:
 except Exception:
     pass
 
-logging.basicConfig(level=logging.DEBUG, filename='logs.log',
+logging.basicConfig(level=logging.DEBUG, filename='../logs.log',
                     format='%(asctime)s:%(levelname)s:%(module)s:%(filename)s:%(lineno)d:%(message)s',
                     filemode='w')
 warnings.filterwarnings("ignore", category=DeprecationWarning)
@@ -60,14 +60,14 @@ async def main():
     nest_asyncio.apply()
     clear()
     version_check()
-    if os.path.isfile("URLs.txt"):
+    if os.path.isfile("../URLs.txt"):
         log("URLs.txt exists", Fore.WHITE)
     else:
-        f = open("URLs.txt", "w+")
+        f = open("../URLs.txt", "w+")
         log("URLs.txt created", Fore.WHITE)
         exit()
 
-    file_object = open("URLs.txt", "r")
+    file_object = open("../URLs.txt", "r")
     urls = file_object.read()
     urls = regex_links(urls)
     cookies, content_object = scrape(urls)
