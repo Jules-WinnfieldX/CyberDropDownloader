@@ -11,8 +11,8 @@ import requests
 
 from cyberdrop_dl import __version__ as VERSION
 import cyberdrop_dl.settings as settings
-from .utils.scraper import scrape
-from .utils.downloaders import get_downloaders
+from cyberdrop_dl.utils.scraper import scrape
+from cyberdrop_dl.utils.downloaders import get_downloaders
 
 
 # Fixes reactor already installed error (issue using Scrapy with Asyncio)
@@ -21,7 +21,7 @@ try:
 except Exception:
     pass
 
-logging.basicConfig(level=logging.DEBUG, filename='download.log',
+logging.basicConfig(level=logging.DEBUG, filename='../download.log',
                     format='%(asctime)s:%(levelname)s:%(module)s:%(filename)s:%(lineno)d:%(message)s',
                     filemode='w')
 warnings.filterwarnings("ignore", category=DeprecationWarning)
@@ -59,14 +59,14 @@ async def download_all():
     nest_asyncio.apply()
     clear()
     version_check()
-    if os.path.isfile("URLs.txt"):
+    if os.path.isfile("../URLs.txt"):
         log("URLs.txt exists", Fore.WHITE)
     else:
         f = open("URLs.txt", "w+")
         log("URLs.txt created", Fore.WHITE)
         exit()
 
-    file_object = open("URLs.txt", "r")
+    file_object = open("../URLs.txt", "r")
     urls = file_object.read()
     urls = regex_links(urls)
     cookies, content_object = scrape(urls)
@@ -86,6 +86,7 @@ async def download_all():
 
 def main():
     asyncio.get_event_loop().run_until_complete(download_all())
+
 
 if __name__ == '__main__':
     main()

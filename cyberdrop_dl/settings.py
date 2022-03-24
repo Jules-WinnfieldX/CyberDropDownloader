@@ -6,6 +6,6 @@
 # include_id_in_download_folder_name = False - setting this to true will add the ID to download folder names.
 
 threads = 0
-download_folder = "./Downloads/"
+download_folder = "../Downloads/"
 download_attempts = 10
 include_id_in_download_folder_name = False
