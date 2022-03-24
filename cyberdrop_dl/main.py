@@ -26,9 +26,10 @@ def parse_args():
     parser.add_argument("-i", "--input-file", help="file containing links to download", default="URLs.txt")
     parser.add_argument("-o", "--output-folder", help="folder to download files to", default="Downloads")
     parser.add_argument("--log-file", help="log file to write to", default="downloader.log")
-    parser.add_argument("--threads", help="number of threads to use (0 = max)", default=0)
-    parser.add_argument("--attempts", help="number of attempts to download each file", default=10)
+    parser.add_argument("--threads", type=int, help="number of threads to use (0 = max)", default=0)
+    parser.add_argument("--attempts", type=int, help="number of attempts to download each file", default=10)
     parser.add_argument("--include-id", help="include the ID in the download folder name", action="store_true")
+    parser.add_argument("links", metavar="link", nargs="*", help="link to content to download (passing multiple links is supported)", default=[])
     args = parser.parse_args()
     return args
 
@@ -64,15 +65,17 @@ async def download_all(args: argparse.Namespace):
     nest_asyncio.apply()
     clear()
     version_check()
+    logging.debug(f"Starting downloader with args: {args.__dict__}")
     input_file = Path(args.input_file)
     if not os.path.isfile(input_file):
         Path.touch(input_file)
         log(f"{input_file} created. Populate it and retry.")
         exit(1)
 
+    links = args.links
     with open(input_file, "r") as f:
-        urls = regex_links(f.read())
-    cookies, content_object = scrape(urls, args.include_id)
+        links += regex_links(f.read())
+    cookies, content_object = scrape(links, args.include_id)
     if not content_object:
         logging.error(f'ValueError No links: {content_object}')
         raise ValueError('No links found, check the URL.txt\nIf the link works in your web browser, '
