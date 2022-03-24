@@ -12,6 +12,7 @@
 | Bunkr      | Albums: bunkr.is/a/... <br> Direct Videos: stream.bunkr.is/v/... <br> Direct Videos: cdn.bunkr.is/... <br> Direct Images: i.bunkr.is/... <br> Also works with Bunkr.to                                                                 |
 | GoFile     | Albums: gofile.io/d/...                                                                                                                                                                                                                |
 | Erome      | Albums: erome.com/a/...                                                                                                                                                                                                                
+| PixelDrain | Albums: Pixeldrain.com/l/... <br> Single Files: Pixeldrain.com/u/...                                                                                                                                                                                                               
 
 # Information
 
