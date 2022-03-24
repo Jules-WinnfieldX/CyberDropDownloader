@@ -1,0 +1,7 @@
+# project stuff
+Downloads/
+download.log
+
+# Python stuff
+.venv/
+__pycache__/
