@@ -157,6 +157,12 @@ class Downloader:
                     headers['Range'] = 'bytes=%d-' % resume_point
 
                 resp = await session.get(url, headers=headers, ssl=ssl_context, raise_for_status=True)
+
+                content_type = resp.headers.get('Content-Type')
+                if 'text' in content_type.lower() or 'html' in content_type.lower():
+                    log(f"\nServer for {url} is either down or the file no longer exists", Fore.RED)
+                    return
+
                 total = int(resp.headers.get('Content-Length', 0)) + resume_point
                 with tqdm(
                         total=total, unit_scale=True,
@@ -169,7 +175,7 @@ class Downloader:
                             progress.update(len(chunk))
             await self.rename_file(filename)
         except (aiohttp.client_exceptions.ClientPayloadError, aiohttp.client_exceptions.ClientOSError,
-                aiohttp.client_exceptions.ServerDisconnectedError, asyncio.TimeoutError) as e:
+                aiohttp.client_exceptions.ServerDisconnectedError, asyncio.TimeoutError, FailureException) as e:
             raise FailureException(e)
 
     async def rename_file(self, filename: str) -> None:
