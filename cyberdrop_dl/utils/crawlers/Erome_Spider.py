@@ -4,14 +4,13 @@ from urllib.parse import urlparse
 from scrapy import Spider
 from scrapy.http.request import Request
 
-from ...settings import include_id_in_download_folder_name as title_setting
-
 
 class Erome_Spider(Spider):
     name = 'Erome'
 
     def __init__(self, *args, **kwargs):
         self.myurls = kwargs.get('myurls', [])
+        self.include_id = kwargs.get('include_id', False)
         super(Erome_Spider, self).__init__(*args, **kwargs)
 
     def start_requests(self):
@@ -24,7 +23,7 @@ class Erome_Spider(Spider):
 
         try:
             title = response.css('div[class="col-sm-12 page-content"] h1::text').get()
-            if title_setting:
+            if self.include_id:
                 title = title + " - " + response.url.split('/')[-1]
         except Exception as e:
             title = response.url.split('/')[-1]

@@ -70,7 +70,7 @@ def check_direct(url):
     return False
 
 
-def scrape(urls):
+def scrape(urls, include_id: bool):
     mapping_ShareX = ["pixl.is", "putme.ga", "putmega.com", "jpg.church"]
     mapping_Chibisafe = ["cyberdrop.me", "cyberdrop.cc", "cyberdrop.to", "cyberdrop.nl", "bunkr.is", "bunkr.to"]
     mapping_Erome = ["erome.com"]
@@ -137,18 +137,18 @@ def scrape(urls):
 
     dispatcher.connect(crawler_results, signal=signals.item_scraped)
     settings = get_project_settings()
-    settings.set('LOG_FILE', '../download.log')
+    settings.set('LOG_FILE', 'downloader.log')
     settings.set('TWISTED_REACTOR', "twisted.internet.asyncioreactor.AsyncioSelectorReactor")
     process = CrawlerProcess(settings)
 
     if ShareX_urls:
-        process.crawl(ShareX_Spider, myurls=ShareX_urls)
+        process.crawl(ShareX_Spider, myurls=ShareX_urls, include_id=include_id)
     if Chibisafe_urls:
-        process.crawl(Chibisafe_Spider, myurls=Chibisafe_urls)
+        process.crawl(Chibisafe_Spider, myurls=Chibisafe_urls, include_id=include_id)
     if Erome_urls:
-        process.crawl(Erome_Spider, myurls=Erome_urls)
+        process.crawl(Erome_Spider, myurls=Erome_urls, include_id=include_id)
     if GoFile_urls:
-        gofile_crawler = GofileCrawler(links=GoFile_urls)
+        gofile_crawler = GofileCrawler(links=GoFile_urls, include_id=include_id)
         result_links.setdefault('gofile.io', gofile_crawler.build_targets())
         cookies.append({
             'name': 'accountToken',

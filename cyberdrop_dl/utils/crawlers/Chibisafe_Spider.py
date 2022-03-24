@@ -4,8 +4,6 @@ from urllib.parse import urljoin, urlparse
 from scrapy import Spider
 from scrapy.http.request import Request
 
-from ...settings import include_id_in_download_folder_name as title_setting
-
 
 FILE_FORMATS = {
     'Images': {
@@ -44,6 +42,7 @@ class Chibisafe_Spider(Spider):
 
     def __init__(self, *args, **kwargs):
         self.myurls = kwargs.get('myurls', [])
+        self.include_id = kwargs.get('include_id', False)
         super(Chibisafe_Spider, self).__init__(*args, **kwargs)
 
     def start_requests(self):
@@ -73,7 +72,7 @@ class Chibisafe_Spider(Spider):
         try:
             title = response.css('h1[id=title]::text').get()
             title = title.replace(r"\n", "").strip()
-            if title_setting:
+            if self.include_id:
                 title = title + " - " + response.url.split('/')[-1]
         except Exception as e:
             title = response.url.split('/')[-1]
