@@ -137,7 +137,7 @@ def scrape(urls):
 
     dispatcher.connect(crawler_results, signal=signals.item_scraped)
     settings = get_project_settings()
-    settings.set('LOG_FILE', 'download.log')
+    settings.set('LOG_FILE', '../download.log')
     settings.set('TWISTED_REACTOR', "twisted.internet.asyncioreactor.AsyncioSelectorReactor")
     process = CrawlerProcess(settings)
 
