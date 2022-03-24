@@ -21,20 +21,16 @@ except Exception:
     pass
 
 def parse_args():
-    parser = argparse.ArgumentParser(description='Bulk downloader for multiple file hosts')
+    parser = argparse.ArgumentParser(description="Bulk downloader for multiple file hosts")
     parser.add_argument("-V", "--version", action="version", version="%(prog)s " + VERSION)
     parser.add_argument("-i", "--input-file", help="file containing links to download", default="URLs.txt")
-    parser.add_argument("-o", "--output-folder", help="folder to download files to", default='Downloads')
+    parser.add_argument("-o", "--output-folder", help="folder to download files to", default="Downloads")
+    parser.add_argument("--log-file", help="log file to write to", default="downloader.log")
     parser.add_argument("--threads", help="number of threads to use (0 = max)", default=0)
     parser.add_argument("--attempts", help="number of attempts to download each file", default=10)
     parser.add_argument("--include-id", help="include the ID in the download folder name", action="store_true")
     args = parser.parse_args()
     return args
-
-
-logging.basicConfig(level=logging.DEBUG, filename=Path("downloader.log"),
-                    format='%(asctime)s:%(levelname)s:%(module)s:%(filename)s:%(lineno)d:%(message)s',
-                    filemode='w')
 
 
 def log(text, style = Fore.WHITE) -> None:
@@ -92,6 +88,12 @@ async def download_all(args: argparse.Namespace):
 
 def main():
     args = parse_args()
+    logging.basicConfig(
+        filename=args.log_file,
+        level=logging.DEBUG,
+        format="%(asctime)s:%(levelname)s:%(module)s:%(filename)s:%(lineno)d:%(message)s",
+        filemode="w"
+    )
     asyncio.get_event_loop().run_until_complete(download_all(args))
 
 
