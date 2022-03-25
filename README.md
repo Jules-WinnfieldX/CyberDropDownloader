@@ -11,8 +11,8 @@
 | Pixl       | Albums: pixl.is/album/... <br> Direct Images: pixl.is/image/...  <br> User Profile: pixl.is/#USER# <br> All User Albums: pixl.is/#USER#/albums                                                                                         |
 | Bunkr      | Albums: bunkr.is/a/... <br> Direct Videos: stream.bunkr.is/v/... <br> Direct Videos: cdn.bunkr.is/... <br> Direct Images: i.bunkr.is/... <br> Also works with Bunkr.to                                                                 |
 | GoFile     | Albums: gofile.io/d/...                                                                                                                                                                                                                |
-| Erome      | Albums: erome.com/a/...                                                                                                                                                                                                                
-| PixelDrain | Albums: Pixeldrain.com/l/... <br> Single Files: Pixeldrain.com/u/...                                                                                                                                                                                                               
+| Erome      | Albums: erome.com/a/...                                                                                                                                                                                                                |
+| PixelDrain | Albums: Pixeldrain.com/l/... <br> Single Files: Pixeldrain.com/u/...                                                                                                                                                                   |                                           
 
 # Information
 
@@ -24,16 +24,22 @@ You can get Python from here: https://www.python.org/downloads/
 It'll repeat that for every link you give it.
 
 # Installation
+
+## Manually
+Go to the [releases page](https://github.com/Jules-WinnfieldX/CyberDropDownloader/releases) and download the Cyberdrop_DL.zip file. Extract it to wherever you want the program to be.
 ## Using `pip`
 Once Python is installed, run `pip3 install --user cyberdrop-dl`.
 
 Advanced users may want to use virtual environments (via `pipx`), but it's **NOT** required.
 
-## Manually
-_Coming soon..._
-
 # Usage
-## Simple way
+
+## Manual way (Manual install above)
+Put the links in the URLs.txt file then run Start.bat (Windows) or start.sh (OS X**/Linux**) file.
+
+** Mac and Linux will need to run the command `chmod +x start.sh` to make the file executable.
+
+## Simple (Pip install above)
 1. Run `cyberdrop-dl` once to generate an empty `URLs.txt` file.
 2. Copy and paste your links into `URLs.txt`.
 Each link you add has to go on its own line (paste link, press enter, repeat).
@@ -41,7 +47,7 @@ Each link you add has to go on its own line (paste link, press enter, repeat).
 It will begin to download everything.
 4. Enjoy!
 
-## Custom way
+## Custom way (Pip install above)
 If you know what you're doing, you can use some of the available options to adjust how the program runs.
 ```
 $ cyberdrop-dl -h

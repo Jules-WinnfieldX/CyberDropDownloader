@@ -20,6 +20,7 @@ try:
 except Exception:
     pass
 
+
 def parse_args():
     parser = argparse.ArgumentParser(description="Bulk downloader for multiple file hosts")
     parser.add_argument("-V", "--version", action="version", version="%(prog)s " + VERSION)
@@ -44,18 +45,6 @@ def clear() -> None:
     os.system('cls' if os.name == 'nt' else 'clear')
 
 
-def version_check() -> None:
-    response = requests.get("https://api.github.com/repos/Jules-WinnfieldX/CyberDropDownloader/releases/latest")
-    latest_version = response.json()["tag_name"]
-    logging.debug(f"We are running version {VERSION} of Cyberdrop Downloader")
-    if latest_version != VERSION:
-        log("A new version of CyberDropDownloader is available\n"
-            "Download it here: https://github.com/Jules-WinnfieldX/CyberDropDownloader/releases/latest\n", Fore.RED)
-        if input("Keep going? (Y/n) ") == "n":
-            exit()
-        clear()
-
-
 def regex_links(urls) -> list:
     all_links = [x.group().replace(".md.", ".") for x in re.finditer(r"(?:http.*?)(?=('|$|\n|\r\n|\r|\s)|\")", urls)]
     return all_links
@@ -64,7 +53,7 @@ def regex_links(urls) -> list:
 async def download_all(args: argparse.Namespace):
     nest_asyncio.apply()
     clear()
-    version_check()
+    log(f"We are running version {VERSION} of Cyberdrop Downloader", Fore.WHITE)
     logging.debug(f"Starting downloader with args: {args.__dict__}")
     input_file = Path(args.input_file)
     if not os.path.isfile(input_file):
