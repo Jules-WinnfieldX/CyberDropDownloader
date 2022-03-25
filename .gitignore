@@ -7,3 +7,4 @@ Downloads/
 __pycache__/
 *.egg-info/
 build/
+release/
