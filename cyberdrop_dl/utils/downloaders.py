@@ -7,7 +7,7 @@ from pathlib import Path
 import ssl
 import time
 import traceback
-from typing import Iterable, Optional
+from typing import Iterable, Optional, List
 
 import aiofiles
 import aiofiles.os
@@ -95,7 +95,7 @@ async def throttle(self, url: yarl.URL) -> None:
 
 
 class Downloader:
-    def __init__(self, links: list[list[str]], morsels, folder: Path, title: str, attempts: int, max_workers: int):
+    def __init__(self, links: List[List[str]], morsels, folder: Path, title: str, attempts: int, max_workers: int):
         self.links = links
         self.morsels = morsels
         self.folder = folder
@@ -179,7 +179,7 @@ class Downloader:
 
     async def download_and_store(
             self,
-            url_object: list,
+            url_object: List,
             session: aiohttp.ClientSession,
             show_progress: bool = True
     ) -> None:
@@ -207,7 +207,7 @@ class Downloader:
 
     async def download_all(
             self,
-            links: Iterable[list[str]],
+            links: Iterable[List[str]],
             session: aiohttp.ClientSession,
             show_progress: bool = True
     ) -> None:
