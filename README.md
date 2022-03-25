@@ -1,5 +1,5 @@
-# CyberDropDownloader
-**Bulk Gallery Downloader for Cyberdrop.me**
+# `cyberdrop-dl`
+**Bulk downloader for multiple file hosts**
 
 # Supported Sites
 
@@ -16,44 +16,56 @@
 
 # Information
 
-Created Using Python 3.9.6 (**Requires Python 3.7 or higher**)
-https://www.python.org/downloads/release/python-396/
+**Requires Python 3.7 or higher (3.10 recommended)**
 
-The program will take the title of the archive and create a new folder for it, and download all of the avilable media to that folder. It'll repeat for every link you have in URLs.txt.
+You can get Python from here: https://www.python.org/downloads/
+
+`cyberdrop-dl` will take the title of the archive and create a new folder for it, and download all of the available media to that folder.
+It'll repeat that for every link you give it.
 
 # Installation
+## Using `pip`
+Once Python is installed, run `pip3 install --user cyberdrop-dl`.
 
-Download a release from https://github.com/Jules-WinnfieldX/CyberDropDownloader/releases
-Extract all of the files to a single directory.
+Advanced users may want to use virtual environments (via `pipx`), but it's **NOT** required.
 
-## macOS
-
-https://www.python.org/ftp/python/3.9.6/python-3.9.6-macos11.pkg
-
-Use this installer to install python
-
-## Windows
-
-https://www.python.org/ftp/python/3.9.6/python-3.9.6-amd64.exe
-
-Use this installer to install python, make sure you select the box that says "ADD TO PATH"
-
-## Arch Linux (Not maintained by me)
-
-There is a package on the AUR named [`cyberdropdownloader-bin`](https://aur.archlinux.org/packages/cyberdropdownloader-bin/).
-
-This can be installed using your preferred AUR helper with a command like `paru -Sy cyberdropdownloader-bin`. You can then run the program by running `cyberdrop-downloader`. This will create a `URLS.txt` file in your current path which you can populate to proceed with your downloads.
+## Manually
+_Coming soon..._
 
 # Usage
-Copy and paste links into `URLs.txt`. 
-Each link you add has to go on it's own line. (paste link, press enter, repeat).
+## Simple way
+1. Run `cyberdrop-dl` once to generate an empty `URLs.txt` file.
+2. Copy and paste your links into `URLs.txt`.
+Each link you add has to go on its own line (paste link, press enter, repeat).
+3. Run `cyberdrop-dl` again.
+It will begin to download everything.
+4. Enjoy!
 
-Double click on `Start.bat` (or `Start.sh` for macOS/Linux), it will download the needed libraries using pip and run the program.
+## Custom way
+If you know what you're doing, you can use some of the available options to adjust how the program runs.
+```
+$ cyberdrop-dl -h
+usage: cyberdrop-dl [-h] [-V] [-i INPUT_FILE] [-o OUTPUT_FOLDER] [--log-file LOG_FILE] [--threads THREADS] [--attempts ATTEMPTS] [--include-id] [link ...]
 
-NOTE: macOS and Linux users will likely have to make the start script executable (`chmod +x Start.sh`) before they can run the script.
+Bulk downloader for multiple file hosts
+
+positional arguments:
+  link                  link to content to download (passing multiple links is supported)
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -V, --version         show program's version number and exit
+  -i INPUT_FILE, --input-file INPUT_FILE
+                        file containing links to download
+  -o OUTPUT_FOLDER, --output-folder OUTPUT_FOLDER
+                        folder to download files to
+  --log-file LOG_FILE   log file to write to
+  --threads THREADS     number of threads to use (0 = max)
+  --attempts ATTEMPTS   number of attempts to download each file
+  --include-id          include the ID in the download folder name
+```
 
 # Credit
-
 The majority of the new download methodology came from alexdotis' [Chibisafe-Sharex-Scraper](https://github.com/alexdotis/Chibisafe-Sharex-Scraper).
 Added to his code was the ability to take a more descriptive url object containing the album title, netloc and content urls. 
 The download methodology now also checks for existing files. Simplified bunkr pairing to stop blank objects from being created and passed to the rest of the program.
