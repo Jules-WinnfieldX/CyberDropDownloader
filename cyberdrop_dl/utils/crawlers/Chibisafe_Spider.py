@@ -3,38 +3,19 @@ from urllib.parse import urljoin, urlparse
 
 from scrapy import Spider
 from scrapy.http.request import Request
+import aiohttp
+from bs4 import BeautifulSoup
+
+from ..data_classes import *
+from ..base_functions import *
 
 
-FILE_FORMATS = {
-    'Images': {
-        '.jpg', '.jpeg', '.png', '.gif',
-        '.gif', '.webp', '.jpe', '.svg',
-        '.tif', '.tiff', '.jif',
-    },
-    'Videos': {
-        '.mpeg', '.avchd', '.webm', '.mpv',
-        '.swf', '.avi', '.m4p', '.wmv',
-        '.mp2', '.m4v', '.qt', '.mpe',
-        '.mp4', '.flv', '.mov', '.mpg',
-        '.ogg',
-    },
-    'Audio': {
-        '.mp3', '.flac', '.wav', '.m4a'
-    }
-}
+class ChibisafeCrawler():
+    def __init__(self, **kwargs):
+        self.links: list[str] = kwargs.get("links", [])
+        self.include_id = kwargs.get('include_id', False)
+        self.results = {}
 
-
-def bunkr_parse(url: str) -> str:
-    """Fix the URL for bunkr.is and construct the headers."""
-    extension = '.' + url.split('.')[-1]
-    if extension.lower() in FILE_FORMATS['Videos']:
-        changed_url = url.replace('cdn.bunkr', 'media-files.bunkr').split('/')
-        changed_url = ''.join(map(lambda x: urljoin('/', x), changed_url))
-        return changed_url
-    if extension.lower() in FILE_FORMATS['Images']:
-        changed_url = url.replace('i.bunkr', 'cdn.bunkr')
-        return changed_url
-    return url
 
 
 class Chibisafe_Spider(Spider):

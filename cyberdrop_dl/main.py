@@ -12,6 +12,7 @@ import requests
 from . import __version__ as VERSION
 from .utils.scraper import scrape
 from .utils.downloaders import get_downloaders
+from .utils.data_classes import *
 
 
 # Fixes reactor already installed error (issue using Scrapy with Asyncio)
@@ -64,7 +65,9 @@ async def download_all(args: argparse.Namespace):
     links = args.links
     with open(input_file, "r") as f:
         links += regex_links(f.read())
-    cookies, content_object = scrape(links, args.include_id)
+    content_object = await scrape(links, args.include_id)
+    # TODO return unsupported links, instead of raising error when no links in content object, print unsupported and
+    #  exit
     if not content_object:
         logging.error(f'ValueError No links: {content_object}')
         raise ValueError('No links found, check the URL.txt\nIf the link works in your web browser, '
