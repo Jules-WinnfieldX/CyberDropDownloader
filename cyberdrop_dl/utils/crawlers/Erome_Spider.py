@@ -1,13 +1,8 @@
-import logging
-
 import tldextract
 from bs4 import BeautifulSoup
 
 from ..base_functions import *
 from ..data_classes import *
-
-
-logger = logging.getLogger(__name__)
 
 
 class EromeCrawler():

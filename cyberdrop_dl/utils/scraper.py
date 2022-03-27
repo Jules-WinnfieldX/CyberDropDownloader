@@ -1,12 +1,7 @@
-from collections import OrderedDict
-import logging
-import re
-
 import asyncio
 
 import aiohttp
 import tldextract
-from colorama import Fore, Style
 
 from .crawlers.ShareX_Spider import ShareXCrawler
 from .crawlers.Erome_Spider import EromeCrawler
@@ -14,14 +9,6 @@ from .crawlers.Chibisafe_Spider import ChibisafeCrawler
 from .crawlers.GoFile_Spider import GofileCrawler
 from .data_classes import *
 from .base_functions import *
-
-
-logger = logging.getLogger(__name__)
-
-
-def log(text, style):
-    # Log function for printing to command line
-    print(style + str(text) + Style.RESET_ALL)
 
 
 async def scrape(urls, include_id: bool):

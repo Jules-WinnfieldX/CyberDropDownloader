@@ -2,7 +2,6 @@ from typing import Union
 
 from gofile import Gofile
 
-from ..base_functions import *
 from ..data_classes import *
 
 

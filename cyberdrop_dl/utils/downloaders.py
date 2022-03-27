@@ -1,7 +1,6 @@
 import asyncio
 from functools import wraps
 import http
-import logging
 import multiprocessing
 from pathlib import Path
 import ssl
@@ -13,20 +12,12 @@ import aiofiles.os
 import aiohttp
 import aiohttp.client_exceptions
 import certifi
-from colorama import Fore, Style
 from sanitize_filename import sanitize
 from tqdm import tqdm
 import yarl
 
 from .base_functions import *
 from .data_classes import *
-
-logger = logging.getLogger(__name__)
-
-
-def log(text, style):
-    # Log function for printing to command line
-    print(style + str(text) + Style.RESET_ALL)
 
 
 class FailureException(Exception):

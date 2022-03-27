@@ -1,5 +1,11 @@
+import logging
+import os
 import re
 from urllib.parse import urljoin
+
+from colorama import Fore, Style
+
+"""This file contains generic information and functions that are used around the program"""
 
 FILE_FORMATS = {
     'Images': {
@@ -25,8 +31,21 @@ mapping_Erome = ["erome.com"]
 mapping_GoFile = ["gofile.io"]
 mapping_Pixeldrain = ["pixeldrain.com"]
 
-user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.71 Safari/537.36'
+user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.71 ' \
+             'Safari/537.36'
 MAX_FILENAME_LENGTH = 100
+
+logger = logging.getLogger(__name__)
+
+
+def log(text, style = Fore.WHITE) -> None:
+    """Wrapper around print() to add color to text"""
+    print(style + str(text) + Style.RESET_ALL)
+
+
+def clear() -> None:
+    """Clears the terminal screen"""
+    os.system('cls' if os.name == 'nt' else 'clear')
 
 
 def make_title_safe(title: str):

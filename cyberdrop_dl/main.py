@@ -1,17 +1,11 @@
 import argparse
 import asyncio
-import logging
-import os
 from pathlib import Path
-import re
-
-from colorama import Fore, Style
-import requests
 
 from . import __version__ as VERSION
 from .utils.scraper import scrape
 from .utils.downloaders import get_downloaders
-from .utils.data_classes import *
+from .utils.base_functions import *
 
 
 def parse_args():
@@ -27,16 +21,6 @@ def parse_args():
                         help="link to content to download (passing multiple links is supported)", default=[])
     args = parser.parse_args()
     return args
-
-
-def log(text, style = Fore.WHITE) -> None:
-    """Wrapper around print() to add color to text"""
-    print(style + str(text) + Style.RESET_ALL)
-
-
-def clear() -> None:
-    """Clears the terminal screen"""
-    os.system('cls' if os.name == 'nt' else 'clear')
 
 
 def regex_links(urls) -> list:
