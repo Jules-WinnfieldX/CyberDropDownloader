@@ -8,9 +8,9 @@ import aiohttp
 import tldextract
 from colorama import Fore, Style
 
-from .crawlers.ShareX_Spider import ShareX_Spider
+from .crawlers.ShareX_Spider import ShareXCrawler
 from .crawlers.Erome_Spider import EromeCrawler
-from .crawlers.Chibisafe_Spider import Chibisafe_Spider
+from .crawlers.Chibisafe_Spider import ChibisafeCrawler
 from .crawlers.GoFile_Spider import GofileCrawler
 from .data_classes import *
 from .base_functions import *
@@ -26,6 +26,7 @@ def log(text, style):
 
 async def scrape(urls, include_id: bool):
     Cascade = CascadeItem({})
+
     ShareX_urls = []
     Chibisafe_urls = []
     Erome_urls = []
@@ -65,35 +66,31 @@ async def scrape(urls, include_id: bool):
             Cascade.add_to_album(base_domain, title, pixeldrain_parse(url, title), url)
 
         # TODO entire thotsbay forum pages, scrape all images, embedded videos, scrape all links
+
         else:
             unsupported_urls.append(url)
 
     erome_crawler = EromeCrawler(include_id=include_id)
+    sharex_crawler = ShareXCrawler(include_id=include_id)
+    chibisafe_crawler = ChibisafeCrawler(include_id=include_id)
+    gofile_crawler = GofileCrawler()
 
     tasks = []
     headers = {"user-agent": user_agent}
     async with aiohttp.ClientSession(headers=headers, raise_for_status=True) as session:
         for url in Erome_urls:
             tasks.append(erome_crawler.fetch(session, url))
+        for url in ShareX_urls:
+            tasks.append(sharex_crawler.fetch(session, url))
+        for url in Chibisafe_urls:
+            tasks.append(chibisafe_crawler.fetch(session, url))
+        for url in GoFile_urls:
+            tasks.append(gofile_crawler.fetch(url))
         results = await asyncio.gather(*tasks)
 
     for item_pair in results:
         domain_item, cookie_item = item_pair
         Cascade.add_albums(domain_item)
         Cascade.add_cookie(cookie_item)
-
-
-
-    # if ShareX_urls:
-    #     # process.crawl(ShareX_Spider, myurls=ShareX_urls, include_id=include_id)
-    # if Chibisafe_urls:
-    #     # process.crawl(Chibisafe_Spider, myurls=Chibisafe_urls, include_id=include_id)
-    # if GoFile_urls:
-    #     gofile_crawler = GofileCrawler(links=GoFile_urls, include_id=include_id)
-    #     result_links.setdefault('gofile.io', gofile_crawler.build_targets())
-    #     cookies.append({
-    #         'name': 'accountToken',
-    #         'value': gofile_crawler.client.token,
-    #     })
 
     return Cascade

@@ -6,20 +6,12 @@ from pathlib import Path
 import re
 
 from colorama import Fore, Style
-import nest_asyncio
 import requests
 
 from . import __version__ as VERSION
 from .utils.scraper import scrape
 from .utils.downloaders import get_downloaders
 from .utils.data_classes import *
-
-
-# Fixes reactor already installed error (issue using Scrapy with Asyncio)
-try:
-    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
-except Exception:
-    pass
 
 
 def parse_args():
@@ -52,7 +44,6 @@ def regex_links(urls) -> list:
 
 
 async def download_all(args: argparse.Namespace):
-    nest_asyncio.apply()
     clear()
     log(f"We are running version {VERSION} of Cyberdrop Downloader", Fore.WHITE)
     logging.debug(f"Starting downloader with args: {args.__dict__}")
@@ -73,7 +64,7 @@ async def download_all(args: argparse.Namespace):
         raise ValueError('No links found, check the URL.txt\nIf the link works in your web browser, '
                          'please open an issue ticket with me.')
     clear()
-    downloaders = get_downloaders(content_object, cookies=cookies, folder=Path(args.output_folder), attempts=args.attempts, threads=args.threads)
+    downloaders = get_downloaders(content_object, cookies=content_object.cookies.cookies, folder=Path(args.output_folder), attempts=args.attempts, threads=args.threads)
 
     for downloader in downloaders:
         await downloader.download_content()

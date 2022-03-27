@@ -37,7 +37,8 @@ def bunkr_parse(url: str) -> str:
     """Fix the URL for bunkr.is."""
     extension = '.' + url.split('.')[-1]
     if extension.lower() in FILE_FORMATS['Videos']:
-        changed_url = url.replace('cdn.bunkr', 'media-files.bunkr').split('/')
+        changed_url = url.replace('cdn.bunkr', 'media-files.bunkr')
+        changed_url = changed_url.replace('stream.bunkr.is/v/', 'media-files.bunkr.is/').split('/')
         changed_url = ''.join(map(lambda x: urljoin('/', x), changed_url))
         return changed_url
     if extension.lower() in FILE_FORMATS['Images']:

@@ -3,7 +3,8 @@ import logging
 import tldextract
 from bs4 import BeautifulSoup
 
-from .. import base_functions, data_classes
+from ..base_functions import *
+from ..data_classes import *
 
 
 logger = logging.getLogger(__name__)
@@ -16,7 +17,7 @@ class EromeCrawler():
     async def fetch(self, session, url):
         url_extract = tldextract.extract(url)
         base_domain = "{}.{}".format(url_extract.domain, url_extract.suffix)
-        domain_obj = data_classes.DomainItem(base_domain, {})
+        domain_obj = DomainItem(base_domain, {})
         cookies = []
 
         try:
@@ -30,7 +31,7 @@ class EromeCrawler():
                     title = response.url.split('/')[-1]
                 elif self.include_id:
                     title = title + " - " + url.split('/')[-1]
-                title = base_functions.make_title_safe(title)
+                title = make_title_safe(title)
 
                 # Images
                 for link in soup.select('img[class="img-front lasyload"]'):

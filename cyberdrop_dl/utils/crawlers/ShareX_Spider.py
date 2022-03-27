@@ -1,99 +1,154 @@
-import re
-from urllib.parse import urlparse
+import logging
 
-from scrapy import Spider
-from scrapy.http.request import Request
+import tldextract
+from bs4 import BeautifulSoup
 
-class ShareX_Spider(Spider):
-    name = 'ShareX'
+from ..base_functions import *
+from ..data_classes import *
 
-    def __init__(self, *args, **kwargs):
-        self.myurls = kwargs.get('myurls', [])
-        self.include_id = kwargs.get('include_id', False)
-        super(ShareX_Spider, self).__init__(*args, **kwargs)
 
-    def start_requests(self):
-        for url in self.myurls:
-            if '/album/' in url or '/a/' in url:
-                yield Request(url, self.parse)
-            elif '/albums' in url:
-                yield Request(url, self.get_albums)
-            elif '/image/' in url or '/img/' in url or '/images/' in url:
-                yield Request(url, self.get_singular)
-            else:
-                yield Request(url, self.parse_profile)
+logger = logging.getLogger(__name__)
 
-    def parse_profile(self, response):
-        try:
-            title = response.css('div[class=header] h1 strong::text').get()
-            title = title.replace(r"\n", "").strip()
-            if self.include_id:
-                titlep2 = response.url.split('/')
-                titlep2 = [s for s in titlep2 if "." in s][-1]
-                title = title + " - " + titlep2
-        except Exception as e:
-            title = response.url.split('/')
-            title = [s for s in title if "." in s][-1]
-        title = re.sub(r'[/]', "-", title)
 
-        list_recent = response.css('a[id=list-most-recent-link]::attr(href)').get()
-        yield Request(list_recent, callback=self.get_list_links, meta={'title': title})
+class ShareXCrawler():
+    def __init__(self, *, include_id=False, **kwargs):
+        self.include_id = include_id
 
-    def get_albums(self, response):
-        albums = response.css("a[class='image-container --media']::attr(href)").getall()
-        for url in albums:
-            yield Request(url, callback=self.parse)
+    async def fetch(self, session, url):
+        url_extract = tldextract.extract(url)
+        base_domain = "{}.{}".format(url_extract.domain, url_extract.suffix)
+        domain_obj = DomainItem(base_domain, {})
+        cookies = []
 
-    def parse(self, response, **kwargs):
-        try:
-            title = response.css('a[data-text=album-name]::text').get()
-            title = title.replace(r"\n", "").strip()
-            if self.include_id:
-                titlep2 = response.url.split('/')
-                titlep2 = [s for s in titlep2 if "." in s][-1]
-                title = title + " - " + titlep2
-        except Exception as e:
-            title = response.url.split('/')
-            title = [s for s in title if "." in s][-1]
-        title = re.sub(r'[/]', "-", title)
-
-        try:
-            title = response.meta.get('title') + "/" + title
-        except:
-            pass
-
-        sub_albums = response.css('a[id=tab-sub-link]::attr(href)').get()
-        yield Request(sub_albums, callback=self.get_sub_albums_links, meta={'title': title}, dont_filter=True)
-
-        list_recent = response.css('a[id=list-most-recent-link]::attr(href)').get()
-        yield Request(list_recent, callback=self.get_list_links, meta={'title': title})
-
-    def get_singular(self, response):
-        link = response.css('input[id=embed-code-2]::attr(value)').get()
-        link = link.replace('.md.', '.').replace('.th.', '.')
-        title = "ShareX Loose Files"
-        netloc = urlparse(link).netloc.replace('www.', '')
-        yield {'netloc': netloc, 'url': link, 'title': title, 'referal': response.url, 'cookies': ''}
-
-    def get_sub_albums_links(self, response):
-        albums = response.css('div[class=pad-content-listing] div::attr(data-url-short)').getall()
-        for album in albums:
-            yield Request(album, self.parse, meta=response.meta)
-
-    def get_list_links(self, response):
-        links = response.meta.get('links', [])
-        if 'jpg.church' in response.url:
-            links.extend(response.css('a[href*=img] img::attr(src)').getall())
+        if "/album/" in url or "/a/" in url:
+            results = await self.parse(url, session)
+        elif "/albums" in url:
+            results = await self.get_albums(url, session)
+        elif '/image/' in url or '/img/' in url or '/images/' in url:
+            results = await self.get_singular(url, session)
         else:
-            links.extend(response.css('a[href*=image] img::attr(src)').getall())
-        title = response.meta.get('title')
+            results = await self.parse_profile(url, session)
+        for result in results:
+            domain_obj.add_to_album(result['title'], result['url'], result['referral'])
+        return domain_obj, cookies
 
-        next_page = response.css('li.pagination-next a::attr("href")').get()
-        meta = {'links': links, 'title': title}
-        if next_page is not None:
-            yield Request(url=next_page, callback=self.get_list_links, meta=meta)
-        else:
-            for link in links:
-                netloc = urlparse(link).netloc.replace('www.', '')
+    async def get_albums(self, url, session):
+        results = []
+        try:
+            async with session.get(url) as response:
+                text = await response.text()
+                soup = BeautifulSoup(text, 'html.parser')
+                albums = soup.select("a[class='image-container --media']")
+                for album in albums:
+                    album_url = album.get('href')
+                    results.extend(result for result in await self.parse(album_url, session))
+        except Exception as e:
+            logger.debug("Error encountered while handling %s", url, exc_info=True)
+            logger.debug(e)
+        return results
+
+    async def get_singular(self, url, session):
+        results = []
+        try:
+            async with session.get(url) as response:
+                text = await response.text()
+                soup = BeautifulSoup(text, 'html.parser')
+                link = soup.select_one("input[id=embed-code-2]").get('value')
                 link = link.replace('.md.', '.').replace('.th.', '.')
-                yield {'netloc': netloc, 'url': link, 'title': title, 'referal': response.url, 'cookies': ''}
+                title = "ShareX Loose Files"
+                results.append({'url': link, 'title': title, 'referral': url, 'cookies': ''})
+        except Exception as e:
+            logger.debug("Error encountered while handling %s", url, exc_info=True)
+            logger.debug(e)
+        return results
+
+    async def get_sub_album_links(self, url, session, og_title):
+        results = []
+        try:
+            async with session.get(url) as response:
+                text = await response.text()
+                soup = BeautifulSoup(text, 'html.parser')
+                albums = soup.select("div[class=pad-content-listing] div")
+                for album in albums:
+                    album_url = album.get('data-url-short')
+                    results.extend(result for result in await self.parse(album_url, session, og_title=og_title))
+        except Exception as e:
+            logger.debug("Error encountered while handling %s", url, exc_info=True)
+            logger.debug(e)
+        return results
+
+    async def parse_profile(self, url, session):
+        results = []
+        try:
+            async with session.get(url) as response:
+                text = await response.text()
+                soup = BeautifulSoup(text, 'html.parser')
+                title = soup.select_one("div[class=header] h1 strong").get_text()
+                if title is None:
+                    title = response.url.split('/')
+                    title = [s for s in title if "." in s][-1]
+                elif self.include_id:
+                    titlep2 = response.url.split('/')
+                    titlep2 = [s for s in titlep2 if "." in s][-1]
+                    title = title + " - " + titlep2
+                title = make_title_safe(title.replace(r"\n", "").strip())
+
+                list_recent = soup.select_one("a[id=list-most-recent-link]").get('href')
+                results.extend(result for result in await self.get_list_links(list_recent, session, title))
+        except Exception as e:
+            logger.debug("Error encountered while handling %s", url, exc_info=True)
+            logger.debug(e)
+        return results
+
+    async def get_list_links(self, url, session, title):
+        results = []
+        try:
+            async with session.get(url) as response:
+                text = await response.text()
+                soup = BeautifulSoup(text, 'html.parser')
+                if 'jpg.church' in url:
+                    links = soup.select("a[href*=img] img")
+                else:
+                    links = soup.select("a[href*=image] img")
+                for link in links:
+                    link = link.get('src')
+                    link = link.replace('.md.', '.').replace('.th.', '.')
+                    results.append({'url': link, 'title': title, 'referral': url, 'cookies': ''})
+                    next_page = soup.select_one('li.pagination-next a')
+                    if next_page is not None:
+                        next_page = next_page.get('href')
+                        results.extend(result for result in await self.get_list_links(next_page, session, title))
+        except Exception as e:
+            logger.debug("Error encountered while handling %s", url, exc_info=True)
+            logger.debug(e)
+        return results
+
+    async def parse(self, url, session, og_title=None):
+        results = []
+        try:
+            async with session.get(url) as response:
+                text = await response.text()
+                soup = BeautifulSoup(text, 'html.parser')
+
+                title = soup.select_one("a[data-text=album-name]").get_text()
+                if title is None:
+                    title = response.url.split('/')[-1]
+                elif self.include_id:
+                    titlep2 = response.url.split('/')
+                    titlep2 = [s for s in titlep2 if "." in s][-1]
+                    title = title + " - " + titlep2
+                title = make_title_safe(title.replace(r"\n", "").strip())
+
+                if og_title is not None:
+                    title = og_title + "/" + title
+
+                sub_albums = soup.select_one("a[id=tab-sub-link]").get("href")
+                results.extend(result for result in await self.get_sub_album_links(sub_albums, session, title))
+
+                list_recent = soup.select_one("a[id=list-most-recent-link]").get("href")
+                results.extend(result for result in await self.get_list_links(list_recent, session, title))
+
+        except Exception as e:
+            logger.debug("Error encountered while handling %s", url, exc_info=True)
+            logger.debug(e)
+        return results
