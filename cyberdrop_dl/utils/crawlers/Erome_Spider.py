@@ -6,7 +6,7 @@ from ..data_classes import *
 
 
 class EromeCrawler():
-    def __init__(self, *, include_id=False, **kwargs):
+    def __init__(self, *, include_id=False):
         self.include_id = include_id
 
     async def fetch(self, session, url):

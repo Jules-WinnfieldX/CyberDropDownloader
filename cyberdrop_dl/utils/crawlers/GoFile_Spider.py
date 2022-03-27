@@ -6,7 +6,7 @@ from ..data_classes import *
 
 
 class GofileCrawler():
-    def __init__(self, **kwargs):
+    def __init__(self):
         self.client = Gofile()
 
     async def fetch(self, url):

@@ -20,9 +20,9 @@ class CookiesItem:
 @dataclass
 class AlbumItem:
     """Class for keeping track of download links for each album"""
-    title: AnyStr
+    title: str
     link_pairs: List[Tuple]
-    password: Optional[AnyStr] = None
+    password: Optional[str] = None
 
     def add_link_pair(self, link, referral):
         self.link_pairs.append((link, referral))
@@ -30,17 +30,11 @@ class AlbumItem:
     def set_new_title(self, new_title: str):
         self.title = new_title
 
-    def get_title(self):
-        return self.title
-
-    def get_link_pairs(self):
-        return self.link_pairs
-
 
 @dataclass
 class DomainItem:
-    domain: AnyStr
-    albums: Dict[str, Optional[Any]]
+    domain: str
+    albums: Dict[str, AlbumItem]
 
     def add_to_album(self, title: str, link: str, referral: str):
         if title in self.albums.keys():
@@ -56,14 +50,11 @@ class DomainItem:
             album.set_new_title(title)
         self.albums[title] = album
 
-    def get_albums(self):
-        return self.albums
-
 
 @dataclass
 class CascadeItem:
     """Class for keeping track of domains for each scraper type"""
-    domains: Dict[str, Optional[Any]]
+    domains: Dict[str, DomainItem]
     cookies = CookiesItem([])
 
     def add_albums(self, domain_item: DomainItem):
@@ -86,15 +77,3 @@ class CascadeItem:
 
     def add_cookie(self, cookie: List[Dict]):
         self.cookies.add_cookies(cookie)
-
-    def get_albums(self, domain: str):
-        if domain in self.domains.keys():
-            return self.domains[domain].albums
-        else:
-            return {}
-
-    def get_cookies(self):
-        return self.cookies.get_cookies()
-
-    def get_domains(self):
-        return self.domains

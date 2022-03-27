@@ -12,7 +12,6 @@ import aiofiles.os
 import aiohttp
 import aiohttp.client_exceptions
 import certifi
-from sanitize_filename import sanitize
 from tqdm import tqdm
 import yarl
 
@@ -158,7 +157,7 @@ class Downloader:
         url, referral = url_tuple
 
         filename = url.split("/")[-1]
-        filename = sanitize(sanitize(filename))
+        filename = sanitize(filename)
         if "?v=" in url:
             filename = filename.split('v=')[0]
         if len(filename) > MAX_FILENAME_LENGTH:
@@ -185,7 +184,7 @@ class Downloader:
     ) -> None:
         """Download the data from all given links and store them into corresponding files."""
         coros = [self.download_and_store(url_object, session, show_progress)
-                 for url_object in album_obj.get_link_pairs()]
+                 for url_object in album_obj.link_pairs]
         for func in tqdm(asyncio.as_completed(coros), total=len(coros), desc=self.title, unit='FILES'):
             await func
 
@@ -228,13 +227,13 @@ def get_downloaders(Cascade: CascadeItem, folder: Path, attempts: int, threads: 
     """
 
     downloaders = []
-    morsels = simple_cookies(Cascade.get_cookies())
+    morsels = simple_cookies(Cascade.cookies.cookies)
 
-    for domain, domain_obj in Cascade.get_domains().items():
+    for domain, domain_obj in Cascade.domains.items():
         max_workers = threads if threads != 0 else multiprocessing.cpu_count()
         if 'bunkr' in domain:
             max_workers = 2 if (max_workers > 2) else max_workers
-        for title, album_obj in domain_obj.get_albums().items():
+        for title, album_obj in domain_obj.albums.items():
             downloader = Downloader(album_obj, morsels=morsels, title=title, folder=folder,
                                     attempts=attempts, max_workers=max_workers)
             downloaders.append(downloader)

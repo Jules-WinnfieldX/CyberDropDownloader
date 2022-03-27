@@ -29,7 +29,6 @@ PyDispatcher==2.0.5
 queuelib==1.6.2
 requests==2.27.1
 requests-file==1.5.1
-sanitize-filename==1.2.0
 six==1.16.0
 tldextract==3.2.0
 tqdm==4.63.1

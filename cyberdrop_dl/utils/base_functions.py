@@ -35,7 +35,14 @@ user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTM
              'Safari/537.36'
 MAX_FILENAME_LENGTH = 100
 
+INVALID = [chr(x) for x in range(32)] + ['<', '>', ':', '"', '/', '\\', '|', '?', '*']
+TRANSLATION = str.maketrans(''.join(INVALID), '_' * len(INVALID))
+
 logger = logging.getLogger(__name__)
+
+
+def sanitize(input: str) -> str:
+    return input.translate(TRANSLATION)
 
 
 def log(text, style = Fore.WHITE) -> None:
