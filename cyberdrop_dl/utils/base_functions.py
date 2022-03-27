@@ -26,6 +26,7 @@ mapping_GoFile = ["gofile.io"]
 mapping_Pixeldrain = ["pixeldrain.com"]
 
 user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.71 Safari/537.36'
+MAX_FILENAME_LENGTH = 100
 
 
 def make_title_safe(title: str):

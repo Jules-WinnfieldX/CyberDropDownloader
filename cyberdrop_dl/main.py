@@ -23,7 +23,8 @@ def parse_args():
     parser.add_argument("--threads", type=int, help="number of threads to use (0 = max)", default=0)
     parser.add_argument("--attempts", type=int, help="number of attempts to download each file", default=10)
     parser.add_argument("--include-id", help="include the ID in the download folder name", action="store_true")
-    parser.add_argument("links", metavar="link", nargs="*", help="link to content to download (passing multiple links is supported)", default=[])
+    parser.add_argument("links", metavar="link", nargs="*",
+                        help="link to content to download (passing multiple links is supported)", default=[])
     args = parser.parse_args()
     return args
 
@@ -64,12 +65,14 @@ async def download_all(args: argparse.Namespace):
         raise ValueError('No links found, check the URL.txt\nIf the link works in your web browser, '
                          'please open an issue ticket with me.')
     clear()
-    downloaders = get_downloaders(content_object, cookies=content_object.cookies.cookies, folder=Path(args.output_folder), attempts=args.attempts, threads=args.threads)
+    downloaders = get_downloaders(content_object, folder=Path(args.output_folder),
+                                  attempts=args.attempts, threads=args.threads)
 
     for downloader in downloaders:
         await downloader.download_content()
-    log('Finished scraping. Enjoy :)')
-    log('If you have ".download" files remaining, rerun this program. You most likely ran into download attempts limit')
+    log('Finished downloading. Enjoy :)')
+    log('If you have ".download" files remaining, rerun this program. '
+        'You most likely ran into download attempts limits')
 
 
 def main():

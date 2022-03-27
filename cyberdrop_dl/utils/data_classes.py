@@ -13,6 +13,9 @@ class CookiesItem:
         else:
             self.cookies.extend(x for x in passed_cookies if x not in self.cookies)
 
+    def get_cookies(self):
+        return self.cookies
+
 
 @dataclass
 class AlbumItem:
@@ -29,6 +32,9 @@ class AlbumItem:
 
     def get_title(self):
         return self.title
+
+    def get_link_pairs(self):
+        return self.link_pairs
 
 
 @dataclass
@@ -49,6 +55,9 @@ class DomainItem:
             title = original_title + " - " + str(i)
             album.set_new_title(title)
         self.albums[title] = album
+
+    def get_albums(self):
+        return self.albums
 
 
 @dataclass
@@ -75,11 +84,17 @@ class CascadeItem:
         else:
             self.domains[domain] = DomainItem(domain, {title: album})
 
+    def add_cookie(self, cookie: List[Dict]):
+        self.cookies.add_cookies(cookie)
+
     def get_albums(self, domain: str):
         if domain in self.domains.keys():
             return self.domains[domain].albums
         else:
             return {}
 
-    def add_cookie(self, cookie: List[Dict]):
-        self.cookies.add_cookies(cookie)
+    def get_cookies(self):
+        return self.cookies.get_cookies()
+
+    def get_domains(self):
+        return self.domains
