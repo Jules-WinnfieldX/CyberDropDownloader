@@ -188,7 +188,8 @@ class Downloader:
         url = url_object[0]
         referral = url_object[1]
 
-        filename = sanitize(url.split("/")[-1])
+        filename = url.split("/")[-1]
+        filename = sanitize(sanitize(filename))
         if "?v=" in url:
             filename = filename.split('v=')[0]
         if len(filename) > MAX_FILENAME_LENGTH:
