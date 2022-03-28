@@ -15,6 +15,9 @@ class EromeCrawler():
         domain_obj = DomainItem(base_domain, {})
         cookies = []
 
+        log("Starting scrape of " + url, Fore.WHITE)
+        logging.debug("Starting scrape of " + url)
+
         try:
             async with session.get(url) as response:
                 text = await response.text()
@@ -39,4 +42,8 @@ class EromeCrawler():
         except Exception as e:
             logger.debug("Error encountered while handling %s", url, exc_info=True)
             logger.debug(e)
+
+        log("Finished scrape of " + url, Fore.WHITE)
+        logging.debug("Finished scrape of " + url)
+
         return domain_obj, cookies

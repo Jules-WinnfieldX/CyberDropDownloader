@@ -15,6 +15,9 @@ class ChibisafeCrawler():
         domain_obj = DomainItem(base_domain, {})
         cookies = []
 
+        log("Starting scrape of " + url, Fore.WHITE)
+        logging.debug("Starting scrape of " + url)
+
         try:
             async with session.get(url) as response:
                 text = await response.text()
@@ -32,10 +35,15 @@ class ChibisafeCrawler():
                 links = soup.select("a[class=image]")
                 for link in links:
                     link = link.get('href')
+                    if 'bunkr' in link:
+                        link = bunkr_parse(link)
                     domain_obj.add_to_album(title, link, url)
 
         except Exception as e:
             logger.debug("Error encountered while handling %s", url, exc_info=True)
             logger.debug(e)
+
+        log("Finished scrape of " + url, Fore.WHITE)
+        logging.debug("Finished scrape of " + url)
 
         return domain_obj, cookies

@@ -15,6 +15,9 @@ class ShareXCrawler():
         domain_obj = DomainItem(base_domain, {})
         cookies = []
 
+        log("Starting scrape of " + url, Fore.WHITE)
+        logging.debug("Starting scrape of " + url)
+
         if "/album/" in url or "/a/" in url:
             results = await self.parse(url, session)
         elif "/albums" in url:
@@ -25,6 +28,10 @@ class ShareXCrawler():
             results = await self.parse_profile(url, session)
         for result in results:
             domain_obj.add_to_album(result['title'], result['url'], result['referral'])
+
+        log("Finished scrape of " + url, Fore.WHITE)
+        logging.debug("Finished scrape of " + url)
+
         return domain_obj, cookies
 
     async def get_albums(self, url, session):
@@ -66,7 +73,8 @@ class ShareXCrawler():
                 albums = soup.select("div[class=pad-content-listing] div")
                 for album in albums:
                     album_url = album.get('data-url-short')
-                    results.extend(result for result in await self.parse(album_url, session, og_title=og_title))
+                    if album_url is not None:
+                        results.extend(result for result in await self.parse(album_url, session, og_title=og_title))
         except Exception as e:
             logger.debug("Error encountered while handling %s", url, exc_info=True)
             logger.debug(e)
@@ -109,9 +117,10 @@ class ShareXCrawler():
                     link = link.get('src')
                     link = link.replace('.md.', '.').replace('.th.', '.')
                     results.append({'url': link, 'title': title, 'referral': url, 'cookies': ''})
-                    next_page = soup.select_one('li.pagination-next a')
+                next_page = soup.select_one('li.pagination-next a')
+                if next_page is not None:
+                    next_page = next_page.get('href')
                     if next_page is not None:
-                        next_page = next_page.get('href')
                         results.extend(result for result in await self.get_list_links(next_page, session, title))
         except Exception as e:
             logger.debug("Error encountered while handling %s", url, exc_info=True)

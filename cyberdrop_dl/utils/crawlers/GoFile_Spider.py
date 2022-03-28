@@ -3,6 +3,7 @@ from typing import Union
 from gofile import Gofile
 
 from ..data_classes import *
+from ..base_functions import *
 
 
 class GofileCrawler():
@@ -13,8 +14,16 @@ class GofileCrawler():
         domain_obj = DomainItem('gofile.io', {})
         cookies = [{'name': 'accountToken', 'value': self.client.token}]
         results = await self.get_links(url)
+
+        log("Starting scrape of " + url, Fore.WHITE)
+        logging.debug("Starting scrape of " + url)
+
         for result in results:
             domain_obj.add_to_album(result['title'], result['url'], result['referral'])
+
+        log("Finished scrape of " + url, Fore.WHITE)
+        logging.debug("Finished scrape of " + url)
+
         return domain_obj, cookies
 
     async def get_links(self, url, og_title=None):

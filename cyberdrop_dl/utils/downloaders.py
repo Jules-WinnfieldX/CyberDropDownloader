@@ -98,7 +98,7 @@ class Downloader:
                     await throttle(self, yarl.URL(url))
 
                 ext = '.'+filename.split('.')[-1]
-                if not (ext in FILE_FORMATS['Images'] or ext in FILE_FORMATS['Videos'] or ext in FILE_FORMATS['Audio']):
+                if not (ext in FILE_FORMATS['Images'] or ext in FILE_FORMATS['Videos'] or ext in FILE_FORMATS['Audio'] or ext in FILE_FORMATS['Other']):
                     resp = await session.get(url, headers=headers, ssl=ssl_context, raise_for_status=True)
                     filename = resp.content_disposition.filename
                     filename = sanitize(filename)
