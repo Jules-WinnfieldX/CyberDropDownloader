@@ -1,51 +1,22 @@
 import asyncio
 from functools import wraps
 import http
-import logging
 import multiprocessing
 from pathlib import Path
 import ssl
 import time
 import traceback
-from typing import Iterable, Optional, List
 
 import aiofiles
 import aiofiles.os
 import aiohttp
 import aiohttp.client_exceptions
 import certifi
-from colorama import Fore, Style
-from sanitize_filename import sanitize
 from tqdm import tqdm
 import yarl
 
-
-asyncio.get_event_loop()
-logger = logging.getLogger(__name__)
-
-MAX_FILENAME_LENGTH = 100
-FILE_FORMATS = {
-    'Images': {
-        '.jpg', '.jpeg', '.png', '.gif',
-        '.gif', '.webp', '.jpe', '.svg',
-        '.tif', '.tiff', '.jif',
-    },
-    'Videos': {
-        '.mpeg', '.avchd', '.webm', '.mpv',
-        '.swf', '.avi', '.m4p', '.wmv',
-        '.mp2', '.m4v', '.qt', '.mpe',
-        '.mp4', '.flv', '.mov', '.mpg',
-        '.ogg',
-    },
-    'Audio': {
-        '.mp3', '.flac', '.wav', '.m4a'
-    }
-}
-
-
-def log(text, style):
-    # Log function for printing to command line
-    print(style + str(text) + Style.RESET_ALL)
+from .base_functions import *
+from .data_classes import *
 
 
 class FailureException(Exception):
@@ -95,8 +66,8 @@ async def throttle(self, url: yarl.URL) -> None:
 
 
 class Downloader:
-    def __init__(self, links: List[List[str]], morsels, folder: Path, title: str, attempts: int, max_workers: int):
-        self.links = links
+    def __init__(self, album_obj: AlbumItem, morsels, folder: Path, title: str, attempts: int, max_workers: int):
+        self.album_obj = album_obj
         self.morsels = morsels
         self.folder = folder
         self.title = title
@@ -118,8 +89,6 @@ class Downloader:
             show_progress: bool = True
     ) -> None:
         """Download the content of given URL"""
-        user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) ' \
-                     'Chrome/97.0.4692.71 Safari/537.36 '
         headers = {'Referer': referral, 'user-agent': user_agent}
         ssl_context = ssl.create_default_context(cafile=certifi.where())
 
@@ -129,7 +98,7 @@ class Downloader:
                     await throttle(self, yarl.URL(url))
 
                 ext = '.'+filename.split('.')[-1]
-                if not (ext in FILE_FORMATS['Images'] or ext in FILE_FORMATS['Videos'] or ext in FILE_FORMATS['Audio']):
+                if not (ext in FILE_FORMATS['Images'] or ext in FILE_FORMATS['Videos'] or ext in FILE_FORMATS['Audio'] or ext in FILE_FORMATS['Other']):
                     resp = await session.get(url, headers=headers, ssl=ssl_context, raise_for_status=True)
                     filename = resp.content_disposition.filename
                     filename = sanitize(filename)
@@ -152,7 +121,7 @@ class Downloader:
                     log(f"\nServer for {url} is either down or the file no longer exists", Fore.RED)
                     return
 
-                total = int(resp.headers.get('Content-Length', 0)) + resume_point
+                total = int(resp.headers.get('Content-Length', str(0))) + resume_point
                 with tqdm(
                         total=total, unit_scale=True,
                         unit='B', leave=False, initial=resume_point,
@@ -180,16 +149,15 @@ class Downloader:
 
     async def download_and_store(
             self,
-            url_object: List,
+            url_tuple: Tuple,
             session: aiohttp.ClientSession,
             show_progress: bool = True
     ) -> None:
         """Download the content of given URL and store it in a file."""
-        url = url_object[0]
-        referral = url_object[1]
+        url, referral = url_tuple
 
         filename = url.split("/")[-1]
-        filename = sanitize(sanitize(filename))
+        filename = sanitize(filename)
         if "?v=" in url:
             filename = filename.split('v=')[0]
         if len(filename) > MAX_FILENAME_LENGTH:
@@ -201,7 +169,8 @@ class Downloader:
         else:
             logger.debug("Working on " + url)
             try:
-                await self.download_file(url, referral=referral, filename=filename, session=session, show_progress=show_progress)
+                await self.download_file(url, referral=referral, filename=filename,
+                                         session=session, show_progress=show_progress)
             except Exception:
                 logger.debug(traceback.format_exc())
                 log(f"\nSkipping {filename}: likely exceeded download attempts (or ran into an error)\nRe-run program "
@@ -209,12 +178,13 @@ class Downloader:
 
     async def download_all(
             self,
-            links: Iterable[List[str]],
+            album_obj: AlbumItem,
             session: aiohttp.ClientSession,
             show_progress: bool = True
     ) -> None:
         """Download the data from all given links and store them into corresponding files."""
-        coros = [self.download_and_store(link, session, show_progress) for link in links]
+        coros = [self.download_and_store(url_object, session, show_progress)
+                 for url_object in album_obj.link_pairs]
         for func in tqdm(asyncio.as_completed(coros), total=len(coros), desc=self.title, unit='FILES'):
             await func
 
@@ -226,7 +196,7 @@ class Downloader:
         (self.folder / self.title).mkdir(parents=True, exist_ok=True)
         async with aiohttp.ClientSession() as session:
             session.cookie_jar.update_cookies(self.morsels)
-            await self.download_all(self.links, session, show_progress=show_progress)
+            await self.download_all(self.album_obj, session, show_progress=show_progress)
 
 
 def simple_cookies(cookies):
@@ -248,7 +218,7 @@ def simple_cookies(cookies):
     return morsels
 
 
-def get_downloaders(urls: dict[str, dict[str, list[str]]], cookies: Iterable[str], folder: Path, attempts: int, threads: int) -> list[Downloader]:
+def get_downloaders(Cascade: CascadeItem, folder: Path, attempts: int, threads: int) -> list[Downloader]:
     """Get a list of downloaders for each supported type of URLs.
     We shouldn't just assume that each URL will have the same netloc as
     the first one, so we need to classify them one by one, sort them to
@@ -257,13 +227,14 @@ def get_downloaders(urls: dict[str, dict[str, list[str]]], cookies: Iterable[str
     """
 
     downloaders = []
-    morsels = simple_cookies(cookies)
+    morsels = simple_cookies(Cascade.cookies.cookies)
 
-    for domain, url_object in urls.items():
+    for domain, domain_obj in Cascade.domains.items():
         max_workers = threads if threads != 0 else multiprocessing.cpu_count()
-        for title, urls in url_object.items():
-            if 'bunkr' in domain:
-                max_workers = 2 if (max_workers > 2) else max_workers
-            downloader = Downloader(urls, morsels=morsels, title=title, folder=folder, attempts=attempts, max_workers=max_workers)
+        if 'bunkr' in domain:
+            max_workers = 2 if (max_workers > 2) else max_workers
+        for title, album_obj in domain_obj.albums.items():
+            downloader = Downloader(album_obj, morsels=morsels, title=title, folder=folder,
+                                    attempts=attempts, max_workers=max_workers)
             downloaders.append(downloader)
     return downloaders

@@ -1,24 +1,11 @@
 import argparse
 import asyncio
-import logging
-import os
 from pathlib import Path
-import re
-
-from colorama import Fore, Style
-import nest_asyncio
-import requests
 
 from . import __version__ as VERSION
 from .utils.scraper import scrape
 from .utils.downloaders import get_downloaders
-
-
-# Fixes reactor already installed error (issue using Scrapy with Asyncio)
-try:
-    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
-except Exception:
-    pass
+from .utils.base_functions import *
 
 
 def parse_args():
@@ -30,19 +17,10 @@ def parse_args():
     parser.add_argument("--threads", type=int, help="number of threads to use (0 = max)", default=0)
     parser.add_argument("--attempts", type=int, help="number of attempts to download each file", default=10)
     parser.add_argument("--include-id", help="include the ID in the download folder name", action="store_true")
-    parser.add_argument("links", metavar="link", nargs="*", help="link to content to download (passing multiple links is supported)", default=[])
+    parser.add_argument("links", metavar="link", nargs="*",
+                        help="link to content to download (passing multiple links is supported)", default=[])
     args = parser.parse_args()
     return args
-
-
-def log(text, style = Fore.WHITE) -> None:
-    """Wrapper around print() to add color to text"""
-    print(style + str(text) + Style.RESET_ALL)
-
-
-def clear() -> None:
-    """Clears the terminal screen"""
-    os.system('cls' if os.name == 'nt' else 'clear')
 
 
 def regex_links(urls) -> list:
@@ -51,7 +29,6 @@ def regex_links(urls) -> list:
 
 
 async def download_all(args: argparse.Namespace):
-    nest_asyncio.apply()
     clear()
     log(f"We are running version {VERSION} of Cyberdrop Downloader", Fore.WHITE)
     logging.debug(f"Starting downloader with args: {args.__dict__}")
@@ -64,18 +41,22 @@ async def download_all(args: argparse.Namespace):
     links = args.links
     with open(input_file, "r") as f:
         links += regex_links(f.read())
-    cookies, content_object = scrape(links, args.include_id)
+    content_object = await scrape(links, args.include_id)
+    # TODO return unsupported links, instead of raising error when no links in content object, print unsupported and
+    #  exit
     if not content_object:
         logging.error(f'ValueError No links: {content_object}')
         raise ValueError('No links found, check the URL.txt\nIf the link works in your web browser, '
                          'please open an issue ticket with me.')
     clear()
-    downloaders = get_downloaders(content_object, cookies=cookies, folder=Path(args.output_folder), attempts=args.attempts, threads=args.threads)
+    downloaders = get_downloaders(content_object, folder=Path(args.output_folder),
+                                  attempts=args.attempts, threads=args.threads)
 
     for downloader in downloaders:
         await downloader.download_content()
-    log('Finished scraping. Enjoy :)')
-    log('If you have ".download" files remaining, rerun this program. You most likely ran into download attempts limit')
+    log('Finished downloading. Enjoy :)')
+    log('If you have ".download" files remaining, rerun this program. '
+        'You most likely ran into download attempts limits')
 
 
 def main():

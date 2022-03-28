@@ -1,37 +1,49 @@
-import re
-from urllib.parse import urlparse
+import tldextract
+from bs4 import BeautifulSoup
 
-from scrapy import Spider
-from scrapy.http.request import Request
+from ..base_functions import *
+from ..data_classes import *
 
 
-class Erome_Spider(Spider):
-    name = 'Erome'
+class EromeCrawler():
+    def __init__(self, *, include_id=False):
+        self.include_id = include_id
 
-    def __init__(self, *args, **kwargs):
-        self.myurls = kwargs.get('myurls', [])
-        self.include_id = kwargs.get('include_id', False)
-        super(Erome_Spider, self).__init__(*args, **kwargs)
+    async def fetch(self, session, url):
+        url_extract = tldextract.extract(url)
+        base_domain = "{}.{}".format(url_extract.domain, url_extract.suffix)
+        domain_obj = DomainItem(base_domain, {})
+        cookies = []
 
-    def start_requests(self):
-        for url in self.myurls:
-            yield Request(url, self.parse)
-
-    def parse(self, response, **kwargs):
-        img_links = response.css('img[class="img-front lasyload"]::attr(data-src)').getall()
-        vid_links = response.css('div[class=media-group] div[class=video-lg] video source::attr(src)').getall()
+        log("Starting scrape of " + url, Fore.WHITE)
+        logging.debug("Starting scrape of " + url)
 
         try:
-            title = response.css('div[class="col-sm-12 page-content"] h1::text').get()
-            if self.include_id:
-                title = title + " - " + response.url.split('/')[-1]
-        except Exception as e:
-            title = response.url.split('/')[-1]
-        title = re.sub(r'[/]', "-", title)
+            async with session.get(url) as response:
+                text = await response.text()
+                soup = BeautifulSoup(text, 'html.parser')
 
-        for link in img_links:
-            netloc = urlparse(link).netloc.replace('www.', '')
-            yield {'netloc': netloc, 'url': link, 'title': title, 'referal': response.url, 'cookies': ''}
-        for link in vid_links:
-            netloc = urlparse(link).netloc.replace('www.', '')
-            yield {'netloc': netloc, 'url': link, 'title': title, 'referal': response.url, 'cookies': ''}
+                # Title
+                title = soup.select_one('div[class="col-sm-12 page-content"] h1').get_text()
+                if title is None:
+                    title = response.url.split('/')[-1]
+                elif self.include_id:
+                    title = title + " - " + url.split('/')[-1]
+                title = make_title_safe(title)
+
+                # Images
+                for link in soup.select('img[class="img-front lasyload"]'):
+                    domain_obj.add_to_album(title, link['data-src'], url)
+
+                # Videos
+                for link in soup.select('div[class=media-group] div[class=video-lg] video source'):
+                    domain_obj.add_to_album(title, link['src'], url)
+
+        except Exception as e:
+            logger.debug("Error encountered while handling %s", url, exc_info=True)
+            logger.debug(e)
+
+        log("Finished scrape of " + url, Fore.WHITE)
+        logging.debug("Finished scrape of " + url)
+
+        return domain_obj, cookies
