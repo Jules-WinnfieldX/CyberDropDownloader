@@ -20,6 +20,9 @@
 
 You can get Python from here: https://www.python.org/downloads/
 
+Make sure you tick the check box for "Add python to path"
+![alt text](https://simp2.jpg.church/PATHe426c23371048def.png)
+
 `cyberdrop-dl` will take the title of the archive and create a new folder for it, and download all of the available media to that folder.
 It'll repeat that for every link you give it.
 
