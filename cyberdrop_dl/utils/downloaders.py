@@ -218,7 +218,7 @@ def simple_cookies(cookies):
     return morsels
 
 
-def get_downloaders(Cascade: CascadeItem, folder: Path, attempts: int, threads: int) -> list[Downloader]:
+def get_downloaders(Cascade: CascadeItem, folder: Path, attempts: int, threads: int) -> List[Downloader]:
     """Get a list of downloaders for each supported type of URLs.
     We shouldn't just assume that each URL will have the same netloc as
     the first one, so we need to classify them one by one, sort them to
