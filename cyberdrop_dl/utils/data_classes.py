@@ -48,7 +48,8 @@ class DomainItem:
             for link_pair in album.link_pairs:
                 link, referral = link_pair
                 stored_album.add_link_pair(link, referral)
-        self.albums[title] = album
+        else:
+            self.albums[title] = album
 
 
 @dataclass
