@@ -24,7 +24,7 @@ def parse_args():
 
 
 def regex_links(urls) -> list:
-    all_links = [x.group().replace(".md.", ".") for x in re.finditer(r"(?:http.*?)(?=('|$|\n|\r\n|\r|\s)|\")", urls)]
+    all_links = [x.group().replace(".md.", ".") for x in re.finditer(r"(?:http.*?)(?=('|$|\n|\r\n|\r|\s)|\"|\[/URL])", urls)]
     return all_links
 
 
