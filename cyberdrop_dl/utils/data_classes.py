@@ -44,7 +44,7 @@ class DomainItem:
 
     def add_album(self, title: str, album: AlbumItem):
         if title in self.albums.keys():
-            stored_album = self.albums['title']
+            stored_album = self.albums[title]
             for link_pair in album.link_pairs:
                 link, referral = link_pair
                 stored_album.add_link_pair(link, referral)
