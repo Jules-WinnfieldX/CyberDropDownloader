@@ -37,3 +37,4 @@ urllib3==1.26.9
 yarl==1.7.2
 zope.interface==5.4.0
 beautifulsoup4~=4.10.0
+tldextract~=3.2.0

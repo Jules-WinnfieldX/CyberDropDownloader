@@ -43,11 +43,11 @@ class DomainItem:
             self.albums[title] = AlbumItem(title=title, link_pairs=[(link, referral)])
 
     def add_album(self, title: str, album: AlbumItem):
-        i = 1
-        original_title = title
-        while title in self.albums.keys():
-            title = original_title + " - " + str(i)
-            album.set_new_title(title)
+        if title in self.albums.keys():
+            stored_album = self.albums['title']
+            for link_pair in album.link_pairs:
+                link, referral = link_pair
+                stored_album.add_link_pair(link, referral)
         self.albums[title] = album
 
 
