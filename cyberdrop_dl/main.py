@@ -24,7 +24,7 @@ def parse_args():
 
 
 def regex_links(urls) -> list:
-    all_links = [x.group().replace(".md.", ".") for x in re.finditer(r"(?:http.*?)(?=('|$|\n|\r\n|\r|\s)|\"|\[/URL])", urls)]
+    all_links = [x.group().replace(".md.", ".") for x in re.finditer(r"(?:http.*?)(?=('|$|\n|\r\n|\r|\s|\"|\[/URL]))", urls)]
     return all_links
 
 
@@ -48,7 +48,7 @@ async def download_all(args: argparse.Namespace):
         logging.error(f'ValueError No links')
         log('No links found, check the URL.txt\nIf the link works in your web browser, '
             'please open an issue ticket with me.', Fore.RED)
-        log("This program does not currently support password protected albums", Fore.RED)
+        log("This program does not currently support password protected albums.", Fore.RED)
         exit(0)
     clear()
     downloaders = get_downloaders(content_object, folder=Path(args.output_folder),
@@ -56,6 +56,7 @@ async def download_all(args: argparse.Namespace):
 
     for downloader in downloaders:
         await downloader.download_content()
+    logger.debug("Finished")
     log('Finished downloading. Enjoy :)')
     log('If you have ".download" files remaining, rerun this program. '
         'You most likely ran into download attempts limits')
