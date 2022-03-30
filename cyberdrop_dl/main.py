@@ -44,10 +44,12 @@ async def download_all(args: argparse.Namespace):
     content_object = await scrape(links, args.include_id)
     # TODO return unsupported links, instead of raising error when no links in content object, print unsupported and
     #  exit
-    if not content_object:
-        logging.error(f'ValueError No links: {content_object}')
-        raise ValueError('No links found, check the URL.txt\nIf the link works in your web browser, '
-                         'please open an issue ticket with me.')
+    if content_object.is_empty():
+        logging.error(f'ValueError No links')
+        log('No links found, check the URL.txt\nIf the link works in your web browser, '
+            'please open an issue ticket with me.', Fore.RED)
+        log("This program does not currently support password protected albums", Fore.RED)
+        exit(0)
     clear()
     downloaders = get_downloaders(content_object, folder=Path(args.output_folder),
                                   attempts=args.attempts, threads=args.threads)

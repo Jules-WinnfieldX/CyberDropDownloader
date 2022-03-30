@@ -78,3 +78,11 @@ class CascadeItem:
 
     def add_cookie(self, cookie: List[Dict]):
         self.cookies.add_cookies(cookie)
+
+    def is_empty(self):
+        for domain_str, domain in self.domains.items():
+            for album_str, album in domain.albums.items():
+                if album.link_pairs:
+                    return False
+        return True
+
