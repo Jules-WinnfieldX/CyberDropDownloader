@@ -31,10 +31,10 @@ def retry(f):
             try:
                 return await f(self, *args, **kwargs)
             except FailureException:
-                if i == self.attempts - 1:
+                if i >= self.attempts - 1:
                     raise
                 logger.debug('Retrying...')
-                time.sleep(4)
+                time.sleep(2)
     return wrapper
 
 
