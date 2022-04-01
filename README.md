@@ -74,6 +74,10 @@ optional arguments:
   --threads THREADS     number of threads to use (0 = max)
   --attempts ATTEMPTS   number of attempts to download each file
   --include-id          include the ID in the download folder name
+  --exclude-videos      exclude video files from downloading
+  --exclude-images      exclude image files from downloading
+  --exclude-audio       exclude audio files from downloading
+  --exclude-other       exclude other files from downloading
 ```
 
 # Credit

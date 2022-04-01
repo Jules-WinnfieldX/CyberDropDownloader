@@ -65,13 +65,18 @@ async def throttle(self, url: URL) -> None:
 
 
 class Downloader:
-    def __init__(self, album_obj: AlbumItem, morsels, folder: Path, title: str, attempts: int, max_workers: int):
+    def __init__(self, album_obj: AlbumItem, morsels, folder: Path, title: str, attempts: int, max_workers: int,
+                 exclude_videos: bool, exclude_images: bool, exclude_audio: bool, exclude_other: bool):
         self.album_obj = album_obj
         self.morsels = morsels
         self.folder = folder
         self.title = title
         self.attempts = attempts
         self.max_workers = max_workers
+        self.exclude_videos = exclude_videos
+        self.exclude_images = exclude_images
+        self.exclude_audio = exclude_audio
+        self.exclude_other = exclude_other
         self._semaphore = asyncio.Semaphore(max_workers)
         self.delay = {'media-files.bunkr.is': 2}
         self.throttle_times = {}
@@ -103,6 +108,25 @@ class Downloader:
                     filename = sanitize(filename)
                     del resp
                     if (self.folder / self.title / filename).exists():
+                        return
+
+                # Skip based on CLI arg.
+                ext = '.' + filename.split('.')[-1]
+                if self.exclude_videos:
+                    if ext in FILE_FORMATS['Videos']:
+                        logging.debug("Skipping " + filename)
+                        return
+                if self.exclude_images:
+                    if ext in FILE_FORMATS['Images']:
+                        logging.debug("Skipping " + filename)
+                        return
+                if self.exclude_audio:
+                    if ext in FILE_FORMATS['Audio']:
+                        logging.debug("Skipping " + filename)
+                        return
+                if self.exclude_other:
+                    if ext in FILE_FORMATS['Other']:
+                        logging.debug("Skipping " + filename)
                         return
 
                 resume_point = 0
@@ -217,7 +241,8 @@ def simple_cookies(cookies):
     return morsels
 
 
-def get_downloaders(Cascade: CascadeItem, folder: Path, attempts: int, threads: int) -> List[Downloader]:
+def get_downloaders(Cascade: CascadeItem, folder: Path, attempts: int, threads: int, exclude_videos: bool,
+                    exclude_images: bool, exclude_audio: bool, exclude_other: bool) -> List[Downloader]:
     """Get a list of downloaders for each supported type of URLs.
     We shouldn't just assume that each URL will have the same netloc as
     the first one, so we need to classify them one by one, sort them to
@@ -234,6 +259,8 @@ def get_downloaders(Cascade: CascadeItem, folder: Path, attempts: int, threads: 
             max_workers = 2 if (max_workers > 2) else max_workers
         for title, album_obj in domain_obj.albums.items():
             downloader = Downloader(album_obj, morsels=morsels, title=title, folder=folder,
-                                    attempts=attempts, max_workers=max_workers)
+                                    attempts=attempts, max_workers=max_workers, exclude_videos=exclude_videos,
+                                    exclude_images=exclude_images, exclude_audio=exclude_audio,
+                                    exclude_other=exclude_other)
             downloaders.append(downloader)
     return downloaders

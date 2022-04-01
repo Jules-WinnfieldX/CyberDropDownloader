@@ -19,6 +19,10 @@ def parse_args():
     parser.add_argument("--threads", type=int, help="number of threads to use (0 = max)", default=0)
     parser.add_argument("--attempts", type=int, help="number of attempts to download each file", default=10)
     parser.add_argument("--include-id", help="include the ID in the download folder name", action="store_true")
+    parser.add_argument("--exclude-videos", help="skip downloading of video files", action="store_true")
+    parser.add_argument("--exclude-images", help="skip downloading of image files", action="store_true")
+    parser.add_argument("--exclude-audio", help="skip downloading of audio files", action="store_true")
+    parser.add_argument("--exclude-other", help="skip downloading of images", action="store_true")
     parser.add_argument("links", metavar="link", nargs="*",
                         help="link to content to download (passing multiple links is supported)", default=[])
     args = parser.parse_args()
@@ -54,8 +58,10 @@ async def download_all(args: argparse.Namespace):
         log("This program does not currently support password protected albums.", Fore.RED)
         exit(0)
     clear()
-    downloaders = get_downloaders(content_object, folder=Path(args.output_folder),
-                                  attempts=args.attempts, threads=args.threads)
+    downloaders = get_downloaders(content_object, folder=Path(args.output_folder), attempts=args.attempts,
+                                  threads=args.threads, exclude_videos=args.exclude_videos,
+                                  exclude_images=args.exclude_images, exclude_audio=args.exclude_audio,
+                                  exclude_other=args.exclude_other)
 
     for downloader in downloaders:
         await downloader.download_content()
