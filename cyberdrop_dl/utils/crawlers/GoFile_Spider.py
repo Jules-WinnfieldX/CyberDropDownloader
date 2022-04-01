@@ -15,14 +15,14 @@ class GofileCrawler():
         cookies = [{'name': 'accountToken', 'value': self.client.token}]
         results = await self.get_links(url)
 
-        log("Starting scrape of " + url, Fore.WHITE)
-        logging.debug("Starting scrape of " + url)
+        log("Starting scrape of " + str(url), Fore.WHITE)
+        logging.debug("Starting scrape of " + str(url))
 
         for result in results:
             domain_obj.add_to_album(result['title'], result['url'], result['referral'])
 
-        log("Finished scrape of " + url, Fore.WHITE)
-        logging.debug("Finished scrape of " + url)
+        log("Finished scrape of " + str(url), Fore.WHITE)
+        logging.debug("Finished scrape of " + str(url))
 
         return domain_obj, cookies
 
