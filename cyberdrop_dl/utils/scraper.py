@@ -18,13 +18,11 @@ async def scrape(urls, include_id: bool):
     Chibisafe_urls = []
     Erome_urls = []
     GoFile_urls = []
-    unsupported_urls = []
 
     log("Starting Scrape", Fore.WHITE)
 
     for url in urls:
-        url = url.replace('\n', '')
-        url_extract = tldextract.extract(url)
+        url_extract = tldextract.extract(str(url))
         base_domain = "{}.{}".format(url_extract.domain, url_extract.suffix)
 
         if base_domain in mapping_ShareX:
@@ -49,13 +47,13 @@ async def scrape(urls, include_id: bool):
             GoFile_urls.append(url)
 
         elif base_domain in mapping_Pixeldrain:
-            title = url.split('/')[-1]
+            title = str(url).split('/')[-1]
             Cascade.add_to_album(base_domain, title, pixeldrain_parse(url, title), url)
 
         # TODO entire thotsbay forum pages, scrape all images, embedded videos, scrape all links
 
         else:
-            unsupported_urls.append(url)
+            log(str(url) + " is not supported currently.")
 
     erome_crawler = EromeCrawler(include_id=include_id)
     sharex_crawler = ShareXCrawler(include_id=include_id)

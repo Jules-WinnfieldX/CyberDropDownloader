@@ -2,6 +2,8 @@ import argparse
 import asyncio
 from pathlib import Path
 
+import yarl
+
 from . import __version__ as VERSION
 from .utils.scraper import scrape
 from .utils.downloaders import get_downloaders
@@ -25,7 +27,10 @@ def parse_args():
 
 def regex_links(urls) -> list:
     all_links = [x.group().replace(".md.", ".") for x in re.finditer(r"(?:http.*?)(?=('|$|\n|\r\n|\r|\s|\"|\[/URL]))", urls)]
-    return all_links
+    yarl_links = []
+    for link in all_links:
+        yarl_links.append(yarl.URL(link))
+    return yarl_links
 
 
 async def download_all(args: argparse.Namespace):
@@ -42,8 +47,6 @@ async def download_all(args: argparse.Namespace):
     with open(input_file, "r") as f:
         links += regex_links(f.read())
     content_object = await scrape(links, args.include_id)
-    # TODO return unsupported links, instead of raising error when no links in content object, print unsupported and
-    #  exit
     if content_object.is_empty():
         logging.error(f'ValueError No links')
         log('No links found, check the URL.txt\nIf the link works in your web browser, '

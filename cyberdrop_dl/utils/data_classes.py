@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 from typing import Optional, List, Dict, Tuple, AnyStr, Any
 
+from yarl import *
+
 
 @dataclass
 class CookiesItem:
@@ -36,7 +38,7 @@ class DomainItem:
     domain: str
     albums: Dict[str, AlbumItem]
 
-    def add_to_album(self, title: str, link: str, referral: str):
+    def add_to_album(self, title: str, link: URL, referral: URL):
         if title in self.albums.keys():
             self.albums[title].add_link_pair(link, referral)
         else:
@@ -64,7 +66,7 @@ class CascadeItem:
         for title, album in albums.items():
             self.add_album(domain, title, album)
 
-    def add_to_album(self, domain: str, title: str, link: str, referral: str):
+    def add_to_album(self, domain: str, title: str, link: URL, referral: URL):
         if domain in self.domains.keys():
             self.domains[domain].add_to_album(title, link, referral)
         else:

@@ -28,7 +28,7 @@ class GofileCrawler():
 
     async def get_links(self, url, og_title=None):
         results = []
-        content_id = url.split("/")[-1] if url.startswith("https://gofile.io/") else url
+        content_id = url.name if url.host == 'gofile.io' else url
         content = self.client.get_content(content_id)
         if not content:
             return
@@ -40,8 +40,8 @@ class GofileCrawler():
         contents: dict[str, dict[str, Union[str, int]]] = content["contents"]
         for val in contents.values():
             if val["type"] == "folder":
-                results.extend(result for result in await self.get_links(val["code"], title))
+                results.extend(result for result in await self.get_links(URL(val["code"]), title))
             else:
-                results.append({'url': val["link"] if val["link"] != "overloaded" else val["directLink"],
-                                'title': title, 'referral': 'https://gofile.io/'})
+                results.append({'url': URL(val["link"]) if val["link"] != "overloaded" else URL(val["directLink"]),
+                                'title': title, 'referral': URL('https://gofile.io/')})
         return results

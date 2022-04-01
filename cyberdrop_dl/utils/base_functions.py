@@ -3,6 +3,7 @@ import os
 import re
 from urllib.parse import urljoin
 
+from yarl import *
 from colorama import Fore, Style
 
 """This file contains generic information and functions that are used around the program"""
@@ -60,33 +61,31 @@ def make_title_safe(title: str):
     return title
 
 
-def bunkr_parse(url: str) -> str:
+def bunkr_parse(url: URL) -> URL:
     """Fix the URL for bunkr.is."""
-    extension = '.' + url.split('.')[-1]
+    extension = '.' + str(url).split('.')[-1]
     if extension.lower() in FILE_FORMATS['Videos']:
-        changed_url = url.replace('cdn.bunkr', 'media-files.bunkr')
-        changed_url = changed_url.replace('stream.bunkr.is/v/', 'media-files.bunkr.is/').split('/')
-        changed_url = ''.join(map(lambda x: urljoin('/', x), changed_url))
-        return changed_url
+        url = url.with_host('media-files.bunkr.is')
+        return url
     if extension.lower() in FILE_FORMATS['Images']:
-        changed_url = url.replace('i.bunkr', 'cdn.bunkr')
-        return changed_url
+        url = url.with_host('cdn.bunkr.is')
+        return url
     return url
 
 
-def pixeldrain_parse(url: str, title: str) -> str:
+def pixeldrain_parse(url: URL, title: str) -> URL:
     """Fix the URL for Pixeldrain"""
-    if url.split('/')[-2] == 'l':
-        final_url = f'https://pixeldrain.com/api/list/{title}/zip'
+    if url.parts[1] == 'l':
+        final_url = URL('https://pixeldrain.com/api/list/') / title / 'zip'
     else:
-        final_url = f"https://pixeldrain.com/api/file/{title}?download"
+        final_url = (URL('https://pixeldrain.com/api/file/') / title).with_query('download')
     return final_url
 
 
-def check_direct(url: str):
+def check_direct(url: URL):
     mapping_direct = ['i.pixl.is', r's..putmega.com', r's..putme.ga', r'img-...cyberdrop...', r'f.cyberdrop...',
                       r'fs-...cyberdrop...', r'cdn.bunkr...', r'media-files.bunkr...', r'jpg.church/images/...']
     for domain in mapping_direct:
-        if re.search(domain, url):
+        if re.search(domain, url.host):
             return True
     return False

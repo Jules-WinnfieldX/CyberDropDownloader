@@ -13,7 +13,6 @@ import aiohttp
 import aiohttp.client_exceptions
 import certifi
 from tqdm import tqdm
-import yarl
 
 from .base_functions import *
 from .data_classes import *
@@ -38,7 +37,7 @@ def retry(f):
     return wrapper
 
 
-async def throttle(self, url: yarl.URL) -> None:
+async def throttle(self, url: URL) -> None:
     host = url.host
     if host is None:
         return
@@ -82,20 +81,20 @@ class Downloader:
     @retry
     async def download_file(
             self,
-            url: str,
-            referral: str,
+            url: URL,
+            referral: URL,
             filename: str,
             session: aiohttp.ClientSession,
             show_progress: bool = True
     ) -> None:
         """Download the content of given URL"""
-        headers = {'Referer': referral, 'user-agent': user_agent}
+        headers = {'Referer': str(referral), 'user-agent': user_agent}
         ssl_context = ssl.create_default_context(cafile=certifi.where())
 
         try:
             async with self._semaphore:
-                if yarl.URL(url).host in self.delay:
-                    await throttle(self, yarl.URL(url))
+                if url.host in self.delay:
+                    await throttle(self, url)
 
                 ext = '.'+filename.split('.')[-1]
                 if not (ext in FILE_FORMATS['Images'] or ext in FILE_FORMATS['Videos'] or ext in FILE_FORMATS['Audio'] or ext in FILE_FORMATS['Other']):
@@ -156,9 +155,9 @@ class Downloader:
         """Download the content of given URL and store it in a file."""
         url, referral = url_tuple
 
-        filename = url.split("/")[-1]
+        filename = url.name
         filename = sanitize(filename)
-        if "?v=" in url:
+        if "v=" in filename:
             filename = filename.split('v=')[0]
         if len(filename) > MAX_FILENAME_LENGTH:
             fileext = filename.split('.')[-1]
@@ -167,7 +166,7 @@ class Downloader:
         if (self.folder / self.title / filename).exists():
             logger.debug(str(self.folder / self.title / filename) + " Already Exists")
         else:
-            logger.debug("Working on " + url)
+            logger.debug("Working on " + str(url))
             try:
                 await self.download_file(url, referral=referral, filename=filename,
                                          session=session, show_progress=show_progress)
