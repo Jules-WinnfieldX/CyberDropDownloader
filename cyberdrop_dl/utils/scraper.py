@@ -33,7 +33,7 @@ async def scrape(urls, include_id: bool):
 
         elif base_domain in mapping_Chibisafe:
             if check_direct(url):
-                if 'bunkr' in url:
+                if 'bunkr' in url.host:
                     Cascade.add_to_album(base_domain, "Chibisafe Loose Files", bunkr_parse(url), url)
                 else:
                     Cascade.add_to_album(base_domain, "Chibisafe Loose Files", url, url)
