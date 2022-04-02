@@ -37,7 +37,7 @@ class ShareXCrawler():
     async def get_albums(self, url, session):
         results = []
         try:
-            async with session.get(url) as response:
+            async with session.get(url, ssl=ssl_context) as response:
                 text = await response.text()
                 soup = BeautifulSoup(text, 'html.parser')
                 albums = soup.select("a[class='image-container --media']")
@@ -52,7 +52,7 @@ class ShareXCrawler():
     async def get_singular(self, url, session):
         results = []
         try:
-            async with session.get(url) as response:
+            async with session.get(url, ssl=ssl_context) as response:
                 text = await response.text()
                 soup = BeautifulSoup(text, 'html.parser')
                 link = URL(soup.select_one("input[id=embed-code-2]").get('value'))
@@ -67,7 +67,7 @@ class ShareXCrawler():
     async def get_sub_album_links(self, url, session, og_title):
         results = []
         try:
-            async with session.get(url) as response:
+            async with session.get(url, ssl=ssl_context) as response:
                 text = await response.text()
                 soup = BeautifulSoup(text, 'html.parser')
                 albums = soup.select("div[class=pad-content-listing] div")
@@ -84,7 +84,7 @@ class ShareXCrawler():
     async def parse_profile(self, url, session):
         results = []
         try:
-            async with session.get(url) as response:
+            async with session.get(url, ssl=ssl_context) as response:
                 text = await response.text()
                 soup = BeautifulSoup(text, 'html.parser')
                 title = soup.select_one("div[class=header] h1 strong").get_text()
@@ -105,7 +105,7 @@ class ShareXCrawler():
     async def get_list_links(self, url, session, title):
         results = []
         try:
-            async with session.get(url) as response:
+            async with session.get(url, ssl=ssl_context) as response:
                 text = await response.text()
                 soup = BeautifulSoup(text, 'html.parser')
                 if url.host == 'jpg.church':
@@ -130,7 +130,7 @@ class ShareXCrawler():
     async def parse(self, url, session, og_title=None):
         results = []
         try:
-            async with session.get(url) as response:
+            async with session.get(url, ssl=ssl_context) as response:
                 text = await response.text()
                 soup = BeautifulSoup(text, 'html.parser')
 

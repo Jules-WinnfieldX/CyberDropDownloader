@@ -3,7 +3,6 @@ from functools import wraps
 import http
 import multiprocessing
 from pathlib import Path
-import ssl
 import time
 import traceback
 
@@ -11,7 +10,6 @@ import aiofiles
 import aiofiles.os
 import aiohttp
 import aiohttp.client_exceptions
-import certifi
 from tqdm import tqdm
 
 from .base_functions import *
@@ -94,7 +92,6 @@ class Downloader:
     ) -> None:
         """Download the content of given URL"""
         headers = {'Referer': str(referral), 'user-agent': user_agent}
-        ssl_context = ssl.create_default_context(cafile=certifi.where())
 
         try:
             async with self._semaphore:

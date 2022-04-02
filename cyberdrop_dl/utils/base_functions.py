@@ -2,7 +2,9 @@ import logging
 import os
 import re
 from urllib.parse import urljoin
+import ssl
 
+import certifi
 from yarl import *
 from colorama import Fore, Style
 
@@ -37,6 +39,8 @@ mapping_Pixeldrain = ["pixeldrain.com"]
 
 user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.71 ' \
              'Safari/537.36'
+ssl_context = ssl.create_default_context(cafile=certifi.where())
+
 MAX_FILENAME_LENGTH = 100
 
 logger = logging.getLogger(__name__)

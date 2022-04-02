@@ -19,7 +19,7 @@ class EromeCrawler():
         logging.debug("Starting scrape of " + str(url))
 
         try:
-            async with session.get(url) as response:
+            async with session.get(url, ssl=ssl_context) as response:
                 text = await response.text()
                 soup = BeautifulSoup(text, 'html.parser')
 
