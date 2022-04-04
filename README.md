@@ -40,9 +40,9 @@ Advanced users may want to use virtual environments (via `pipx`), but it's **NOT
 # Usage
 
 ## Manual way (Manual install above)
-Put the links in the URLs.txt file then run Start.bat (Windows) or start.sh (OS X**/Linux**) file.
+Put the links in the URLs.txt file then run `Start Windows.bat` (Windows) or `Start Mac.command` (OS X) or `Start Linux.sh` (Linux).
 
-** Mac and Linux will need to run the command `chmod +x start.sh` to make the file executable.
+** Mac users will need to run the command `chmod +x 'Start Mac.command'` to make the file executable.
 
 ## Simple (Pip install above)
 1. Run `cyberdrop-dl` once to generate an empty `URLs.txt` file.
