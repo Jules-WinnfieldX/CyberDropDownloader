@@ -33,7 +33,7 @@ It'll repeat that for every link you give it.
 ## Manually
 Go to the [releases page](https://github.com/Jules-WinnfieldX/CyberDropDownloader/releases) and download the Cyberdrop_DL.zip file. Extract it to wherever you want the program to be.
 ## Using `pip`
-Once Python is installed, run `pip3 install --user cyberdrop-dl`.
+Once Python is installed, run `pip3 install cyberdrop-dl`.
 
 Advanced users may want to use virtual environments (via `pipx`), but it's **NOT** required.
 
