@@ -1,5 +1,4 @@
 import asyncio
-import tldextract
 from bs4 import BeautifulSoup
 
 from .ShareX_Spider import ShareXCrawler

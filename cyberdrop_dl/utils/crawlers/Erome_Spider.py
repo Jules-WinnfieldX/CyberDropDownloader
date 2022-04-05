@@ -1,4 +1,3 @@
-import tldextract
 from bs4 import BeautifulSoup
 
 from ..base_functions import *

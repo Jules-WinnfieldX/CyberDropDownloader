@@ -1,8 +1,5 @@
 import asyncio
 
-import aiohttp
-import tldextract
-
 from .crawlers.ShareX_Spider import ShareXCrawler
 from .crawlers.Erome_Spider import EromeCrawler
 from .crawlers.Chibisafe_Spider import ChibisafeCrawler
