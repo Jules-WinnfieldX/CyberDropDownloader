@@ -22,12 +22,13 @@ class FailureException(Exception):
 def retry(f):
     @wraps(f)
     async def wrapper(self, *args, **kwargs):
-        for i in range(self.attempts):
+        while True:
             try:
                 return await f(self, *args, **kwargs)
             except FailureException:
-                if i >= self.attempts - 1:
-                    raise
+                if not self.disable_attempt_limit:
+                    if self.current_attempt >= self.attempts - 1:
+                        raise
                 logger.debug('Retrying...')
                 time.sleep(2)
     return wrapper
@@ -61,13 +62,15 @@ async def throttle(self, url: URL) -> None:
 
 
 class Downloader:
-    def __init__(self, album_obj: AlbumItem, cookie_jar, folder: Path, title: str, attempts: int, max_workers: int,
+    def __init__(self, album_obj: AlbumItem, cookie_jar, folder: Path, title: str, attempts: int, disable_attempt_limit: bool, max_workers: int,
                  exclude_videos: bool, exclude_images: bool, exclude_audio: bool, exclude_other: bool):
         self.album_obj = album_obj
         self.cookie_jar = cookie_jar
         self.folder = folder
         self.title = title
         self.attempts = attempts
+        self.current_attempt = 0
+        self.disable_attempt_limit = disable_attempt_limit
         self.max_workers = max_workers
         self.exclude_videos = exclude_videos
         self.exclude_images = exclude_images
@@ -216,7 +219,7 @@ class Downloader:
             await self.download_all(self.album_obj, session, show_progress=show_progress)
 
 
-def get_downloaders(Cascade: CascadeItem, folder: Path, attempts: int, threads: int, exclude_videos: bool,
+def get_downloaders(Cascade: CascadeItem, folder: Path, attempts: int, disable_attempt_limit: bool, threads: int, exclude_videos: bool,
                     exclude_images: bool, exclude_audio: bool, exclude_other: bool) -> List[Downloader]:
     """Get a list of downloaders for each supported type of URLs.
     We shouldn't just assume that each URL will have the same netloc as
@@ -235,7 +238,8 @@ def get_downloaders(Cascade: CascadeItem, folder: Path, attempts: int, threads: 
             max_workers = 2 if (max_workers > 2) else max_workers
         for title, album_obj in domain_obj.albums.items():
             downloader = Downloader(album_obj, cookie_jar=cookie_jar, title=title, folder=folder,
-                                    attempts=attempts, max_workers=max_workers, exclude_videos=exclude_videos,
+                                    attempts=attempts, disable_attempt_limit=disable_attempt_limit,
+                                    max_workers=max_workers, exclude_videos=exclude_videos,
                                     exclude_images=exclude_images, exclude_audio=exclude_audio,
                                     exclude_other=exclude_other)
             downloaders.append(downloader)

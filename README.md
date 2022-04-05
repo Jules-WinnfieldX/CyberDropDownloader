@@ -12,7 +12,8 @@
 | Bunkr      | Albums: bunkr.is/a/... <br> Direct Videos: stream.bunkr.is/v/... <br> Direct Videos: cdn.bunkr.is/... <br> Direct Images: i.bunkr.is/... <br> Also works with Bunkr.to                                                                 |
 | GoFile     | Albums: gofile.io/d/...                                                                                                                                                                                                                |
 | Erome      | Albums: erome.com/a/...                                                                                                                                                                                                                |
-| PixelDrain | Albums: Pixeldrain.com/l/... <br> Single Files: Pixeldrain.com/u/...                                                                                                                                                                   |                                           
+| PixelDrain | Albums: Pixeldrain.com/l/... <br> Single Files: Pixeldrain.com/u/...                                                                                                                                                                   |
+| ThotsBay   | Thread: Thotsbay.com/threads/...                                                                                                                                                                                                       | 
 
 Reminder to leave the link full (include the https://)
 
@@ -64,20 +65,21 @@ positional arguments:
   link                  link to content to download (passing multiple links is supported)
 
 optional arguments:
-  -h, --help            show this help message and exit
-  -V, --version         show program's version number and exit
-  -i INPUT_FILE, --input-file INPUT_FILE
-                        file containing links to download
-  -o OUTPUT_FOLDER, --output-folder OUTPUT_FOLDER
-                        folder to download files to
-  --log-file LOG_FILE   log file to write to
-  --threads THREADS     number of threads to use (0 = max)
-  --attempts ATTEMPTS   number of attempts to download each file
-  --include-id          include the ID in the download folder name
-  --exclude-videos      exclude video files from downloading
-  --exclude-images      exclude image files from downloading
-  --exclude-audio       exclude audio files from downloading
-  --exclude-other       exclude other files from downloading
+  -h, --help                show this help message and exit
+  -V, --version             show program's version number and exit
+  -i INPUT_FILE, --input-file INPUT_FILE             file containing links to download
+  -o OUTPUT_FOLDER, --output-folder OUTPUT_FOLDER    folder to download files to
+  --log-file LOG_FILE       log file to write to
+  --threads THREADS         number of threads to use (0 = max)
+  --attempts ATTEMPTS       number of attempts to download each file
+  --disable-attempt-limit   disables stopping the program based on attempt limits
+  --include-id              include the ID in the download folder name
+  --exclude-videos          exclude video files from downloading
+  --exclude-images          exclude image files from downloading
+  --exclude-audio           exclude audio files from downloading
+  --exclude-other           exclude other files from downloading
+  --thotsbay-username       username to login to thotsbay (only required if the thread requires it)
+  --thotsbay-password       password to login to thotsbay (only required if the thread requires it)
 ```
 
 # Credit

@@ -44,13 +44,14 @@ async def scrape(urls, include_id: bool, thotsbay_username: str, thotsbay_passwo
         Cascade.add_albums(domain_item)
 
     # Returns a Cascade item
+    tasks2 = []
     async with aiohttp.ClientSession(headers=headers, raise_for_status=True, cookie_jar=jar) as session:
         for url in Thotsbay_urls:
-            tasks.append(thotsbay_crawler.fetch(session, url))
-        results = await asyncio.gather(*tasks)
+            tasks2.append(thotsbay_crawler.fetch(session, url))
+        results = await asyncio.gather(*tasks2)
 
-    for result in results:
-        Cascade.extend(result)
+        for result in results:
+            Cascade.extend(result)
 
     Cascade.cookies = jar
 
