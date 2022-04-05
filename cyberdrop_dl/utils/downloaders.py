@@ -1,6 +1,5 @@
 import asyncio
 from functools import wraps
-import http
 import multiprocessing
 from pathlib import Path
 import time
@@ -8,7 +7,6 @@ import traceback
 
 import aiofiles
 import aiofiles.os
-import aiohttp
 import aiohttp.client_exceptions
 from tqdm import tqdm
 
