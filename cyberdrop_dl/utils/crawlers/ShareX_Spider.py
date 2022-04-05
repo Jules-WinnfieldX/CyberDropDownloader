@@ -13,7 +13,6 @@ class ShareXCrawler():
         url_extract = tldextract.extract(str(url))
         base_domain = "{}.{}".format(url_extract.domain, url_extract.suffix)
         domain_obj = DomainItem(base_domain, {})
-        cookies = []
 
         log("Starting scrape of " + str(url), Fore.WHITE)
         logging.debug("Starting scrape of " + str(url))
@@ -32,7 +31,7 @@ class ShareXCrawler():
         log("Finished scrape of " + str(url), Fore.WHITE)
         logging.debug("Finished scrape of " + str(url))
 
-        return domain_obj, cookies
+        return domain_obj
 
     async def get_albums(self, url, session):
         results = []

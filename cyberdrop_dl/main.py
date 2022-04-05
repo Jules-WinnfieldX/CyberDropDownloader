@@ -2,8 +2,6 @@ import argparse
 import asyncio
 from pathlib import Path
 
-import yarl
-
 from . import __version__ as VERSION
 from .utils.scraper import scrape
 from .utils.downloaders import get_downloaders
@@ -23,18 +21,11 @@ def parse_args():
     parser.add_argument("--exclude-images", help="skip downloading of image files", action="store_true")
     parser.add_argument("--exclude-audio", help="skip downloading of audio files", action="store_true")
     parser.add_argument("--exclude-other", help="skip downloading of images", action="store_true")
-    parser.add_argument("links", metavar="link", nargs="*",
-                        help="link to content to download (passing multiple links is supported)", default=[])
+    parser.add_argument("--thotsbay-username", type=str, help="username to login to thotsbay", default=None)
+    parser.add_argument("--thotsbay-password", type=str, help="password to login to thotsbay", default=None)
+    parser.add_argument("links", metavar="link", nargs="*", help="link to content to download (passing multiple links is supported)", default=[])
     args = parser.parse_args()
     return args
-
-
-def regex_links(urls) -> list:
-    all_links = [x.group().replace(".md.", ".") for x in re.finditer(r"(?:http.*?)(?=('|$|\n|\r\n|\r|\s|\"|\[/URL]))", urls)]
-    yarl_links = []
-    for link in all_links:
-        yarl_links.append(yarl.URL(link))
-    return yarl_links
 
 
 async def download_all(args: argparse.Namespace):
@@ -50,7 +41,7 @@ async def download_all(args: argparse.Namespace):
     links = args.links
     with open(input_file, "r") as f:
         links += regex_links(f.read())
-    content_object = await scrape(links, args.include_id)
+    content_object = await scrape(links, args.include_id, args.thotsbay_username, args.thotsbay_password)
     if content_object.is_empty():
         logging.error(f'ValueError No links')
         log('No links found, check the URL.txt\nIf the link works in your web browser, '
