@@ -37,6 +37,7 @@ mapping_Erome = ["erome.com"]
 mapping_GoFile = ["gofile.io"]
 mapping_Pixeldrain = ["pixeldrain.com"]
 mapping_Thotsbay = ["thotsbay.com"]
+mapping_Anonfiles = ["anonfiles.com"]
 
 user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.71 ' \
              'Safari/537.36'
@@ -111,6 +112,7 @@ def url_sort(urls, Cascade):
     Erome_urls = []
     GoFile_urls = []
     Thotsbay_urls = []
+    Anonfiles_urls = []
 
     for url in urls:
         url_extract = tldextract.extract(str(url))
@@ -141,6 +143,9 @@ def url_sort(urls, Cascade):
             title = str(url).split('/')[-1]
             Cascade.add_to_album(base_domain, title, pixeldrain_parse(url, title), url)
 
+        elif base_domain in mapping_Anonfiles:
+            Anonfiles_urls.append(url)
+
         elif base_domain in mapping_Thotsbay:
             Thotsbay_urls.append(url)
 
@@ -148,4 +153,4 @@ def url_sort(urls, Cascade):
             log(str(url) + " is not supported currently.")
             logger.debug(str(url) + " is not supported currently.")
 
-    return ShareX_urls, Chibisafe_urls, Erome_urls, GoFile_urls, Thotsbay_urls
+    return ShareX_urls, Chibisafe_urls, Erome_urls, GoFile_urls, Thotsbay_urls, Anonfiles_urls
