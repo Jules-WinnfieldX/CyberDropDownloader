@@ -194,8 +194,7 @@ class Downloader:
                                          session=session, show_progress=show_progress)
             except Exception:
                 logger.debug(traceback.format_exc())
-                log(f"\nSkipping {filename}: likely exceeded download attempts (or ran into an error)\nRe-run program "
-                    f"after exit to continue download.\n", Fore.WHITE)
+                log(f"\nError attempting {filename}: See downloader.log for details\n", Fore.WHITE)
 
     async def download_all(
             self,

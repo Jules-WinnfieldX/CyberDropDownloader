@@ -55,8 +55,8 @@ async def scrape(urls, include_id: bool, thotsbay_username: str, thotsbay_passwo
             tasks2.append(thotsbay_crawler.fetch(session, url))
         results = await asyncio.gather(*tasks2)
 
-        for result in results:
-            Cascade.extend(result)
+    for result in results:
+        Cascade.extend(result)
 
     Cascade.cookies = jar
 
