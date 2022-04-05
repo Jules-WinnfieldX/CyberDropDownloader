@@ -1,5 +1,6 @@
 import argparse
 import asyncio
+import pathlib
 from pathlib import Path
 
 from . import __version__ as VERSION
@@ -59,9 +60,13 @@ async def download_all(args: argparse.Namespace):
     for downloader in downloaders:
         await downloader.download_content()
     logger.debug("Finished")
+
+    all_files = [str(f) for f in pathlib.Path(args.output_folder).glob("**/*") if f.is_file()]
+    combined = '\t'.join(all_files)
+
     log('Finished downloading. Enjoy :)')
-    log('If you have ".download" files remaining, rerun this program. '
-        'You most likely ran into download attempts limits')
+    if '.part' in combined:
+        log('There are still partial downloads in your folders, please re-run the program.')
 
 
 def main():
