@@ -1,22 +1,8 @@
 from dataclasses import dataclass
 from typing import Optional, List, Dict, Tuple, AnyStr, Any
 
+import aiohttp
 from yarl import *
-
-
-@dataclass
-class CookiesItem:
-    """Class for keeping track of global cookies if needed"""
-    cookies: List
-
-    def add_cookies(self, passed_cookies: List):
-        if self.cookies is None:
-            self.cookies = passed_cookies
-        else:
-            self.cookies.extend(x for x in passed_cookies if x not in self.cookies)
-
-    def get_cookies(self):
-        return self.cookies
 
 
 @dataclass
@@ -58,7 +44,7 @@ class DomainItem:
 class CascadeItem:
     """Class for keeping track of domains for each scraper type"""
     domains: Dict[str, DomainItem]
-    cookies = CookiesItem([])
+    cookies: aiohttp.CookieJar = None
 
     def add_albums(self, domain_item: DomainItem):
         domain = domain_item.domain
@@ -78,9 +64,6 @@ class CascadeItem:
         else:
             self.domains[domain] = DomainItem(domain, {title: album})
 
-    def add_cookie(self, cookie: List[Dict]):
-        self.cookies.add_cookies(cookie)
-
     def is_empty(self):
         for domain_str, domain in self.domains.items():
             for album_str, album in domain.albums.items():
@@ -88,3 +71,16 @@ class CascadeItem:
                     return False
         return True
 
+    def append_title(self, title):
+        for domain_str, domain in self.domains.items():
+            new_albums = {}
+            for album_str, album in domain.albums.items():
+                new_title = title+'/'+album_str
+                new_albums[new_title] = album
+                album.title = new_title
+            domain.albums = new_albums
+
+    def extend(self, Cascade):
+        for domain_str, domain in Cascade.domains.items():
+            for album_str, album in domain.albums.items():
+                self.add_album(domain_str, album_str, album)

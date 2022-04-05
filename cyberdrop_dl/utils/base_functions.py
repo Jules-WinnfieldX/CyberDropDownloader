@@ -5,6 +5,7 @@ from urllib.parse import urljoin
 import ssl
 
 import certifi
+import tldextract
 from yarl import *
 from colorama import Fore, Style
 
@@ -36,6 +37,7 @@ mapping_Chibisafe = ["cyberdrop.me", "cyberdrop.cc", "cyberdrop.to", "cyberdrop.
 mapping_Erome = ["erome.com"]
 mapping_GoFile = ["gofile.io"]
 mapping_Pixeldrain = ["pixeldrain.com"]
+mapping_Thotsbay = ["thotsbay.com"]
 
 user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.71 ' \
              'Safari/537.36'
@@ -50,7 +52,7 @@ def sanitize(input: str) -> str:
     return re.sub(r'[<>:"/\\|?*]', "", input)
 
 
-def log(text, style = Fore.WHITE) -> None:
+def log(text, style=Fore.WHITE) -> None:
     """Wrapper around print() to add color to text"""
     print(style + str(text) + Style.RESET_ALL)
 
@@ -65,11 +67,20 @@ def make_title_safe(title: str):
     return title
 
 
+def regex_links(urls) -> list:
+    all_links = [x.group().replace(".md.", ".") for x in
+                 re.finditer(r"(?:http.*?)(?=('|$|\n|\r\n|\r|\s|\"|\[/URL]))", urls)]
+    yarl_links = []
+    for link in all_links:
+        yarl_links.append(URL(link))
+    return yarl_links
+
+
 def bunkr_parse(url: URL) -> URL:
     """Fix the URL for bunkr.is."""
     extension = '.' + str(url).split('.')[-1]
     if extension.lower() in FILE_FORMATS['Videos']:
-        url = url.with_host('media-files.bunkr.is')
+        url = URL('https://media-files.bunkr.is/').with_name(url.name)
         return url
     if extension.lower() in FILE_FORMATS['Images']:
         url = url.with_host('cdn.bunkr.is')
@@ -88,8 +99,54 @@ def pixeldrain_parse(url: URL, title: str) -> URL:
 
 def check_direct(url: URL):
     mapping_direct = ['i.pixl.is', r's..putmega.com', r's..putme.ga', r'img-...cyberdrop...', r'f.cyberdrop...',
-                      r'fs-...cyberdrop...', r'cdn.bunkr...', r'media-files.bunkr...', r'jpg.church/images/...']
+                      r'fs-...cyberdrop...', r'cdn.bunkr...', r'media-files.bunkr...', r'jpg.church/images/...', r'stream.bunkr...']
     for domain in mapping_direct:
         if re.search(domain, url.host):
             return True
     return False
+
+
+def url_sort(urls, Cascade):
+    ShareX_urls = []
+    Chibisafe_urls = []
+    Erome_urls = []
+    GoFile_urls = []
+    Thotsbay_urls = []
+
+    for url in urls:
+        url_extract = tldextract.extract(str(url))
+        base_domain = "{}.{}".format(url_extract.domain, url_extract.suffix)
+
+        if base_domain in mapping_ShareX:
+            if check_direct(url):
+                Cascade.add_to_album(base_domain, "ShareX Loose Files", url, url)
+            else:
+                ShareX_urls.append(url)
+
+        elif base_domain in mapping_Chibisafe:
+            if check_direct(url):
+                if 'bunkr' in url.host:
+                    Cascade.add_to_album(base_domain, "Chibisafe Loose Files", bunkr_parse(url), url)
+                else:
+                    Cascade.add_to_album(base_domain, "Chibisafe Loose Files", url, url)
+            else:
+                Chibisafe_urls.append(url)
+
+        elif base_domain in mapping_Erome:
+            Erome_urls.append(url)
+
+        elif base_domain in mapping_GoFile:
+            GoFile_urls.append(url)
+
+        elif base_domain in mapping_Pixeldrain:
+            title = str(url).split('/')[-1]
+            Cascade.add_to_album(base_domain, title, pixeldrain_parse(url, title), url)
+
+        elif base_domain in mapping_Thotsbay:
+            Thotsbay_urls.append(url)
+
+        else:
+            log(str(url) + " is not supported currently.")
+            logger.debug(str(url) + " is not supported currently.")
+
+    return ShareX_urls, Chibisafe_urls, Erome_urls, GoFile_urls, Thotsbay_urls

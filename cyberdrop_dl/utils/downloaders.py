@@ -63,10 +63,10 @@ async def throttle(self, url: URL) -> None:
 
 
 class Downloader:
-    def __init__(self, album_obj: AlbumItem, morsels, folder: Path, title: str, attempts: int, max_workers: int,
+    def __init__(self, album_obj: AlbumItem, cookie_jar, folder: Path, title: str, attempts: int, max_workers: int,
                  exclude_videos: bool, exclude_images: bool, exclude_audio: bool, exclude_other: bool):
         self.album_obj = album_obj
-        self.morsels = morsels
+        self.cookie_jar = cookie_jar
         self.folder = folder
         self.title = title
         self.attempts = attempts
@@ -98,7 +98,7 @@ class Downloader:
                 if url.host in self.delay:
                     await throttle(self, url)
 
-                ext = '.'+filename.split('.')[-1]
+                ext = '.'+filename.split('.')[-1].lower()
                 if not (ext in FILE_FORMATS['Images'] or ext in FILE_FORMATS['Videos'] or ext in FILE_FORMATS['Audio'] or ext in FILE_FORMATS['Other']):
                     resp = await session.get(url, headers=headers, ssl=ssl_context, raise_for_status=True)
                     filename = resp.content_disposition.filename
@@ -214,28 +214,8 @@ class Downloader:
     ) -> None:
         """Download the content of all links and save them as files."""
         (self.folder / self.title).mkdir(parents=True, exist_ok=True)
-        async with aiohttp.ClientSession() as session:
-            session.cookie_jar.update_cookies(self.morsels)
+        async with aiohttp.ClientSession(cookie_jar=self.cookie_jar) as session:
             await self.download_all(self.album_obj, session, show_progress=show_progress)
-
-
-def simple_cookies(cookies):
-    morsels = {}
-    for cookie in cookies:
-        # https://docs.python.org/3/library/http.cookies.html#morsel-objects
-        morsel = http.cookies.Morsel()
-        morsel.set(cookie["name"], cookie["value"], cookie["value"])
-        if "domain" in cookie:
-            morsel["domain"] = cookie["domain"]
-        if "httpOnly" in cookie:
-            morsel["httponly"] = cookie["httpOnly"]
-        if "path" in cookie:
-            morsel["path"] = cookie["path"]
-        if "secure" in cookie:
-            morsel["secure"] = cookie["secure"]
-
-        morsels[cookie["name"]] = morsel
-    return morsels
 
 
 def get_downloaders(Cascade: CascadeItem, folder: Path, attempts: int, threads: int, exclude_videos: bool,
@@ -248,14 +228,15 @@ def get_downloaders(Cascade: CascadeItem, folder: Path, attempts: int, threads: 
     """
 
     downloaders = []
-    morsels = simple_cookies(Cascade.cookies.cookies)
+
+    cookie_jar = Cascade.cookies
 
     for domain, domain_obj in Cascade.domains.items():
         max_workers = threads if threads != 0 else multiprocessing.cpu_count()
         if 'bunkr' in domain:
             max_workers = 2 if (max_workers > 2) else max_workers
         for title, album_obj in domain_obj.albums.items():
-            downloader = Downloader(album_obj, morsels=morsels, title=title, folder=folder,
+            downloader = Downloader(album_obj, cookie_jar=cookie_jar, title=title, folder=folder,
                                     attempts=attempts, max_workers=max_workers, exclude_videos=exclude_videos,
                                     exclude_images=exclude_images, exclude_audio=exclude_audio,
                                     exclude_other=exclude_other)
