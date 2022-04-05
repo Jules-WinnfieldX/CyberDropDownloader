@@ -22,17 +22,14 @@ async def scrape(urls, include_id: bool, thotsbay_username: str, thotsbay_passwo
     chibisafe_crawler = ChibisafeCrawler(include_id=include_id)
     gofile_crawler = GofileCrawler()
     anonfiles_crawler = AnonfilesCrawler(include_id=include_id)
-    thotsbay_crawler = ThotsbayCrawler(include_id=include_id, username=thotsbay_username, password=thotsbay_password,
-                                       erome_crawler=erome_crawler, sharex_crawler=sharex_crawler,
-                                       chibisafe_crawler=chibisafe_crawler, gofile_crawler=gofile_crawler,
-                                       anonfiles_crawler=anonfiles_crawler)
+
 
     tasks = []
     headers = {"user-agent": user_agent}
     jar = aiohttp.CookieJar(quote_cookie=False)
 
-    # Returns Domain items
     async with aiohttp.ClientSession(headers=headers, raise_for_status=True, cookie_jar=jar) as session:
+        # Returns Domain items
         for url in Erome_urls:
             tasks.append(erome_crawler.fetch(session, url))
         for url in ShareX_urls:
@@ -45,19 +42,23 @@ async def scrape(urls, include_id: bool, thotsbay_username: str, thotsbay_passwo
             tasks.append(anonfiles_crawler.fetch(session, url))
         results = await asyncio.gather(*tasks)
 
-    for domain_item in results:
-        Cascade.add_albums(domain_item)
+        for domain_item in results:
+            Cascade.add_albums(domain_item)
 
-    # Returns a Cascade item
-    tasks2 = []
-    async with aiohttp.ClientSession(headers=headers, raise_for_status=True, cookie_jar=jar) as session:
+        thotsbay_crawler = ThotsbayCrawler(include_id=include_id, username=thotsbay_username,
+                                           password=thotsbay_password,
+                                           erome_crawler=erome_crawler, sharex_crawler=sharex_crawler,
+                                           chibisafe_crawler=chibisafe_crawler, gofile_crawler=gofile_crawler,
+                                           anonfiles_crawler=anonfiles_crawler, session=session)
+
+        # Returns a Cascade item
+        tasks2 = []
         for url in Thotsbay_urls:
             tasks2.append(thotsbay_crawler.fetch(session, url))
         results = await asyncio.gather(*tasks2)
 
-    for result in results:
-        Cascade.extend(result)
+        for result in results:
+            Cascade.extend(result)
 
     Cascade.cookies = jar
-
     return Cascade
