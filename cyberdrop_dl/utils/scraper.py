@@ -22,7 +22,10 @@ async def scrape(urls, include_id: bool, thotsbay_username: str, thotsbay_passwo
     chibisafe_crawler = ChibisafeCrawler(include_id=include_id)
     gofile_crawler = GofileCrawler()
     anonfiles_crawler = AnonfilesCrawler(include_id=include_id)
-
+    thotsbay_crawler = ThotsbayCrawler(include_id=include_id, username=thotsbay_username, password=thotsbay_password,
+                                       erome_crawler=erome_crawler, sharex_crawler=sharex_crawler,
+                                       chibisafe_crawler=chibisafe_crawler, gofile_crawler=gofile_crawler,
+                                       anonfiles_crawler=anonfiles_crawler)
 
     tasks = []
     headers = {"user-agent": user_agent}
@@ -45,17 +48,10 @@ async def scrape(urls, include_id: bool, thotsbay_username: str, thotsbay_passwo
         for domain_item in results:
             Cascade.add_albums(domain_item)
 
-        thotsbay_crawler = ThotsbayCrawler(include_id=include_id, username=thotsbay_username,
-                                           password=thotsbay_password,
-                                           erome_crawler=erome_crawler, sharex_crawler=sharex_crawler,
-                                           chibisafe_crawler=chibisafe_crawler, gofile_crawler=gofile_crawler,
-                                           anonfiles_crawler=anonfiles_crawler, session=session)
-
         # Returns a Cascade item
-        tasks2 = []
+        results = []
         for url in Thotsbay_urls:
-            tasks2.append(thotsbay_crawler.fetch(session, url))
-        results = await asyncio.gather(*tasks2)
+            results.append(await thotsbay_crawler.fetch(session, url))
 
         for result in results:
             Cascade.extend(result)
