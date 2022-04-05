@@ -14,6 +14,7 @@
 | Erome      | Albums: erome.com/a/...                                                                                                                                                                                                                |
 | PixelDrain | Albums: Pixeldrain.com/l/... <br> Single Files: Pixeldrain.com/u/...                                                                                                                                                                   |
 | ThotsBay   | Thread: Thotsbay.com/threads/...                                                                                                                                                                                                       | 
+| Anonfiles  | Download page: Anonfiles.com/...                                                                                                                                                                                                       | 
 
 Reminder to leave the link full (include the https://)
 
