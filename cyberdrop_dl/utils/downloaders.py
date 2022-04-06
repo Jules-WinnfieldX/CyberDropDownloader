@@ -30,6 +30,7 @@ def retry(f):
                     if self.current_attempt >= self.attempts - 1:
                         raise
                 logger.debug('Retrying...')
+                self.attempts += 1
                 time.sleep(2)
     return wrapper
 
