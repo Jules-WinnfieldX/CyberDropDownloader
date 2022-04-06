@@ -154,7 +154,8 @@ class Downloader:
                             progress.update(len(chunk))
             await self.rename_file(filename)
         except (aiohttp.client_exceptions.ClientPayloadError, aiohttp.client_exceptions.ClientOSError,
-                aiohttp.client_exceptions.ServerDisconnectedError, asyncio.TimeoutError, FailureException) as e:
+                aiohttp.client_exceptions.ServerDisconnectedError, asyncio.TimeoutError,
+                aiohttp.client_exceptions.ClientResponseError, FailureException) as e:
             raise FailureException(e)
 
     async def rename_file(self, filename: str) -> None:
