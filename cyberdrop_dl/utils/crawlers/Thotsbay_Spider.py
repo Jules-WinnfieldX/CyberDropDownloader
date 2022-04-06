@@ -46,7 +46,12 @@ class ThotsbayCrawler():
         if self.username and self.password:
             await self.login(session)
 
-        ShareX_urls, Chibisafe_urls, Erome_urls, GoFile_urls, Thotsbay_urls, Anonfile_urls, title = await self.parse(session, url, Cascade)
+        try:
+            ShareX_urls, Chibisafe_urls, Erome_urls, GoFile_urls, Thotsbay_urls, Anonfile_urls, title = await self.parse(session, url, Cascade)
+        except:
+            log("Error handling " + str(url))
+            logger.debug("Error handling " + str(url))
+            return
         tasks = []
         for url in Erome_urls:
             tasks.append(self.erome_crawler.fetch(session, url))
