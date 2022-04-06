@@ -662,14 +662,6 @@
             "index": "pypi",
             "version": "==4.63.1"
         },
-        "twisted": {
-            "hashes": [
-                "sha256:57f32b1f6838facb8c004c89467840367ad38e9e535f8252091345dba500b4f2",
-                "sha256:5c63c149eb6b8fe1e32a0215b1cef96fabdba04f705d8efb9174b1ccf5b49d49"
-            ],
-            "markers": "python_full_version >= '3.6.7'",
-            "version": "==22.2.0"
-        },
         "typing-extensions": {
             "hashes": [
                 "sha256:1a9462dcc3347a79b1f1c0271fbe79e844580bb598bafa1ed208b94da3cdcd42",
