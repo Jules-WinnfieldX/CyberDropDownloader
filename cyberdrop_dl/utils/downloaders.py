@@ -31,7 +31,7 @@ def retry(f):
                         raise
                 logger.debug('Retrying...')
                 self.attempts += 1
-                time.sleep(2)
+                await asyncio.sleep(2)
     return wrapper
 
 
