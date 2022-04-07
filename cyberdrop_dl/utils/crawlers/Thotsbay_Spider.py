@@ -89,11 +89,21 @@ class ThotsbayCrawler():
                 title = make_title_safe(title.replace(r"\n", "").strip())
 
                 content_links = []
-                posts = soup.select("div[class=bbWrapper]")
+
+                post_number = str(url).split("post-")
+                post_number = int(post_number[-1]) if len(post_number) == 2 else None
+
+                posts = soup.select("div[class='message-main uix_messageContent js-quickEditTarget']")
                 for post in posts:
+                    if post_number:
+                        post_num_int = post.select_one("li[class=u-concealed] a")
+                        post_num_int = int(post_num_int.get('href').split('post-')[-1])
+                        if post_number > post_num_int:
+                            continue
                     for elem in post.find_all('blockquote'):
                         elem.decompose()
-                    links = post.select('a')
+                    post_content = post.select_one("div[class=bbWrapper]")
+                    links = post_content.select('a')
                     for link in links:
                         link = link.get('href')
                         if link.startswith('//'):
@@ -109,9 +119,8 @@ class ThotsbayCrawler():
                             link = "https:" + link
                         content_links.append(URL(link))
 
-                attachments = soup.select("section[class=message-attachments]")
-                for attachment_block in attachments:
-                    links = attachment_block.select("a[class='file-preview js-lbImage']")
+                    attachments_block = post.select_one("section[class=message-attachments]")
+                    links = attachments_block.select("a[class='file-preview js-lbImage']") if attachments_block else []
                     for link in links:
                         link = link.get('href')
                         if link.endswith("/"):

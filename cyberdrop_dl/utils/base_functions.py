@@ -74,9 +74,10 @@ def sql_initialize():
 async def sql_check_existing(cursor: sqlite3.Cursor, url):
     cursor.execute("""SELECT completed FROM downloads WHERE direct_url = '%s'""" % str(url))
     sql_file_check = cursor.fetchone()
-    if sql_file_check[0] == 0 or not sql_file_check:
-        return False
-    return True
+    if sql_file_check:
+        if sql_file_check[0] == 1:
+            return True
+    return False
 
 
 async def sql_insert_file(connection: sqlite3.Connection, cursor: sqlite3.Cursor, url, filename, completed):
