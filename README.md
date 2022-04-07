@@ -13,7 +13,7 @@
 | GoFile     | Albums: gofile.io/d/...                                                                                                                                                                                                                |
 | Erome      | Albums: erome.com/a/...                                                                                                                                                                                                                |
 | PixelDrain | Albums: Pixeldrain.com/l/... <br> Single Files: Pixeldrain.com/u/...                                                                                                                                                                   |
-| ThotsBay   | Thread: Thotsbay.com/threads/...  <br> Continue from (will download this post and after): Thotsbay.com/threads/...post-<number>                                                                                                                                                                                                     | 
+| ThotsBay   | Thread: Thotsbay.com/threads/...  <br> Continue from (will download this post and after): Thotsbay.com/threads/...post-NUMBER                                                                                                                                                                                                     | 
 | Anonfiles  | Download page: Anonfiles.com/...                                                                                                                                                                                                       | 
 
 Reminder to leave the link full (include the https://)
