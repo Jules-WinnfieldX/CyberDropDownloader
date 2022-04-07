@@ -1,6 +1,7 @@
 # project stuff
 Downloads/
 *.log
+*.sqlite
 
 # Python stuff
 .venv/

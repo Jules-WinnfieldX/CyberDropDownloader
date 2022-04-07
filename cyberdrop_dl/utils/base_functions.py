@@ -1,6 +1,7 @@
 import logging
 import os
 import re
+import sqlite3
 import ssl
 
 import certifi
@@ -52,6 +53,43 @@ def sanitize(input: str) -> str:
     return re.sub(r'[<>:"/\\|?*]', "", input)
 
 
+def sql_initialize():
+    download_history = "download_history.sqlite"
+    if not os.path.isfile(download_history):
+        conn = sqlite3.connect(download_history)
+        curr = conn.cursor()
+        create_table_query = """CREATE TABLE downloads (
+                                    direct_url TEXT PRIMARY KEY,
+                                    filename TEXT NOT NULL,
+                                    completed INTEGER NOT NULL
+                                );"""
+        curr.execute(create_table_query)
+        conn.commit()
+    else:
+        conn = sqlite3.connect(download_history)
+        curr = conn.cursor()
+    return conn, curr
+
+
+async def sql_check_existing(cursor: sqlite3.Cursor, url):
+    cursor.execute("""SELECT completed FROM downloads WHERE direct_url = '%s'""" % str(url))
+    sql_file_check = cursor.fetchone()
+    if sql_file_check[0] == 0 or not sql_file_check:
+        return False
+    return True
+
+
+async def sql_insert_file(connection: sqlite3.Connection, cursor: sqlite3.Cursor, url, filename, completed):
+    cursor.execute("""INSERT OR IGNORE INTO downloads VALUES ('%s', '%s', %d)""" % (url, filename, completed))
+    connection.commit()
+
+
+async def sql_update_file(connection: sqlite3.Connection, cursor: sqlite3.Cursor, url, filename, completed):
+    cursor.execute("""UPDATE downloads SET completed = %d WHERE 
+                      direct_url = '%s' AND filename = '%s'""" % (completed, url, filename))
+    connection.commit()
+
+
 def log(text, style=Fore.WHITE) -> None:
     """Wrapper around print() to add color to text"""
     print(style + str(text) + Style.RESET_ALL)
@@ -99,7 +137,8 @@ def pixeldrain_parse(url: URL, title: str) -> URL:
 
 def check_direct(url: URL):
     mapping_direct = ['i.pixl.is', r's..putmega.com', r's..putme.ga', r'img-...cyberdrop...', r'f.cyberdrop...',
-                      r'fs-...cyberdrop...', r'cdn.bunkr...', r'media-files.bunkr...', r'jpg.church/images/...', r'stream.bunkr...']
+                      r'fs-...cyberdrop...', r'cdn.bunkr...', r'media-files.bunkr...', r'jpg.church/images/...',
+                      r'stream.bunkr...', r'simp..jpg.church']
     for domain in mapping_direct:
         if re.search(domain, url.host):
             return True

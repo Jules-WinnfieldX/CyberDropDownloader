@@ -1,7 +1,9 @@
 import argparse
 import asyncio
 import pathlib
+import sqlite3
 from pathlib import Path
+
 
 from . import __version__ as VERSION
 from .utils.scraper import scrape
@@ -40,6 +42,8 @@ async def download_all(args: argparse.Namespace):
         log(f"{input_file} created. Populate it and retry.")
         exit(1)
 
+    conn, curr = sql_initialize()
+
     links = args.links
     with open(input_file, "r") as f:
         links += regex_links(f.read())
@@ -55,7 +59,7 @@ async def download_all(args: argparse.Namespace):
                                   disable_attempt_limit=args.disable_attempt_limit,
                                   threads=args.threads, exclude_videos=args.exclude_videos,
                                   exclude_images=args.exclude_images, exclude_audio=args.exclude_audio,
-                                  exclude_other=args.exclude_other)
+                                  exclude_other=args.exclude_other, connection=conn, cursor=curr)
 
     for downloader in downloaders:
         await downloader.download_content()

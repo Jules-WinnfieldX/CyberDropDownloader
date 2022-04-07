@@ -63,8 +63,9 @@ async def throttle(self, url: URL) -> None:
 
 
 class Downloader:
-    def __init__(self, album_obj: AlbumItem, cookie_jar, folder: Path, title: str, attempts: int, disable_attempt_limit: bool, max_workers: int,
-                 exclude_videos: bool, exclude_images: bool, exclude_audio: bool, exclude_other: bool):
+    def __init__(self, album_obj: AlbumItem, cookie_jar, folder: Path, title: str, attempts: int,
+                 disable_attempt_limit: bool, max_workers: int, exclude_videos: bool, exclude_images: bool,
+                 exclude_audio: bool, exclude_other: bool, connection: sqlite3.Connection, cursor: sqlite3.Cursor):
         self.album_obj = album_obj
         self.cookie_jar = cookie_jar
         self.folder = folder
@@ -80,6 +81,8 @@ class Downloader:
         self._semaphore = asyncio.Semaphore(max_workers)
         self.delay = {'media-files.bunkr.is': 2}
         self.throttle_times = {}
+        self.connection = connection
+        self.cursor = cursor
 
     """Changed from aiohttp exceptions caught to FailureException to allow for partial downloads."""
 
@@ -128,6 +131,13 @@ class Downloader:
                         logging.debug("Skipping " + filename)
                         return
 
+                if await sql_check_existing(self.cursor, str(url)):
+                    log("\n%s Already Downloaded" % filename)
+                    logger.debug("%s was found in db file (already downloaded)" % filename)
+                    return
+
+                await sql_insert_file(self.connection, self.cursor, url, filename, 0)
+
                 resume_point = 0
                 complete_file = (self.folder / self.title / filename)
                 temp_file = complete_file.with_suffix(complete_file.suffix + '.part')
@@ -153,6 +163,7 @@ class Downloader:
                         async for chunk, _ in resp.content.iter_chunks():
                             await f.write(chunk)
                             progress.update(len(chunk))
+            await sql_update_file(self.connection, self.cursor, url, filename, 1)
             await self.rename_file(filename)
         except (aiohttp.client_exceptions.ClientPayloadError, aiohttp.client_exceptions.ClientOSError,
                 aiohttp.client_exceptions.ServerDisconnectedError, asyncio.TimeoutError,
@@ -189,6 +200,7 @@ class Downloader:
 
         if (self.folder / self.title / filename).exists():
             logger.debug(str(self.folder / self.title / filename) + " Already Exists")
+            await sql_update_file(self.connection, self.cursor, url, filename, 1)
         else:
             logger.debug("Working on " + str(url))
             try:
@@ -221,7 +233,7 @@ class Downloader:
 
 
 def get_downloaders(Cascade: CascadeItem, folder: Path, attempts: int, disable_attempt_limit: bool, threads: int, exclude_videos: bool,
-                    exclude_images: bool, exclude_audio: bool, exclude_other: bool) -> List[Downloader]:
+                    exclude_images: bool, exclude_audio: bool, exclude_other: bool, connection:sqlite3.Connection, cursor: sqlite3.Cursor) -> List[Downloader]:
     """Get a list of downloaders for each supported type of URLs.
     We shouldn't just assume that each URL will have the same netloc as
     the first one, so we need to classify them one by one, sort them to
@@ -242,6 +254,6 @@ def get_downloaders(Cascade: CascadeItem, folder: Path, attempts: int, disable_a
                                     attempts=attempts, disable_attempt_limit=disable_attempt_limit,
                                     max_workers=max_workers, exclude_videos=exclude_videos,
                                     exclude_images=exclude_images, exclude_audio=exclude_audio,
-                                    exclude_other=exclude_other)
+                                    exclude_other=exclude_other, connection=connection, cursor=cursor)
             downloaders.append(downloader)
     return downloaders
