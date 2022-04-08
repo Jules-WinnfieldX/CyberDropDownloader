@@ -83,12 +83,10 @@ async def sql_check_existing(cursor: sqlite3.Cursor, url, size):
 
 async def sql_insert_file(connection: sqlite3.Connection, cursor: sqlite3.Cursor, filename, size, completed):
     cursor.execute("""INSERT OR IGNORE INTO downloads VALUES ('%s', %d, %d)""" % (filename, size, completed))
-    connection.commit()
 
 
 async def sql_update_file(connection: sqlite3.Connection, cursor: sqlite3.Cursor, filename, size, completed):
     cursor.execute("""INSERT OR REPLACE INTO downloads VALUES ('%s', %d, %d)""" % (filename, size, completed))
-    connection.commit()
 
 
 def log(text, style=Fore.WHITE) -> None:

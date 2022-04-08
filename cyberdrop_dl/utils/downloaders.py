@@ -239,6 +239,7 @@ class Downloader:
         (self.folder / self.title).mkdir(parents=True, exist_ok=True)
         async with aiohttp.ClientSession(cookie_jar=self.cookie_jar) as session:
             await self.download_all(self.album_obj, session, show_progress=show_progress)
+        self.connection.commit()
 
 
 def get_downloaders(Cascade: CascadeItem, folder: Path, attempts: int, disable_attempt_limit: bool, threads: int, exclude_videos: bool,
