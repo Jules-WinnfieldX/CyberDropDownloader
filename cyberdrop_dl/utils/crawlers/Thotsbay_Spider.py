@@ -51,7 +51,8 @@ class ThotsbayCrawler():
             logger.debug("No login provided - Thotsbay.")
 
         try:
-            ShareX_urls, Chibisafe_urls, Erome_urls, GoFile_urls, Thotsbay_urls, Anonfile_urls, title = await self.parse(session, url, Cascade, None)
+            ShareX_urls, Chibisafe_urls, Erome_urls, GoFile_urls, Thotsbay_urls, Anonfile_urls, title = await self.parse(
+                session, url, Cascade, None)
         except:
             log("Error handling " + str(url))
             logger.debug("Error handling " + str(url))
