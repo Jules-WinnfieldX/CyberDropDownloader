@@ -70,8 +70,8 @@ def sql_initialize():
     return conn, curr
 
 
-async def sql_check_existing(cursor: sqlite3.Cursor, url, size):
-    cursor.execute("""SELECT completed FROM downloads WHERE filename = '%s' and size = %d""" % (str(url), size))
+async def sql_check_existing(cursor: sqlite3.Cursor, filename, size):
+    cursor.execute("""SELECT completed FROM downloads WHERE filename = '%s' and size = %d""" % (filename, size))
     sql_file_check = cursor.fetchone()
     if sql_file_check:
         if sql_file_check[0] == 1:
