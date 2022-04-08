@@ -121,6 +121,8 @@ class ThotsbayCrawler():
                         link = link.get('src')
                         if link.startswith('//'):
                             link = "https:" + link
+                        elif link.startswith('/'):
+                            link = URL("https://forum.thotsbay.com") / link[1:]
                         content_links.append(URL(link))
 
                     attachments_block = post.select_one("section[class=message-attachments]")
@@ -134,6 +136,12 @@ class ThotsbayCrawler():
                         Cascade.add_to_album("Thotsbay.com", "Attachments", link, url)
 
                 ShareX_urls, Chibisafe_urls, Erome_urls, GoFile_urls, Thotsbay_urls, Anonfile_urls = url_sort(content_links, Cascade)
+
+                for link in Thotsbay_urls:
+                    if 'attachments' in link.parts:
+                        Cascade.add_to_album("Thotsbay.com", "Attachments", link, url)
+                    elif 'data' in link.parts:
+                        Cascade.add_to_album("Thotsbay.com", "Attachments", link, url)
 
                 next_page = soup.select_one('pageNav-jump pageNav-jump--next')
                 if next_page is not None:

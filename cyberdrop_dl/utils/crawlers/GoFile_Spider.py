@@ -42,7 +42,7 @@ class GofileCrawler():
             content = self.client.get_content(content_id)
         except:
             log("GoFile seems to be down.")
-            logging.debug("GoFile seems to be down")
+            logging.debug("GoFile seems to be down or the link is dead")
             return
         if not content:
             return

@@ -70,19 +70,23 @@ class Downloader:
         self.cookie_jar = cookie_jar
         self.folder = folder
         self.title = title
+
+        self.connection = connection
+        self.cursor = cursor
+
         self.attempts = attempts
         self.current_attempt = 0
         self.disable_attempt_limit = disable_attempt_limit
-        self.max_workers = max_workers
+
         self.exclude_videos = exclude_videos
         self.exclude_images = exclude_images
         self.exclude_audio = exclude_audio
         self.exclude_other = exclude_other
+
+        self.max_workers = max_workers
         self._semaphore = asyncio.Semaphore(max_workers)
         self.delay = {'media-files.bunkr.is': 2}
         self.throttle_times = {}
-        self.connection = connection
-        self.cursor = cursor
 
     """Changed from aiohttp exceptions caught to FailureException to allow for partial downloads."""
 
@@ -146,7 +150,7 @@ class Downloader:
                     resume_point = temp_file.stat().st_size
                     headers['Range'] = 'bytes=%d-' % resume_point
 
-                async with session.get(url, headers=headers, ssl=ssl_context, raise_for_status=True, allow_redirects=False) as resp:
+                async with session.get(url, headers=headers, ssl=ssl_context, raise_for_status=True) as resp:
                     content_type = resp.headers.get('Content-Type')
                     if 'text' in content_type.lower() or 'html' in content_type.lower():
                         log(f"\nServer for {url} is either down or the file no longer exists", Fore.RED)
@@ -202,6 +206,7 @@ class Downloader:
             filename = filename[:MAX_FILENAME_LENGTH] + '.' + fileext
 
         if (self.folder / self.title / filename).exists():
+            await sql_update_file(self.connection, self.cursor, url, filename, 1)
             logger.debug(str(self.folder / self.title / filename) + " Already Exists")
             await sql_update_file(self.connection, self.cursor, url, filename, 1)
         else:

@@ -59,7 +59,7 @@ async def download_all(args: argparse.Namespace):
                                   disable_attempt_limit=args.disable_attempt_limit,
                                   threads=args.threads, exclude_videos=args.exclude_videos,
                                   exclude_images=args.exclude_images, exclude_audio=args.exclude_audio,
-                                  exclude_other=args.exclude_other, connection=conn, cursor=curr)
+                                  exclude_other=args.exclude_other, connection=conn, cursor=curr,)
 
     for downloader in downloaders:
         await downloader.download_content()
