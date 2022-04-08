@@ -135,8 +135,6 @@ class Downloader:
                         logging.debug("Skipping " + filename)
                         return
 
-
-
                 resume_point = 0
                 complete_file = (self.folder / self.title / filename)
                 temp_file = complete_file.with_suffix(complete_file.suffix + '.part')

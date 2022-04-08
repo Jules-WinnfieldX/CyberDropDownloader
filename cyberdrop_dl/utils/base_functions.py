@@ -87,8 +87,7 @@ async def sql_insert_file(connection: sqlite3.Connection, cursor: sqlite3.Cursor
 
 
 async def sql_update_file(connection: sqlite3.Connection, cursor: sqlite3.Cursor, filename, size, completed):
-    cursor.execute("""UPDATE downloads SET completed = %d WHERE 
-                      filename = '%s' AND size = %d""" % (completed, filename, size))
+    cursor.execute("""INSERT OR REPLACE INTO downloads VALUES ('%s', %d, %d)""" % (filename, size, completed))
     connection.commit()
 
 
