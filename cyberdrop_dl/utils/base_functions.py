@@ -54,14 +54,15 @@ def sanitize(input: str) -> str:
 
 
 def sql_initialize():
-    download_history = "download_history.sqlite"
+    download_history = "download_history_size_based.sqlite"
     if not os.path.isfile(download_history):
         conn = sqlite3.connect(download_history)
         curr = conn.cursor()
         create_table_query = """CREATE TABLE downloads (
-                                    direct_url TEXT PRIMARY KEY,
-                                    filename TEXT NOT NULL,
-                                    completed INTEGER NOT NULL
+                                    filename TEXT,
+                                    size INTEGER NOT NULL,
+                                    completed INTEGER NOT NULL,
+                                    PRIMARY KEY (filename, size)
                                 );"""
         curr.execute(create_table_query)
         conn.commit()
@@ -71,8 +72,8 @@ def sql_initialize():
     return conn, curr
 
 
-async def sql_check_existing(cursor: sqlite3.Cursor, url):
-    cursor.execute("""SELECT completed FROM downloads WHERE direct_url = '%s'""" % str(url))
+async def sql_check_existing(cursor: sqlite3.Cursor, url, size):
+    cursor.execute("""SELECT completed FROM downloads WHERE filename = '%s' and size = %d""" % (str(url), size))
     sql_file_check = cursor.fetchone()
     if sql_file_check:
         if sql_file_check[0] == 1:
@@ -80,14 +81,14 @@ async def sql_check_existing(cursor: sqlite3.Cursor, url):
     return False
 
 
-async def sql_insert_file(connection: sqlite3.Connection, cursor: sqlite3.Cursor, url, filename, completed):
-    cursor.execute("""INSERT OR IGNORE INTO downloads VALUES ('%s', '%s', %d)""" % (url, filename, completed))
+async def sql_insert_file(connection: sqlite3.Connection, cursor: sqlite3.Cursor, filename, size, completed):
+    cursor.execute("""INSERT OR IGNORE INTO downloads VALUES ('%s', %d, %d)""" % (filename, size, completed))
     connection.commit()
 
 
-async def sql_update_file(connection: sqlite3.Connection, cursor: sqlite3.Cursor, url, filename, completed):
+async def sql_update_file(connection: sqlite3.Connection, cursor: sqlite3.Cursor, filename, size, completed):
     cursor.execute("""UPDATE downloads SET completed = %d WHERE 
-                      direct_url = '%s' AND filename = '%s'""" % (completed, url, filename))
+                      filename = '%s' AND size = %d""" % (completed, filename, size))
     connection.commit()
 
 

@@ -135,12 +135,7 @@ class Downloader:
                         logging.debug("Skipping " + filename)
                         return
 
-                if await sql_check_existing(self.cursor, str(url)):
-                    log("\n%s Already Downloaded" % filename)
-                    logger.debug("%s was found in db file (Previously downloaded)" % filename)
-                    return
 
-                await sql_insert_file(self.connection, self.cursor, url, filename, 0)
 
                 resume_point = 0
                 complete_file = (self.folder / self.title / filename)
@@ -156,6 +151,14 @@ class Downloader:
                         log(f"\nServer for {url} is either down or the file no longer exists", Fore.RED)
                         return
                     total = int(resp.headers.get('Content-Length', str(0))) + resume_point
+
+                    if await sql_check_existing(self.cursor, filename, total):
+                        log("\n%s Already Downloaded" % filename)
+                        logger.debug("%s was found in db file (Previously downloaded)" % filename)
+                        return
+
+                    await sql_insert_file(self.connection, self.cursor, filename, total, 0)
+
                     with tqdm(
                             total=total, unit_scale=True,
                             unit='B', leave=False, initial=resume_point,
@@ -165,7 +168,6 @@ class Downloader:
                             async for chunk, _ in resp.content.iter_chunks():
                                 await f.write(chunk)
                                 progress.update(len(chunk))
-            await sql_update_file(self.connection, self.cursor, url, filename, 1)
             resp.close()
             await self.rename_file(filename)
         except (aiohttp.client_exceptions.ClientPayloadError, aiohttp.client_exceptions.ClientOSError,
@@ -186,6 +188,7 @@ class Downloader:
             await aiofiles.os.remove(temp_file)
         else:
             temp_file.rename(complete_file)
+        await sql_update_file(self.connection, self.cursor, filename, complete_file.stat().st_size, 1)
         logger.debug("Finished " + filename)
 
     async def download_and_store(
@@ -205,10 +208,10 @@ class Downloader:
             fileext = filename.split('.')[-1]
             filename = filename[:MAX_FILENAME_LENGTH] + '.' + fileext
 
-        if (self.folder / self.title / filename).exists():
-            await sql_update_file(self.connection, self.cursor, url, filename, 1)
-            logger.debug(str(self.folder / self.title / filename) + " Already Exists")
-            await sql_update_file(self.connection, self.cursor, url, filename, 1)
+        complete_file = (self.folder / self.title / filename)
+        if complete_file.exists():
+            await sql_update_file(self.connection, self.cursor, filename, complete_file.stat().st_size, 1)
+            logger.debug(str(complete_file) + " Already Exists")
         else:
             logger.debug("Working on " + str(url))
             try:
