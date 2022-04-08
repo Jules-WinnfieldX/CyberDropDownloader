@@ -81,6 +81,7 @@ class CascadeItem:
             domain.albums = new_albums
 
     def extend(self, Cascade):
-        for domain_str, domain in Cascade.domains.items():
-            for album_str, album in domain.albums.items():
-                self.add_album(domain_str, album_str, album)
+        if Cascade.domains:
+            for domain_str, domain in Cascade.domains.items():
+                for album_str, album in domain.albums.items():
+                    self.add_album(domain_str, album_str, album)

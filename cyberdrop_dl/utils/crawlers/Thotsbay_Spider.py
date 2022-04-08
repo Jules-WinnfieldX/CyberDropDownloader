@@ -45,6 +45,10 @@ class ThotsbayCrawler():
 
         if self.username and self.password:
             await self.login(session)
+        else:
+            log("login wasn't provided, consider using --thotsbay-username and --thotsbay-password")
+            log("Not being logged in might cause issues.")
+            logger.debug("No login provided - Thotsbay.")
 
         try:
             ShareX_urls, Chibisafe_urls, Erome_urls, GoFile_urls, Thotsbay_urls, Anonfile_urls, title = await self.parse(session, url, Cascade)
