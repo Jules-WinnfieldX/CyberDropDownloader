@@ -50,7 +50,7 @@ logger = logging.getLogger(__name__)
 
 
 def sanitize(input: str) -> str:
-    return re.sub(r'[<>:"/\\|?*]', "", input)
+    return re.sub(r'[<>:"/\\|?*\']', "", input)
 
 
 def sql_initialize():
