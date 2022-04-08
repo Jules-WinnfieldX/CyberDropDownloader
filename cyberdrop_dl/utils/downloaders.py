@@ -105,12 +105,12 @@ class Downloader:
 
                 ext = '.'+filename.split('.')[-1].lower()
                 if not (ext in FILE_FORMATS['Images'] or ext in FILE_FORMATS['Videos'] or ext in FILE_FORMATS['Audio'] or ext in FILE_FORMATS['Other']):
-                    resp = await session.get(url, headers=headers, ssl=ssl_context, raise_for_status=True)
-                    filename = resp.content_disposition.filename
-                    filename = sanitize(filename)
-                    del resp
-                    if (self.folder / self.title / filename).exists():
-                        return
+                    async with session.get(url, headers=headers, ssl=ssl_context, raise_for_status=True) as resp:
+                        filename = resp.content_disposition.filename
+                        filename = sanitize(filename)
+                        del resp
+                        if (self.folder / self.title / filename).exists():
+                            return
 
                 # Skip based on CLI arg.
                 ext = '.' + filename.split('.')[-1]
@@ -133,7 +133,7 @@ class Downloader:
 
                 if await sql_check_existing(self.cursor, str(url)):
                     log("\n%s Already Downloaded" % filename)
-                    logger.debug("%s was found in db file (already downloaded)" % filename)
+                    logger.debug("%s was found in db file (Previously downloaded)" % filename)
                     return
 
                 await sql_insert_file(self.connection, self.cursor, url, filename, 0)
@@ -146,28 +146,31 @@ class Downloader:
                     resume_point = temp_file.stat().st_size
                     headers['Range'] = 'bytes=%d-' % resume_point
 
-                resp = await session.get(url, headers=headers, ssl=ssl_context, raise_for_status=True)
-
-                content_type = resp.headers.get('Content-Type')
-                if 'text' in content_type.lower() or 'html' in content_type.lower():
-                    log(f"\nServer for {url} is either down or the file no longer exists", Fore.RED)
-                    return
-
-                total = int(resp.headers.get('Content-Length', str(0))) + resume_point
-                with tqdm(
-                        total=total, unit_scale=True,
-                        unit='B', leave=False, initial=resume_point,
-                        desc=filename, disable=(not show_progress)
-                ) as progress:
-                    async with aiofiles.open(temp_file, mode='ab') as f:
-                        async for chunk, _ in resp.content.iter_chunks():
-                            await f.write(chunk)
-                            progress.update(len(chunk))
+                async with session.get(url, headers=headers, ssl=ssl_context, raise_for_status=True, allow_redirects=False) as resp:
+                    content_type = resp.headers.get('Content-Type')
+                    if 'text' in content_type.lower() or 'html' in content_type.lower():
+                        log(f"\nServer for {url} is either down or the file no longer exists", Fore.RED)
+                        return
+                    total = int(resp.headers.get('Content-Length', str(0))) + resume_point
+                    with tqdm(
+                            total=total, unit_scale=True,
+                            unit='B', leave=False, initial=resume_point,
+                            desc=filename, disable=(not show_progress)
+                    ) as progress:
+                        async with aiofiles.open(temp_file, mode='ab') as f:
+                            async for chunk, _ in resp.content.iter_chunks():
+                                await f.write(chunk)
+                                progress.update(len(chunk))
             await sql_update_file(self.connection, self.cursor, url, filename, 1)
+            resp.close()
             await self.rename_file(filename)
         except (aiohttp.client_exceptions.ClientPayloadError, aiohttp.client_exceptions.ClientOSError,
                 aiohttp.client_exceptions.ServerDisconnectedError, asyncio.TimeoutError,
                 aiohttp.client_exceptions.ClientResponseError, FailureException) as e:
+            try:
+                resp.close()
+            except:
+                pass
             raise FailureException(e)
 
     async def rename_file(self, filename: str) -> None:
