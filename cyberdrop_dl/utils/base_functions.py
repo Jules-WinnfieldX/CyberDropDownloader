@@ -55,20 +55,18 @@ def sanitize(input: str) -> str:
 
 def sql_initialize():
     download_history = "download_history_size_based.sqlite"
-    if not os.path.isfile(download_history):
-        conn = sqlite3.connect(download_history)
-        curr = conn.cursor()
-        create_table_query = """CREATE TABLE downloads (
-                                    filename TEXT,
-                                    size INTEGER NOT NULL,
-                                    completed INTEGER NOT NULL,
-                                    PRIMARY KEY (filename, size)
-                                );"""
-        curr.execute(create_table_query)
-        conn.commit()
-    else:
-        conn = sqlite3.connect(download_history)
-        curr = conn.cursor()
+
+    conn = sqlite3.connect(download_history)
+    curr = conn.cursor()
+    create_table_query = """CREATE TABLE IF NOT EXISTS downloads (
+                                filename TEXT,
+                                size INTEGER NOT NULL,
+                                completed INTEGER NOT NULL,
+                                PRIMARY KEY (filename, size)
+                            );"""
+    curr.execute(create_table_query)
+
+    conn.commit()
     return conn, curr
 
 
