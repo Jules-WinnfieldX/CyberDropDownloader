@@ -143,7 +143,7 @@ class ThotsbayCrawler():
                     elif 'data' in link.parts:
                         Cascade.add_to_album("Thotsbay.com", "Attachments", link, url)
 
-                next_page = soup.select_one('pageNav-jump pageNav-jump--next')
+                next_page = soup.select_one('a[class="pageNav-jump pageNav-jump--next"]')
                 if next_page is not None:
                     next_page = next_page.get('href')
                     if next_page is not None:
