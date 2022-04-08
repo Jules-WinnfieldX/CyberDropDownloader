@@ -106,6 +106,23 @@ def make_title_safe(title: str):
     return title
 
 
+def purge_dir(dir, in_place=True):
+
+    deleted = []
+    dir_tree = list(os.walk(dir, topdown=False))
+
+    for tree_element in dir_tree:
+        sub_dir = tree_element[0]
+        is_empty = not len(os.listdir(sub_dir))
+        if is_empty:
+            deleted.append(sub_dir)
+
+    if in_place:
+        list(map(os.rmdir, deleted))
+
+    return deleted
+
+
 def regex_links(urls) -> list:
     all_links = [x.group().replace(".md.", ".") for x in
                  re.finditer(r"(?:http.*?)(?=('|$|\n|\r\n|\r|\s|\"|\[/URL]))", urls)]
