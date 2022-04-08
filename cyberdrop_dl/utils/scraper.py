@@ -53,10 +53,10 @@ async def scrape(urls, include_id: bool, thotsbay_username: str, thotsbay_passwo
         for url in Thotsbay_urls:
             results.append(await thotsbay_crawler.fetch(session, url))
 
-
         for result in results:
-            if result.domains:
-                Cascade.extend(result)
+            if result:
+                if result.domains:
+                    Cascade.extend(result)
 
     Cascade.cookies = jar
     return Cascade

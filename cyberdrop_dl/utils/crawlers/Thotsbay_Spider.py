@@ -51,7 +51,7 @@ class ThotsbayCrawler():
             logger.debug("No login provided - Thotsbay.")
 
         try:
-            ShareX_urls, Chibisafe_urls, Erome_urls, GoFile_urls, Thotsbay_urls, Anonfile_urls, title = await self.parse(session, url, Cascade)
+            ShareX_urls, Chibisafe_urls, Erome_urls, GoFile_urls, Thotsbay_urls, Anonfile_urls, title = await self.parse(session, url, Cascade, None)
         except:
             log("Error handling " + str(url))
             logger.debug("Error handling " + str(url))
@@ -79,18 +79,21 @@ class ThotsbayCrawler():
 
         return Cascade
 
-    async def parse(self, session, url, Cascade):
+    async def parse(self, session, url, Cascade, title):
         try:
             async with session.get(url, ssl=ssl_context) as response:
                 text = await response.text()
                 soup = BeautifulSoup(text, 'html.parser')
 
-                title = soup.find('title').text
-                if self.include_id:
-                    titlep2 = url.name
-                    titlep2 = [s for s in titlep2 if "." in s][-1]
-                    title = title + " - " + titlep2
-                title = make_title_safe(title.replace(r"\n", "").strip())
+                if title:
+                    pass
+                else:
+                    title = soup.find('title').text
+                    if self.include_id:
+                        titlep2 = url.name
+                        titlep2 = [s for s in titlep2 if "." in s][-1]
+                        title = title + " - " + titlep2
+                    title = make_title_safe(title.replace(r"\n", "").strip())
 
                 content_links = []
 
@@ -110,19 +113,28 @@ class ThotsbayCrawler():
                     links = post_content.select('a')
                     for link in links:
                         link = link.get('href')
-                        if link.startswith('//'):
-                            link = "https:" + link
-                        content_links.append(URL(link))
-                    links = post.select("div[class='bbImageWrapper js-lbImage']")
-                    for link in links:
-                        content_links.append(URL(link.get('data-src')))
-                    links = post.select("video source")
-                    for link in links:
-                        link = link.get('src')
+                        if link.endswith("/"):
+                            link = link[:-1]
                         if link.startswith('//'):
                             link = "https:" + link
                         elif link.startswith('/'):
                             link = URL("https://forum.thotsbay.com") / link[1:]
+                        content_links.append(URL(link))
+                    links = post.select("div[class='bbImageWrapper js-lbImage']")
+                    for link in links:
+                        link = link.get('data-src')
+                        if link.endswith("/"):
+                            link = link[:-1]
+                        content_links.append(URL(link))
+                    links = post.select("video source")
+                    for link in links:
+                        link = link.get('src')
+                        if link.endswith("/"):
+                            link = link[:-1]
+                        if link.startswith('//'):
+                            link = "https:" + link
+                        elif link.startswith('/'):
+                            link = "https://forum.thotsbay.com" + link
                         content_links.append(URL(link))
 
                     attachments_block = post.select_one("section[class=message-attachments]")
@@ -138,6 +150,8 @@ class ThotsbayCrawler():
                 ShareX_urls, Chibisafe_urls, Erome_urls, GoFile_urls, Thotsbay_urls, Anonfile_urls = url_sort(content_links, Cascade)
 
                 for link in Thotsbay_urls:
+                    if str(link).endswith("/"):
+                        link = URL(str(link)[:-1])
                     if 'attachments' in link.parts:
                         Cascade.add_to_album("Thotsbay.com", "Attachments", link, url)
                     elif 'data' in link.parts:
@@ -147,8 +161,10 @@ class ThotsbayCrawler():
                 if next_page is not None:
                     next_page = next_page.get('href')
                     if next_page is not None:
+                        if next_page.startswith('/'):
+                            next_page = URL("https://forum.thotsbay.com") / next_page[1:]
                         next_page = URL(next_page)
-                        ShareX_urls_ret, Chibisafe_urls_ret, Erome_urls_ret, GoFile_urls_ret, Thotsbay_urls_ret, Anonfile_urls_ret, title = await self.parse(session, next_page, Cascade)
+                        ShareX_urls_ret, Chibisafe_urls_ret, Erome_urls_ret, GoFile_urls_ret, Thotsbay_urls_ret, Anonfile_urls_ret, title = await self.parse(session, next_page, Cascade, title)
                         ShareX_urls.extend(ShareX_urls_ret)
                         Chibisafe_urls.extend(Chibisafe_urls_ret)
                         Erome_urls.extend(Erome_urls_ret)
