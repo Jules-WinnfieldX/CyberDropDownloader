@@ -55,7 +55,7 @@ async def throttle(self, url: URL) -> None:
             self.throttle_times[key] = now
             return
 
-        remaining = delay - elapsed + 1
+        remaining = delay - elapsed + 0.25
 
         log_string = '\nDelaying request to %s for %.2f seconds.' % (host, remaining)
         logger.debug(log_string)
@@ -85,7 +85,7 @@ class Downloader:
 
         self.max_workers = max_workers
         self._semaphore = asyncio.Semaphore(max_workers)
-        self.delay = {'media-files.bunkr.is': 2}
+        self.delay = {'media-files.bunkr.is': 0.5}
         self.throttle_times = {}
 
     """Changed from aiohttp exceptions caught to FailureException to allow for partial downloads."""
