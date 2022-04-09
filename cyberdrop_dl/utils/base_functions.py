@@ -159,6 +159,12 @@ def check_direct(url: URL):
     return False
 
 
+def unique_list(list1):
+    list_set = set(list1)
+    unique = list(list_set)
+    return unique
+
+
 def url_sort(urls, Cascade):
     ShareX_urls = []
     Chibisafe_urls = []

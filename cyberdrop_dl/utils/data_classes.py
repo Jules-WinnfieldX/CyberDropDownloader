@@ -2,7 +2,8 @@ from dataclasses import dataclass
 from typing import Optional, List, Dict, Tuple, AnyStr, Any
 
 import aiohttp
-from yarl import *
+
+from .base_functions import*
 
 
 @dataclass
@@ -85,3 +86,8 @@ class CascadeItem:
             for domain_str, domain in Cascade.domains.items():
                 for album_str, album in domain.albums.items():
                     self.add_album(domain_str, album_str, album)
+
+    def dedupe(self):
+        for domain_str, domain in self.domains.items():
+            for album_str, album in domain.albums.items():
+                album.link_pairs = unique_list(album.link_pairs)

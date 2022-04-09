@@ -29,7 +29,7 @@ def retry(f):
                 if not self.disable_attempt_limit:
                     if self.current_attempt >= self.attempts - 1:
                         raise
-                logger.debug('Retrying...')
+                logger.debug('Retrying %s...' % args[0])
                 self.attempts += 1
                 await asyncio.sleep(2)
     return wrapper
@@ -146,12 +146,12 @@ class Downloader:
                 async with session.get(url, headers=headers, ssl=ssl_context, raise_for_status=True) as resp:
                     content_type = resp.headers.get('Content-Type')
                     if 'text' in content_type.lower() or 'html' in content_type.lower():
-                        log(f"\nServer for {url} is either down or the file no longer exists", Fore.RED)
+                        log(f"\nServer for {url} is either down or the file no longer exists\n", Fore.RED)
                         return
                     total = int(resp.headers.get('Content-Length', str(0))) + resume_point
 
                     if await sql_check_existing(self.cursor, filename, total):
-                        log("\n%s Already Downloaded" % filename)
+                        log("\n%s Already Downloaded\n" % filename)
                         logger.debug("%s was found in db file (Previously downloaded)" % filename)
                         return
 

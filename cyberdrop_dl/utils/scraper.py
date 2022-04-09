@@ -59,4 +59,5 @@ async def scrape(urls, include_id: bool, thotsbay_username: str, thotsbay_passwo
                     Cascade.extend(result)
 
     Cascade.cookies = jar
+    Cascade.dedupe()
     return Cascade
