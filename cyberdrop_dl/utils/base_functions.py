@@ -28,7 +28,7 @@ FILE_FORMATS = {
         '.mp3', '.flac', '.wav', '.m4a'
     },
     'Other': {
-        '.json', '.torrent', '.zip'
+        '.json', '.torrent', '.zip', '.rar'
     }
 }
 
