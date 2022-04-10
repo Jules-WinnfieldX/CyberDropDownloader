@@ -90,4 +90,13 @@ class CascadeItem:
     def dedupe(self):
         for domain_str, domain in self.domains.items():
             for album_str, album in domain.albums.items():
-                album.link_pairs = unique_list(album.link_pairs)
+                check = []
+                allowed = []
+                for pair in album.link_pairs:
+                    url, referrer = pair
+                    if url in check:
+                        continue
+                    else:
+                        check.append(url)
+                        allowed.append(pair)
+                album.link_pairs = allowed

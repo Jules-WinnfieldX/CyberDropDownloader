@@ -209,6 +209,7 @@ class Downloader:
         complete_file = (self.folder / self.title / filename)
         if complete_file.exists():
             await sql_update_file(self.connection, self.cursor, filename, complete_file.stat().st_size, 1)
+
             logger.debug(str(complete_file) + " Already Exists")
         else:
             logger.debug("Working on " + str(url))

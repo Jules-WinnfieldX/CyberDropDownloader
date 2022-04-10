@@ -40,8 +40,7 @@ mapping_Pixeldrain = ["pixeldrain.com"]
 mapping_Thotsbay = ["thotsbay.com"]
 mapping_Anonfiles = ["anonfiles.com"]
 
-user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.71 ' \
-             'Safari/537.36'
+user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.75 Safari/537.36'
 ssl_context = ssl.create_default_context(cafile=certifi.where())
 
 MAX_FILENAME_LENGTH = 100
@@ -81,10 +80,12 @@ async def sql_check_existing(cursor: sqlite3.Cursor, filename, size):
 
 async def sql_insert_file(connection: sqlite3.Connection, cursor: sqlite3.Cursor, filename, size, completed):
     cursor.execute("""INSERT OR IGNORE INTO downloads VALUES ('%s', %d, %d)""" % (filename, size, completed))
+    connection.commit()
 
 
 async def sql_update_file(connection: sqlite3.Connection, cursor: sqlite3.Cursor, filename, size, completed):
     cursor.execute("""INSERT OR REPLACE INTO downloads VALUES ('%s', %d, %d)""" % (filename, size, completed))
+    connection.commit()
 
 
 def log(text, style=Fore.WHITE) -> None:
