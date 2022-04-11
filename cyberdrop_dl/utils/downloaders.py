@@ -171,10 +171,10 @@ class Downloader:
                 aiohttp.client_exceptions.ServerDisconnectedError, asyncio.TimeoutError,
                 aiohttp.client_exceptions.ClientResponseError, FailureException) as e:
             try:
-                resp.close()
                 if 400 <= e.code < 500:
-                    log("We ran into a 404")
+                    log("We ran into a 400 level error")
                     return
+                resp.close()
             except:
                 pass
 
