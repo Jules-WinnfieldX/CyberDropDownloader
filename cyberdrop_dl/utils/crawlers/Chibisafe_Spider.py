@@ -1,6 +1,5 @@
 from bs4 import BeautifulSoup
 
-from ..base_functions import *
 from ..data_classes import *
 
 
@@ -13,7 +12,7 @@ class ChibisafeCrawler():
         base_domain = "{}.{}".format(url_extract.domain, url_extract.suffix)
         domain_obj = DomainItem(base_domain, {})
 
-        log("Starting scrape of " + str(url), Fore.WHITE)
+        await log("Starting scrape of " + str(url), Fore.WHITE)
 
         try:
             async with session.get(url, ssl=ssl_context) as response:
@@ -27,19 +26,21 @@ class ChibisafeCrawler():
                     titlep2 = url.name
                     titlep2 = [s for s in titlep2 if "." in s][-1]
                     title = title + " - " + titlep2
-                title = make_title_safe(title.replace(r"\n", "").strip())
+                title = await make_title_safe(title.replace(r"\n", "").strip())
 
                 links = soup.select("a[class=image]")
                 for link in links:
                     link = URL(link.get('href'))
                     if 'bunkr' in link.host:
-                        link = bunkr_parse(link)
-                    domain_obj.add_to_album(title, link, url)
+                        link = await bunkr_parse(link)
+                    elif 'cyberdrop' in link.host:
+                        link = await cyberdrop_parse(link)
+                    await domain_obj.add_to_album(title, link, url)
 
         except Exception as e:
             logger.debug("Error encountered while handling %s", str(url), exc_info=True)
             logger.debug(e)
 
-        log("Finished scrape of " + str(url), Fore.WHITE)
+        await log("Finished scrape of " + str(url), Fore.WHITE)
 
         return domain_obj

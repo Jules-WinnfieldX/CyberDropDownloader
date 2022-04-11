@@ -40,29 +40,30 @@ class ThotsbayCrawler():
     async def fetch(self, session, url):
         Cascade = CascadeItem({})
 
-        log("Starting scrape of " + str(url), Fore.WHITE)
+        await log("Starting scrape of " + str(url), Fore.WHITE)
 
         if self.username and self.password:
             await self.login(session)
         else:
-            log("login wasn't provided, consider using --thotsbay-username and --thotsbay-password")
-            log("Not being logged in might cause issues.")
+            await log("login wasn't provided, consider using --thotsbay-username and --thotsbay-password")
+            await log("Not being logged in might cause issues.")
 
         try:
             ShareX_urls, Chibisafe_urls, Erome_urls, GoFile_urls, Thotsbay_urls, Anonfile_urls, title = await self.parse(session, url, Cascade, None)
         except:
-            log("Error handling " + str(url))
+            await log("Error handling " + str(url))
             return
+
         tasks = []
         for url in Erome_urls:
             tasks.append(self.erome_crawler.fetch(session, url))
         for url in ShareX_urls:
-            if check_direct(url):
-                Cascade.add_to_album(url.host, "ShareX Loose Files", url, url)
+            if await check_direct(url):
+                await Cascade.add_to_album(url.host, "ShareX Loose Files", url, url)
             tasks.append(self.sharex_crawler.fetch(session, url))
         for url in Chibisafe_urls:
-            if check_direct(url):
-                Cascade.add_to_album(url.host, "Chibisafe Loose Files", url, url)
+            if await check_direct(url):
+                await Cascade.add_to_album(url.host, "Chibisafe Loose Files", url, url)
             tasks.append(self.chibisafe_crawler.fetch(session, url))
         for url in GoFile_urls:
             tasks.append(self.gofile_crawler.fetch(session, url))
@@ -71,12 +72,10 @@ class ThotsbayCrawler():
         results = await asyncio.gather(*tasks)
 
         for result in results:
-            Cascade.add_albums(result)
+            await Cascade.add_albums(result)
 
-        Cascade.append_title(title)
-
-        log("Finished scrape of " + str(url), Fore.WHITE)
-
+        await Cascade.append_title(title)
+        await log("Finished scrape of " + str(url), Fore.WHITE)
         return Cascade
 
     async def parse(self, session, url, Cascade, title):
@@ -93,7 +92,7 @@ class ThotsbayCrawler():
                         titlep2 = url.name
                         titlep2 = [s for s in titlep2 if "." in s][-1]
                         title = title + " - " + titlep2
-                    title = make_title_safe(title.replace(r"\n", "").strip())
+                    title = await make_title_safe(title.replace(r"\n", "").strip())
 
                 content_links = []
 
@@ -145,17 +144,17 @@ class ThotsbayCrawler():
                             link = link[:-1]
                         if link.startswith('/'):
                             link = URL("https://forum.thotsbay.com") / link[1:]
-                        Cascade.add_to_album("Thotsbay.com", "Attachments", link, url)
+                        await Cascade.add_to_album("Thotsbay.com", "Attachments", link, url)
 
-                ShareX_urls, Chibisafe_urls, Erome_urls, GoFile_urls, Thotsbay_urls, Anonfile_urls = url_sort(content_links, Cascade)
+                ShareX_urls, Chibisafe_urls, Erome_urls, GoFile_urls, Thotsbay_urls, Anonfile_urls = await url_sort(content_links, Cascade)
 
                 for link in Thotsbay_urls:
                     if str(link).endswith("/"):
                         link = URL(str(link)[:-1])
                     if 'attachments' in link.parts:
-                        Cascade.add_to_album("Thotsbay.com", "Attachments", link, url)
+                        await Cascade.add_to_album("Thotsbay.com", "Attachments", link, url)
                     elif 'data' in link.parts:
-                        Cascade.add_to_album("Thotsbay.com", "Attachments", link, url)
+                        await Cascade.add_to_album("Thotsbay.com", "Attachments", link, url)
 
                 next_page = soup.select_one('a[class="pageNav-jump pageNav-jump--next"]')
                 if next_page is not None:

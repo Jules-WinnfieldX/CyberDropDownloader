@@ -13,7 +13,7 @@ class ShareXCrawler():
         base_domain = "{}.{}".format(url_extract.domain, url_extract.suffix)
         domain_obj = DomainItem(base_domain, {})
 
-        log("Starting scrape of " + str(url), Fore.WHITE)
+        await log("Starting scrape of " + str(url), Fore.WHITE)
 
         if "album" in url.parts or "a" in url.parts:
             results = await self.parse(url, session)
@@ -23,10 +23,11 @@ class ShareXCrawler():
             results = await self.get_singular(url, session)
         else:
             results = await self.parse_profile(url, session)
-        for result in results:
-            domain_obj.add_to_album(result['title'], result['url'], result['referral'])
 
-        log("Finished scrape of " + str(url), Fore.WHITE)
+        for result in results:
+            await domain_obj.add_to_album(result['title'], result['url'], result['referral'])
+
+        await log("Finished scrape of " + str(url), Fore.WHITE)
 
         return domain_obj
 
@@ -89,7 +90,7 @@ class ShareXCrawler():
                 elif self.include_id:
                     titlep2 = url.name
                     title = title + " - " + titlep2
-                title = make_title_safe(title.replace(r"\n", "").strip())
+                title = await make_title_safe(title.replace(r"\n", "").strip())
 
                 list_recent = URL(soup.select_one("a[id=list-most-recent-link]").get('href'))
                 results.extend(result for result in await self.get_list_links(list_recent, session, title))
@@ -136,7 +137,7 @@ class ShareXCrawler():
                 elif self.include_id:
                     titlep2 = url.name
                     title = title + " - " + titlep2
-                title = make_title_safe(title.replace(r"\n", "").strip())
+                title = await make_title_safe(title.replace(r"\n", "").strip())
 
                 if og_title is not None:
                     title = og_title + "/" + title

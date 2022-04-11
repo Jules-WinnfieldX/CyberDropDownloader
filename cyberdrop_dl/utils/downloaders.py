@@ -111,7 +111,7 @@ class Downloader:
                 if not (ext in FILE_FORMATS['Images'] or ext in FILE_FORMATS['Videos'] or ext in FILE_FORMATS['Audio'] or ext in FILE_FORMATS['Other']):
                     async with session.get(url, headers=headers, ssl=ssl_context, raise_for_status=True) as resp:
                         filename = resp.content_disposition.filename
-                        filename = sanitize(filename)
+                        filename = await sanitize(filename)
                         del resp
                         if (self.folder / self.title / filename).exists():
                             return
@@ -146,12 +146,12 @@ class Downloader:
                 async with session.get(url, headers=headers, ssl=ssl_context, raise_for_status=True) as resp:
                     content_type = resp.headers.get('Content-Type')
                     if 'text' in content_type.lower() or 'html' in content_type.lower():
-                        log(f"\nServer for {url} is either down or the file no longer exists\n", Fore.RED)
+                        await log(f"\nServer for {url} is either down or the file no longer exists\n", Fore.RED)
                         return
                     total = int(resp.headers.get('Content-Length', str(0))) + resume_point
 
                     if await sql_check_existing(self.cursor, filename, total):
-                        log("\n%s Already Downloaded\n" % filename)
+                        await log("\n%s Already Downloaded\n" % filename)
                         return
 
                     await sql_insert_file(self.connection, self.cursor, filename, total, 0)
@@ -172,12 +172,11 @@ class Downloader:
                 aiohttp.client_exceptions.ClientResponseError, FailureException) as e:
             try:
                 if 400 <= e.code < 500:
-                    log("We ran into a 400 level error")
+                    await log("\nWe ran into a 400 level error: %s\n" % str(e.code))
                     return
                 resp.close()
             except:
                 pass
-
             raise FailureException(e)
 
     async def rename_file(self, filename: str) -> None:
@@ -202,7 +201,7 @@ class Downloader:
         url, referral = url_tuple
 
         filename = url.name
-        filename = sanitize(filename)
+        filename = await sanitize(filename)
         if "v=" in filename:
             filename = filename.split('v=')[0]
         if len(filename) > MAX_FILENAME_LENGTH:
@@ -212,7 +211,6 @@ class Downloader:
         complete_file = (self.folder / self.title / filename)
         if complete_file.exists():
             await sql_update_file(self.connection, self.cursor, filename, complete_file.stat().st_size, 1)
-
             logger.debug(str(complete_file) + " Already Exists")
         else:
             logger.debug("Working on " + str(url))
@@ -221,7 +219,7 @@ class Downloader:
                                          session=session, show_progress=show_progress)
             except Exception:
                 logger.debug(traceback.format_exc())
-                log(f"\nError attempting {filename}: See downloader.log for details\n", Fore.WHITE)
+                await log(f"\nError attempting {filename}: See downloader.log for details\n", Fore.WHITE)
 
     async def download_all(
             self,
@@ -235,10 +233,7 @@ class Downloader:
         for func in tqdm(asyncio.as_completed(coros), total=len(coros), desc=self.title, unit='FILES'):
             await func
 
-    async def download_content(
-            self,
-            show_progress: bool = True
-    ) -> None:
+    async def download_content(self, show_progress: bool = True) -> None:
         """Download the content of all links and save them as files."""
         (self.folder / self.title).mkdir(parents=True, exist_ok=True)
         async with aiohttp.ClientSession(cookie_jar=self.cookie_jar) as session:

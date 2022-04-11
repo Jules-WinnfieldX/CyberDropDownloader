@@ -1,6 +1,5 @@
 from bs4 import BeautifulSoup
 
-from ..base_functions import *
 from ..data_classes import *
 
 
@@ -13,7 +12,7 @@ class EromeCrawler():
         base_domain = "{}.{}".format(url_extract.domain, url_extract.suffix)
         domain_obj = DomainItem(base_domain, {})
 
-        log("Starting scrape of " + str(url), Fore.WHITE)
+        await log("Starting scrape of " + str(url), Fore.WHITE)
 
         try:
             async with session.get(url, ssl=ssl_context) as response:
@@ -26,20 +25,20 @@ class EromeCrawler():
                     title = url.name
                 elif self.include_id:
                     title = title + " - " + url.name
-                title = make_title_safe(title)
+                title = await make_title_safe(title)
 
                 # Images
                 for link in soup.select('img[class="img-front lasyload"]'):
-                    domain_obj.add_to_album(title, URL(link['data-src']), url)
+                    await domain_obj.add_to_album(title, URL(link['data-src']), url)
 
                 # Videos
                 for link in soup.select('div[class=media-group] div[class=video-lg] video source'):
-                    domain_obj.add_to_album(title, URL(link['src']), url)
+                    await domain_obj.add_to_album(title, URL(link['src']), url)
 
         except Exception as e:
             logger.debug("Error encountered while handling %s", str(url), exc_info=True)
             logger.debug(e)
 
-        log("Finished scrape of " + str(url), Fore.WHITE)
+        await log("Finished scrape of " + str(url), Fore.WHITE)
 
         return domain_obj

@@ -6,3 +6,7 @@ Made my custom log function also output to the Downloader.log file
 Added handling for .mkv files because apparently that wasn't a thing I was doing.
 Add handling for more direct links from cyberdrop (maybe, might cause issues)
 Fixed my instant returns for 400-500 status.
+
+2.14.9
+We're trying just cyberdrop.to for faster cyberdrop downloads
+Change all funcs to be async

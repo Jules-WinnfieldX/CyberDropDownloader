@@ -13,9 +13,9 @@ from .base_functions import *
 async def scrape(urls, include_id: bool, thotsbay_username: str, thotsbay_password: str):
     Cascade = CascadeItem({})
 
-    log("Starting Scrape", Fore.WHITE)
+    await log("Starting Scrape", Fore.WHITE)
 
-    ShareX_urls, Chibisafe_urls, Erome_urls, GoFile_urls, Thotsbay_urls, Anonfile_urls = url_sort(urls, Cascade)
+    ShareX_urls, Chibisafe_urls, Erome_urls, GoFile_urls, Thotsbay_urls, Anonfile_urls = await url_sort(urls, Cascade)
 
     erome_crawler = EromeCrawler(include_id=include_id)
     sharex_crawler = ShareXCrawler(include_id=include_id)
@@ -46,7 +46,7 @@ async def scrape(urls, include_id: bool, thotsbay_username: str, thotsbay_passwo
         results = await asyncio.gather(*tasks)
 
         for domain_item in results:
-            Cascade.add_albums(domain_item)
+            await Cascade.add_albums(domain_item)
 
         # Returns a Cascade item
         results = []
@@ -56,8 +56,8 @@ async def scrape(urls, include_id: bool, thotsbay_username: str, thotsbay_passwo
         for result in results:
             if result:
                 if result.domains:
-                    Cascade.extend(result)
+                    await Cascade.extend(result)
 
     Cascade.cookies = jar
-    Cascade.dedupe()
+    await Cascade.dedupe()
     return Cascade

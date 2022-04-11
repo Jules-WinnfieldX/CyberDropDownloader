@@ -1,6 +1,5 @@
 from bs4 import BeautifulSoup
 
-from ..base_functions import *
 from ..data_classes import *
 
 
@@ -13,7 +12,7 @@ class AnonfilesCrawler():
         base_domain = "{}.{}".format(url_extract.domain, url_extract.suffix)
         domain_obj = DomainItem(base_domain, {})
 
-        log("Starting scrape of " + str(url), Fore.WHITE)
+        await log("Starting scrape of " + str(url), Fore.WHITE)
 
         try:
             async with session.get(url, ssl=ssl_context) as response:
@@ -24,12 +23,12 @@ class AnonfilesCrawler():
 
                 link = soup.select_one("a[id=download-url]")
                 link = URL(link.get('href'))
-                domain_obj.add_to_album(title, link, url)
+                await domain_obj.add_to_album(title, link, url)
 
         except Exception as e:
             logger.debug("Error encountered while handling %s", str(url), exc_info=True)
             logger.debug(e)
 
-        log("Finished scrape of " + str(url), Fore.WHITE)
+        await log("Finished scrape of " + str(url), Fore.WHITE)
 
         return domain_obj

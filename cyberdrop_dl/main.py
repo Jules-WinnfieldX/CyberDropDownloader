@@ -33,28 +33,27 @@ def parse_args():
 
 
 async def download_all(args: argparse.Namespace):
-    clear()
-    log(f"We are running version {VERSION} of Cyberdrop Downloader", Fore.WHITE)
+    await clear()
+    await log(f"We are running version {VERSION} of Cyberdrop Downloader", Fore.WHITE)
     logging.debug(f"Starting downloader with args: {args.__dict__}")
     input_file = Path(args.input_file)
     if not os.path.isfile(input_file):
         Path.touch(input_file)
-        log(f"{input_file} created. Populate it and retry.")
+        await log(f"{input_file} created. Populate it and retry.")
         exit(1)
 
-    conn, curr = sql_initialize()
+    conn, curr = await sql_initialize()
 
     links = args.links
     with open(input_file, "r") as f:
-        links += regex_links(f.read())
+        links += await regex_links(f.read())
     content_object = await scrape(links, args.include_id, args.thotsbay_username, args.thotsbay_password)
-    if content_object.is_empty():
+    if await content_object.is_empty():
         logging.error(f'ValueError No links')
-        log('No links found, check the URL.txt\nIf the link works in your web browser, '
-            'please open an issue ticket with me.', Fore.RED)
-        log("This program does not currently support password protected albums.", Fore.RED)
+        await log('No links found, check the URL.txt\nIf the link works in your web browser, please open an issue ticket with me.', Fore.RED)
+        await log("This program does not currently support password protected albums.", Fore.RED)
         exit(0)
-    clear()
+    await clear()
     downloaders = get_downloaders(content_object, folder=Path(args.output_folder), attempts=args.attempts,
                                   disable_attempt_limit=args.disable_attempt_limit,
                                   threads=args.threads, exclude_videos=args.exclude_videos,
@@ -69,12 +68,12 @@ async def download_all(args: argparse.Namespace):
     combined = '\t'.join(all_files)
 
     conn.commit()
-    log('Purging empty directories')
-    deleted = purge_dir(args.output_folder)
+    await log('Purging empty directories')
+    deleted = await purge_dir(args.output_folder)
 
-    log('Finished downloading. Enjoy :)')
+    await log('Finished downloading. Enjoy :)')
     if '.part' in combined:
-        log('There are still partial downloads in your folders, please re-run the program.')
+        await log('There are still partial downloads in your folders, please re-run the program.')
 
 
 def main():

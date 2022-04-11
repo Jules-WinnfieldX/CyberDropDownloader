@@ -23,14 +23,14 @@ class GofileCrawler():
 
         results = await self.get_links(url)
 
-        log("Starting scrape of " + str(url), Fore.WHITE)
+        await log("Starting scrape of " + str(url), Fore.WHITE)
         logging.debug("Starting scrape of " + str(url))
 
         if results:
             for result in results:
-                domain_obj.add_to_album(result['title'], result['url'], result['referral'])
+                await domain_obj.add_to_album(result['title'], result['url'], result['referral'])
 
-        log("Finished scrape of " + str(url), Fore.WHITE)
+        await log("Finished scrape of " + str(url), Fore.WHITE)
 
         return domain_obj
 
@@ -40,7 +40,7 @@ class GofileCrawler():
         try:
             content = self.client.get_content(content_id)
         except:
-            log("GoFile seems to be down.")
+            await log("GoFile seems to be down.")
             logging.debug("GoFile seems to be down or the link is dead")
             return
         if not content:

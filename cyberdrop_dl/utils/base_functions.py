@@ -48,11 +48,11 @@ MAX_FILENAME_LENGTH = 100
 logger = logging.getLogger(__name__)
 
 
-def sanitize(input: str) -> str:
+async def sanitize(input: str) -> str:
     return re.sub(r'[<>:"/\\|?*\']', "", input)
 
 
-def sql_initialize():
+async def sql_initialize():
     download_history = "download_history_size_based.sqlite"
 
     conn = sqlite3.connect(download_history)
@@ -88,23 +88,23 @@ async def sql_update_file(connection: sqlite3.Connection, cursor: sqlite3.Cursor
     connection.commit()
 
 
-def log(text, style=Fore.WHITE) -> None:
+async def log(text, style=Fore.WHITE) -> None:
     """Wrapper around print() to add color to text"""
     logger.debug(text)
     print(style + str(text) + Style.RESET_ALL)
 
 
-def clear() -> None:
+async def clear() -> None:
     """Clears the terminal screen"""
     os.system('cls' if os.name == 'nt' else 'clear')
 
 
-def make_title_safe(title: str):
+async def make_title_safe(title: str):
     title = re.sub(r'[\\*?:"<>|./]', "-", title)
     return title
 
 
-def purge_dir(dir, in_place=True):
+async def purge_dir(dir, in_place=True):
 
     deleted = []
     dir_tree = list(os.walk(dir, topdown=False))
@@ -121,16 +121,15 @@ def purge_dir(dir, in_place=True):
     return deleted
 
 
-def regex_links(urls) -> list:
-    all_links = [x.group().replace(".md.", ".") for x in
-                 re.finditer(r"(?:http.*?)(?=('|$|\n|\r\n|\r|\s|\"|\[/URL]))", urls)]
+async def regex_links(urls) -> list:
+    all_links = [x.group().replace(".md.", ".") for x in re.finditer(r"(?:http.*?)(?=('|$|\n|\r\n|\r|\s|\"|\[/URL]))", urls)]
     yarl_links = []
     for link in all_links:
         yarl_links.append(URL(link))
     return yarl_links
 
 
-def bunkr_parse(url: URL) -> URL:
+async def bunkr_parse(url: URL) -> URL:
     """Fix the URL for bunkr.is."""
     extension = '.' + str(url).split('.')[-1]
     if extension.lower() in FILE_FORMATS['Videos']:
@@ -142,7 +141,15 @@ def bunkr_parse(url: URL) -> URL:
     return url
 
 
-def pixeldrain_parse(url: URL, title: str) -> URL:
+async def cyberdrop_parse(url: URL) -> URL:
+    mapping_direct = [r'img-...cyberdrop...', r'f.cyberdrop...', r'fs-...cyberdrop...']
+    url = str(url)
+    for mapping in mapping_direct:
+        url = re.sub(mapping, 'cyberdrop.to', url)
+    return URL(url)
+
+
+async def pixeldrain_parse(url: URL, title: str) -> URL:
     """Fix the URL for Pixeldrain"""
     if url.parts[1] == 'l':
         final_url = URL('https://pixeldrain.com/api/list/') / title / 'zip'
@@ -151,7 +158,7 @@ def pixeldrain_parse(url: URL, title: str) -> URL:
     return final_url
 
 
-def check_direct(url: URL):
+async def check_direct(url: URL):
     mapping_direct = ['i.pixl.is', r's..putmega.com', r's..putme.ga', r'img-...cyberdrop...', r'f.cyberdrop...',
                       r'fs-...cyberdrop...', r'cdn.bunkr...', r'media-files.bunkr...', r'jpg.church/images/...',
                       r'stream.bunkr...', r'simp..jpg.church']
@@ -164,13 +171,7 @@ def check_direct(url: URL):
     return False
 
 
-def unique_list(list1):
-    list_set = set(list1)
-    unique = list(list_set)
-    return unique
-
-
-def url_sort(urls, Cascade):
+async def url_sort(urls, Cascade):
     ShareX_urls = []
     Chibisafe_urls = []
     Erome_urls = []
@@ -183,17 +184,17 @@ def url_sort(urls, Cascade):
         base_domain = "{}.{}".format(url_extract.domain, url_extract.suffix)
 
         if base_domain in mapping_ShareX:
-            if check_direct(url):
-                Cascade.add_to_album(base_domain, "ShareX Loose Files", url, url)
+            if await check_direct(url):
+                await Cascade.add_to_album(base_domain, "ShareX Loose Files", url, url)
             else:
                 ShareX_urls.append(url)
 
         elif base_domain in mapping_Chibisafe:
-            if check_direct(url):
+            if await check_direct(url):
                 if 'bunkr' in url.host:
-                    Cascade.add_to_album(base_domain, "Chibisafe Loose Files", bunkr_parse(url), url)
+                    await Cascade.add_to_album(base_domain, "Chibisafe Loose Files", bunkr_parse(url), url)
                 else:
-                    Cascade.add_to_album(base_domain, "Chibisafe Loose Files", url, url)
+                    await Cascade.add_to_album(base_domain, "Chibisafe Loose Files", url, url)
             else:
                 Chibisafe_urls.append(url)
 
@@ -205,7 +206,7 @@ def url_sort(urls, Cascade):
 
         elif base_domain in mapping_Pixeldrain:
             title = str(url).split('/')[-1]
-            Cascade.add_to_album(base_domain, title, pixeldrain_parse(url, title), url)
+            await Cascade.add_to_album(base_domain, title, pixeldrain_parse(url, title), url)
 
         elif base_domain in mapping_Anonfiles:
             Anonfiles_urls.append(url)
@@ -214,7 +215,6 @@ def url_sort(urls, Cascade):
             Thotsbay_urls.append(url)
 
         else:
-            log(str(url) + " is not supported currently.")
-            logger.debug(str(url) + " is not supported currently.")
+            await log(str(url) + " is not supported currently.")
 
     return ShareX_urls, Chibisafe_urls, Erome_urls, GoFile_urls, Thotsbay_urls, Anonfiles_urls
