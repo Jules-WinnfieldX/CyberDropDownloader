@@ -22,7 +22,7 @@ FILE_FORMATS = {
         '.swf', '.avi', '.m4p', '.wmv',
         '.mp2', '.m4v', '.qt', '.mpe',
         '.mp4', '.flv', '.mov', '.mpg',
-        '.ogg',
+        '.ogg', '.mkv'
     },
     'Audio': {
         '.mp3', '.flac', '.wav', '.m4a'

@@ -1,0 +1,6 @@
+2.14.6
+Added instant returns on 404 (page not found)
+Made my custom log function also output to the Downloader.log file
+
+2.14.7
+Added handling for .mkv files because apparently that wasn't a thing I was doing.
