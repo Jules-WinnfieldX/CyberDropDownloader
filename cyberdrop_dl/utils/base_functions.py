@@ -192,7 +192,9 @@ async def url_sort(urls, Cascade):
         elif base_domain in mapping_Chibisafe:
             if await check_direct(url):
                 if 'bunkr' in url.host:
-                    await Cascade.add_to_album(base_domain, "Chibisafe Loose Files", bunkr_parse(url), url)
+                    await Cascade.add_to_album(base_domain, "Chibisafe Loose Files", await bunkr_parse(url), url)
+                elif 'cyberdrop' in url.host:
+                    await Cascade.add_to_album(base_domain, "Chibisafe Loose Files", await cyberdrop_parse(url), url)
                 else:
                     await Cascade.add_to_album(base_domain, "Chibisafe Loose Files", url, url)
             else:
@@ -206,7 +208,7 @@ async def url_sort(urls, Cascade):
 
         elif base_domain in mapping_Pixeldrain:
             title = str(url).split('/')[-1]
-            await Cascade.add_to_album(base_domain, title, pixeldrain_parse(url, title), url)
+            await Cascade.add_to_album(base_domain, title, await pixeldrain_parse(url, title), url)
 
         elif base_domain in mapping_Anonfiles:
             Anonfiles_urls.append(url)
