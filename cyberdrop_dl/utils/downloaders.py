@@ -172,7 +172,7 @@ class Downloader:
                 aiohttp.client_exceptions.ClientResponseError, FailureException) as e:
             try:
                 resp.close()
-                if e.code == 404:
+                if 400 <= e.code < 500:
                     log("We ran into a 404")
                     return
             except:

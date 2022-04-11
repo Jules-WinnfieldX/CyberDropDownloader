@@ -156,7 +156,10 @@ def check_direct(url: URL):
                       r'fs-...cyberdrop...', r'cdn.bunkr...', r'media-files.bunkr...', r'jpg.church/images/...',
                       r'stream.bunkr...', r'simp..jpg.church']
     for domain in mapping_direct:
+        extension = '.' + str(url).split('.')[-1]
         if re.search(domain, url.host):
+            return True
+        elif extension in FILE_FORMATS['Videos'] or extension in FILE_FORMATS['Images'] or extension in FILE_FORMATS['Audio'] or extension in FILE_FORMATS['Other']:
             return True
     return False
 

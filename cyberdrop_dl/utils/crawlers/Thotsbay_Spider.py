@@ -57,8 +57,12 @@ class ThotsbayCrawler():
         for url in Erome_urls:
             tasks.append(self.erome_crawler.fetch(session, url))
         for url in ShareX_urls:
+            if check_direct(url):
+                Cascade.add_to_album(url.host, "ShareX Loose Files", url, url)
             tasks.append(self.sharex_crawler.fetch(session, url))
         for url in Chibisafe_urls:
+            if check_direct(url):
+                Cascade.add_to_album(url.host, "Chibisafe Loose Files", url, url)
             tasks.append(self.chibisafe_crawler.fetch(session, url))
         for url in GoFile_urls:
             tasks.append(self.gofile_crawler.fetch(session, url))
