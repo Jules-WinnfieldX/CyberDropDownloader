@@ -90,6 +90,7 @@ async def sql_update_file(connection: sqlite3.Connection, cursor: sqlite3.Cursor
 
 def log(text, style=Fore.WHITE) -> None:
     """Wrapper around print() to add color to text"""
+    logger.debug(text)
     print(style + str(text) + Style.RESET_ALL)
 
 

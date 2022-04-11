@@ -31,7 +31,6 @@ class GofileCrawler():
                 domain_obj.add_to_album(result['title'], result['url'], result['referral'])
 
         log("Finished scrape of " + str(url), Fore.WHITE)
-        logging.debug("Finished scrape of " + str(url))
 
         return domain_obj
 

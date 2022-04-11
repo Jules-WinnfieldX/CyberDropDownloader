@@ -14,7 +14,6 @@ class EromeCrawler():
         domain_obj = DomainItem(base_domain, {})
 
         log("Starting scrape of " + str(url), Fore.WHITE)
-        logging.debug("Starting scrape of " + str(url))
 
         try:
             async with session.get(url, ssl=ssl_context) as response:
@@ -42,6 +41,5 @@ class EromeCrawler():
             logger.debug(e)
 
         log("Finished scrape of " + str(url), Fore.WHITE)
-        logging.debug("Finished scrape of " + str(url))
 
         return domain_obj

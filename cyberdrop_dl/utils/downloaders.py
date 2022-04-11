@@ -152,7 +152,6 @@ class Downloader:
 
                     if await sql_check_existing(self.cursor, filename, total):
                         log("\n%s Already Downloaded\n" % filename)
-                        logger.debug("%s was found in db file (Previously downloaded)" % filename)
                         return
 
                     await sql_insert_file(self.connection, self.cursor, filename, total, 0)
@@ -173,8 +172,12 @@ class Downloader:
                 aiohttp.client_exceptions.ClientResponseError, FailureException) as e:
             try:
                 resp.close()
+                if e.code == 404:
+                    log("We ran into a 404")
+                    return
             except:
                 pass
+
             raise FailureException(e)
 
     async def rename_file(self, filename: str) -> None:

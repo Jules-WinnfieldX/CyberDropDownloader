@@ -14,7 +14,6 @@ class ShareXCrawler():
         domain_obj = DomainItem(base_domain, {})
 
         log("Starting scrape of " + str(url), Fore.WHITE)
-        logging.debug("Starting scrape of " + str(url))
 
         if "album" in url.parts or "a" in url.parts:
             results = await self.parse(url, session)
@@ -28,7 +27,6 @@ class ShareXCrawler():
             domain_obj.add_to_album(result['title'], result['url'], result['referral'])
 
         log("Finished scrape of " + str(url), Fore.WHITE)
-        logging.debug("Finished scrape of " + str(url))
 
         return domain_obj
 

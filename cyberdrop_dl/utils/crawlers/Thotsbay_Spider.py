@@ -41,20 +41,17 @@ class ThotsbayCrawler():
         Cascade = CascadeItem({})
 
         log("Starting scrape of " + str(url), Fore.WHITE)
-        logging.debug("Starting scrape of " + str(url))
 
         if self.username and self.password:
             await self.login(session)
         else:
             log("login wasn't provided, consider using --thotsbay-username and --thotsbay-password")
             log("Not being logged in might cause issues.")
-            logger.debug("No login provided - Thotsbay.")
 
         try:
             ShareX_urls, Chibisafe_urls, Erome_urls, GoFile_urls, Thotsbay_urls, Anonfile_urls, title = await self.parse(session, url, Cascade, None)
         except:
             log("Error handling " + str(url))
-            logger.debug("Error handling " + str(url))
             return
         tasks = []
         for url in Erome_urls:
@@ -75,7 +72,6 @@ class ThotsbayCrawler():
         Cascade.append_title(title)
 
         log("Finished scrape of " + str(url), Fore.WHITE)
-        logging.debug("Finished scrape of " + str(url))
 
         return Cascade
 
