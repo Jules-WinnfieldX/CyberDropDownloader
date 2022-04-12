@@ -146,12 +146,12 @@ class Downloader:
                 async with session.get(url, headers=headers, ssl=ssl_context, raise_for_status=True) as resp:
                     content_type = resp.headers.get('Content-Type')
                     if 'text' in content_type.lower() or 'html' in content_type.lower():
-                        await log(f"\nServer for {url} is either down or the file no longer exists\n", Fore.RED)
+                        logger.debug(f"Server for %s is either down or the file no longer exists" % str(url))
                         return
                     total = int(resp.headers.get('Content-Length', str(0))) + resume_point
 
                     if await sql_check_existing(self.cursor, filename, total):
-                        await log("\n%s Already Downloaded\n" % filename)
+                        logger.debug("%s Already Downloaded" % filename)
                         return
 
                     await sql_insert_file(self.connection, self.cursor, filename, total, 0)
@@ -172,7 +172,7 @@ class Downloader:
                 aiohttp.client_exceptions.ClientResponseError, FailureException) as e:
             try:
                 if 400 <= e.code < 500:
-                    await log("\nWe ran into a 400 level error: %s\n" % str(e.code))
+                    logger.debug("We ran into a 400 level error: %s" % str(e.code))
                     return
                 resp.close()
             except:
