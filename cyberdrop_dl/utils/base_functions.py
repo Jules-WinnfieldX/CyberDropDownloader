@@ -193,8 +193,8 @@ async def url_sort(urls, Cascade):
             if await check_direct(url):
                 if 'bunkr' in url.host:
                     await Cascade.add_to_album(base_domain, "Chibisafe Loose Files", await bunkr_parse(url), url)
-                elif 'cyberdrop' in url.host:
-                    await Cascade.add_to_album(base_domain, "Chibisafe Loose Files", await cyberdrop_parse(url), url)
+                # elif 'cyberdrop' in url.host:
+                #     await Cascade.add_to_album(base_domain, "Chibisafe Loose Files", await cyberdrop_parse(url), url)
                 else:
                     await Cascade.add_to_album(base_domain, "Chibisafe Loose Files", url, url)
             else:

@@ -33,8 +33,8 @@ class ChibisafeCrawler():
                     link = URL(link.get('href'))
                     if 'bunkr' in link.host:
                         link = await bunkr_parse(link)
-                    elif 'cyberdrop' in link.host:
-                        link = await cyberdrop_parse(link)
+                    # elif 'cyberdrop' in link.host:
+                    #     link = await cyberdrop_parse(link)
                     await domain_obj.add_to_album(title, link, url)
 
         except Exception as e:
