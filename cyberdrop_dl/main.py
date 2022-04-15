@@ -46,7 +46,7 @@ async def download_all(args: argparse.Namespace):
     conn, curr = await sql_initialize(args.db_file)
 
     links = args.links
-    links = map(URL, links)
+    links = list(map(URL, links))
 
     with open(input_file, "r") as f:
         links += await regex_links(f.read())
