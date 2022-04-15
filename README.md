@@ -71,6 +71,7 @@ optional arguments:
   -i INPUT_FILE, --input-file INPUT_FILE             file containing links to download
   -o OUTPUT_FOLDER, --output-folder OUTPUT_FOLDER    folder to download files to
   --log-file LOG_FILE       log file to write to
+  --db-file                 history DB file to write to
   --threads THREADS         number of threads to use (0 = max)
   --attempts ATTEMPTS       number of attempts to download each file
   --disable-attempt-limit   disables stopping the program based on attempt limits

@@ -52,9 +52,7 @@ async def sanitize(input: str) -> str:
     return re.sub(r'[<>:"/\\|?*\']', "", input)
 
 
-async def sql_initialize():
-    download_history = "download_history_size_based.sqlite"
-
+async def sql_initialize(download_history):
     conn = sqlite3.connect(download_history)
     curr = conn.cursor()
     create_table_query = """CREATE TABLE IF NOT EXISTS downloads (

@@ -17,6 +17,7 @@ def parse_args():
     parser.add_argument("-i", "--input-file", help="file containing links to download", default="URLs.txt")
     parser.add_argument("-o", "--output-folder", help="folder to download files to", default="Downloads")
     parser.add_argument("--log-file", help="log file to write to", default="downloader.log")
+    parser.add_argument("--db-file", help="history database file to write to", default="download_history_size_based.sqlite")
     parser.add_argument("--threads", type=int, help="number of threads to use (0 = max)", default=0)
     parser.add_argument("--attempts", type=int, help="number of attempts to download each file", default=10)
     parser.add_argument("--disable-attempt-limit", help="disables the attempt limitation", action="store_true")
@@ -42,15 +43,17 @@ async def download_all(args: argparse.Namespace):
         await log(f"{input_file} created. Populate it and retry.")
         exit(1)
 
-    conn, curr = await sql_initialize()
+    conn, curr = await sql_initialize(args.db_file)
 
     links = args.links
+    links = map(URL, links)
+
     with open(input_file, "r") as f:
         links += await regex_links(f.read())
     content_object = await scrape(links, args.include_id, args.thotsbay_username, args.thotsbay_password)
     if await content_object.is_empty():
         logging.error(f'ValueError No links')
-        await log('No links found, check the URL.txt\nIf the link works in your web browser, please open an issue ticket with me.', Fore.RED)
+        await log("No links found, check the URL.txt\nIf the link works in your web browser, please open an issue ticket with me.", Fore.RED)
         await log("This program does not currently support password protected albums.", Fore.RED)
         exit(0)
     await clear()
