@@ -1,14 +1,17 @@
 import argparse
 import asyncio
+import logging
+import os
 import pathlib
-import sqlite3
 from pathlib import Path
 
+from colorama import Fore
+from yarl import URL
 
 from . import __version__ as VERSION
-from .utils.scraper import scrape
+from .utils.base_functions import clear, log, logger, purge_dir, regex_links, sql_initialize
 from .utils.downloaders import get_downloaders
-from .utils.base_functions import *
+from .utils.scraper import scrape
 
 
 def parse_args():

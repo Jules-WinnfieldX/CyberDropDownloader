@@ -1,6 +1,10 @@
 from bs4 import BeautifulSoup
+from colorama import Fore
+from tldextract import tldextract
+from yarl import URL
 
-from ..data_classes import *
+from ..base_functions import bunkr_parse, log, logger, make_title_safe, ssl_context
+from ..data_classes import DomainItem
 
 
 class ChibisafeCrawler():

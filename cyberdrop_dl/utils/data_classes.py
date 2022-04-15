@@ -1,9 +1,8 @@
 from dataclasses import dataclass
-from typing import Optional, List, Dict, Tuple, AnyStr, Any
+from typing import Dict, List, Optional, Tuple
 
 import aiohttp
-
-from .base_functions import *
+from yarl import URL
 
 
 @dataclass
