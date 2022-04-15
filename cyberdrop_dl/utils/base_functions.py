@@ -6,8 +6,8 @@ import ssl
 
 import certifi
 import tldextract
-from yarl import *
 from colorama import Fore, Style
+from yarl import URL
 
 """This file contains generic information and functions that are used around the program"""
 

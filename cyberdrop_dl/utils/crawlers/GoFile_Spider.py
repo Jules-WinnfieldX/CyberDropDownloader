@@ -1,10 +1,13 @@
 import http
+import logging
 from typing import Union
 
+from colorama import Fore
 from gofile import Gofile
+from yarl import URL
 
-from ..data_classes import *
-from ..base_functions import *
+from ..base_functions import log
+from ..data_classes import DomainItem
 
 
 class GofileCrawler():
