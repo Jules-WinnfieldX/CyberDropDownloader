@@ -1,8 +1,6 @@
 import argparse
 import asyncio
 import logging
-import os
-import pathlib
 from pathlib import Path
 
 from colorama import Fore
@@ -17,8 +15,8 @@ from .utils.scraper import scrape
 def parse_args():
     parser = argparse.ArgumentParser(description="Bulk downloader for multiple file hosts")
     parser.add_argument("-V", "--version", action="version", version="%(prog)s " + VERSION)
-    parser.add_argument("-i", "--input-file", help="file containing links to download", default="URLs.txt")
-    parser.add_argument("-o", "--output-folder", help="folder to download files to", default="Downloads")
+    parser.add_argument("-i", "--input-file", type=Path, help="file containing links to download", default="URLs.txt")
+    parser.add_argument("-o", "--output-folder", type=Path, help="folder to download files to", default="Downloads")
     parser.add_argument("--log-file", help="log file to write to", default="downloader.log")
     parser.add_argument("--db-file", help="history database file to write to", default="download_history_size_based.sqlite")
     parser.add_argument("--threads", type=int, help="number of threads to use (0 = max)", default=0)
@@ -40,9 +38,9 @@ async def download_all(args: argparse.Namespace):
     await clear()
     await log(f"We are running version {VERSION} of Cyberdrop Downloader", Fore.WHITE)
     logging.debug(f"Starting downloader with args: {args.__dict__}")
-    input_file = Path(args.input_file)
-    if not os.path.isfile(input_file):
-        Path.touch(input_file)
+    input_file = args.input_file
+    if not input_file.is_file():
+        input_file.touch()
         await log(f"{input_file} created. Populate it and retry.")
         exit(1)
 
@@ -60,7 +58,7 @@ async def download_all(args: argparse.Namespace):
         await log("This program does not currently support password protected albums.", Fore.RED)
         exit(0)
     await clear()
-    downloaders = get_downloaders(content_object, folder=Path(args.output_folder), attempts=args.attempts,
+    downloaders = get_downloaders(content_object, folder=args.output_folder, attempts=args.attempts,
                                   disable_attempt_limit=args.disable_attempt_limit,
                                   threads=args.threads, exclude_videos=args.exclude_videos,
                                   exclude_images=args.exclude_images, exclude_audio=args.exclude_audio,
@@ -70,7 +68,7 @@ async def download_all(args: argparse.Namespace):
         await downloader.download_content()
     logger.debug("Finished")
 
-    all_files = [str(f) for f in pathlib.Path(args.output_folder).glob("**/*") if f.is_file()]
+    all_files = [str(f) for f in args.output_folder.glob("**/*") if f.is_file()]
     combined = '\t'.join(all_files)
 
     conn.commit()
