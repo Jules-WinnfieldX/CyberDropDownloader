@@ -18,7 +18,7 @@ class ShareXCrawler():
 
         await log("Starting scrape of " + str(url), Fore.WHITE)
 
-        if check_direct(url):
+        if await check_direct(url):
             await domain_obj.add_to_album(link=url, referral=url, title="ShareX Loose Files")
             return domain_obj
 

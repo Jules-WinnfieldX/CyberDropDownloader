@@ -16,7 +16,7 @@ class ChibisafeCrawler():
         base_domain = "{}.{}".format(url_extract.domain, url_extract.suffix)
         domain_obj = DomainItem(base_domain, {})
 
-        if check_direct(url):
+        if await check_direct(url):
             await domain_obj.add_to_album(link=url, referral=url, title="Chibisafe Loose Files")
             return domain_obj
 
