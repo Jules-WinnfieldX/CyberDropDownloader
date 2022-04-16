@@ -3,7 +3,7 @@ from colorama import Fore
 from tldextract import tldextract
 from yarl import URL
 
-from ..base_functions import bunkr_parse, log, logger, make_title_safe, ssl_context
+from ..base_functions import bunkr_parse, log, logger, make_title_safe, ssl_context, check_direct
 from ..data_classes import DomainItem
 
 
@@ -15,6 +15,10 @@ class ChibisafeCrawler():
         url_extract = tldextract.extract(str(url))
         base_domain = "{}.{}".format(url_extract.domain, url_extract.suffix)
         domain_obj = DomainItem(base_domain, {})
+
+        if check_direct(url):
+            await domain_obj.add_to_album(link=url, referral=url, title="Chibisafe Loose Files")
+            return domain_obj
 
         await log("Starting scrape of " + str(url), Fore.WHITE)
 

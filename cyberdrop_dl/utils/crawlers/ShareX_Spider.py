@@ -3,7 +3,7 @@ from colorama import Fore
 from tldextract import tldextract
 from yarl import URL
 
-from ..base_functions import log, logger, make_title_safe, ssl_context
+from ..base_functions import log, logger, make_title_safe, ssl_context, check_direct
 from ..data_classes import DomainItem
 
 
@@ -17,6 +17,10 @@ class ShareXCrawler():
         domain_obj = DomainItem(base_domain, {})
 
         await log("Starting scrape of " + str(url), Fore.WHITE)
+
+        if check_direct(url):
+            await domain_obj.add_to_album(link=url, referral=url, title="ShareX Loose Files")
+            return domain_obj
 
         if "album" in url.parts or "a" in url.parts:
             results = await self.parse(url, session)
