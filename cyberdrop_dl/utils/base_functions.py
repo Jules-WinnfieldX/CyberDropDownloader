@@ -32,14 +32,6 @@ FILE_FORMATS = {
     }
 }
 
-mapping_ShareX = ["pixl.is", "putme.ga", "putmega.com", "jpg.church"]
-mapping_Chibisafe = ["cyberdrop.me", "cyberdrop.cc", "cyberdrop.to", "cyberdrop.nl", "bunkr.is", "bunkr.to"]
-mapping_Erome = ["erome.com"]
-mapping_GoFile = ["gofile.io"]
-mapping_Pixeldrain = ["pixeldrain.com"]
-mapping_Thotsbay = ["thotsbay.com"]
-mapping_Anonfiles = ["anonfiles.com"]
-
 user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.75 Safari/537.36'
 ssl_context = ssl.create_default_context(cafile=certifi.where())
 
@@ -167,54 +159,3 @@ async def check_direct(url: URL):
         elif extension in FILE_FORMATS['Videos'] or extension in FILE_FORMATS['Images'] or extension in FILE_FORMATS['Audio'] or extension in FILE_FORMATS['Other']:
             return True
     return False
-
-
-async def url_sort(urls, Cascade):
-    ShareX_urls = []
-    Chibisafe_urls = []
-    Erome_urls = []
-    GoFile_urls = []
-    Thotsbay_urls = []
-    Anonfiles_urls = []
-
-    for url in urls:
-        url_extract = tldextract.extract(str(url))
-        base_domain = "{}.{}".format(url_extract.domain, url_extract.suffix)
-
-        if base_domain in mapping_ShareX:
-            if await check_direct(url):
-                await Cascade.add_to_album(base_domain, "ShareX Loose Files", url, url)
-            else:
-                ShareX_urls.append(url)
-
-        elif base_domain in mapping_Chibisafe:
-            if await check_direct(url):
-                if 'bunkr' in url.host:
-                    await Cascade.add_to_album(base_domain, "Chibisafe Loose Files", await bunkr_parse(url), url)
-                # elif 'cyberdrop' in url.host:
-                #     await Cascade.add_to_album(base_domain, "Chibisafe Loose Files", await cyberdrop_parse(url), url)
-                else:
-                    await Cascade.add_to_album(base_domain, "Chibisafe Loose Files", url, url)
-            else:
-                Chibisafe_urls.append(url)
-
-        elif base_domain in mapping_Erome:
-            Erome_urls.append(url)
-
-        elif base_domain in mapping_GoFile:
-            GoFile_urls.append(url)
-
-        elif base_domain in mapping_Pixeldrain:
-            title = str(url).split('/')[-1]
-            await Cascade.add_to_album(base_domain, title, await pixeldrain_parse(url, title), url)
-
-        elif base_domain in mapping_Anonfiles:
-            Anonfiles_urls.append(url)
-
-        elif base_domain in mapping_Thotsbay:
-            Thotsbay_urls.append(url)
-
-        else:
-            await log(str(url) + " is not supported currently.")
-
-    return ShareX_urls, Chibisafe_urls, Erome_urls, GoFile_urls, Thotsbay_urls, Anonfiles_urls

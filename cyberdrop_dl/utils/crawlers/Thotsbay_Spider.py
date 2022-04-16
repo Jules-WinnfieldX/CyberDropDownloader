@@ -4,31 +4,24 @@ from bs4 import BeautifulSoup
 from colorama import Fore
 from yarl import URL
 
-from .Anonfiles_Spider import AnonfilesCrawler
-from .Chibisafe_Spider import ChibisafeCrawler
-from .Erome_Spider import EromeCrawler
-from .GoFile_Spider import GofileCrawler
-from .ShareX_Spider import ShareXCrawler
-from ..base_functions import check_direct, log, logger, make_title_safe, ssl_context, url_sort
+from ..base_functions import log, logger, make_title_safe, ssl_context
 from ..data_classes import CascadeItem
 
 
 class ThotsbayCrawler():
-    def __init__(self, *, include_id=False, username=None, password=None, erome_crawler: EromeCrawler,
-                 sharex_crawler: ShareXCrawler, chibisafe_crawler: ChibisafeCrawler, gofile_crawler: GofileCrawler,
-                 anonfiles_crawler: AnonfilesCrawler):
+    def __init__(self, *, include_id=False, username=None, password=None, scraping_mapper, session):
         self.include_id = include_id
         self.username = username
         self.password = password
-        self.erome_crawler = erome_crawler
-        self.sharex_crawler = sharex_crawler
-        self.chibisafe_crawler = chibisafe_crawler
-        self.gofile_crawler = gofile_crawler
-        self.anonfiles_crawler = anonfiles_crawler
+        self.scraping_mapper = scraping_mapper
+        self.session = session
+        self.lock = 0
 
     async def login(self, session):
         async with session.get("https://forum.thotsbay.com/login", ssl=ssl_context) as response:
             text = await response.text()
+            if "You are already logged in" in text:
+                return
             soup = BeautifulSoup(text, 'html.parser')
 
             inputs = soup.select('form input')
@@ -40,48 +33,31 @@ class ThotsbayCrawler():
             data.update({"login": self.username, "password": self.password})
             return await session.post("https://forum.thotsbay.com/login/login", data=data)
 
-    async def fetch(self, session, url):
+    async def fetch(self, session, url: URL):
+        await log("Starting scrape of " + str(url), Fore.WHITE)
         Cascade = CascadeItem({})
 
-        await log("Starting scrape of " + str(url), Fore.WHITE)
-
         if self.username and self.password:
-            await self.login(session)
+            if self.lock == 0:
+                self.lock = 1
+                await self.login(session)
+            else:
+                await asyncio.sleep(5)
         else:
             await log("login wasn't provided, consider using --thotsbay-username and --thotsbay-password")
             await log("Not being logged in might cause issues.")
 
         try:
-            ShareX_urls, Chibisafe_urls, Erome_urls, GoFile_urls, Thotsbay_urls, Anonfile_urls, title = await self.parse(session, url, Cascade, None)
-        except:
+            title = await self.parse_thread(session, url, Cascade, None)
+        except Exception:
             await log("Error handling " + str(url))
             return
-
-        tasks = []
-        for url in Erome_urls:
-            tasks.append(self.erome_crawler.fetch(session, url))
-        for url in ShareX_urls:
-            if await check_direct(url):
-                await Cascade.add_to_album(url.host, "ShareX Loose Files", url, url)
-            tasks.append(self.sharex_crawler.fetch(session, url))
-        for url in Chibisafe_urls:
-            if await check_direct(url):
-                await Cascade.add_to_album(url.host, "Chibisafe Loose Files", url, url)
-            tasks.append(self.chibisafe_crawler.fetch(session, url))
-        for url in GoFile_urls:
-            tasks.append(self.gofile_crawler.fetch(session, url))
-        for url in Anonfile_urls:
-            tasks.append(self.anonfiles_crawler.fetch(session, url))
-        results = await asyncio.gather(*tasks)
-
-        for result in results:
-            await Cascade.add_albums(result)
-
         await Cascade.append_title(title)
+
         await log("Finished scrape of " + str(url), Fore.WHITE)
         return Cascade
 
-    async def parse(self, session, url, Cascade, title):
+    async def parse_thread(self, session, url, Cascade, title):
         try:
             async with session.get(url, ssl=ssl_context) as response:
                 text = await response.text()
@@ -112,6 +88,7 @@ class ThotsbayCrawler():
                     for elem in post.find_all('blockquote'):
                         elem.decompose()
                     post_content = post.select_one("div[class=bbWrapper]")
+
                     links = post_content.select('a')
                     for link in links:
                         link = link.get('href')
@@ -122,12 +99,14 @@ class ThotsbayCrawler():
                         elif link.startswith('/'):
                             link = URL("https://forum.thotsbay.com") / link[1:]
                         content_links.append(URL(link))
+
                     links = post.select("div[class='bbImageWrapper js-lbImage']")
                     for link in links:
                         link = link.get('data-src')
                         if link.endswith("/"):
                             link = link[:-1]
                         content_links.append(URL(link))
+
                     links = post.select("video source")
                     for link in links:
                         link = link.get('src')
@@ -147,17 +126,24 @@ class ThotsbayCrawler():
                             link = link[:-1]
                         if link.startswith('/'):
                             link = URL("https://forum.thotsbay.com") / link[1:]
+                        else:
+                            link = URL(link)
                         await Cascade.add_to_album("Thotsbay.com", "Attachments", link, url)
 
-                ShareX_urls, Chibisafe_urls, Erome_urls, GoFile_urls, Thotsbay_urls, Anonfile_urls = await url_sort(content_links, Cascade)
-
-                for link in Thotsbay_urls:
+                thotsbay_direct_urls = [x for x in content_links if "thotsbay.com" in x.host]
+                content_links = [x for x in content_links if x not in thotsbay_direct_urls]
+                for link in thotsbay_direct_urls:
                     if str(link).endswith("/"):
                         link = URL(str(link)[:-1])
                     if 'attachments' in link.parts:
                         await Cascade.add_to_album("Thotsbay.com", "Attachments", link, url)
                     elif 'data' in link.parts:
                         await Cascade.add_to_album("Thotsbay.com", "Attachments", link, url)
+
+                tasks = []
+                for link in content_links:
+                    tasks.append(self.scraping_mapper.map_url(link, title))
+                await asyncio.gather(*tasks)
 
                 next_page = soup.select_one('a[class="pageNav-jump pageNav-jump--next"]')
                 if next_page is not None:
@@ -166,14 +152,8 @@ class ThotsbayCrawler():
                         if next_page.startswith('/'):
                             next_page = URL("https://forum.thotsbay.com") / next_page[1:]
                         next_page = URL(next_page)
-                        ShareX_urls_ret, Chibisafe_urls_ret, Erome_urls_ret, GoFile_urls_ret, Thotsbay_urls_ret, Anonfile_urls_ret, title = await self.parse(session, next_page, Cascade, title)
-                        ShareX_urls.extend(ShareX_urls_ret)
-                        Chibisafe_urls.extend(Chibisafe_urls_ret)
-                        Erome_urls.extend(Erome_urls_ret)
-                        GoFile_urls.extend(GoFile_urls_ret)
-                        Thotsbay_urls.extend(Thotsbay_urls_ret)
-                        Anonfile_urls.extend(Anonfile_urls_ret)
-                return ShareX_urls, Chibisafe_urls, Erome_urls, GoFile_urls, Thotsbay_urls, Anonfile_urls, title
+                        title = await self.parse_thread(session, next_page, Cascade, title)
+                return title
 
         except Exception as e:
             logger.debug("Error encountered while handling %s", str(url), exc_info=True)
