@@ -118,6 +118,8 @@ class ThotsbayCrawler():
                         link = link.get('data-src')
                         if link.endswith("/"):
                             link = link[:-1]
+                        if link.startswith('/'):
+                            link = domain / link[1:]
                         content_links.append(URL(link))
 
                     links = post.select("div[class='bbImageWrapper lazyload js-lbImage']")
@@ -128,7 +130,7 @@ class ThotsbayCrawler():
                         if link.startswith('//'):
                             link = "https:" + link
                         elif link.startswith('/'):
-                            link = domain / link
+                            link = domain / link[1:]
                         content_links.append(URL(link))
 
                     links = post.select("video source")
@@ -139,10 +141,8 @@ class ThotsbayCrawler():
                         if link.startswith('//'):
                             link = "https:" + link
                         elif link.startswith('/'):
-                            link = domain / link
+                            link = domain / link[1:]
                         content_links.append(URL(link))
-
-
 
                     attachments_block = post.select_one("section[class=message-attachments]")
                     links = attachments_block.select("a[class='file-preview js-lbImage']") if attachments_block else []

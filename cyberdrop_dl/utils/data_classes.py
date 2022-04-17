@@ -40,6 +40,8 @@ class DomainItem:
             self.albums[title] = album
 
     async def append_title(self, title):
+        if not title:
+            return
         new_albums = {}
         for album_str, album in self.albums.items():
             new_title = title+'/'+album_str
@@ -80,6 +82,8 @@ class CascadeItem:
         return True
 
     async def append_title(self, title):
+        if not title:
+            return
         for domain_str, domain in self.domains.items():
             new_albums = {}
             for album_str, album in domain.albums.items():
