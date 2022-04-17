@@ -1,5 +1,4 @@
 import http
-import logging
 from typing import Union
 
 from colorama import Fore
@@ -27,7 +26,6 @@ class GofileCrawler():
         results = await self.get_links(url)
 
         await log("Starting scrape of " + str(url), Fore.WHITE)
-        logging.debug("Starting scrape of " + str(url))
 
         if results:
             for result in results:
@@ -43,8 +41,7 @@ class GofileCrawler():
         try:
             content = self.client.get_content(content_id)
         except:
-            await log("GoFile seems to be down.")
-            logging.debug("GoFile seems to be down or the link is dead")
+            await log("GoFile seems to be down or the link is dead")
             return
         if not content:
             return

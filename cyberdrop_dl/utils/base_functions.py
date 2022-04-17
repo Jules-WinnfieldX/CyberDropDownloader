@@ -5,7 +5,6 @@ import sqlite3
 import ssl
 
 import certifi
-import tldextract
 from colorama import Fore, Style
 from yarl import URL
 

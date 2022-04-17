@@ -1,6 +1,5 @@
 from bs4 import BeautifulSoup
 from colorama import Fore
-from tldextract import tldextract
 from yarl import URL
 
 from ..base_functions import log, logger, make_title_safe, ssl_context, check_direct
@@ -12,9 +11,7 @@ class ShareXCrawler():
         self.include_id = include_id
 
     async def fetch(self, session, url):
-        url_extract = tldextract.extract(str(url))
-        base_domain = "{}.{}".format(url_extract.domain, url_extract.suffix)
-        domain_obj = DomainItem(base_domain, {})
+        domain_obj = DomainItem(url.host, {})
 
         await log("Starting scrape of " + str(url), Fore.WHITE)
 

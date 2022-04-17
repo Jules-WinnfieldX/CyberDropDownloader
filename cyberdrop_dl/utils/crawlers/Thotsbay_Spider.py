@@ -17,8 +17,9 @@ class ThotsbayCrawler():
         self.session = session
         self.lock = 0
 
-    async def login(self, session):
-        async with session.get("https://forum.thotsbay.com/login", ssl=ssl_context) as response:
+    async def login(self, session, url: URL):
+        domain = URL("https://" + url.host) / "login"
+        async with session.get(domain, ssl=ssl_context) as response:
             text = await response.text()
             if "You are already logged in" in text:
                 return
@@ -31,21 +32,29 @@ class ThotsbayCrawler():
                 if elem.get('name') and elem.get('value')
             }
             data.update({"login": self.username, "password": self.password})
-            return await session.post("https://forum.thotsbay.com/login/login", data=data)
+            return await session.post(domain/"login", data=data)
 
     async def fetch(self, session, url: URL):
         await log("Starting scrape of " + str(url), Fore.WHITE)
         Cascade = CascadeItem({})
 
-        if self.username and self.password:
-            if self.lock == 0:
-                self.lock = 1
-                await self.login(session)
+        try:
+            if self.username and self.password:
+                while True:
+                    if self.lock == 0:
+                        self.lock = 1
+                        await self.login(session, url)
+                        self.lock = 0
+                        break
+                    else:
+                        await asyncio.sleep(2)
             else:
-                await asyncio.sleep(5)
-        else:
-            await log("login wasn't provided, consider using --thotsbay-username and --thotsbay-password")
-            await log("Not being logged in might cause issues.")
+                await log("login wasn't provided, consider using --thotsbay-username and --thotsbay-password")
+                await log("Not being logged in might cause issues.")
+        except Exception as e:
+            await log("there was an error signing into %s" % url.host)
+            await log(e)
+            return
 
         try:
             title = await self.parse_thread(session, url, Cascade, None)
@@ -63,6 +72,8 @@ class ThotsbayCrawler():
                 text = await response.text()
                 soup = BeautifulSoup(text, 'html.parser')
 
+                domain = URL("https://" + url.host)
+
                 if title:
                     pass
                 else:
@@ -76,7 +87,8 @@ class ThotsbayCrawler():
                 content_links = []
 
                 post_number = str(url).split("post-")
-                post_number = int(post_number[-1]) if len(post_number) == 2 else None
+                post_number = int(post_number[-1].strip("/")) if len(post_number) == 2 else None
+
 
                 posts = soup.select("div[class='message-main uix_messageContent js-quickEditTarget']")
                 for post in posts:
@@ -89,6 +101,7 @@ class ThotsbayCrawler():
                         elem.decompose()
                     post_content = post.select_one("div[class=bbWrapper]")
 
+                    # Content links
                     links = post_content.select('a')
                     for link in links:
                         link = link.get('href')
@@ -97,7 +110,7 @@ class ThotsbayCrawler():
                         if link.startswith('//'):
                             link = "https:" + link
                         elif link.startswith('/'):
-                            link = URL("https://forum.thotsbay.com") / link[1:]
+                            link = domain / link[1:]
                         content_links.append(URL(link))
 
                     links = post.select("div[class='bbImageWrapper js-lbImage']")
@@ -105,6 +118,17 @@ class ThotsbayCrawler():
                         link = link.get('data-src')
                         if link.endswith("/"):
                             link = link[:-1]
+                        content_links.append(URL(link))
+
+                    links = post.select("div[class='bbImageWrapper lazyload js-lbImage']")
+                    for link in links:
+                        link = link.get('data-src')
+                        if link.endswith("/"):
+                            link = link[:-1]
+                        if link.startswith('//'):
+                            link = "https:" + link
+                        elif link.startswith('/'):
+                            link = domain / link
                         content_links.append(URL(link))
 
                     links = post.select("video source")
@@ -115,8 +139,10 @@ class ThotsbayCrawler():
                         if link.startswith('//'):
                             link = "https:" + link
                         elif link.startswith('/'):
-                            link = "https://forum.thotsbay.com" + link
+                            link = domain / link
                         content_links.append(URL(link))
+
+
 
                     attachments_block = post.select_one("section[class=message-attachments]")
                     links = attachments_block.select("a[class='file-preview js-lbImage']") if attachments_block else []
@@ -125,20 +151,18 @@ class ThotsbayCrawler():
                         if link.endswith("/"):
                             link = link[:-1]
                         if link.startswith('/'):
-                            link = URL("https://forum.thotsbay.com") / link[1:]
-                        else:
-                            link = URL(link)
-                        await Cascade.add_to_album("Thotsbay.com", "Attachments", link, url)
+                            link = domain / link[1:]
+                        await Cascade.add_to_album(url.host, "Attachments", URL(link), url)
 
-                thotsbay_direct_urls = [x for x in content_links if "thotsbay.com" in x.host]
-                content_links = [x for x in content_links if x not in thotsbay_direct_urls]
-                for link in thotsbay_direct_urls:
+                forum_direct_urls = [x for x in content_links if url.host in x.host]
+                content_links = [x for x in content_links if x not in forum_direct_urls]
+                for link in forum_direct_urls:
                     if str(link).endswith("/"):
                         link = URL(str(link)[:-1])
                     if 'attachments' in link.parts:
-                        await Cascade.add_to_album("Thotsbay.com", "Attachments", link, url)
+                        await Cascade.add_to_album(url.host, "Attachments", link, url)
                     elif 'data' in link.parts:
-                        await Cascade.add_to_album("Thotsbay.com", "Attachments", link, url)
+                        await Cascade.add_to_album(url.host, "Attachments", link, url)
 
                 tasks = []
                 for link in content_links:
@@ -150,7 +174,7 @@ class ThotsbayCrawler():
                     next_page = next_page.get('href')
                     if next_page is not None:
                         if next_page.startswith('/'):
-                            next_page = URL("https://forum.thotsbay.com") / next_page[1:]
+                            next_page = domain / next_page[1:]
                         next_page = URL(next_page)
                         title = await self.parse_thread(session, next_page, Cascade, title)
                 return title

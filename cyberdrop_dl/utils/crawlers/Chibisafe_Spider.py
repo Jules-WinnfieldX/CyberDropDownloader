@@ -1,6 +1,5 @@
 from bs4 import BeautifulSoup
 from colorama import Fore
-from tldextract import tldextract
 from yarl import URL
 
 from ..base_functions import bunkr_parse, log, logger, make_title_safe, ssl_context, check_direct
@@ -12,9 +11,7 @@ class ChibisafeCrawler():
         self.include_id = include_id
 
     async def fetch(self, session, url):
-        url_extract = tldextract.extract(str(url))
-        base_domain = "{}.{}".format(url_extract.domain, url_extract.suffix)
-        domain_obj = DomainItem(base_domain, {})
+        domain_obj = DomainItem(url.host, {})
 
         if await check_direct(url):
             await domain_obj.add_to_album(link=url, referral=url, title="Chibisafe Loose Files")
@@ -41,8 +38,6 @@ class ChibisafeCrawler():
                     link = URL(link.get('href'))
                     if 'bunkr' in link.host:
                         link = await bunkr_parse(link)
-                    # elif 'cyberdrop' in link.host:
-                    #     link = await cyberdrop_parse(link)
                     await domain_obj.add_to_album(title, link, url)
 
         except Exception as e:

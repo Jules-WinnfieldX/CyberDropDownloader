@@ -1,4 +1,3 @@
-import tldextract
 from yarl import URL
 
 from .crawlers.Anonfiles_Spider import AnonfilesCrawler
@@ -29,7 +28,7 @@ class ScrapeMapper():
                         "cyberdrop.to": self.Chibisafe, "cyberdrop.nl": self.Chibisafe, "bunkr.is": self.Chibisafe,
                         "bunkr.to": self.Chibisafe, "erome.com": self.Erome, "gofile.io": self.GoFile,
                         "anonfiles.com": self.Anonfiles, "pixeldrain.com": self.Pixeldrain,
-                        "thotsbay.com": self.ThotsBay}
+                        "thotsbay.com": self.ThotsBay, "socialmediagirls.com": self.ThotsBay}
 
     async def ShareX(self, url: URL, title=None):
         if not self.sharex_crawler:
@@ -82,10 +81,8 @@ class ScrapeMapper():
         await self.Cascade.extend(await self.thotsbay_crawler.fetch(self.session, url))
 
     async def map_url(self, url_to_map: URL, title=None):
-        url_extract = tldextract.extract(str(url_to_map))
-        base_domain = "{}.{}".format(url_extract.domain, url_extract.suffix)
-
-        if base_domain in self.mapping.keys():
-            await self.mapping[base_domain](url=url_to_map, title=title)
-        else:
-            await log(str(url_to_map) + " is not supported currently.")
+        for key, value in self.mapping.items():
+            if key in url_to_map.host:
+                await value(url=url_to_map, title=title)
+                return
+        await log(str(url_to_map) + "is not supported currently.")
