@@ -123,7 +123,6 @@ class Downloader:
                             return
 
                 # Skip based on CLI arg.
-                ext = '.' + filename.split('.')[-1]
                 if self.exclude_videos:
                     if ext in FILE_FORMATS['Videos']:
                         logging.debug("Skipping " + filename)

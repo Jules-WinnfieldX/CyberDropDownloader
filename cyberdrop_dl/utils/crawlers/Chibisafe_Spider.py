@@ -14,7 +14,7 @@ class ChibisafeCrawler():
         domain_obj = DomainItem(url.host, {})
 
         if await check_direct(url):
-            await domain_obj.add_to_album(link=url, referral=url, title="Chibisafe Loose Files")
+            await domain_obj.add_to_album(link=await bunkr_parse(url), referral=url, title="Chibisafe Loose Files")
             return domain_obj
 
         await log("Starting scrape of " + str(url), Fore.WHITE)
