@@ -614,14 +614,6 @@
             "markers": "python_version >= '3.6'",
             "version": "==2.3.2"
         },
-        "tldextract": {
-            "hashes": [
-                "sha256:3d4b6a2105600b7d0290ea237bf30b6b0dc763e50fcbe40e849a019bd6dbcbff",
-                "sha256:427703b65db54644f7b81d3dcb79bf355c1a7c28a12944e5cc6787531ccc828a"
-            ],
-            "index": "pypi",
-            "version": "==3.2.0"
-        },
         "tqdm": {
             "hashes": [
                 "sha256:40be55d30e200777a307a7585aee69e4eabb46b4ec6a4b4a5f2d9f11e7d5408d",
