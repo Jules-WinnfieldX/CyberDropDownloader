@@ -23,6 +23,7 @@ class ScrapeMapper():
         self.gofile_crawler = None
         self.anonfiles_crawler = None
         self.thotsbay_crawler = None
+
         self.mapping = {"pixl.is": self.ShareX, "putme.ga": self.ShareX, "putmega.com": self.ShareX,
                         "jpg.church": self.ShareX, "cyberdrop.me": self.Chibisafe, "cyberdrop.cc": self.Chibisafe,
                         "cyberdrop.to": self.Chibisafe, "cyberdrop.nl": self.Chibisafe, "bunkr.is": self.Chibisafe,
