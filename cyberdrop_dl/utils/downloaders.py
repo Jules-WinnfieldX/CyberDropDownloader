@@ -159,6 +159,8 @@ class Downloader:
                         logger.debug("%s Already Downloaded" % filename)
                         return
 
+                    (self.folder / self.title).mkdir(parents=True, exist_ok=True)
+
                     await sql_insert_file(self.connection, self.cursor, filename, total, 0)
 
                     with tqdm(
@@ -240,7 +242,6 @@ class Downloader:
 
     async def download_content(self, show_progress: bool = True) -> None:
         """Download the content of all links and save them as files."""
-        (self.folder / self.title).mkdir(parents=True, exist_ok=True)
         async with aiohttp.ClientSession(cookie_jar=self.cookie_jar) as session:
             await self.download_all(self.album_obj, session, show_progress=show_progress)
         self.connection.commit()
