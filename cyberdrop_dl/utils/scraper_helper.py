@@ -86,4 +86,4 @@ class ScrapeMapper():
             if key in url_to_map.host:
                 await value(url=url_to_map, title=title)
                 return
-        await log(str(url_to_map) + "is not supported currently.")
+        await log(str(url_to_map) + " is not supported currently.")
