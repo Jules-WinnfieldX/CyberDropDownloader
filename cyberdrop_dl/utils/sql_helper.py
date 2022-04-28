@@ -1,5 +1,7 @@
 import sqlite3
-
+import atexit
+import logging
+from tkinter import E
 
 class SQLHelper():
     def __init__(self, ignore_history, download_history):
@@ -7,6 +9,7 @@ class SQLHelper():
         self.download_history = download_history
         self.conn = None
         self.curs = None
+        atexit.register(self.exit_handler) # Close the sql connection when the program exits
 
     async def sql_initialize(self):
         self.conn = sqlite3.connect(self.download_history)
@@ -37,3 +40,13 @@ class SQLHelper():
     async def sql_update_file(self, filename, size, completed):
         self.curs.execute("""INSERT OR REPLACE INTO downloads VALUES ('%s', %d, %d)""" % (filename, size, completed))
         self.conn.commit()
+
+    def exit_handler(self):
+        try:
+            self.conn.commit()
+            self.conn.close()
+        except Exception as e:
+            logging.debug(f"Failed to close sqlite database connection: {str(e)}")
+        else:
+            logging.debug("Successfully closed sqlite database connection")
+        

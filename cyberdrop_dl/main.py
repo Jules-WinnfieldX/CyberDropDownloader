@@ -75,7 +75,6 @@ async def download_all(args: argparse.Namespace):
     all_files = [str(f) for f in args.output_folder.glob("**/*") if f.is_file()]
     combined = '\t'.join(all_files)
 
-    # conn.commit() ?
     await log('Purging empty directories')
     deleted = await purge_dir(args.output_folder)
 
