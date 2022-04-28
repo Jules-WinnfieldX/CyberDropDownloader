@@ -65,8 +65,8 @@ async def purge_dir(dir, in_place=True):
 
     for tree_element in dir_tree:
         sub_dir = tree_element[0]
-        is_empty = not len(os.listdir(sub_dir))
-        if is_empty:
+        dir_count = len(os.listdir(sub_dir))
+        if dir_count == 0: # Helps with readability and i've had issues with it deleting non-empty dirs
             deleted.append(sub_dir)
 
     if in_place:
@@ -76,7 +76,8 @@ async def purge_dir(dir, in_place=True):
 
 
 async def regex_links(urls) -> list:
-    all_links = [x.group().replace(".md.", ".") for x in re.finditer(r"(?:http.*?)(?=('|$|\n|\r\n|\r|\s|\"|\[/URL]|]\[|\[/img]))", urls)]
+    all_links = [x.group().replace(".md.", ".") for x in re.finditer(
+        r"(?:http.*?)(?=('|$|\n|\r\n|\r|\s|\"|\[/URL]|]\[|\[/img]))", urls)]
     yarl_links = []
     for link in all_links:
         yarl_links.append(URL(link))
@@ -96,7 +97,8 @@ async def bunkr_parse(url: URL) -> URL:
 
 
 async def cyberdrop_parse(url: URL) -> URL:
-    mapping_direct = [r'img-...cyberdrop...', r'f.cyberdrop...', r'fs-...cyberdrop...']
+    mapping_direct = [r'img-...cyberdrop...',
+                      r'f.cyberdrop...', r'fs-...cyberdrop...']
     url = str(url)
     for mapping in mapping_direct:
         url = re.sub(mapping, 'cyberdrop.to', url)
@@ -108,7 +110,8 @@ async def pixeldrain_parse(url: URL, title: str) -> URL:
     if url.parts[1] == 'l':
         final_url = URL('https://pixeldrain.com/api/list/') / title / 'zip'
     else:
-        final_url = (URL('https://pixeldrain.com/api/file/') / title).with_query('download')
+        final_url = (URL('https://pixeldrain.com/api/file/') /
+                     title).with_query('download')
     return final_url
 
 

@@ -1,4 +1,5 @@
 import asyncio
+import re
 
 from bs4 import BeautifulSoup
 from colorama import Fore
@@ -161,6 +162,24 @@ class ThotsbayCrawler():
                             link = domain / link[1:]
                         in_prog_title = temp_title + "/Attachments" if self.separate_posts else "Attachments"
                         await Cascade.add_to_album(url.host, in_prog_title, URL(link), url)
+                    
+                    # Gyfcat / Redgifs / Imgur
+                    # NOTE IMGUR SUPPORT IS NOT WORKING AS OF NOW
+                    links = post_content.select(
+                        "span[data-s9e-mediaembed-iframe]")
+                    for link in links:
+                        embed_data = link.get("data-s9e-mediaembed-iframe")
+                        # Replace gyfcat/redgifs/imgur embed url escape chars
+                        embed_data = embed_data.replace("\/\/", "https://www.")
+                        embed_data = embed_data.replace("\\", "")
+
+                        # extract gyfcat/redgifs/imgur url from embed data
+                        embed_url = re.search(
+                            "https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,4}\\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)", embed_data)
+                        if embed_url:
+                            embed_url = URL(embed_url.group(
+                                0).replace("www.", ""))
+                            content_links.append([embed_url, temp_title])
 
                 forum_direct_urls = [x for x in content_links if url.host in x[0].host]
                 content_links = [x for x in content_links if x not in forum_direct_urls]
