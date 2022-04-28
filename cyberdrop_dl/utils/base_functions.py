@@ -65,8 +65,8 @@ async def purge_dir(dir, in_place=True):
 
     for tree_element in dir_tree:
         sub_dir = tree_element[0]
-        is_empty = not len(os.listdir(sub_dir))
-        if is_empty:
+        dir_count = len(os.listdir(sub_dir))
+        if dir_count == 0: # Helps with readability and i've had issues with it deleting non-empty dirs
             deleted.append(sub_dir)
 
     if in_place:
