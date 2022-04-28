@@ -14,3 +14,6 @@ Change all funcs to be async
 2.15.0
 Created scraper_helper.py
 -> we now only create the scrapers as needed, and it allows me to pass backwards the thotsbay links, cleaning up the code.
+
+2.16.5
+Removed title tags from thotsbay folder names.

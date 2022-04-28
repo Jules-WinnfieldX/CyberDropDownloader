@@ -74,10 +74,14 @@ class ThotsbayCrawler():
 
                 domain = URL("https://" + url.host)
 
+                title_block = soup.select_one("h1[class=p-title-value]")
+                for elem in title_block.find_all("a"):
+                    elem.decompose()
+
                 if title:
                     pass
                 else:
-                    title = soup.find('title').text
+                    title = title_block.text
                     if self.include_id:
                         titlep2 = url.name
                         titlep2 = [s for s in titlep2 if "." in s][-1]
