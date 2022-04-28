@@ -72,11 +72,10 @@ async def download_all(args: argparse.Namespace):
         await downloader.download_content()
     logger.debug("Finished")
 
-    all_files = [str(f)
-                 for f in args.output_folder.glob("**/*") if f.is_file()]
+    all_files = [str(f) for f in args.output_folder.glob("**/*") if f.is_file()]
     combined = '\t'.join(all_files)
 
-    conn.commit()
+    # conn.commit() ?
     await log('Purging empty directories')
     deleted = await purge_dir(args.output_folder)
 
@@ -85,8 +84,8 @@ async def download_all(args: argparse.Namespace):
         await log('There are still partial downloads in your folders, please re-run the program.')
 
 
-def main(args=None):
-    if not args:
+def main(args = None):
+    if args == None:
         args = parse_args()
     logging.basicConfig(
         filename=args.log_file,

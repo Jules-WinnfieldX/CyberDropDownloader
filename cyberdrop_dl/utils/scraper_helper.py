@@ -34,7 +34,8 @@ class ScrapeMapper():
                         "cyberdrop.to": self.Chibisafe, "cyberdrop.nl": self.Chibisafe, "bunkr.is": self.Chibisafe,
                         "bunkr.to": self.Chibisafe, "erome.com": self.Erome, "gofile.io": self.GoFile,
                         "anonfiles.com": self.Anonfiles, "pixeldrain.com": self.Pixeldrain,
-                        "thotsbay.com": self.ThotsBay, "socialmediagirls.com": self.ThotsBay, "gfycat.com": self.gfycat, "redgifs.com": self.redgifs}
+                        "thotsbay.com": self.ThotsBay, "socialmediagirls.com": self.ThotsBay, 
+                        "gfycat.com": self.gfycat, "redgifs.com": self.redgifs}
 
     async def ShareX(self, url: URL, title=None):
         if not self.sharex_crawler:

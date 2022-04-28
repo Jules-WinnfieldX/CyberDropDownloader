@@ -65,7 +65,7 @@ class ThotsbayCrawler():
             return
         # await Cascade.append_title(title)
 
-        # await log("Finished scrape of " + str(url), Fore.WHITE)
+        await log("Finished scrape of " + str(url), Fore.WHITE)
         return Cascade
 
     async def parse_thread(self, session, url, Cascade, title):
@@ -93,24 +93,18 @@ class ThotsbayCrawler():
                 content_links = []
 
                 post_number = str(url).split("post-")
-                post_number = int(
-                    post_number[-1].strip("/")) if len(post_number) == 2 else None
+                post_number = int(post_number[-1].strip("/")) if len(post_number) == 2 else None
 
-                posts = soup.select(
-                    "div[class='message-main uix_messageContent js-quickEditTarget']")
+                posts = soup.select("div[class='message-main uix_messageContent js-quickEditTarget']")
                 for post in posts:
-                    # Find post number
-                    post_num_int = post.select_one(
-                        "li[class=u-concealed] a")
-                    post_num_int = int(post_num_int.get(
-                        'href').split('post-')[-1])
-
-                    # Check if current post is before the specified post number in args
+                    post_num_str = post.select_one("li[class=u-concealed] a").get('href').split('/')[-1]
+                    post_num_int = int(post_num_str.split('post-')[-1])
                     if post_number:
                         if post_number > post_num_int:
                             continue
 
-                    # Get the post content
+                    temp_title = title+"/"+post_num_str if self.separate_posts else title
+
                     for elem in post.find_all('blockquote'):
                         elem.decompose()
                     post_content = post.select_one("div[class=bbWrapper]")
@@ -127,8 +121,7 @@ class ThotsbayCrawler():
                             link = domain / link[1:]
                         content_links.append([URL(link), temp_title])
 
-                    links = post.select(
-                        "div[class='bbImageWrapper js-lbImage']")
+                    links = post.select("div[class='bbImageWrapper js-lbImage']")
                     for link in links:
                         link = link.get('data-src')
                         if link.endswith("/"):
@@ -137,8 +130,7 @@ class ThotsbayCrawler():
                             link = domain / link[1:]
                         content_links.append([URL(link), temp_title])
 
-                    links = post.select(
-                        "div[class='bbImageWrapper lazyload js-lbImage']")
+                    links = post.select("div[class='bbImageWrapper lazyload js-lbImage']")
                     for link in links:
                         link = link.get('data-src')
                         if link.endswith("/"):
@@ -160,10 +152,8 @@ class ThotsbayCrawler():
                             link = domain / link[1:]
                         content_links.append([URL(link), temp_title])
 
-                    attachments_block = post.select_one(
-                        "section[class=message-attachments]")
-                    links = attachments_block.select(
-                        "a[class='file-preview js-lbImage']") if attachments_block else []
+                    attachments_block = post.select_one("section[class=message-attachments]")
+                    links = attachments_block.select("a[class='file-preview js-lbImage']") if attachments_block else []
                     for link in links:
                         link = link.get('href')
                         if link.endswith("/"):
@@ -172,29 +162,31 @@ class ThotsbayCrawler():
                             link = domain / link[1:]
                         in_prog_title = temp_title + "/Attachments" if self.separate_posts else "Attachments"
                         await Cascade.add_to_album(url.host, in_prog_title, URL(link), url)
-
-                    # Gyfcat
+                    
+                    # Gyfcat / Redgifs / Imgur
+                    # NOTE IMGUR SUPPORT IS NOT WORKING AS OF NOW
                     links = post_content.select(
                         "span[data-s9e-mediaembed-iframe]")
                     for link in links:
                         embed_data = link.get("data-s9e-mediaembed-iframe")
-                        # Replace gyfcat embed url escape chars
+                        # Replace gyfcat/redgifs/imgur embed url escape chars
                         embed_data = embed_data.replace("\/\/", "https://www.")
                         embed_data = embed_data.replace("\\", "")
 
-                        # extract gyfcat url from embed data
+                        # extract gyfcat/redgifs/imgur url from embed data
                         embed_url = re.search(
                             "https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,4}\\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)", embed_data)
                         if embed_url:
                             embed_url = URL(embed_url.group(
                                 0).replace("www.", ""))
-                            content_links.append(embed_url)
+                            content_links.append([embed_url, temp_title])
 
-                forum_direct_urls = [
-                    x for x in content_links if url.host in x.host]
-                content_links = [
-                    x for x in content_links if x not in forum_direct_urls]
-                for link in forum_direct_urls:
+                forum_direct_urls = [x for x in content_links if url.host in x[0].host]
+                content_links = [x for x in content_links if x not in forum_direct_urls]
+                for link_title_bundle in forum_direct_urls:
+                    link = link_title_bundle[0]
+                    temp_title = link_title_bundle[1]
+                    in_prog_title = temp_title + "/Attachments" if self.separate_posts else "Attachments"
                     if str(link).endswith("/"):
                         link = URL(str(link)[:-1])
                     if 'attachments' in link.parts:
@@ -209,8 +201,7 @@ class ThotsbayCrawler():
                     tasks.append(self.scraping_mapper.map_url(link, temp_title))
                 await asyncio.gather(*tasks)
 
-                next_page = soup.select_one(
-                    'a[class="pageNav-jump pageNav-jump--next"]')
+                next_page = soup.select_one('a[class="pageNav-jump pageNav-jump--next"]')
                 if next_page is not None:
                     next_page = next_page.get('href')
                     if next_page is not None:
@@ -221,6 +212,5 @@ class ThotsbayCrawler():
                 return title
 
         except Exception as e:
-            logger.debug("Error encountered while handling %s",
-                         str(url), exc_info=True)
+            logger.debug("Error encountered while handling %s", str(url), exc_info=True)
             logger.debug(e)

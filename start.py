@@ -10,5 +10,4 @@ if __name__ == '__main__':
     """)
     if input("Keep going? (y/N) ") == "y":
         args = parse_args()
-        sys.argv = ['--disable-attempt-limit']
         main_dl(args)
