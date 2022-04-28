@@ -17,3 +17,6 @@ Created scraper_helper.py
 
 2.16.5
 Removed title tags from thotsbay folder names.
+
+2.16.6
+Added --ignore-history flag and separated SQL into its own helper class.

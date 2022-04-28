@@ -93,7 +93,6 @@ class ThotsbayCrawler():
                 post_number = str(url).split("post-")
                 post_number = int(post_number[-1].strip("/")) if len(post_number) == 2 else None
 
-
                 posts = soup.select("div[class='message-main uix_messageContent js-quickEditTarget']")
                 for post in posts:
                     if post_number:

@@ -7,9 +7,10 @@ from colorama import Fore
 from yarl import URL
 
 from . import __version__ as VERSION
-from .utils.base_functions import clear, log, logger, purge_dir, regex_links, sql_initialize
+from .utils.base_functions import clear, log, logger, purge_dir, regex_links
 from .utils.downloaders import get_downloaders
 from .utils.scraper import scrape
+from .utils.sql_helper import SQLHelper
 
 
 def parse_args():
@@ -27,6 +28,7 @@ def parse_args():
     parser.add_argument("--exclude-images", help="skip downloading of image files", action="store_true")
     parser.add_argument("--exclude-audio", help="skip downloading of audio files", action="store_true")
     parser.add_argument("--exclude-other", help="skip downloading of images", action="store_true")
+    parser.add_argument("--ignore-history", help="This ignores previous download history", action="store_true")
     parser.add_argument("--thotsbay-username", type=str, help="username to login to thotsbay", default=None)
     parser.add_argument("--thotsbay-password", type=str, help="password to login to thotsbay", default=None)
     parser.add_argument("links", metavar="link", nargs="*", help="link to content to download (passing multiple links is supported)", default=[])
@@ -44,7 +46,8 @@ async def download_all(args: argparse.Namespace):
         await log(f"{input_file} created. Populate it and retry.")
         exit(1)
 
-    conn, curr = await sql_initialize(args.db_file)
+    SQL_helper = SQLHelper(args.ignore_history, args.db_file)
+    await SQL_helper.sql_initialize()
 
     links = args.links
     links = list(map(URL, links))
@@ -62,7 +65,7 @@ async def download_all(args: argparse.Namespace):
                                   disable_attempt_limit=args.disable_attempt_limit,
                                   threads=args.threads, exclude_videos=args.exclude_videos,
                                   exclude_images=args.exclude_images, exclude_audio=args.exclude_audio,
-                                  exclude_other=args.exclude_other, connection=conn, cursor=curr,)
+                                  exclude_other=args.exclude_other, SQL_helper=SQL_helper)
 
     for downloader in downloaders:
         await downloader.download_content()

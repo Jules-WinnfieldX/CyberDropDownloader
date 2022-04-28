@@ -1,7 +1,6 @@
 import logging
 import os
 import re
-import sqlite3
 import ssl
 
 import certifi
@@ -41,40 +40,6 @@ logger = logging.getLogger(__name__)
 
 async def sanitize(input: str) -> str:
     return re.sub(r'[<>:"/\\|?*\']', "", input)
-
-
-async def sql_initialize(download_history):
-    conn = sqlite3.connect(download_history)
-    curr = conn.cursor()
-    create_table_query = """CREATE TABLE IF NOT EXISTS downloads (
-                                filename TEXT,
-                                size INTEGER NOT NULL,
-                                completed INTEGER NOT NULL,
-                                PRIMARY KEY (filename, size)
-                            );"""
-    curr.execute(create_table_query)
-
-    conn.commit()
-    return conn, curr
-
-
-async def sql_check_existing(cursor: sqlite3.Cursor, filename, size):
-    cursor.execute("""SELECT completed FROM downloads WHERE filename = '%s' and size = %d""" % (filename, size))
-    sql_file_check = cursor.fetchone()
-    if sql_file_check:
-        if sql_file_check[0] == 1:
-            return True
-    return False
-
-
-async def sql_insert_file(connection: sqlite3.Connection, cursor: sqlite3.Cursor, filename, size, completed):
-    cursor.execute("""INSERT OR IGNORE INTO downloads VALUES ('%s', %d, %d)""" % (filename, size, completed))
-    connection.commit()
-
-
-async def sql_update_file(connection: sqlite3.Connection, cursor: sqlite3.Cursor, filename, size, completed):
-    cursor.execute("""INSERT OR REPLACE INTO downloads VALUES ('%s', %d, %d)""" % (filename, size, completed))
-    connection.commit()
 
 
 async def log(text, style=Fore.WHITE) -> None:
