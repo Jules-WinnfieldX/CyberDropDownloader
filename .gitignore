@@ -10,3 +10,11 @@ __pycache__/
 build/
 release/
 start_dev.py
+.vscode/settings.json
+
+# Scripts
+run.bat
+input.txt
+_download_log.txt
+input-test.txt
+Unsupported_Urls.txt

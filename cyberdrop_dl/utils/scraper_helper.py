@@ -96,7 +96,10 @@ class ScrapeMapper():
                 scraping_mapper=self, session=self.session)
         content_url = await self.gfycat_crawler.fetch(self.session, url)
         if content_url:
-            await self.Cascade.add_to_album("gfycat.com", f"{title}/gifs", content_url, url)
+            if title:
+                await self.Cascade.add_to_album("gfycat.com", f"{title}/gifs", content_url, url)
+            else:
+                await self.Cascade.add_to_album("gfycat.com", "gifs", content_url, url)
 
     async def redgifs(self, url: URL, title=None):
         if not self.redgifs_crawler:
@@ -104,7 +107,10 @@ class ScrapeMapper():
                 scraping_mapper=self, session=self.session)
         content_url = await self.redgifs_crawler.fetch(self.session, url)
         if content_url:
-            await self.Cascade.add_to_album("redgifs.com", f"{title}/gifs", content_url, url)
+            if title:
+                await self.Cascade.add_to_album("redgifs.com", f"{title}/gifs", content_url, url)
+            else:
+                await self.Cascade.add_to_album("redgifs.com", "gifs", content_url, url)
 
     async def map_url(self, url_to_map: URL, title=None):
         for key, value in self.mapping.items():
