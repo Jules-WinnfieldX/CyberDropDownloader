@@ -1,3 +1,4 @@
+import aiofiles
 from yarl import URL
 
 from .crawlers.Anonfiles_Spider import AnonfilesCrawler
@@ -88,3 +89,5 @@ class ScrapeMapper():
                 await value(url=url_to_map, title=title)
                 return
         await log(str(url_to_map) + " is not supported currently.")
+        async with aiofiles.open("./Unsupported_Urls.txt", mode='a') as f:
+            await f.write(str(url_to_map)+"\n")
