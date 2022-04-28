@@ -29,6 +29,7 @@ def parse_args():
     parser.add_argument("--exclude-audio", help="skip downloading of audio files", action="store_true")
     parser.add_argument("--exclude-other", help="skip downloading of images", action="store_true")
     parser.add_argument("--ignore-history", help="This ignores previous download history", action="store_true")
+    parser.add_argument("--separate-posts", help="separates thotsbay scraping into folders by post", action="store_true")
     parser.add_argument("--thotsbay-username", type=str, help="username to login to thotsbay", default=None)
     parser.add_argument("--thotsbay-password", type=str, help="password to login to thotsbay", default=None)
     parser.add_argument("links", metavar="link", nargs="*", help="link to content to download (passing multiple links is supported)", default=[])
@@ -54,7 +55,7 @@ async def download_all(args: argparse.Namespace):
 
     with open(input_file, "r") as f:
         links += await regex_links(f.read())
-    content_object = await scrape(links, args.include_id, args.thotsbay_username, args.thotsbay_password)
+    content_object = await scrape(links, args.include_id, args.thotsbay_username, args.thotsbay_password, args.separate_posts)
     if await content_object.is_empty():
         logging.error(f'ValueError No links')
         await log("No links found, check the URL.txt\nIf the link works in your web browser, please open an issue ticket with me.", Fore.RED)

@@ -20,3 +20,6 @@ Removed title tags from thotsbay folder names.
 
 2.16.6
 Added --ignore-history flag and separated SQL into its own helper class.
+
+2.16.8
+added --separate-posts to separate each thotsbay post into it's own folder (request).

@@ -11,8 +11,9 @@ from .data_classes import CascadeItem
 
 
 class ScrapeMapper():
-    def __init__(self, *, session, include_id=False, username=None, password=None):
+    def __init__(self, *, session, include_id=False, username=None, password=None, separate_posts=False):
         self.include_id = include_id
+        self.separate_posts = separate_posts
         self.username = username
         self.password = password
         self.session = session
@@ -78,7 +79,7 @@ class ScrapeMapper():
 
     async def ThotsBay(self, url: URL, title=None):
         if not self.thotsbay_crawler:
-            self.thotsbay_crawler = ThotsbayCrawler(include_id=self.include_id, username=self.username, password=self.password, scraping_mapper=self, session=self.session)
+            self.thotsbay_crawler = ThotsbayCrawler(include_id=self.include_id, username=self.username, password=self.password, scraping_mapper=self, session=self.session, separate_posts=self.separate_posts)
         await self.Cascade.extend(await self.thotsbay_crawler.fetch(self.session, url))
 
     async def map_url(self, url_to_map: URL, title=None):
