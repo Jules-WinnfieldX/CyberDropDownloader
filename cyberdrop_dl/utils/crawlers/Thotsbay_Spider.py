@@ -1,4 +1,5 @@
 import asyncio
+import re
 
 from bs4 import BeautifulSoup
 from colorama import Fore
@@ -63,7 +64,7 @@ class ThotsbayCrawler():
             return
         await Cascade.append_title(title)
 
-        await log("Finished scrape of " + str(url), Fore.WHITE)
+        # await log("Finished scrape of " + str(url), Fore.WHITE)
         return Cascade
 
     async def parse_thread(self, session, url, Cascade, title):
@@ -87,16 +88,24 @@ class ThotsbayCrawler():
                 content_links = []
 
                 post_number = str(url).split("post-")
-                post_number = int(post_number[-1].strip("/")) if len(post_number) == 2 else None
+                post_number = int(
+                    post_number[-1].strip("/")) if len(post_number) == 2 else None
 
-
-                posts = soup.select("div[class='message-main uix_messageContent js-quickEditTarget']")
+                posts = soup.select(
+                    "div[class='message-main uix_messageContent js-quickEditTarget']")
                 for post in posts:
+                    # Find post number
+                    post_num_int = post.select_one(
+                        "li[class=u-concealed] a")
+                    post_num_int = int(post_num_int.get(
+                        'href').split('post-')[-1])
+
+                    # Check if current post is before the specified post number in args
                     if post_number:
-                        post_num_int = post.select_one("li[class=u-concealed] a")
-                        post_num_int = int(post_num_int.get('href').split('post-')[-1])
                         if post_number > post_num_int:
                             continue
+
+                    # Get the post content
                     for elem in post.find_all('blockquote'):
                         elem.decompose()
                     post_content = post.select_one("div[class=bbWrapper]")
@@ -113,7 +122,8 @@ class ThotsbayCrawler():
                             link = domain / link[1:]
                         content_links.append(URL(link))
 
-                    links = post.select("div[class='bbImageWrapper js-lbImage']")
+                    links = post.select(
+                        "div[class='bbImageWrapper js-lbImage']")
                     for link in links:
                         link = link.get('data-src')
                         if link.endswith("/"):
@@ -122,7 +132,8 @@ class ThotsbayCrawler():
                             link = domain / link[1:]
                         content_links.append(URL(link))
 
-                    links = post.select("div[class='bbImageWrapper lazyload js-lbImage']")
+                    links = post.select(
+                        "div[class='bbImageWrapper lazyload js-lbImage']")
                     for link in links:
                         link = link.get('data-src')
                         if link.endswith("/"):
@@ -144,8 +155,10 @@ class ThotsbayCrawler():
                             link = domain / link[1:]
                         content_links.append(URL(link))
 
-                    attachments_block = post.select_one("section[class=message-attachments]")
-                    links = attachments_block.select("a[class='file-preview js-lbImage']") if attachments_block else []
+                    attachments_block = post.select_one(
+                        "section[class=message-attachments]")
+                    links = attachments_block.select(
+                        "a[class='file-preview js-lbImage']") if attachments_block else []
                     for link in links:
                         link = link.get('href')
                         if link.endswith("/"):
@@ -154,8 +167,27 @@ class ThotsbayCrawler():
                             link = domain / link[1:]
                         await Cascade.add_to_album(url.host, "Attachments", URL(link), url)
 
-                forum_direct_urls = [x for x in content_links if url.host in x.host]
-                content_links = [x for x in content_links if x not in forum_direct_urls]
+                    # Gyfcat
+                    links = post_content.select(
+                        "span[data-s9e-mediaembed-iframe]")
+                    for link in links:
+                        embed_data = link.get("data-s9e-mediaembed-iframe")
+                        # Replace gyfcat embed url escape chars
+                        embed_data = embed_data.replace("\/\/", "https://www.")
+                        embed_data = embed_data.replace("\\", "")
+
+                        # extract gyfcat url from embed data
+                        embed_url = re.search(
+                            "https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,4}\\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)", embed_data)
+                        if embed_url:
+                            embed_url = URL(embed_url.group(
+                                0).replace("www.", ""))
+                            content_links.append(embed_url)
+
+                forum_direct_urls = [
+                    x for x in content_links if url.host in x.host]
+                content_links = [
+                    x for x in content_links if x not in forum_direct_urls]
                 for link in forum_direct_urls:
                     if str(link).endswith("/"):
                         link = URL(str(link)[:-1])
@@ -169,7 +201,8 @@ class ThotsbayCrawler():
                     tasks.append(self.scraping_mapper.map_url(link, title))
                 await asyncio.gather(*tasks)
 
-                next_page = soup.select_one('a[class="pageNav-jump pageNav-jump--next"]')
+                next_page = soup.select_one(
+                    'a[class="pageNav-jump pageNav-jump--next"]')
                 if next_page is not None:
                     next_page = next_page.get('href')
                     if next_page is not None:
@@ -180,5 +213,6 @@ class ThotsbayCrawler():
                 return title
 
         except Exception as e:
-            logger.debug("Error encountered while handling %s", str(url), exc_info=True)
+            logger.debug("Error encountered while handling %s",
+                         str(url), exc_info=True)
             logger.debug(e)

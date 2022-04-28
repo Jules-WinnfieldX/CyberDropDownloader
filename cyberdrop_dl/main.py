@@ -13,23 +13,42 @@ from .utils.scraper import scrape
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="Bulk downloader for multiple file hosts")
-    parser.add_argument("-V", "--version", action="version", version="%(prog)s " + VERSION)
-    parser.add_argument("-i", "--input-file", type=Path, help="file containing links to download", default="URLs.txt")
-    parser.add_argument("-o", "--output-folder", type=Path, help="folder to download files to", default="Downloads")
-    parser.add_argument("--log-file", help="log file to write to", default="downloader.log")
-    parser.add_argument("--db-file", help="history database file to write to", default="download_history_size_based.sqlite")
-    parser.add_argument("--threads", type=int, help="number of threads to use (0 = max)", default=0)
-    parser.add_argument("--attempts", type=int, help="number of attempts to download each file", default=10)
-    parser.add_argument("--disable-attempt-limit", help="disables the attempt limitation", action="store_true")
-    parser.add_argument("--include-id", help="include the ID in the download folder name", action="store_true")
-    parser.add_argument("--exclude-videos", help="skip downloading of video files", action="store_true")
-    parser.add_argument("--exclude-images", help="skip downloading of image files", action="store_true")
-    parser.add_argument("--exclude-audio", help="skip downloading of audio files", action="store_true")
-    parser.add_argument("--exclude-other", help="skip downloading of images", action="store_true")
-    parser.add_argument("--thotsbay-username", type=str, help="username to login to thotsbay", default=None)
-    parser.add_argument("--thotsbay-password", type=str, help="password to login to thotsbay", default=None)
-    parser.add_argument("links", metavar="link", nargs="*", help="link to content to download (passing multiple links is supported)", default=[])
+    parser = argparse.ArgumentParser(
+        description="Bulk downloader for multiple file hosts")
+    parser.add_argument("-V", "--version", action="version",
+                        version="%(prog)s " + VERSION)
+    parser.add_argument("-i", "--input-file", type=Path,
+                        help="file containing links to download", default="URLs.txt")
+    parser.add_argument("-o", "--output-folder", type=Path,
+                        help="folder to download files to", default="Downloads")
+    parser.add_argument(
+        "--log-file", help="log file to write to", default="downloader.log")
+    parser.add_argument("--db-file", help="history database file to write to",
+                        default="download_history_size_based.sqlite")
+    parser.add_argument("--threads", type=int,
+                        help="number of threads to use (0 = max)", default=0)
+    parser.add_argument("--attempts", type=int,
+                        help="number of attempts to download each file", default=10)
+    parser.add_argument("--disable-attempt-limit",
+                        help="disables the attempt limitation", action="store_true")
+    parser.add_argument(
+        "--include-id", help="include the ID in the download folder name", action="store_true")
+    parser.add_argument(
+        "--exclude-videos", help="skip downloading of video files", action="store_true")
+    parser.add_argument(
+        "--exclude-images", help="skip downloading of image files", action="store_true")
+    parser.add_argument(
+        "--exclude-audio", help="skip downloading of audio files", action="store_true")
+    parser.add_argument("--exclude-other",
+                        help="skip downloading of images", action="store_true")
+    parser.add_argument(
+        "--only-gifs", help="Only download embedded gifs from thread", action="store_true")
+    parser.add_argument("--thotsbay-username", type=str,
+                        help="username to login to thotsbay", default=None)
+    parser.add_argument("--thotsbay-password", type=str,
+                        help="password to login to thotsbay", default=None)
+    parser.add_argument("links", metavar="link", nargs="*",
+                        help="link to content to download (passing multiple links is supported)", default=[])
     args = parser.parse_args()
     return args
 
@@ -68,7 +87,8 @@ async def download_all(args: argparse.Namespace):
         await downloader.download_content()
     logger.debug("Finished")
 
-    all_files = [str(f) for f in args.output_folder.glob("**/*") if f.is_file()]
+    all_files = [str(f)
+                 for f in args.output_folder.glob("**/*") if f.is_file()]
     combined = '\t'.join(all_files)
 
     conn.commit()
@@ -80,8 +100,12 @@ async def download_all(args: argparse.Namespace):
         await log('There are still partial downloads in your folders, please re-run the program.')
 
 
-def main():
-    args = parse_args()
+def main(args=None):
+    if not args:
+        print("parsing args")
+        args = parse_args()
+    else:
+        print(args)
     logging.basicConfig(
         filename=args.log_file,
         level=logging.DEBUG,

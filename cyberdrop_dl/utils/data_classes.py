@@ -28,7 +28,8 @@ class DomainItem:
         if title in self.albums.keys():
             await self.albums[title].add_link_pair(link, referral)
         else:
-            self.albums[title] = AlbumItem(title=title, link_pairs=[(link, referral)])
+            self.albums[title] = AlbumItem(
+                title=title, link_pairs=[(link, referral)])
 
     async def add_album(self, title: str, album: AlbumItem):
         if title in self.albums.keys():
@@ -66,7 +67,8 @@ class CascadeItem:
         if domain in self.domains.keys():
             await self.domains[domain].add_to_album(title, link, referral)
         else:
-            self.domains[domain] = DomainItem(domain, {title: AlbumItem(title, [(link, referral)])})
+            self.domains[domain] = DomainItem(
+                domain, {title: AlbumItem(title, [(link, referral)])})
 
     async def add_album(self, domain: str, title: str, album: AlbumItem):
         if domain in self.domains.keys():

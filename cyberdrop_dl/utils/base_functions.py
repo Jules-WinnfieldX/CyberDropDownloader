@@ -59,7 +59,8 @@ async def sql_initialize(download_history):
 
 
 async def sql_check_existing(cursor: sqlite3.Cursor, filename, size):
-    cursor.execute("""SELECT completed FROM downloads WHERE filename = '%s' and size = %d""" % (filename, size))
+    cursor.execute(
+        """SELECT completed FROM downloads WHERE filename = '%s' and size = %d""" % (filename, size))
     sql_file_check = cursor.fetchone()
     if sql_file_check:
         if sql_file_check[0] == 1:
@@ -68,12 +69,14 @@ async def sql_check_existing(cursor: sqlite3.Cursor, filename, size):
 
 
 async def sql_insert_file(connection: sqlite3.Connection, cursor: sqlite3.Cursor, filename, size, completed):
-    cursor.execute("""INSERT OR IGNORE INTO downloads VALUES ('%s', %d, %d)""" % (filename, size, completed))
+    cursor.execute("""INSERT OR IGNORE INTO downloads VALUES ('%s', %d, %d)""" % (
+        filename, size, completed))
     connection.commit()
 
 
 async def sql_update_file(connection: sqlite3.Connection, cursor: sqlite3.Cursor, filename, size, completed):
-    cursor.execute("""INSERT OR REPLACE INTO downloads VALUES ('%s', %d, %d)""" % (filename, size, completed))
+    cursor.execute("""INSERT OR REPLACE INTO downloads VALUES ('%s', %d, %d)""" % (
+        filename, size, completed))
     connection.commit()
 
 
@@ -96,6 +99,9 @@ async def make_title_safe(title: str):
 async def purge_dir(dir, in_place=True):
 
     deleted = []
+
+    # IT DELETES NON-EMPTY DIRS???
+
     dir_tree = list(os.walk(dir, topdown=False))
 
     for tree_element in dir_tree:
@@ -111,7 +117,8 @@ async def purge_dir(dir, in_place=True):
 
 
 async def regex_links(urls) -> list:
-    all_links = [x.group().replace(".md.", ".") for x in re.finditer(r"(?:http.*?)(?=('|$|\n|\r\n|\r|\s|\"|\[/URL]))", urls)]
+    all_links = [x.group().replace(".md.", ".") for x in re.finditer(
+        r"(?:http.*?)(?=('|$|\n|\r\n|\r|\s|\"|\[/URL]))", urls)]
     yarl_links = []
     for link in all_links:
         yarl_links.append(URL(link))
@@ -131,7 +138,8 @@ async def bunkr_parse(url: URL) -> URL:
 
 
 async def cyberdrop_parse(url: URL) -> URL:
-    mapping_direct = [r'img-...cyberdrop...', r'f.cyberdrop...', r'fs-...cyberdrop...']
+    mapping_direct = [r'img-...cyberdrop...',
+                      r'f.cyberdrop...', r'fs-...cyberdrop...']
     url = str(url)
     for mapping in mapping_direct:
         url = re.sub(mapping, 'cyberdrop.to', url)
@@ -143,7 +151,8 @@ async def pixeldrain_parse(url: URL, title: str) -> URL:
     if url.parts[1] == 'l':
         final_url = URL('https://pixeldrain.com/api/list/') / title / 'zip'
     else:
-        final_url = (URL('https://pixeldrain.com/api/file/') / title).with_query('download')
+        final_url = (URL('https://pixeldrain.com/api/file/') /
+                     title).with_query('download')
     return final_url
 
 

@@ -6,6 +6,8 @@ from .crawlers.Erome_Spider import EromeCrawler
 from .crawlers.GoFile_Spider import GofileCrawler
 from .crawlers.ShareX_Spider import ShareXCrawler
 from .crawlers.Thotsbay_Spider import ThotsbayCrawler
+from .crawlers.Gfycat_Spider import GfycatCrawler
+from .crawlers.Redgifs_Spider import RedGifsCrawler
 from .base_functions import log, pixeldrain_parse
 from .data_classes import CascadeItem
 
@@ -23,12 +25,14 @@ class ScrapeMapper():
         self.gofile_crawler = None
         self.anonfiles_crawler = None
         self.thotsbay_crawler = None
+        self.gfycat_crawler = None
+        self.redgifs_crawler = None
         self.mapping = {"pixl.is": self.ShareX, "putme.ga": self.ShareX, "putmega.com": self.ShareX,
                         "jpg.church": self.ShareX, "cyberdrop.me": self.Chibisafe, "cyberdrop.cc": self.Chibisafe,
                         "cyberdrop.to": self.Chibisafe, "cyberdrop.nl": self.Chibisafe, "bunkr.is": self.Chibisafe,
                         "bunkr.to": self.Chibisafe, "erome.com": self.Erome, "gofile.io": self.GoFile,
                         "anonfiles.com": self.Anonfiles, "pixeldrain.com": self.Pixeldrain,
-                        "thotsbay.com": self.ThotsBay, "socialmediagirls.com": self.ThotsBay}
+                        "thotsbay.com": self.ThotsBay, "socialmediagirls.com": self.ThotsBay, "gfycat.com": self.gfycat, "redgifs.com": self.redgifs}
 
     async def ShareX(self, url: URL, title=None):
         if not self.sharex_crawler:
@@ -40,7 +44,8 @@ class ScrapeMapper():
 
     async def Chibisafe(self, url: URL, title=None):
         if not self.chibisafe_crawler:
-            self.chibisafe_crawler = ChibisafeCrawler(include_id=self.include_id)
+            self.chibisafe_crawler = ChibisafeCrawler(
+                include_id=self.include_id)
         domain_obj = await self.chibisafe_crawler.fetch(self.session, url)
         if title:
             await domain_obj.append_title(title)
@@ -56,7 +61,8 @@ class ScrapeMapper():
 
     async def Anonfiles(self, url: URL, title=None):
         if not self.anonfiles_crawler:
-            self.anonfiles_crawler = AnonfilesCrawler(include_id=self.include_id)
+            self.anonfiles_crawler = AnonfilesCrawler(
+                include_id=self.include_id)
         domain_obj = await self.anonfiles_crawler.fetch(self.session, url)
         if title:
             await domain_obj.append_title(title)
@@ -77,8 +83,25 @@ class ScrapeMapper():
 
     async def ThotsBay(self, url: URL, title=None):
         if not self.thotsbay_crawler:
-            self.thotsbay_crawler = ThotsbayCrawler(include_id=self.include_id, username=self.username, password=self.password, scraping_mapper=self, session=self.session)
+            self.thotsbay_crawler = ThotsbayCrawler(
+                include_id=self.include_id, username=self.username, password=self.password, scraping_mapper=self, session=self.session)
         await self.Cascade.extend(await self.thotsbay_crawler.fetch(self.session, url))
+
+    async def gfycat(self, url: URL, title=None):
+        if not self.gfycat_crawler:
+            self.gfycat_crawler = GfycatCrawler(
+                scraping_mapper=self, session=self.session)
+        content_url = await self.gfycat_crawler.fetch(self.session, url)
+        if content_url:
+            await self.Cascade.add_to_album("gfycat.com", f"{title}/gifs", content_url, url)
+
+    async def redgifs(self, url: URL, title=None):
+        if not self.redgifs_crawler:
+            self.redgifs_crawler = RedGifsCrawler(
+                scraping_mapper=self, session=self.session)
+        content_url = await self.redgifs_crawler.fetch(self.session, url)
+        if content_url:
+            await self.Cascade.add_to_album("redgifs.com", f"{title}/gifs", content_url, url)
 
     async def map_url(self, url_to_map: URL, title=None):
         for key, value in self.mapping.items():

@@ -63,7 +63,8 @@ async def throttle(self, url: URL) -> None:
 
         remaining = delay - elapsed + 0.25
 
-        log_string = '\nDelaying request to %s for %.2f seconds.' % (host, remaining)
+        log_string = '\nDelaying request to %s for %.2f seconds.' % (
+            host, remaining)
         logger.debug(log_string)
         await asyncio.sleep(remaining)
 
@@ -143,7 +144,8 @@ class Downloader:
 
                 resume_point = 0
                 complete_file = (self.folder / self.title / filename)
-                temp_file = complete_file.with_suffix(complete_file.suffix + '.part')
+                temp_file = complete_file.with_suffix(
+                    complete_file.suffix + '.part')
 
                 if temp_file.exists():
                     resume_point = temp_file.stat().st_size
@@ -152,9 +154,11 @@ class Downloader:
                 async with session.get(url, headers=headers, ssl=ssl_context, raise_for_status=True) as resp:
                     content_type = resp.headers.get('Content-Type')
                     if 'text' in content_type.lower() or 'html' in content_type.lower():
-                        logger.debug(f"Server for %s is either down or the file no longer exists" % str(url))
+                        logger.debug(
+                            f"Server for %s is either down or the file no longer exists" % str(url))
                         return
-                    total = int(resp.headers.get('Content-Length', str(0))) + resume_point
+                    total = int(resp.headers.get(
+                        'Content-Length', str(0))) + resume_point
 
                     if await sql_check_existing(self.cursor, filename, total):
                         logger.debug("%s Already Downloaded" % filename)
@@ -178,7 +182,8 @@ class Downloader:
                 aiohttp.client_exceptions.ClientResponseError, FailureException) as e:
             try:
                 if 400 <= e.code < 500:
-                    logger.debug("We ran into a 400 level error: %s" % str(e.code))
+                    logger.debug(
+                        "We ran into a 400 level error: %s" % str(e.code))
                     return
                 resp.close()
             except:
@@ -190,7 +195,8 @@ class Downloader:
         complete_file = (self.folder / self.title / filename)
         temp_file = complete_file.with_suffix(complete_file.suffix + '.part')
         if complete_file.exists():
-            logger.debug(str(self.folder / self.title / filename) + " Already Exists")
+            logger.debug(str(self.folder / self.title /
+                         filename) + " Already Exists")
             await aiofiles.os.remove(temp_file)
         else:
             temp_file.rename(complete_file)
@@ -248,7 +254,7 @@ class Downloader:
 
 
 def get_downloaders(Cascade: CascadeItem, folder: Path, attempts: int, disable_attempt_limit: bool, threads: int, exclude_videos: bool,
-                    exclude_images: bool, exclude_audio: bool, exclude_other: bool, connection:sqlite3.Connection, cursor: sqlite3.Cursor) -> List[Downloader]:
+                    exclude_images: bool, exclude_audio: bool, exclude_other: bool, connection: sqlite3.Connection, cursor: sqlite3.Cursor) -> List[Downloader]:
     """Get a list of downloaders for each supported type of URLs.
     We shouldn't just assume that each URL will have the same netloc as
     the first one, so we need to classify them one by one, sort them to
