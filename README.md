@@ -80,6 +80,7 @@ optional arguments:
   --exclude-images          exclude image files from downloading
   --exclude-audio           exclude audio files from downloading
   --exclude-other           exclude other files from downloading
+  --ignore-history          ignores previous history and downloads everything
   --thotsbay-username       username to login to thotsbay (only required if the thread requires it)
   --thotsbay-password       password to login to thotsbay (only required if the thread requires it)
 ```

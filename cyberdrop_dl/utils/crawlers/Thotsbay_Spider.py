@@ -10,8 +10,9 @@ from ..data_classes import CascadeItem
 
 
 class ThotsbayCrawler():
-    def __init__(self, *, include_id=False, username=None, password=None, scraping_mapper, session):
+    def __init__(self, *, include_id=False, username=None, password=None, scraping_mapper, session, separate_posts=False):
         self.include_id = include_id
+        self.separate_posts = separate_posts
         self.username = username
         self.password = password
         self.scraping_mapper = scraping_mapper
@@ -62,7 +63,7 @@ class ThotsbayCrawler():
         except Exception:
             await log("Error handling " + str(url))
             return
-        await Cascade.append_title(title)
+        # await Cascade.append_title(title)
 
         # await log("Finished scrape of " + str(url), Fore.WHITE)
         return Cascade
@@ -75,10 +76,14 @@ class ThotsbayCrawler():
 
                 domain = URL("https://" + url.host)
 
+                title_block = soup.select_one("h1[class=p-title-value]")
+                for elem in title_block.find_all("a"):
+                    elem.decompose()
+
                 if title:
                     pass
                 else:
-                    title = soup.find('title').text
+                    title = title_block.text
                     if self.include_id:
                         titlep2 = url.name
                         titlep2 = [s for s in titlep2 if "." in s][-1]
@@ -120,7 +125,7 @@ class ThotsbayCrawler():
                             link = "https:" + link
                         elif link.startswith('/'):
                             link = domain / link[1:]
-                        content_links.append(URL(link))
+                        content_links.append([URL(link), temp_title])
 
                     links = post.select(
                         "div[class='bbImageWrapper js-lbImage']")
@@ -130,7 +135,7 @@ class ThotsbayCrawler():
                             link = link[:-1]
                         if link.startswith('/'):
                             link = domain / link[1:]
-                        content_links.append(URL(link))
+                        content_links.append([URL(link), temp_title])
 
                     links = post.select(
                         "div[class='bbImageWrapper lazyload js-lbImage']")
@@ -142,7 +147,7 @@ class ThotsbayCrawler():
                             link = "https:" + link
                         elif link.startswith('/'):
                             link = domain / link[1:]
-                        content_links.append(URL(link))
+                        content_links.append([URL(link), temp_title])
 
                     links = post.select("video source")
                     for link in links:
@@ -153,7 +158,7 @@ class ThotsbayCrawler():
                             link = "https:" + link
                         elif link.startswith('/'):
                             link = domain / link[1:]
-                        content_links.append(URL(link))
+                        content_links.append([URL(link), temp_title])
 
                     attachments_block = post.select_one(
                         "section[class=message-attachments]")
@@ -165,7 +170,8 @@ class ThotsbayCrawler():
                             link = link[:-1]
                         if link.startswith('/'):
                             link = domain / link[1:]
-                        await Cascade.add_to_album(url.host, "Attachments", URL(link), url)
+                        in_prog_title = temp_title + "/Attachments" if self.separate_posts else "Attachments"
+                        await Cascade.add_to_album(url.host, in_prog_title, URL(link), url)
 
                     # Gyfcat
                     links = post_content.select(
@@ -192,13 +198,15 @@ class ThotsbayCrawler():
                     if str(link).endswith("/"):
                         link = URL(str(link)[:-1])
                     if 'attachments' in link.parts:
-                        await Cascade.add_to_album(url.host, "Attachments", link, url)
+                        await Cascade.add_to_album(url.host, in_prog_title, link, url)
                     elif 'data' in link.parts:
-                        await Cascade.add_to_album(url.host, "Attachments", link, url)
+                        await Cascade.add_to_album(url.host, in_prog_title, link, url)
 
                 tasks = []
-                for link in content_links:
-                    tasks.append(self.scraping_mapper.map_url(link, title))
+                for link_title_bundle in content_links:
+                    link = link_title_bundle[0]
+                    temp_title = link_title_bundle[1]
+                    tasks.append(self.scraping_mapper.map_url(link, temp_title))
                 await asyncio.gather(*tasks)
 
                 next_page = soup.select_one(

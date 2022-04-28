@@ -1,7 +1,6 @@
 import logging
 import os
 import re
-import sqlite3
 import ssl
 
 import certifi
@@ -21,7 +20,7 @@ FILE_FORMATS = {
         '.swf', '.avi', '.m4p', '.wmv',
         '.mp2', '.m4v', '.qt', '.mpe',
         '.mp4', '.flv', '.mov', '.mpg',
-        '.ogg', '.mkv'
+        '.ogg', '.mkv', '.mts'
     },
     'Audio': {
         '.mp3', '.flac', '.wav', '.m4a'
@@ -43,43 +42,6 @@ async def sanitize(input: str) -> str:
     return re.sub(r'[<>:"/\\|?*\']', "", input)
 
 
-async def sql_initialize(download_history):
-    conn = sqlite3.connect(download_history)
-    curr = conn.cursor()
-    create_table_query = """CREATE TABLE IF NOT EXISTS downloads (
-                                filename TEXT,
-                                size INTEGER NOT NULL,
-                                completed INTEGER NOT NULL,
-                                PRIMARY KEY (filename, size)
-                            );"""
-    curr.execute(create_table_query)
-
-    conn.commit()
-    return conn, curr
-
-
-async def sql_check_existing(cursor: sqlite3.Cursor, filename, size):
-    cursor.execute(
-        """SELECT completed FROM downloads WHERE filename = '%s' and size = %d""" % (filename, size))
-    sql_file_check = cursor.fetchone()
-    if sql_file_check:
-        if sql_file_check[0] == 1:
-            return True
-    return False
-
-
-async def sql_insert_file(connection: sqlite3.Connection, cursor: sqlite3.Cursor, filename, size, completed):
-    cursor.execute("""INSERT OR IGNORE INTO downloads VALUES ('%s', %d, %d)""" % (
-        filename, size, completed))
-    connection.commit()
-
-
-async def sql_update_file(connection: sqlite3.Connection, cursor: sqlite3.Cursor, filename, size, completed):
-    cursor.execute("""INSERT OR REPLACE INTO downloads VALUES ('%s', %d, %d)""" % (
-        filename, size, completed))
-    connection.commit()
-
-
 async def log(text, style=Fore.WHITE) -> None:
     """Wrapper around print() to add color to text"""
     logger.debug(text)
@@ -99,9 +61,6 @@ async def make_title_safe(title: str):
 async def purge_dir(dir, in_place=True):
 
     deleted = []
-
-    # IT DELETES NON-EMPTY DIRS???
-
     dir_tree = list(os.walk(dir, topdown=False))
 
     for tree_element in dir_tree:
@@ -118,7 +77,7 @@ async def purge_dir(dir, in_place=True):
 
 async def regex_links(urls) -> list:
     all_links = [x.group().replace(".md.", ".") for x in re.finditer(
-        r"(?:http.*?)(?=('|$|\n|\r\n|\r|\s|\"|\[/URL]))", urls)]
+        r"(?:http.*?)(?=('|$|\n|\r\n|\r|\s|\"|\[/URL]|]\[|\[/img]))", urls)]
     yarl_links = []
     for link in all_links:
         yarl_links.append(URL(link))

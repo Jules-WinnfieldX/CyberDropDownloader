@@ -1,3 +1,4 @@
+import aiofiles
 from yarl import URL
 
 from .crawlers.Anonfiles_Spider import AnonfilesCrawler
@@ -13,8 +14,9 @@ from .data_classes import CascadeItem
 
 
 class ScrapeMapper():
-    def __init__(self, *, session, include_id=False, username=None, password=None):
+    def __init__(self, *, session, include_id=False, username=None, password=None, separate_posts=False):
         self.include_id = include_id
+        self.separate_posts = separate_posts
         self.username = username
         self.password = password
         self.session = session
@@ -108,4 +110,6 @@ class ScrapeMapper():
             if key in url_to_map.host:
                 await value(url=url_to_map, title=title)
                 return
-        await log(str(url_to_map) + "is not supported currently.")
+        await log(str(url_to_map) + " is not supported currently.")
+        async with aiofiles.open("./Unsupported_Urls.txt", mode='a') as f:
+            await f.write(str(url_to_map)+"\n")
