@@ -7,13 +7,13 @@ from .base_functions import log, user_agent
 from .scraper_helper import ScrapeMapper
 
 
-async def scrape(urls, include_id: bool, thotsbay_username: str, thotsbay_password: str):
+async def scrape(urls, include_id: bool, thotsbay_username: str, thotsbay_password: str, separate_posts: bool):
     await log("Starting Scrape", Fore.WHITE)
     headers = {"user-agent": user_agent}
     jar = aiohttp.CookieJar(quote_cookie=False)
 
     async with aiohttp.ClientSession(headers=headers, raise_for_status=True, cookie_jar=jar) as session:
-        scraper = ScrapeMapper(session=session, include_id=include_id, username=thotsbay_username, password=thotsbay_password)
+        scraper = ScrapeMapper(session=session, include_id=include_id, username=thotsbay_username, password=thotsbay_password, separate_posts=separate_posts)
         tasks = []
         for link in urls:
             tasks.append(scraper.map_url(link))
