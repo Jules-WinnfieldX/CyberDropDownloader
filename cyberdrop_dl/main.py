@@ -32,6 +32,8 @@ def parse_args():
     parser.add_argument("--separate-posts", help="separates thotsbay scraping into folders by post", action="store_true")
     parser.add_argument("--thotsbay-username", type=str, help="username to login to thotsbay", default=None)
     parser.add_argument("--thotsbay-password", type=str, help="password to login to thotsbay", default=None)
+    parser.add_argument("--cyberfile-username", type=str, help="username to login to cyberfile", default=None)
+    parser.add_argument("--cyberfile-password", type=str, help="password to login to cyberfile", default=None)
     parser.add_argument("links", metavar="link", nargs="*", help="link to content to download (passing multiple links is supported)", default=[])
     args = parser.parse_args()
     return args
@@ -55,7 +57,7 @@ async def download_all(args: argparse.Namespace):
 
     with open(input_file, "r") as f:
         links += await regex_links(f.read())
-    content_object = await scrape(links, args.include_id, args.thotsbay_username, args.thotsbay_password, args.separate_posts)
+    content_object = await scrape(links, args.include_id, args.thotsbay_username, args.thotsbay_password, args.cyberfile_username, args.cyberfile_password, args.separate_posts)
     if await content_object.is_empty():
         logging.error(f'ValueError No links')
         await log("No links found, check the URL.txt\nIf the link works in your web browser, please open an issue ticket with me.", Fore.RED)

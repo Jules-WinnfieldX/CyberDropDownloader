@@ -9,16 +9,20 @@ from .crawlers.ShareX_Spider import ShareXCrawler
 from .crawlers.Thotsbay_Spider import ThotsbayCrawler
 from .crawlers.Gfycat_Spider import GfycatCrawler
 from .crawlers.Redgifs_Spider import RedGifsCrawler
+from .crawlers.Cyberfile_Spider import CyberfileCrawler
 from .base_functions import log, pixeldrain_parse
 from .data_classes import CascadeItem
 
 
 class ScrapeMapper():
-    def __init__(self, *, session, include_id=False, username=None, password=None, separate_posts=False):
+    def __init__(self, *, session, include_id=False, thotsbay_username=None, thotsbay_password=None,
+                 cyberfile_username=None, cyberfile_password=None, separate_posts=False):
         self.include_id = include_id
         self.separate_posts = separate_posts
-        self.username = username
-        self.password = password
+        self.thotsbay_username = thotsbay_username
+        self.thotsbay_password = thotsbay_password
+        self.cyberfile_username = cyberfile_username
+        self.cyberfile_password = cyberfile_password
         self.session = session
         self.Cascade = CascadeItem({})
         self.erome_crawler = None
@@ -29,13 +33,14 @@ class ScrapeMapper():
         self.thotsbay_crawler = None
         self.gfycat_crawler = None
         self.redgifs_crawler = None
+        self.cyberfile_crawler = None
         self.mapping = {"pixl.is": self.ShareX, "putme.ga": self.ShareX, "putmega.com": self.ShareX,
                         "jpg.church": self.ShareX, "cyberdrop.me": self.Chibisafe, "cyberdrop.cc": self.Chibisafe,
                         "cyberdrop.to": self.Chibisafe, "cyberdrop.nl": self.Chibisafe, "bunkr.is": self.Chibisafe,
                         "bunkr.to": self.Chibisafe, "erome.com": self.Erome, "gofile.io": self.GoFile,
                         "anonfiles.com": self.Anonfiles, "pixeldrain.com": self.Pixeldrain,
                         "thotsbay.com": self.ThotsBay, "socialmediagirls.com": self.ThotsBay, 
-                        "gfycat.com": self.gfycat, "redgifs.com": self.redgifs}
+                        "gfycat.com": self.gfycat, "redgifs.com": self.redgifs, "cyberfile.is": self.cyberfile}
 
     async def ShareX(self, url: URL, title=None):
         if not self.sharex_crawler:
@@ -87,7 +92,8 @@ class ScrapeMapper():
     async def ThotsBay(self, url: URL, title=None):
         if not self.thotsbay_crawler:
             self.thotsbay_crawler = ThotsbayCrawler(
-                include_id=self.include_id, username=self.username, password=self.password, scraping_mapper=self, session=self.session)
+                include_id=self.include_id, username=self.thotsbay_username, password=self.thotsbay_password,
+                scraping_mapper=self, session=self.session)
         await self.Cascade.extend(await self.thotsbay_crawler.fetch(self.session, url))
 
     async def gfycat(self, url: URL, title=None):
@@ -111,6 +117,14 @@ class ScrapeMapper():
                 await self.Cascade.add_to_album("redgifs.com", f"{title}/gifs", content_url, url)
             else:
                 await self.Cascade.add_to_album("redgifs.com", "gifs", content_url, url)
+
+    async def cyberfile(self, url: URL, title=None):
+        if not self.cyberfile_crawler:
+            self.cyberfile_crawler = CyberfileCrawler(self.cyberfile_username, self.cyberfile_password)
+        domain_obj = await self.cyberfile_crawler.fetch(url)
+        if title:
+            await domain_obj.append_title(title)
+        await self.Cascade.add_albums(domain_obj)
 
     async def map_url(self, url_to_map: URL, title=None):
         for key, value in self.mapping.items():
