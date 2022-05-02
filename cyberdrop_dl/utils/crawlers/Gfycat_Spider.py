@@ -1,12 +1,7 @@
-import asyncio
-import re
-
 from bs4 import BeautifulSoup
-from colorama import Fore
 from yarl import URL
 
-from ..base_functions import log, logger, make_title_safe, ssl_context
-from ..data_classes import CascadeItem
+from ..base_functions import logger, ssl_context
 
 
 class GfycatCrawler():

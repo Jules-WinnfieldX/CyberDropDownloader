@@ -1,7 +1,7 @@
 import sqlite3
 import atexit
 import logging
-from tkinter import E
+
 
 class SQLHelper():
     def __init__(self, ignore_history, download_history):
@@ -9,7 +9,8 @@ class SQLHelper():
         self.download_history = download_history
         self.conn = None
         self.curs = None
-        atexit.register(self.exit_handler) # Close the sql connection when the program exits
+        # Close the sql connection when the program exits
+        atexit.register(self.exit_handler)
 
     async def sql_initialize(self):
         self.conn = sqlite3.connect(self.download_history)

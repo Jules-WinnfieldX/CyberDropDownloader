@@ -1,7 +1,6 @@
 import asyncio
 import logging
 import multiprocessing
-import sqlite3
 import time
 import traceback
 from functools import wraps
