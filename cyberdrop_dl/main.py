@@ -8,6 +8,7 @@ from yarl import URL
 
 from . import __version__ as VERSION
 from .utils.base_functions import clear, log, logger, purge_dir, regex_links
+from .utils.data_classes import AuthData
 from .utils.downloaders import get_downloaders
 from .utils.scraper import scrape
 from .utils.sql_helper import SQLHelper
@@ -57,7 +58,9 @@ async def download_all(args: argparse.Namespace):
 
     with open(input_file, "r") as f:
         links += await regex_links(f.read())
-    content_object = await scrape(links, args.include_id, args.thotsbay_username, args.thotsbay_password, args.cyberfile_username, args.cyberfile_password, args.separate_posts)
+    thotsbay_auth = AuthData(args.thotsbay_username, args.thotsbay_password)
+    cyberfile_auth = AuthData(args.cyberfile_username, args.cyberfile_password)
+    content_object = await scrape(links, args.include_id, thotsbay_auth, cyberfile_auth, args.separate_posts)
     if await content_object.is_empty():
         logging.error(f'ValueError No links')
         await log("No links found, check the URL.txt\nIf the link works in your web browser, please open an issue ticket with me.", Fore.RED)

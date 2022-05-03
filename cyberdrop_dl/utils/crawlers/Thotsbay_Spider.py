@@ -6,15 +6,14 @@ from colorama import Fore
 from yarl import URL
 
 from ..base_functions import log, logger, make_title_safe, ssl_context
-from ..data_classes import CascadeItem
+from ..data_classes import AuthData, CascadeItem
 
 
 class ThotsbayCrawler():
-    def __init__(self, *, include_id=False, username=None, password=None, scraping_mapper, session, separate_posts=False):
+    def __init__(self, *, include_id=False, auth: AuthData = None, scraping_mapper, session, separate_posts=False):
         self.include_id = include_id
         self.separate_posts = separate_posts
-        self.username = username
-        self.password = password
+        self.username, self.password = (auth.username, auth.password) if auth else (None, None)
         self.scraping_mapper = scraping_mapper
         self.session = session
         self.lock = 0
@@ -162,7 +161,7 @@ class ThotsbayCrawler():
                             link = domain / link[1:]
                         in_prog_title = temp_title + "/Attachments" if self.separate_posts else "Attachments"
                         await Cascade.add_to_album(url.host, in_prog_title, URL(link), url)
-                    
+
                     # Gyfcat / Redgifs / Imgur
                     # NOTE IMGUR SUPPORT IS NOT WORKING AS OF NOW
                     links = post_content.select(

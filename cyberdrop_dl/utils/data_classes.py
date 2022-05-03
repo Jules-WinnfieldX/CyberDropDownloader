@@ -113,3 +113,10 @@ class CascadeItem:
                         check.append(url)
                         allowed.append(pair)
                 album.link_pairs = allowed
+
+
+@dataclass
+class AuthData:
+    """Class for keeping username and password"""
+    username: str
+    password: str

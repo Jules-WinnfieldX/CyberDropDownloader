@@ -15,14 +15,12 @@ from .data_classes import CascadeItem
 
 
 class ScrapeMapper():
-    def __init__(self, *, session, include_id=False, thotsbay_username=None, thotsbay_password=None,
-                 cyberfile_username=None, cyberfile_password=None, separate_posts=False):
+    def __init__(self, *, session, include_id=False, thotsbay_auth=None,
+                 cyberfile_auth=None, separate_posts=False):
         self.include_id = include_id
         self.separate_posts = separate_posts
-        self.thotsbay_username = thotsbay_username
-        self.thotsbay_password = thotsbay_password
-        self.cyberfile_username = cyberfile_username
-        self.cyberfile_password = cyberfile_password
+        self.thotsbay_auth = thotsbay_auth
+        self.cyberfile_auth = cyberfile_auth
         self.session = session
         self.Cascade = CascadeItem({})
         self.erome_crawler = None
@@ -39,7 +37,7 @@ class ScrapeMapper():
                         "cyberdrop.to": self.Chibisafe, "cyberdrop.nl": self.Chibisafe, "bunkr.is": self.Chibisafe,
                         "bunkr.to": self.Chibisafe, "erome.com": self.Erome, "gofile.io": self.GoFile,
                         "anonfiles.com": self.Anonfiles, "pixeldrain.com": self.Pixeldrain,
-                        "thotsbay.com": self.ThotsBay, "socialmediagirls.com": self.ThotsBay, 
+                        "thotsbay.com": self.ThotsBay, "socialmediagirls.com": self.ThotsBay,
                         "gfycat.com": self.gfycat, "redgifs.com": self.redgifs, "cyberfile.is": self.cyberfile}
 
     async def ShareX(self, url: URL, title=None):
@@ -92,7 +90,7 @@ class ScrapeMapper():
     async def ThotsBay(self, url: URL, title=None):
         if not self.thotsbay_crawler:
             self.thotsbay_crawler = ThotsbayCrawler(
-                include_id=self.include_id, username=self.thotsbay_username, password=self.thotsbay_password,
+                include_id=self.include_id, auth=self.thotsbay_auth,
                 scraping_mapper=self, session=self.session)
         await self.Cascade.extend(await self.thotsbay_crawler.fetch(self.session, url))
 
@@ -120,7 +118,7 @@ class ScrapeMapper():
 
     async def cyberfile(self, url: URL, title=None):
         if not self.cyberfile_crawler:
-            self.cyberfile_crawler = CyberfileCrawler(self.cyberfile_username, self.cyberfile_password)
+            self.cyberfile_crawler = CyberfileCrawler(self.cyberfile_auth)
         domain_obj = await self.cyberfile_crawler.fetch(url)
         if title:
             await domain_obj.append_title(title)
