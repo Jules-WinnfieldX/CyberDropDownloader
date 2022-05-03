@@ -91,7 +91,7 @@ class ScrapeMapper():
         if not self.thotsbay_crawler:
             self.thotsbay_crawler = ThotsbayCrawler(
                 include_id=self.include_id, auth=self.thotsbay_auth,
-                scraping_mapper=self, session=self.session)
+                scraping_mapper=self, session=self.session, separate_posts=self.separate_posts)
         await self.Cascade.extend(await self.thotsbay_crawler.fetch(self.session, url))
 
     async def gfycat(self, url: URL, title=None):
