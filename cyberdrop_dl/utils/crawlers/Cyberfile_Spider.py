@@ -4,14 +4,13 @@ from colorama import Fore
 from yarl import URL
 
 from ..base_functions import log
-from ..data_classes import DomainItem
+from ..data_classes import AuthData, DomainItem
 
 
 class CyberfileCrawler:
-    def __init__(self, username, password):
+    def __init__(self, auth: AuthData):
         self.base_url = URL('https://cyberfile.is/api/v2')
-        self.username = username
-        self.password = password
+        self.username, self.password = (auth.username, auth.password) if auth else (None, None)
         self.token, self.account_id = self.create_account()
 
     def create_account(self):
