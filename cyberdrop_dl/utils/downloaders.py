@@ -16,7 +16,7 @@ from yarl import URL
 
 from .base_functions import FILE_FORMATS, MAX_FILENAME_LENGTH, log, logger, sanitize, ssl_context, user_agent
 from .sql_helper import SQLHelper
-from .data_classes import AlbumItem, CascadeItem
+from .data_classes import AlbumItem, CascadeItem, FileLock
 
 
 class FailureException(Exception):
@@ -78,6 +78,7 @@ class Downloader:
         self.title = title
 
         self.SQL_helper = SQL_helper
+        self.FileLocker = FileLock()
 
         self.attempts = attempts
         self.current_attempt = 0
@@ -120,6 +121,10 @@ class Downloader:
                         del resp
                         if (self.folder / self.title / filename).exists():
                             return
+
+                while await self.FileLocker.check_lock(filename):
+                    await asyncio.sleep(2)
+                await self.FileLocker.add_lock(filename)
 
                 # Skip based on CLI arg.
                 if self.exclude_videos:
@@ -176,6 +181,7 @@ class Downloader:
                                 progress.update(len(chunk))
             resp.close()
             await self.rename_file(filename)
+            await self.FileLocker.remove_lock(filename)
         except (aiohttp.client_exceptions.ClientPayloadError, aiohttp.client_exceptions.ClientOSError,
                 aiohttp.client_exceptions.ServerDisconnectedError, asyncio.TimeoutError,
                 aiohttp.client_exceptions.ClientResponseError, FailureException) as e:

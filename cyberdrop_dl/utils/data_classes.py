@@ -20,6 +20,22 @@ class AlbumItem:
 
 
 @dataclass
+class FileLock:
+    locked_files = []
+
+    async def check_lock(self, filename):
+        if filename in self.locked_files:
+            return True
+        return False
+
+    async def add_lock(self, filename):
+        self.locked_files.append(filename)
+
+    async def remove_lock(self, filename):
+        self.locked_files.remove(filename)
+
+
+@dataclass
 class DomainItem:
     domain: str
     albums: Dict[str, AlbumItem]

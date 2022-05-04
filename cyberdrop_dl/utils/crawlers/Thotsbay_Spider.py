@@ -159,13 +159,12 @@ class ThotsbayCrawler():
                             link = link[:-1]
                         if link.startswith('/'):
                             link = domain / link[1:]
-                        in_prog_title = temp_title + "/Attachments" if self.separate_posts else "Attachments"
+                        in_prog_title = temp_title + "/Attachments"
                         await Cascade.add_to_album(url.host, in_prog_title, URL(link), url)
 
                     # Gyfcat / Redgifs / Imgur
                     # NOTE IMGUR SUPPORT IS NOT WORKING AS OF NOW
-                    links = post_content.select(
-                        "span[data-s9e-mediaembed-iframe]")
+                    links = post_content.select("span[data-s9e-mediaembed-iframe]")
                     for link in links:
                         embed_data = link.get("data-s9e-mediaembed-iframe")
                         # Replace gyfcat/redgifs/imgur embed url escape chars
@@ -185,7 +184,7 @@ class ThotsbayCrawler():
                 for link_title_bundle in forum_direct_urls:
                     link = link_title_bundle[0]
                     temp_title = link_title_bundle[1]
-                    in_prog_title = temp_title + "/Attachments" if self.separate_posts else "Attachments"
+                    in_prog_title = temp_title + "/Attachments"
                     if str(link).endswith("/"):
                         link = URL(str(link)[:-1])
                     if 'attachments' in link.parts:
