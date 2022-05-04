@@ -1,5 +1,7 @@
+import asyncio
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Tuple
+from random import gauss
 
 import aiohttp
 from yarl import URL
@@ -24,15 +26,16 @@ class FileLock:
     locked_files = []
 
     async def check_lock(self, filename):
-        if filename in self.locked_files:
+        await asyncio.sleep(gauss(0, 2))
+        if filename.lower() in self.locked_files:
             return True
         return False
 
     async def add_lock(self, filename):
-        self.locked_files.append(filename)
+        self.locked_files.append(filename.lower())
 
     async def remove_lock(self, filename):
-        self.locked_files.remove(filename)
+        self.locked_files.remove(filename.lower())
 
 
 @dataclass

@@ -122,8 +122,9 @@ class Downloader:
                         if (self.folder / self.title / filename).exists():
                             return
 
-                while await self.FileLocker.check_lock(filename):
-                    await asyncio.sleep(2)
+                if await self.FileLocker.check_lock(filename):
+                    await log("\nFile with name " + filename + " already downloading.")
+                    return
                 await self.FileLocker.add_lock(filename)
 
                 # Skip based on CLI arg.
