@@ -20,7 +20,8 @@ def parse_args():
     parser.add_argument("-i", "--input-file", type=Path, help="file containing links to download", default="URLs.txt")
     parser.add_argument("-o", "--output-folder", type=Path, help="folder to download files to", default="Downloads")
     parser.add_argument("--log-file", help="log file to write to", default="downloader.log")
-    parser.add_argument("--db-file", help="history database file to write to", default="download_history_size_based.sqlite")
+    parser.add_argument("--db-file", help="history database file to write to",
+                        default="download_history_size_based.sqlite")
     parser.add_argument("--threads", type=int, help="number of threads to use (0 = max)", default=0)
     parser.add_argument("--attempts", type=int, help="number of attempts to download each file", default=10)
     parser.add_argument("--disable-attempt-limit", help="disables the attempt limitation", action="store_true")
@@ -30,12 +31,14 @@ def parse_args():
     parser.add_argument("--exclude-audio", help="skip downloading of audio files", action="store_true")
     parser.add_argument("--exclude-other", help="skip downloading of images", action="store_true")
     parser.add_argument("--ignore-history", help="This ignores previous download history", action="store_true")
-    parser.add_argument("--separate-posts", help="separates thotsbay scraping into folders by post", action="store_true")
+    parser.add_argument("--separate-posts", help="separates thotsbay scraping into folders by post",
+                        action="store_true")
     parser.add_argument("--thotsbay-username", type=str, help="username to login to thotsbay", default=None)
     parser.add_argument("--thotsbay-password", type=str, help="password to login to thotsbay", default=None)
     parser.add_argument("--cyberfile-username", type=str, help="username to login to cyberfile", default=None)
     parser.add_argument("--cyberfile-password", type=str, help="password to login to cyberfile", default=None)
-    parser.add_argument("links", metavar="link", nargs="*", help="link to content to download (passing multiple links is supported)", default=[])
+    parser.add_argument("links", metavar="link", nargs="*",
+                        help="link to content to download (passing multiple links is supported)", default=[])
     args = parser.parse_args()
     return args
 
@@ -63,15 +66,16 @@ async def download_all(args: argparse.Namespace):
     content_object = await scrape(links, args.include_id, thotsbay_auth, cyberfile_auth, args.separate_posts)
     if await content_object.is_empty():
         logging.error(f'ValueError No links')
-        await log("No links found, check the URL.txt\nIf the link works in your web browser, please open an issue ticket with me.", Fore.RED)
+        await log("No links found, check the URL.txt\nIf the link works in your web browser, "
+                  "please open an issue ticket with me.", Fore.RED)
         await log("This program does not currently support password protected albums.", Fore.RED)
         exit(0)
     await clear()
-    downloaders = get_downloaders(content_object, folder=args.output_folder, attempts=args.attempts,
-                                  disable_attempt_limit=args.disable_attempt_limit,
-                                  threads=args.threads, exclude_videos=args.exclude_videos,
-                                  exclude_images=args.exclude_images, exclude_audio=args.exclude_audio,
-                                  exclude_other=args.exclude_other, SQL_helper=SQL_helper)
+    downloaders = await get_downloaders(content_object, folder=args.output_folder, attempts=args.attempts,
+                                        disable_attempt_limit=args.disable_attempt_limit,
+                                        threads=args.threads, exclude_videos=args.exclude_videos,
+                                        exclude_images=args.exclude_images, exclude_audio=args.exclude_audio,
+                                        exclude_other=args.exclude_other, SQL_helper=SQL_helper)
 
     for downloader in downloaders:
         await downloader.download_content()
@@ -88,8 +92,8 @@ async def download_all(args: argparse.Namespace):
         await log('There are still partial downloads in your folders, please re-run the program.')
 
 
-def main(args = None):
-    if args == None:
+def main(args=None):
+    if not args:
         args = parse_args()
     logging.basicConfig(
         filename=args.log_file,

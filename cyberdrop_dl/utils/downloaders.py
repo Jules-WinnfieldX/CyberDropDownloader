@@ -118,13 +118,35 @@ class Downloader:
                     async with session.get(url, headers=headers, ssl=ssl_context, raise_for_status=True) as resp:
                         filename = resp.content_disposition.filename
                         filename = await sanitize(filename)
-                        del resp
-                        if (self.folder / self.title / filename).exists():
-                            return
+                        total_size = int(resp.headers.get('Content-Length', str(0)))
+                else:
+                    async with session.get(url, headers=headers, ssl=ssl_context, raise_for_status=True) as resp:
+                        total_size = int(resp.headers.get('Content-Length', str(0)))
 
-                if await self.FileLocker.check_lock(filename):
-                    await log("\nFile with name " + filename + " already downloading.")
+                # Make suffix always lower case
+                filename.replace('.'+filename.split('.')[-1], ext)
+
+                # Check DB for already downloaded
+                if await self.SQL_helper.sql_check_existing(filename, total_size):
+                    logger.debug("%s Already Downloaded" % filename)
                     return
+
+                complete_file = (self.folder / self.title / filename)
+                original_filename = filename
+                if await self.FileLocker.check_lock(filename) or complete_file.exists():
+                    if complete_file.exists():
+                        if complete_file.stat().st_size == total_size:
+                            await self.SQL_helper.sql_update_file(original_filename, complete_file.stat().st_size, 1)
+                            logger.debug("%s Already Downloaded" % filename)
+                            return
+                    ext_orig = '.' + filename.split('.')[-1]
+                    temp_filename = filename.replace(ext_orig, '')
+                    suffix = 1
+                    while await self.FileLocker.check_lock(temp_filename + " " + "(%s)" % str(suffix) + ext_orig) or \
+                            (self.folder / self.title / (temp_filename + " " + "(%s)" % str(suffix) +
+                                                         ext_orig)).exists():
+                        suffix += 1
+                    filename = temp_filename + " " + "(%s)" % str(suffix) + ext_orig
                 await self.FileLocker.add_lock(filename)
 
                 # Skip based on CLI arg.
@@ -160,12 +182,7 @@ class Downloader:
                         logger.debug(
                             f"Server for %s is either down or the file no longer exists" % str(url))
                         return
-                    total = int(resp.headers.get(
-                        'Content-Length', str(0))) + resume_point
-
-                    if await self.SQL_helper.sql_check_existing(filename, total):
-                        logger.debug("%s Already Downloaded" % filename)
-                        return
+                    total = int(resp.headers.get('Content-Length', str(0))) + resume_point
 
                     (self.folder / self.title).mkdir(parents=True, exist_ok=True)
 
@@ -181,7 +198,7 @@ class Downloader:
                                 await f.write(chunk)
                                 progress.update(len(chunk))
             resp.close()
-            await self.rename_file(filename)
+            await self.rename_file(filename, original_filename, total_size)
             await self.FileLocker.remove_lock(filename)
         except (aiohttp.client_exceptions.ClientPayloadError, aiohttp.client_exceptions.ClientOSError,
                 aiohttp.client_exceptions.ServerDisconnectedError, asyncio.TimeoutError,
@@ -196,18 +213,20 @@ class Downloader:
                 pass
             raise FailureException(e)
 
-    async def rename_file(self, filename: str) -> None:
+    async def rename_file(self, filename: str, original_filename: str, total_size: int) -> None:
         """Rename complete file."""
         complete_file = (self.folder / self.title / filename)
         temp_file = complete_file.with_suffix(complete_file.suffix + '.part')
-        if complete_file.exists():
-            logger.debug(str(self.folder / self.title /
-                         filename) + " Already Exists")
-            await aiofiles.os.remove(temp_file)
+        if temp_file.stat().st_size == total_size:
+            if complete_file.exists():
+                logger.debug(str(self.folder / self.title / filename) + " Already Exists")
+                await aiofiles.os.remove(temp_file)
+            else:
+                temp_file.rename(complete_file)
+            await self.SQL_helper.sql_update_file(original_filename, complete_file.stat().st_size, 1)
+            logger.debug("Finished " + filename)
         else:
-            temp_file.rename(complete_file)
-        await self.SQL_helper.sql_update_file(filename, complete_file.stat().st_size, 1)
-        logger.debug("Finished " + filename)
+            await log("File size doesn't match expected size: " + temp_file.name)
 
     async def download_and_store(
             self,
@@ -226,18 +245,13 @@ class Downloader:
             fileext = filename.split('.')[-1]
             filename = filename[:MAX_FILENAME_LENGTH] + '.' + fileext
 
-        complete_file = (self.folder / self.title / filename)
-        if complete_file.exists():
-            await self.SQL_helper.sql_update_file(filename, complete_file.stat().st_size, 1)
-            logger.debug(str(complete_file) + " Already Exists")
-        else:
-            logger.debug("Working on " + str(url))
-            try:
-                await self.download_file(url, referral=referral, filename=filename,
-                                         session=session, show_progress=show_progress)
-            except Exception:
-                logger.debug(traceback.format_exc())
-                await log(f"\nError attempting {filename}: See downloader.log for details\n", Fore.WHITE)
+        logger.debug("Working on " + str(url))
+        try:
+            await self.download_file(url, referral=referral, filename=filename,
+                                     session=session, show_progress=show_progress)
+        except Exception:
+            logger.debug(traceback.format_exc())
+            await log(f"\nError attempting {filename}: See downloader.log for details\n", Fore.WHITE)
 
     async def download_all(
             self,
@@ -257,7 +271,8 @@ class Downloader:
             await self.download_all(self.album_obj, session, show_progress=show_progress)
         self.SQL_helper.conn.commit()
 
-def get_downloaders(Cascade: CascadeItem, folder: Path, attempts: int, disable_attempt_limit: bool, threads: int,
+
+async def get_downloaders(Cascade: CascadeItem, folder: Path, attempts: int, disable_attempt_limit: bool, threads: int,
                     exclude_videos: bool, exclude_images: bool, exclude_audio: bool, exclude_other: bool,
                     SQL_helper: SQLHelper) -> List[Downloader]:
     """Get a list of downloaders for each supported type of URLs.

@@ -3,7 +3,7 @@ import atexit
 import logging
 
 
-class SQLHelper():
+class SQLHelper:
     def __init__(self, ignore_history, download_history):
         self.ignore_history = ignore_history
         self.download_history = download_history
