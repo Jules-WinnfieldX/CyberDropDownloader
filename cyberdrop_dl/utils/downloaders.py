@@ -132,21 +132,17 @@ class Downloader:
                     return
 
                 complete_file = (self.folder / self.title / filename)
-                original_filename = filename
                 if await self.FileLocker.check_lock(filename) or complete_file.exists():
                     if complete_file.exists():
                         if complete_file.stat().st_size == total_size:
-                            await self.SQL_helper.sql_update_file(original_filename, complete_file.stat().st_size, 1)
+                            await self.SQL_helper.sql_update_file(filename, complete_file.stat().st_size, 1)
                             logger.debug("%s Already Downloaded" % filename)
                             return
-                    ext_orig = '.' + filename.split('.')[-1]
-                    temp_filename = filename.replace(ext_orig, '')
-                    suffix = 1
-                    while await self.FileLocker.check_lock(temp_filename + " " + "(%s)" % str(suffix) + ext_orig) or \
-                            (self.folder / self.title / (temp_filename + " " + "(%s)" % str(suffix) +
-                                                         ext_orig)).exists():
-                        suffix += 1
-                    filename = temp_filename + " " + "(%s)" % str(suffix) + ext_orig
+                        else:
+                            await log("\nAnother file already exists with filename: " + filename)
+                            return
+                    await log("\nAnother file already downloading with filename: " + filename)
+                    return
                 await self.FileLocker.add_lock(filename)
 
                 # Skip based on CLI arg.
@@ -198,11 +194,16 @@ class Downloader:
                                 await f.write(chunk)
                                 progress.update(len(chunk))
             resp.close()
-            await self.rename_file(filename, original_filename, total_size)
+            await self.rename_file(filename, total_size)
             await self.FileLocker.remove_lock(filename)
         except (aiohttp.client_exceptions.ClientPayloadError, aiohttp.client_exceptions.ClientOSError,
                 aiohttp.client_exceptions.ServerDisconnectedError, asyncio.TimeoutError,
                 aiohttp.client_exceptions.ClientResponseError, FailureException) as e:
+            try:
+                await self.FileLocker.remove_lock(filename)
+            except:
+                pass
+
             try:
                 if 400 <= e.code < 500:
                     logger.debug(
@@ -211,9 +212,10 @@ class Downloader:
                 resp.close()
             except:
                 pass
+
             raise FailureException(e)
 
-    async def rename_file(self, filename: str, original_filename: str, total_size: int) -> None:
+    async def rename_file(self, filename: str, total_size: int) -> None:
         """Rename complete file."""
         complete_file = (self.folder / self.title / filename)
         temp_file = complete_file.with_suffix(complete_file.suffix + '.part')
@@ -223,7 +225,7 @@ class Downloader:
                 await aiofiles.os.remove(temp_file)
             else:
                 temp_file.rename(complete_file)
-            await self.SQL_helper.sql_update_file(original_filename, complete_file.stat().st_size, 1)
+            await self.SQL_helper.sql_update_file(filename, complete_file.stat().st_size, 1)
             logger.debug("Finished " + filename)
         else:
             await log("File size doesn't match expected size: " + temp_file.name)
