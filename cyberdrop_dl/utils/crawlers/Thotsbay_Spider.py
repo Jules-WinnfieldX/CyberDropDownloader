@@ -9,7 +9,7 @@ from ..base_functions import log, logger, make_title_safe, ssl_context
 from ..data_classes import AuthData, CascadeItem
 
 
-class ThotsbayCrawler():
+class ThotsbayCrawler:
     def __init__(self, *, include_id=False, auth: AuthData = None, scraping_mapper, session, separate_posts=False):
         self.include_id = include_id
         self.separate_posts = separate_posts

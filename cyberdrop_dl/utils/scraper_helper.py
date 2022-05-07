@@ -10,6 +10,7 @@ from .crawlers.Thotsbay_Spider import ThotsbayCrawler
 from .crawlers.Gfycat_Spider import GfycatCrawler
 from .crawlers.Redgifs_Spider import RedGifsCrawler
 from .crawlers.Cyberfile_Spider import CyberfileCrawler
+from .crawlers.Coomer_Spider import CoomerCrawler
 from .base_functions import log, pixeldrain_parse
 from .data_classes import CascadeItem
 
@@ -32,13 +33,15 @@ class ScrapeMapper():
         self.gfycat_crawler = None
         self.redgifs_crawler = None
         self.cyberfile_crawler = None
+        self.coomer_crawler = None
         self.mapping = {"pixl.is": self.ShareX, "putme.ga": self.ShareX, "putmega.com": self.ShareX,
                         "jpg.church": self.ShareX, "cyberdrop.me": self.Chibisafe, "cyberdrop.cc": self.Chibisafe,
                         "cyberdrop.to": self.Chibisafe, "cyberdrop.nl": self.Chibisafe, "bunkr.is": self.Chibisafe,
                         "bunkr.to": self.Chibisafe, "erome.com": self.Erome, "gofile.io": self.GoFile,
                         "anonfiles.com": self.Anonfiles, "pixeldrain.com": self.Pixeldrain,
                         "thotsbay.com": self.ThotsBay, "socialmediagirls.com": self.ThotsBay,
-                        "gfycat.com": self.gfycat, "redgifs.com": self.redgifs, "cyberfile.is": self.cyberfile}
+                        "gfycat.com": self.gfycat, "redgifs.com": self.redgifs, "cyberfile.is": self.cyberfile,
+                        "coomer.party": self.coomer}
 
     async def ShareX(self, url: URL, title=None):
         if not self.sharex_crawler:
@@ -107,8 +110,7 @@ class ScrapeMapper():
 
     async def redgifs(self, url: URL, title=None):
         if not self.redgifs_crawler:
-            self.redgifs_crawler = RedGifsCrawler(
-                scraping_mapper=self, session=self.session)
+            self.redgifs_crawler = RedGifsCrawler(scraping_mapper=self, session=self.session)
         content_url = await self.redgifs_crawler.fetch(self.session, url)
         if content_url:
             if title:
@@ -120,6 +122,14 @@ class ScrapeMapper():
         if not self.cyberfile_crawler:
             self.cyberfile_crawler = CyberfileCrawler(self.cyberfile_auth)
         domain_obj = await self.cyberfile_crawler.fetch(url)
+        if title:
+            await domain_obj.append_title(title)
+        await self.Cascade.add_albums(domain_obj)
+
+    async def coomer(self, url: URL, title=None):
+        if not self.coomer_crawler:
+            self.coomer_crawler = CoomerCrawler(include_id=self.include_id)
+        domain_obj = await self.coomer_crawler.fetch(self.session, url)
         if title:
             await domain_obj.append_title(title)
         await self.Cascade.add_albums(domain_obj)

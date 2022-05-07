@@ -16,6 +16,7 @@
 | ThotsBay     | Thread: Thotsbay.com/threads/...  <br> Continue from (will download this post and after): Thotsbay.com/threads/...post-NUMBER                                                                                                          | 
 | Anonfiles    | Download page: Anonfiles.com/...                                                                                                                                                                                                       | 
 | Cyberfile.is | Folders: Cyberfile.is/folder/...                                                                                                                                                                                                       | 
+| Coomer.party | Profiles: coomer.party/... <br> Thumbnail Links: coomer.party/thumbnail/... <br> Data Links: coomer.party/data/...                                                                                                                     | 
 
 Reminder to leave the link full (include the https://)
 
