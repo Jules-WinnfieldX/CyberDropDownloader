@@ -1,3 +1,5 @@
+import asyncio
+
 import aiofiles
 from yarl import URL
 
@@ -32,6 +34,7 @@ class ScrapeMapper():
         self.redgifs_crawler = None
         self.cyberfile_crawler = None
         self.coomer_crawler = None
+        self.semaphore = asyncio.Semaphore(1)
         self.mapping = {"pixl.is": self.ShareX, "putme.ga": self.ShareX, "putmega.com": self.ShareX,
                         "jpg.church": self.ShareX, "cyberdrop.me": self.Chibisafe, "cyberdrop.cc": self.Chibisafe,
                         "cyberdrop.to": self.Chibisafe, "cyberdrop.nl": self.Chibisafe, "bunkr.is": self.Chibisafe,
@@ -39,7 +42,7 @@ class ScrapeMapper():
                         "anonfiles.com": self.Anonfiles, "pixeldrain.com": self.Pixeldrain,
                         "thotsbay.com": self.ThotsBay, "socialmediagirls.com": self.ThotsBay,
                         "gfycat.com": self.gfycat, "redgifs.com": self.redgifs,
-                        # "cyberfile.is": self.cyberfile,
+                        "cyberfile.is": self.cyberfile,
                         "coomer.party": self.coomer}
 
     async def ShareX(self, url: URL, title=None):
@@ -89,6 +92,7 @@ class ScrapeMapper():
         await self.Cascade.add_albums(domain_obj)
 
     async def Pixeldrain(self, url: URL, title=None):
+        # TODO rewrite with API: https://pixeldrain.com/api
         title_alb = str(url).split('/')[-1]
         title = title + "/" + title_alb if title else title_alb
         await self.Cascade.add_to_album("pixeldrain.com", title, await pixeldrain_parse(url, title), url)
@@ -124,7 +128,8 @@ class ScrapeMapper():
     async def cyberfile(self, url: URL, title=None):
         if not self.cyberfile_crawler:
             self.cyberfile_crawler = CyberfileCrawler()
-        domain_obj = await self.cyberfile_crawler.fetch(self.session, url)
+        async with self.semaphore:
+            domain_obj = await self.cyberfile_crawler.fetch(self.session, url)
         if title:
             await domain_obj.append_title(title)
         await self.Cascade.add_albums(domain_obj)
