@@ -84,6 +84,8 @@ optional arguments:
   --ignore-history          ignores previous history and downloads everything
   --thotsbay-username       username to login to thotsbay (only required if the thread requires it)
   --thotsbay-password       password to login to thotsbay (only required if the thread requires it)
+  --cyberfile-username      username for cyberfile (used to access the api)
+  --cyberfile-password      password for cyberfile (used to access the api)
 ```
 
 # Credit
