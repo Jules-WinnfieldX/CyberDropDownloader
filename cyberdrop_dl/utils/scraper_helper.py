@@ -61,7 +61,11 @@ class ScrapeMapper():
 
     async def GoFile(self, url: URL, title=None):
         if not self.gofile_crawler:
-            self.gofile_crawler = GofileCrawler()
+            try:
+                self.gofile_crawler = GofileCrawler()
+            except:
+                await log("Couldn't start the GoFile crawler")
+                return
         domain_obj = await self.gofile_crawler.fetch(self.session, url)
         if title:
             await domain_obj.append_title(title)
