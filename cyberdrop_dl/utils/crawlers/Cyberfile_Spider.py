@@ -1,6 +1,7 @@
 import json
 
 from bs4 import BeautifulSoup
+from colorama import Fore
 from yarl import URL
 
 from ..base_functions import log, ssl_context, user_agent, logger
@@ -179,6 +180,7 @@ class CyberfileCrawler:
             return []
 
     async def fetch(self, session, url: URL):
+        await log("Starting scrape of " + str(url), Fore.WHITE)
         domain_obj = DomainItem("cyberfile.is", {})
         download_links = []
         if 'folder' in url.parts:
@@ -196,4 +198,5 @@ class CyberfileCrawler:
                 download_links = await self.get_download_links(session, url, [("Loose Cyberfile Files", contentId)])
         for title, download_link in download_links:
             await domain_obj.add_to_album(title, download_link, url)
+        await log("Finished scrape of " + str(url), Fore.WHITE)
         return domain_obj

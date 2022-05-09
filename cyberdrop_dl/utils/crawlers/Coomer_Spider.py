@@ -14,6 +14,7 @@ class CoomerCrawler:
         self.include_id = include_id
 
     async def fetch(self, session, url: URL):
+        # TODO folder name for posts
         await log("Starting scrape of " + str(url), Fore.WHITE)
         domain_obj = DomainItem('coomer.party', {})
         results = []

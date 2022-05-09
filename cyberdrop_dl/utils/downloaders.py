@@ -41,11 +41,7 @@ def retry(f):
     return wrapper
 
 
-async def throttle(self, url: URL) -> None:
-    host = url.host
-    if host is None:
-        return
-    delay = self.delay.get(host)
+async def throttle(self, delay, host) -> None:
     if delay is None:
         return
 
@@ -92,7 +88,7 @@ class Downloader:
 
         self.max_workers = max_workers
         self._semaphore = asyncio.Semaphore(max_workers)
-        self.delay = {'media-files.bunkr.is': 1}
+        self.delay = {'bunkr.is': 1, 'cyberfile.is': 1}
         self.throttle_times = {}
 
     """Changed from aiohttp exceptions caught to FailureException to allow for partial downloads."""
@@ -111,12 +107,12 @@ class Downloader:
 
         try:
             async with self._semaphore:
-                if url.host in self.delay:
-                    await throttle(self, url)
-
                 # If ext isn't allowable we likely have an invalid filename, lets go get it.
                 ext = '.' + filename.split('.')[-1].lower()
                 if not (ext in FILE_FORMATS['Images'] or ext in FILE_FORMATS['Videos'] or ext in FILE_FORMATS['Audio'] or ext in FILE_FORMATS['Other']):
+                    for key, value in self.delay.items():
+                        if key in url.host:
+                            await throttle(self, value, key)
                     async with session.get(url, headers=headers, ssl=ssl_context, raise_for_status=True) as resp:
                         filename = resp.content_disposition.filename
                         filename = await sanitize(filename)
@@ -150,6 +146,9 @@ class Downloader:
 
                 complete_file = (self.folder / self.title / filename)
                 if await self.SQL_helper.check_filename(filename) or complete_file.exists:
+                    for key, value in self.delay.items():
+                        if key in url.host:
+                            await throttle(self, value, key)
                     async with session.head(url, headers=headers, ssl=ssl_context, raise_for_status=True) as resp:
                         total_size = int(resp.headers.get('Content-Length', str(0)))
 
@@ -201,8 +200,9 @@ class Downloader:
                     resume_point = temp_file.stat().st_size
                     headers['Range'] = 'bytes=%d-' % resume_point
 
-                if url.host in self.delay:
-                    await throttle(self, url)
+                for key, value in self.delay.items():
+                    if key in url.host:
+                        await throttle(self, value, key)
 
                 async with session.get(url, headers=headers, ssl=ssl_context, raise_for_status=True) as resp:
                     content_type = resp.headers.get('Content-Type')
@@ -239,9 +239,8 @@ class Downloader:
                 pass
 
             try:
-                if 400 <= e.code < 500:
-                    logger.debug(
-                        "We ran into a 400 level error: %s" % str(e.code))
+                if 400 <= e.code < 500 and e.code != 429:
+                    logger.debug("We ran into a 400 level error: %s" % str(e.code))
                     return
                 resp.close()
             except:
