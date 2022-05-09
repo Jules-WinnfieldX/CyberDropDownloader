@@ -48,7 +48,7 @@ class SQLHelper:
     async def sql_check_existing(self, filename, size):
         if self.ignore_history:
             return False
-        self.curs.execute("""SELECT completed FROM downloads WHERE filename = '%s' and size = %d""",  (filename, size, ))
+        self.curs.execute("""SELECT completed FROM downloads WHERE filename = ? and size = ?""", (filename, size))
         sql_file_check = self.curs.fetchone()
         if sql_file_check:
             if sql_file_check[0] == 1:
@@ -56,15 +56,15 @@ class SQLHelper:
         return False
 
     async def sql_insert_file(self, filename, downloaded_filename, size, completed):
-        self.curs.execute("""INSERT OR IGNORE INTO downloads VALUES ('%s', '%s', %d, %d)""", (filename, downloaded_filename, size, completed, ))
+        self.curs.execute("""INSERT OR IGNORE INTO downloads VALUES (?, ?, ?, ?)""", (filename, downloaded_filename, size, completed))
         self.conn.commit()
 
     async def sql_update_file(self, filename, downloaded_filename, size, completed):
-        self.curs.execute("""INSERT OR REPLACE INTO downloads VALUES ('%s', '%s', %d, %d)""", (filename, downloaded_filename, size, completed, ))
+        self.curs.execute("""INSERT OR REPLACE INTO downloads VALUES (?, ?, ?, ?)""", (filename, downloaded_filename, size, completed))
         self.conn.commit()
 
     async def check_filename(self, filename):
-        self.curs.execute("""SELECT EXISTS(SELECT 1 FROM downloads WHERE filename = '%s')""", (filename, ))
+        self.curs.execute("""SELECT EXISTS(SELECT 1 FROM downloads WHERE filename = ?)""", (filename, ))
         sql_check = self.curs.fetchone()[0]
         if sql_check == 1:
             return True
@@ -72,7 +72,7 @@ class SQLHelper:
             return False
 
     async def check_filename_for_downloaded(self, filename):
-        self.curs.execute("""SELECT EXISTS(SELECT 1 FROM downloads WHERE downloaded_filename = '%s')""", (filename, ))
+        self.curs.execute("""SELECT EXISTS(SELECT 1 FROM downloads WHERE downloaded_filename = ?)""", (filename, ))
         sql_check = self.curs.fetchone()[0]
         if sql_check == 1:
             return True
@@ -80,7 +80,7 @@ class SQLHelper:
             return False
 
     async def get_download_filename(self, filename, size):
-        self.curs.execute("""SELECT downloaded_filename FROM downloads WHERE filename = '%s' and size = %d""",  (filename, size, ))
+        self.curs.execute("""SELECT downloaded_filename FROM downloads WHERE filename = ? and size = ?""", (filename, size))
         filename = self.curs.fetchone()
         if filename:
             return filename[0]
@@ -95,4 +95,3 @@ class SQLHelper:
             logging.debug(f"Failed to close sqlite database connection: {str(e)}")
         else:
             logging.debug("Successfully closed sqlite database connection")
-        
