@@ -8,6 +8,23 @@ from yarl import URL
 
 
 @dataclass
+class FileLock:
+    locked_files = []
+
+    async def check_lock(self, filename):
+        await asyncio.sleep(.1)
+        if filename.lower() in self.locked_files:
+            return True
+        return False
+
+    async def add_lock(self, filename):
+        self.locked_files.append(filename.lower())
+
+    async def remove_lock(self, filename):
+        self.locked_files.remove(filename.lower())
+
+
+@dataclass
 class AlbumItem:
     """Class for keeping track of download links for each album"""
     title: str
@@ -19,23 +36,6 @@ class AlbumItem:
 
     async def set_new_title(self, new_title: str):
         self.title = new_title
-
-
-@dataclass
-class FileLock:
-    locked_files = []
-
-    async def check_lock(self, filename):
-        await asyncio.sleep(gauss(0, 2))
-        if filename.lower() in self.locked_files:
-            return True
-        return False
-
-    async def add_lock(self, filename):
-        self.locked_files.append(filename.lower())
-
-    async def remove_lock(self, filename):
-        self.locked_files.remove(filename.lower())
 
 
 @dataclass

@@ -26,3 +26,6 @@ added --separate-posts to separate each thotsbay post into it's own folder (requ
 
 2.17.0
 added basic unsupported urls output to text file.
+
+2.18.7
+large changes to the handling of downloads. Removed cyberfile.is handling and started investigating actually making something that works.

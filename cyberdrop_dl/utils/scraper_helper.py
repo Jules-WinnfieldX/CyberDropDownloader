@@ -16,12 +16,10 @@ from .data_classes import CascadeItem
 
 
 class ScrapeMapper():
-    def __init__(self, *, session, include_id=False, thotsbay_auth=None,
-                 cyberfile_auth=None, separate_posts=False):
+    def __init__(self, *, session, include_id=False, thotsbay_auth=None, separate_posts=False):
         self.include_id = include_id
         self.separate_posts = separate_posts
         self.thotsbay_auth = thotsbay_auth
-        self.cyberfile_auth = cyberfile_auth
         self.session = session
         self.Cascade = CascadeItem({})
         self.erome_crawler = None
@@ -40,7 +38,8 @@ class ScrapeMapper():
                         "bunkr.to": self.Chibisafe, "erome.com": self.Erome, "gofile.io": self.GoFile,
                         "anonfiles.com": self.Anonfiles, "pixeldrain.com": self.Pixeldrain,
                         "thotsbay.com": self.ThotsBay, "socialmediagirls.com": self.ThotsBay,
-                        "gfycat.com": self.gfycat, "redgifs.com": self.redgifs, "cyberfile.is": self.cyberfile,
+                        "gfycat.com": self.gfycat, "redgifs.com": self.redgifs,
+                        # "cyberfile.is": self.cyberfile,
                         "coomer.party": self.coomer}
 
     async def ShareX(self, url: URL, title=None):
@@ -120,8 +119,8 @@ class ScrapeMapper():
 
     async def cyberfile(self, url: URL, title=None):
         if not self.cyberfile_crawler:
-            self.cyberfile_crawler = CyberfileCrawler(self.cyberfile_auth)
-        domain_obj = await self.cyberfile_crawler.fetch(url)
+            self.cyberfile_crawler = CyberfileCrawler()
+        domain_obj = await self.cyberfile_crawler.fetch(self.session, url)
         if title:
             await domain_obj.append_title(title)
         await self.Cascade.add_albums(domain_obj)
