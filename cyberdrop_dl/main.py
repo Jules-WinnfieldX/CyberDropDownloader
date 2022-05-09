@@ -44,7 +44,9 @@ def parse_args():
 async def download_all(args: argparse.Namespace):
     await clear()
     await log(f"We are running version {VERSION} of Cyberdrop Downloader", Fore.WHITE)
-    logging.debug(f"Starting downloader with args: {args.__dict__}")
+    print_args = args.__dict__
+    print_args['thotsbay_password'] = '!REDACTED!'
+    logging.debug(f"Starting downloader with args: {print_args}")
     input_file = args.input_file
     if not input_file.is_file():
         input_file.touch()
