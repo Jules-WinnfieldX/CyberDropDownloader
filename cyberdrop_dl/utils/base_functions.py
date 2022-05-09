@@ -105,16 +105,6 @@ async def cyberdrop_parse(url: URL) -> URL:
     return URL(url)
 
 
-async def pixeldrain_parse(url: URL, title: str) -> URL:
-    """Fix the URL for Pixeldrain"""
-    if url.parts[1] == 'l':
-        final_url = URL('https://pixeldrain.com/api/list/') / title / 'zip'
-    else:
-        final_url = (URL('https://pixeldrain.com/api/file/') /
-                     title).with_query('download')
-    return final_url
-
-
 async def check_direct(url: URL):
     mapping_direct = ['i.pixl.is', r's..putmega.com', r's..putme.ga', r'img-...cyberdrop...', r'f.cyberdrop...',
                       r'fs-...cyberdrop...', r'cdn.bunkr...', r'media-files.bunkr...', r'jpg.church/images/...',
