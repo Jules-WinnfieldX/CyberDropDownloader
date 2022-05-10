@@ -156,6 +156,14 @@ class Downloader:
                 partial_file = (self.folder / self.title / filename)
 
                 if complete_file.exists() or partial_file.exists():
+                    if complete_file.exists():
+                        async with session.get(url, headers=headers, ssl=ssl_context, raise_for_status=True) as resp:
+                            total_size = int(resp.headers.get('Content-Length', str(0)))
+                        if complete_file.stat().st_size == total_size:
+                            await self.SQL_helper.sql_insert_file(url.path, complete_file.name, 1)
+                            await log("\nFile already exists and matches expected size: " + complete_file.name)
+                            return
+
                     download_name = await self.SQL_helper.get_download_filename(url.path)
                     iterations = 1
 
