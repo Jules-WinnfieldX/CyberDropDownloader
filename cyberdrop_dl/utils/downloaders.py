@@ -144,13 +144,14 @@ class Downloader:
                     await asyncio.sleep(gauss(1, 1.5))
                 await self.File_Lock.add_lock(filename)
 
+                async with session.head(url, headers=headers, ssl=ssl_context, raise_for_status=True) as resp:
+                    total_size = int(resp.headers.get('Content-Length', str(0)))
+
                 complete_file = (self.folder / self.title / filename)
                 if await self.SQL_helper.check_filename(filename) or complete_file.exists:
                     for key, value in self.delay.items():
                         if key in url.host:
                             await throttle(self, value, key)
-                    async with session.head(url, headers=headers, ssl=ssl_context, raise_for_status=True) as resp:
-                        total_size = int(resp.headers.get('Content-Length', str(0)))
 
                     # check for exact file
                     if complete_file.exists():
@@ -211,11 +212,10 @@ class Downloader:
                         await self.File_Lock.remove_lock(original_filename)
                         return
 
-                    total_size = int(resp.headers.get('Content-Length', str(0)))
                     total = int(resp.headers.get('Content-Length', str(0))) + resume_point
                     (self.folder / self.title).mkdir(parents=True, exist_ok=True)
 
-                    await self.SQL_helper.sql_insert_file(original_filename, filename, total, 0)
+                    await self.SQL_helper.sql_insert_file(original_filename, filename, total_size, 0)
 
                     with tqdm(
                             total=total, unit_scale=True,
