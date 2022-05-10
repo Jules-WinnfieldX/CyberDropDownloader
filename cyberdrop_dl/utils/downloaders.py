@@ -107,6 +107,7 @@ class Downloader:
 
         # return if completed already
         if await self.SQL_helper.sql_check_existing(url.path):
+            logger.log(f"{url.path} found in DB: Skipping {filename}")
             return
 
         try:
@@ -122,7 +123,7 @@ class Downloader:
                             filename = resp.content_disposition.filename
                             filename = await sanitize(filename)
                         except:
-                            await log("Couldn't get filename for: " + str(url))
+                            await log("\nCouldn't get filename for: " + str(url))
                             return
 
                 # Make suffix always lower case
