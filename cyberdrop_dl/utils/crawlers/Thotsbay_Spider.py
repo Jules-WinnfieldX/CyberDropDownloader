@@ -189,6 +189,8 @@ class ThotsbayCrawler:
                         link = URL(str(link)[:-1])
                     if 'attachments' in link.parts:
                         await Cascade.add_to_album(url.host, in_prog_title, link, url)
+                    if 'content' in link.parts:
+                        await Cascade.add_to_album(url.host, in_prog_title, link, url)
                     elif 'data' in link.parts:
                         await Cascade.add_to_album(url.host, in_prog_title, link, url)
 
