@@ -215,7 +215,7 @@ class Downloader:
                     total = int(resp.headers.get('Content-Length', str(0))) + resume_point
                     (self.folder / self.title).mkdir(parents=True, exist_ok=True)
 
-                    await self.SQL_helper.sql_insert_file(original_filename, filename, total_size, 0)
+                    await self.SQL_helper.sql_insert_file(original_filename, filename, total, 0)
 
                     with tqdm(
                             total=total, unit_scale=True,
