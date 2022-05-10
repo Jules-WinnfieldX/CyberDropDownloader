@@ -26,6 +26,23 @@ class SQLHelper:
                                 );"""
         self.curs.execute(create_table_query)
         self.conn.commit()
+        await self.check_columns()
+
+    async def check_columns(self):
+        self.curs.execute("""SELECT COUNT(*) AS CNTREC FROM pragma_table_info('downloads') WHERE 
+                             name='path'""")
+        sql_check = self.curs.fetchone()[0]
+        if sql_check == (0):
+            self.curs.execute("""DROP TABLE downloads""")
+            self.conn.commit()
+            create_table_query = """CREATE TABLE IF NOT EXISTS downloads (
+                                    path TEXT,
+                                    downloaded_filename TEXT,
+                                    completed INTEGER NOT NULL,
+                                    PRIMARY KEY (path)
+                                );"""
+            self.curs.execute(create_table_query)
+            self.conn.commit()
 
     async def sql_check_existing(self, path):
         if self.ignore_history:
