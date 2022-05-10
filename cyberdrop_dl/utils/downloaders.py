@@ -105,6 +105,10 @@ class Downloader:
         """Download the content of given URL"""
         headers = {'Referer': str(referral), 'user-agent': user_agent}
 
+        # return if completed already
+        if await self.SQL_helper.sql_check_existing(url.path):
+            return
+
         try:
             async with self._semaphore:
                 # If ext isn't allowable we likely have an invalid filename, lets go get it.
@@ -114,8 +118,12 @@ class Downloader:
                         if key in url.host:
                             await throttle(self, value, key)
                     async with session.get(url, headers=headers, ssl=ssl_context, raise_for_status=True) as resp:
-                        filename = resp.content_disposition.filename
-                        filename = await sanitize(filename)
+                        try:
+                            filename = resp.content_disposition.filename
+                            filename = await sanitize(filename)
+                        except:
+                            await log("Couldn't get filename for: " + str(url))
+                            return
 
                 # Make suffix always lower case
                 ext = '.' + filename.split('.')[-1].lower()
@@ -144,54 +152,25 @@ class Downloader:
                     await asyncio.sleep(gauss(1, 1.5))
                 await self.File_Lock.add_lock(filename)
 
-                async with session.head(url, headers=headers, ssl=ssl_context, raise_for_status=True) as resp:
-                    total_size = int(resp.headers.get('Content-Length', str(0)))
-
                 complete_file = (self.folder / self.title / filename)
-                if await self.SQL_helper.check_filename(filename) or complete_file.exists:
-                    for key, value in self.delay.items():
-                        if key in url.host:
-                            await throttle(self, value, key)
+                partial_file = (self.folder / self.title / filename)
 
-                    # check for exact file
-                    if complete_file.exists():
-                        if complete_file.stat().st_size == total_size:
-                            await self.SQL_helper.sql_insert_file(original_filename, filename, total_size, 1)
-                            logger.debug("%s Already Downloaded" % filename)
-                            await self.File_Lock.remove_lock(original_filename)
-                            return
-
-                    # check for file under different name (same filename with wildcard)
-                    base_dir = (self.folder / self.title)
-                    for path in base_dir.glob(filename.replace(ext, '') + ' (*)' + ext):
-                        if path.stat().st_size == total_size:
-                            await self.SQL_helper.sql_insert_file(original_filename, path.name, total_size, 1)
-                            logger.debug("%s Already Downloaded" % filename)
-                            await self.File_Lock.remove_lock(original_filename)
-                            return
-
-                    # Check DB for already downloaded
-                    if await self.SQL_helper.sql_check_existing(filename, total_size):
-                        logger.debug("%s Already Downloaded" % filename)
-                        await self.File_Lock.remove_lock(original_filename)
-                        return
-
+                if complete_file.exists() or partial_file.exists():
+                    download_name = await self.SQL_helper.get_download_filename(url.path)
                     iterations = 1
-                    downloaded_filename = await self.SQL_helper.get_download_filename(filename, total_size)
 
-                    # if we didn't find a filename already associated with the file in the db, we make one.
-                    if not downloaded_filename:
+                    if not download_name:
                         while True:
                             filename = complete_file.stem + " (%d)" % iterations + ext
                             iterations += 1
                             temp_complete_file = (self.folder / self.title / filename)
                             if not temp_complete_file.exists():
-                                if not await self.SQL_helper.check_filename_for_downloaded(filename):
+                                if not await self.SQL_helper.check_filename(filename):
                                     break
                     else:
-                        filename = downloaded_filename
+                        filename = download_name
 
-                    await self.SQL_helper.sql_insert_file(original_filename, filename, total_size, 0)
+                await self.SQL_helper.sql_insert_file(url.path, filename, 0)
 
                 complete_file = (self.folder / self.title / filename)
                 resume_point = 0
@@ -215,8 +194,6 @@ class Downloader:
                     total = int(resp.headers.get('Content-Length', str(0))) + resume_point
                     (self.folder / self.title).mkdir(parents=True, exist_ok=True)
 
-                    await self.SQL_helper.sql_insert_file(original_filename, filename, total_size, 0)
-
                     with tqdm(
                             total=total, unit_scale=True,
                             unit='B', leave=False, initial=resume_point,
@@ -227,7 +204,7 @@ class Downloader:
                                 await f.write(chunk)
                                 progress.update(len(chunk))
             resp.close()
-            await self.rename_file(filename, original_filename)
+            await self.rename_file(filename, url)
             await self.File_Lock.remove_lock(original_filename)
 
         except (aiohttp.client_exceptions.ClientPayloadError, aiohttp.client_exceptions.ClientOSError,
@@ -248,7 +225,7 @@ class Downloader:
 
             raise FailureException(e)
 
-    async def rename_file(self, filename: str, original_filename: str) -> None:
+    async def rename_file(self, filename: str, url: URL) -> None:
         """Rename complete file."""
         complete_file = (self.folder / self.title / filename)
         temp_file = complete_file.with_suffix(complete_file.suffix + '.part')
@@ -257,7 +234,8 @@ class Downloader:
             await aiofiles.os.remove(temp_file)
         else:
             temp_file.rename(complete_file)
-        await self.SQL_helper.sql_update_file(original_filename, filename, complete_file.stat().st_size, 1)
+
+        await self.SQL_helper.sql_update_file(url.path, filename, 1)
         logger.debug("Finished " + filename)
 
     async def download_and_store(

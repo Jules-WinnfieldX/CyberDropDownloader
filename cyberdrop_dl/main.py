@@ -2,6 +2,7 @@ import argparse
 import asyncio
 import logging
 from pathlib import Path
+from argparse import Namespace
 
 from colorama import Fore
 from yarl import URL
@@ -21,7 +22,7 @@ def parse_args():
     parser.add_argument("-o", "--output-folder", type=Path, help="folder to download files to", default="Downloads")
     parser.add_argument("--log-file", help="log file to write to", default="downloader.log")
     parser.add_argument("--db-file", help="history database file to write to",
-                        default="download_history_size_based.sqlite")
+                        default="download_history.sqlite")
     parser.add_argument("--threads", type=int, help="number of threads to use (0 = max)", default=0)
     parser.add_argument("--attempts", type=int, help="number of attempts to download each file", default=10)
     parser.add_argument("--disable-attempt-limit", help="disables the attempt limitation", action="store_true")
@@ -44,7 +45,7 @@ def parse_args():
 async def download_all(args: argparse.Namespace):
     await clear()
     await log(f"We are running version {VERSION} of Cyberdrop Downloader", Fore.WHITE)
-    print_args = args.__dict__
+    print_args = Namespace(**vars(args)).__dict__
     print_args['thotsbay_password'] = '!REDACTED!'
     logging.debug(f"Starting downloader with args: {print_args}")
     input_file = args.input_file
