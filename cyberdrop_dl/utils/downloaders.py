@@ -107,7 +107,7 @@ class Downloader:
 
         # return if completed already
         if await self.SQL_helper.sql_check_existing(url.path):
-            logger.log(f"{url.path} found in DB: Skipping {filename}")
+            logger.debug(msg=f"{url.path} found in DB: Skipping {filename}")
             return
 
         try:
