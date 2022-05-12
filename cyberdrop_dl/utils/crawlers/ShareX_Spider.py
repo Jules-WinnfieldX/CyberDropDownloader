@@ -1,3 +1,5 @@
+import asyncio
+
 from bs4 import BeautifulSoup
 from colorama import Fore
 from yarl import URL
@@ -54,6 +56,7 @@ class ShareXCrawler():
 
     async def get_singular(self, url, session):
         results = []
+        await asyncio.sleep(1)
         try:
             async with session.get(url, ssl=ssl_context) as response:
                 text = await response.text()

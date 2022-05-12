@@ -39,6 +39,7 @@ class ScrapeMapper():
         self.thotsbay_crawler = None
 
         self.semaphore = asyncio.Semaphore(1)
+        self.sharex_semaphore = asyncio.Semaphore(4)
         self.mapping = {"anonfiles.com": self.Anonfiles, "bunkr.is": self.Chibisafe,
                         "bunkr.to": self.Chibisafe, "coomer.party": self.coomer,
                         "cyberdrop.cc": self.Chibisafe, "cyberdrop.me": self.Chibisafe,
@@ -137,7 +138,8 @@ class ScrapeMapper():
     async def ShareX(self, url: URL, title=None):
         if not self.sharex_crawler:
             self.sharex_crawler = ShareXCrawler(include_id=self.include_id)
-        domain_obj = await self.sharex_crawler.fetch(self.session, url)
+        async with self.sharex_semaphore:
+            domain_obj = await self.sharex_crawler.fetch(self.session, url)
         if title:
             await domain_obj.append_title(title)
         await self.Cascade.add_albums(domain_obj)
