@@ -162,7 +162,7 @@ class Downloader:
                             total_size = int(resp.headers.get('Content-Length', str(0)))
                         if complete_file.stat().st_size == total_size:
                             await self.SQL_helper.sql_insert_file(url.path, complete_file.name, 1)
-                            await log("\nFile already exists and matches expected size: " + complete_file.name)
+                            await logger.debug("\nFile already exists and matches expected size: " + complete_file.name)
                             return
 
                     download_name = await self.SQL_helper.get_download_filename(url.path)
@@ -212,7 +212,6 @@ class Downloader:
                             async for chunk, _ in resp.content.iter_chunks():
                                 await f.write(chunk)
                                 progress.update(len(chunk))
-                    await asyncio.sleep(1)
             await self.rename_file(filename, url)
             await self.File_Lock.remove_lock(original_filename)
 
