@@ -38,6 +38,7 @@ class EromeCrawler():
 
         except Exception as e:
             logger.debug("Error encountered while handling %s", str(url), exc_info=True)
+            await log("Error scraping " + str(url))
             logger.debug(e)
 
         await log("Finished scrape of " + str(url), Fore.WHITE)

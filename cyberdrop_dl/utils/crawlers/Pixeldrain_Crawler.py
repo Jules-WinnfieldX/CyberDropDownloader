@@ -25,7 +25,7 @@ class PixelDrainCrawler:
                     links.append(await self.create_download_link(file['id']))
             return links
         except Exception as e:
-            await log("Unable to get files for " + str(url))
+            await log("Error scraping " + str(url))
             logger.debug(e)
             return None, []
 

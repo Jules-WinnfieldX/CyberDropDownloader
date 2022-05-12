@@ -25,12 +25,12 @@ class GfycatCrawler():
                     link = URL(src.get("src"))
                     if str(link.host).find("giant") != -1:
                         video_link = link
-                if video_link == None:
+                if video_link is None:
                     video_link = URL(video_srcs[0].get("src"))
 
                 return video_link
 
         except Exception as e:
-            logger.debug("Error encountered while handling %s",
-                         str(url), exc_info=True)
+            logger.debug("Error encountered while handling %s", str(url), exc_info=True)
+            await log("Error scraping " + str(url))
             logger.debug(e)

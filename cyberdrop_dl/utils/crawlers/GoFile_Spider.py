@@ -41,7 +41,7 @@ class GofileCrawler():
         try:
             content = self.client.get_content(content_id)
         except:
-            await log("GoFile seems to be down or the link is dead")
+            await log("Error scraping " + str(url))
             return
         if not content:
             return

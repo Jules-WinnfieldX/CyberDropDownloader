@@ -25,7 +25,7 @@ class CyberfileCrawler:
                 return nodeId
 
         except Exception as e:
-            await log("Unable to get NodeId for " + str(url))
+            await log("Error scraping " + str(url))
             logger.debug(e)
             return 0
 
@@ -47,7 +47,7 @@ class CyberfileCrawler:
                 return None
 
         except Exception as e:
-            await log("Unable to get ContentId for " + str(url))
+            await log("Error scraping " + str(url))
             logger.debug(e)
             return 0
 
@@ -86,7 +86,7 @@ class CyberfileCrawler:
             return nodes, contents
 
         except Exception as e:
-            await log("Unable to get NodeId for " + str(url))
+            await log("Error scraping " + str(url))
             logger.debug(e)
             return []
 
@@ -118,7 +118,7 @@ class CyberfileCrawler:
             return contents
 
         except Exception as e:
-            await log("Unable to get content for " + str(url))
+            await log("Error scraping " + str(url))
             logger.debug(e)
             return []
 
@@ -150,7 +150,7 @@ class CyberfileCrawler:
             return contents
 
         except Exception as e:
-            await log("Unable to get NodeId for " + str(url))
+            await log("Error scraping " + str(url))
             logger.debug(e)
             return []
 
@@ -175,7 +175,7 @@ class CyberfileCrawler:
             return download_links
 
         except Exception as e:
-            await log("Unable to get content for " + str(url))
+            await log("Error scraping " + str(url))
             logger.debug(e)
             return []
 

@@ -57,13 +57,6 @@ class ThotsbayCrawler:
             await log(e)
             return
 
-        try:
-            title = await self.parse_thread(session, url, Cascade, None)
-        except Exception:
-            await log("Error handling " + str(url))
-            return
-        # await Cascade.append_title(title)
-
         await log("Finished scrape of " + str(url), Fore.WHITE)
         return Cascade
 
@@ -213,4 +206,5 @@ class ThotsbayCrawler:
 
         except Exception as e:
             logger.debug("Error encountered while handling %s", str(url), exc_info=True)
+            await log("Error scraping " + str(url))
             logger.debug(e)

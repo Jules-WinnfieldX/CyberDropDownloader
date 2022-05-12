@@ -114,10 +114,11 @@ class CascadeItem:
             domain.albums = new_albums
 
     async def extend(self, Cascade):
-        if Cascade.domains:
-            for domain_str, domain in Cascade.domains.items():
-                for album_str, album in domain.albums.items():
-                    await self.add_album(domain_str, album_str, album)
+        if Cascade:
+            if Cascade.domains:
+                for domain_str, domain in Cascade.domains.items():
+                    for album_str, album in domain.albums.items():
+                        await self.add_album(domain_str, album_str, album)
 
     async def dedupe(self):
         for domain_str, domain in self.domains.items():

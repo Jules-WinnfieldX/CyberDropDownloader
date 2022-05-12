@@ -48,6 +48,7 @@ class ShareXCrawler():
                     results.extend(result for result in await self.parse(album_url, session))
         except Exception as e:
             logger.debug("Error encountered while handling %s", str(url), exc_info=True)
+            await log("Error scraping " + str(url))
             logger.debug(e)
         return results
 
@@ -63,6 +64,7 @@ class ShareXCrawler():
                 results.append({'url': link, 'title': title, 'referral': url, 'cookies': ''})
         except Exception as e:
             logger.debug("Error encountered while handling %s", str(url), exc_info=True)
+            await log("Error scraping " + str(url))
             logger.debug(e)
         return results
 
@@ -80,6 +82,7 @@ class ShareXCrawler():
                         results.extend(result for result in await self.parse(album_url, session, og_title=og_title))
         except Exception as e:
             logger.debug("Error encountered while handling %s", str(url), exc_info=True)
+            await log("Error scraping " + str(url))
             logger.debug(e)
         return results
 
@@ -101,6 +104,7 @@ class ShareXCrawler():
                 results.extend(result for result in await self.get_list_links(list_recent, session, title))
         except Exception as e:
             logger.debug("Error encountered while handling %s", str(url), exc_info=True)
+            await log("Error scraping " + str(url))
             logger.debug(e)
         return results
 
@@ -126,6 +130,7 @@ class ShareXCrawler():
                         results.extend(result for result in await self.get_list_links(next_page, session, title))
         except Exception as e:
             logger.debug("Error encountered while handling %s", str(url), exc_info=True)
+            await log("Error scraping " + str(url))
             logger.debug(e)
         return results
 
@@ -155,5 +160,6 @@ class ShareXCrawler():
 
         except Exception as e:
             logger.debug("Error encountered while handling %s", str(url), exc_info=True)
+            await log("Error scraping " + str(url))
             logger.debug(e)
         return results

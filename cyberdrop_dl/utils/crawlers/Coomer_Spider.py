@@ -57,6 +57,7 @@ class CoomerCrawler:
 
         except Exception as e:
             logger.debug("Error encountered while handling %s", str(url), exc_info=True)
+            await log("Error scraping " + str(url))
             logger.debug(e)
             return []
 
@@ -81,5 +82,6 @@ class CoomerCrawler:
 
         except Exception as e:
             logger.debug("Error encountered while handling %s", str(url), exc_info=True)
+            await log("Error scraping " + str(url))
             logger.debug(e)
             return []
