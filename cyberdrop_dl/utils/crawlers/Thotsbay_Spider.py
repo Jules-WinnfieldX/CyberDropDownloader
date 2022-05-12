@@ -52,6 +52,7 @@ class ThotsbayCrawler:
             else:
                 await log("login wasn't provided, consider using --thotsbay-username and --thotsbay-password")
                 await log("Not being logged in might cause issues.")
+            await self.parse_thread(session, url, Cascade, None)
         except Exception as e:
             await log("there was an error signing into %s" % url.host)
             await log(e)
@@ -202,7 +203,7 @@ class ThotsbayCrawler:
                             next_page = domain / next_page[1:]
                         next_page = URL(next_page)
                         title = await self.parse_thread(session, next_page, Cascade, title)
-                return title
+                return
 
         except Exception as e:
             logger.debug("Error encountered while handling %s", str(url), exc_info=True)
