@@ -8,7 +8,7 @@ assignees: Jules-WinnfieldX
 ---
 
 **Describe the bug**
-A clear and concise description of what the bug is. INCLUDE THE FULL STACK TRACE.
+A clear and concise description of what the bug is.
 
 **To Help Reproduce**
 Steps to help reproduce the behavior:
@@ -23,5 +23,8 @@ If applicable, add screenshots to help explain your problem.
  - OS: [e.g. Windows 10, Mac OS X Sierra, etc]
  - Cyberdrop Downloader Version #
 
+**Downloader.log file**
+You need to include the downloader.log file after the issue occurs. Majority of the time it's the only way to diagnose issues. 
+
 **Additional context**
-Add any other context about the problem here. Bonus points for uploading your download.log file.
+Add any other context about the problem here.
