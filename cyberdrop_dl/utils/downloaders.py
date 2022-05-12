@@ -88,7 +88,7 @@ class Downloader:
 
         self.max_workers = max_workers
         self._semaphore = asyncio.Semaphore(max_workers)
-        self.delay = {'bunkr.is': 1, 'cyberfile.is': 1}
+        self.delay = {'bunkr.is': 1.5, 'cyberfile.is': 1}
         self.throttle_times = {}
 
     """Changed from aiohttp exceptions caught to FailureException to allow for partial downloads."""
@@ -212,7 +212,7 @@ class Downloader:
                             async for chunk, _ in resp.content.iter_chunks():
                                 await f.write(chunk)
                                 progress.update(len(chunk))
-            resp.close()
+                    await asyncio.sleep(1)
             await self.rename_file(filename, url)
             await self.File_Lock.remove_lock(original_filename)
 
@@ -225,6 +225,7 @@ class Downloader:
                 pass
 
             try:
+                logger.debug("Error status code: " + e.code)
                 if 400 <= e.code < 500 and e.code != 429:
                     logger.debug("We ran into a 400 level error: %s" % str(e.code))
                     return
