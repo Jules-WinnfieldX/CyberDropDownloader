@@ -162,7 +162,7 @@ class Downloader:
                             total_size = int(resp.headers.get('Content-Length', str(0)))
                         if complete_file.stat().st_size == total_size:
                             await self.SQL_helper.sql_insert_file(url.path, complete_file.name, 1)
-                            await logger.debug("\nFile already exists and matches expected size: " + complete_file.name)
+                            await logger.debug("\nFile already exists and matches expected size: " + str(complete_file))
                             return
 
                     download_name = await self.SQL_helper.get_download_filename(url.path)
@@ -224,12 +224,12 @@ class Downloader:
                 pass
 
             try:
-                logger.debug("Error status code: " + e.code)
+                logger.debug("Error status code: " + str(e.code))
                 if 400 <= e.code < 500 and e.code != 429:
                     logger.debug("We ran into a 400 level error: %s" % str(e.code))
                     return
                 resp.close()
-            except:
+            except Exception as e2:
                 pass
 
             raise FailureException(e)
