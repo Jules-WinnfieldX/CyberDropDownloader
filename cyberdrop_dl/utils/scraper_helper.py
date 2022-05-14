@@ -10,6 +10,7 @@ from .crawlers.Cyberfile_Spider import CyberfileCrawler
 from .crawlers.Erome_Spider import EromeCrawler
 from .crawlers.Gfycat_Spider import GfycatCrawler
 from .crawlers.GoFile_Spider import GofileCrawler
+from .crawlers.Kemono_Spider import KemonoCrawler
 from .crawlers.Pixeldrain_Crawler import PixelDrainCrawler
 from .crawlers.Redgifs_Spider import RedGifsCrawler
 from .crawlers.ShareX_Spider import ShareXCrawler
@@ -33,6 +34,7 @@ class ScrapeMapper():
         self.erome_crawler = None
         self.gfycat_crawler = None
         self.gofile_crawler = None
+        self.kemono_crawler = None
         self.pixeldrain_crawler = None
         self.redgifs_crawler = None
         self.sharex_crawler = None
@@ -45,7 +47,8 @@ class ScrapeMapper():
                         "cyberdrop.nl": self.Chibisafe, "cyberdrop.to": self.Chibisafe,
                         "cyberfile.is": self.cyberfile, "erome.com": self.Erome,
                         "gfycat.com": self.gfycat, "gofile.io": self.GoFile,
-                        "jpg.church": self.ShareX, "pixeldrain.com": self.Pixeldrain,
+                        "jpg.church": self.ShareX, "kemono.party": self.Kemono,
+                        "pixeldrain.com": self.Pixeldrain,
                         "pixl.is": self.ShareX, "putme.ga": self.ShareX,
                         "putmega.com": self.ShareX, "redgifs.com": self.redgifs,
                         "socialmediagirls.com": self.ThotsBay, "thotsbay.com": self.ThotsBay}
@@ -101,6 +104,14 @@ class ScrapeMapper():
                 await log("Couldn't start the GoFile crawler")
                 return
         domain_obj = await self.gofile_crawler.fetch(self.session, url)
+        if title:
+            await domain_obj.append_title(title)
+        await self.Cascade.add_albums(domain_obj)
+
+    async def Kemono(self, url: URL, title=None):
+        if not self.kemono_crawler:
+            self.kemono_crawler = KemonoCrawler(include_id=self.include_id)
+        domain_obj = await self.kemono_crawler.fetch(self.session, url)
         if title:
             await domain_obj.append_title(title)
         await self.Cascade.add_albums(domain_obj)

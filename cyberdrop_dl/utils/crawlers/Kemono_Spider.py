@@ -9,21 +9,21 @@ from ..base_functions import log, logger, ssl_context, make_title_safe
 from ..data_classes import DomainItem
 
 
-class CoomerCrawler:
+class KemonoCrawler:
     def __init__(self, *, include_id=False):
         self.include_id = include_id
 
     async def fetch(self, session, url: URL):
         await log("Starting scrape of " + str(url), Fore.WHITE)
-        domain_obj = DomainItem('coomer.party', {})
+        domain_obj = DomainItem('kemono.party', {})
         results = []
 
         if "thumbnail" in url.parts:
             parts = [x for x in url.parts if x != "thumbnail" and x != "/"]
-            link = URL("https://coomer.party/" + "/".join(parts))
-            await domain_obj.add_to_album("Loose Coomer.Party Files", link, link)
+            link = URL("https://kemono.party/" + "/".join(parts))
+            await domain_obj.add_to_album("Loose Kemono.Party Files", link, link)
         elif "data" in url.parts:
-            await domain_obj.add_to_album("Loose Coomer.Party Files", url, url)
+            await domain_obj.add_to_album("Loose Kemono.Party Files", url, url)
         else:
             results.extend(await self.parse_profile(session, url))
 
@@ -39,21 +39,21 @@ class CoomerCrawler:
                 text = await response.text()
                 soup = BeautifulSoup(text, 'html.parser')
                 title = soup.select_one("span[itemprop=name]").get_text()
-                title = title + " (Coomer.party)"
+                title = title + " (Kemono.party)"
                 results = []
 
                 posts = soup.select("a[class=fancy-link]")
                 for post in posts:
                     path = post.get('href')
                     if path:
-                        post_link = URL("https://coomer.party" + path)
+                        post_link = URL("https://kemono.party" + path)
                         results.extend(await self.parse_post(session, post_link, title))
 
                 next_page = soup.select_one('a[title="Next page"]')
                 if next_page:
                     next_page = next_page.get('href')
                     if next_page:
-                        results.extend(await self.parse_profile(session, URL("https://coomer.party" + next_page)))
+                        results.extend(await self.parse_profile(session, URL("https://kemono.party" + next_page)))
                 return results
 
         except Exception as e:
@@ -73,12 +73,12 @@ class CoomerCrawler:
 
                 images = soup.select('a[class="fileThumb"]')
                 for image in images:
-                    image_link = URL("https://coomer.party" + image.get('href'))
+                    image_link = URL("https://kemono.party" + image.get('href'))
                     results.append([title, image_link, url])
 
                 downloads = soup.select('a[class=post__attachment-link]')
                 for download in downloads:
-                    download_link = URL("https://coomer.party" + download.get('href'))
+                    download_link = URL("https://kemono.party" + download.get('href'))
                     results.append([title, download_link, url])
 
                 return results
