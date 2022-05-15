@@ -60,7 +60,7 @@ async def download_all(args: argparse.Namespace):
     links = args.links
     links = list(map(URL, links))
 
-    with open(input_file, "r") as f:
+    with open(input_file, "r", encoding="utf8") as f:
         links += await regex_links(f.read())
     thotsbay_auth = AuthData(args.thotsbay_username, args.thotsbay_password)
     content_object = await scrape(links, args.include_id, thotsbay_auth, args.separate_posts)
