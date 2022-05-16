@@ -210,6 +210,7 @@ class Downloader:
                     ) as progress:
                         async with aiofiles.open(temp_file, mode='ab') as f:
                             async for chunk, _ in resp.content.iter_chunks():
+                                await asyncio.sleep(0)
                                 await f.write(chunk)
                                 progress.update(len(chunk))
             await self.rename_file(filename, url)
@@ -222,6 +223,8 @@ class Downloader:
                 await self.File_Lock.remove_lock(original_filename)
             except:
                 pass
+
+            logger.debug(e)
 
             try:
                 logger.debug("Error status code: " + str(e.code))
