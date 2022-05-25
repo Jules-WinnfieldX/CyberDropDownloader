@@ -59,7 +59,6 @@ async def make_title_safe(title: str):
 
 
 async def purge_dir(dir, in_place=True):
-
     deleted = []
     dir_tree = list(os.walk(dir, topdown=False))
 
@@ -71,8 +70,6 @@ async def purge_dir(dir, in_place=True):
 
     if in_place:
         list(map(os.rmdir, deleted))
-
-    return deleted
 
 
 async def regex_links(urls) -> list:

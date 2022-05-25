@@ -4,8 +4,9 @@ import aiofiles
 from yarl import URL
 
 from .crawlers.Anonfiles_Spider import AnonfilesCrawler
-from .crawlers.Chibisafe_Spider import ChibisafeCrawler
+from .crawlers.Bunkr_Spider import BunkrCrawler
 from .crawlers.Coomer_Spider import CoomerCrawler
+from .crawlers.Cyberdrop_Spider import CyberdropCrawler
 from .crawlers.Cyberfile_Spider import CyberfileCrawler
 from .crawlers.Erome_Spider import EromeCrawler
 from .crawlers.Gfycat_Spider import GfycatCrawler
@@ -13,6 +14,7 @@ from .crawlers.GoFile_Spider import GofileCrawler
 from .crawlers.Kemono_Spider import KemonoCrawler
 from .crawlers.Pixeldrain_Crawler import PixelDrainCrawler
 from .crawlers.Redgifs_Spider import RedGifsCrawler
+from .crawlers.Saint_Spider import SaintCrawler
 from .crawlers.ShareX_Spider import ShareXCrawler
 from .crawlers.Thotsbay_Spider import ThotsbayCrawler
 from .base_functions import log
@@ -28,7 +30,8 @@ class ScrapeMapper():
         self.Cascade = CascadeItem({})
 
         self.anonfiles_crawler = None
-        self.chibisafe_crawler = None
+        self.bunkr_crawler = None
+        self.cyberdrop_crawler = None
         self.coomer_crawler = None
         self.cyberfile_crawler = None
         self.erome_crawler = None
@@ -37,36 +40,41 @@ class ScrapeMapper():
         self.kemono_crawler = None
         self.pixeldrain_crawler = None
         self.redgifs_crawler = None
+        self.saint_crawler = None
         self.sharex_crawler = None
         self.thotsbay_crawler = None
 
         self.semaphore = asyncio.Semaphore(1)
-        self.mapping = {"anonfiles.com": self.Anonfiles, "bunkr.is": self.Chibisafe,
-                        "bunkr.to": self.Chibisafe, "coomer.party": self.coomer,
-                        "cyberdrop.cc": self.Chibisafe, "cyberdrop.me": self.Chibisafe,
-                        "cyberdrop.nl": self.Chibisafe, "cyberdrop.to": self.Chibisafe,
-                        "cyberfile.is": self.cyberfile, "erome.com": self.Erome,
-                        "gfycat.com": self.gfycat, "gofile.io": self.GoFile,
-                        "jpg.church": self.ShareX, "kemono.party": self.Kemono,
-                        "pixeldrain.com": self.Pixeldrain,
+        self.mapping = {"anonfiles.com": self.Anonfiles, "bunkr.is": self.Bunkr,
+                        "bunkr.to": self.Bunkr, "coomer.party": self.coomer,
+                        "cyberdrop": self.Cyberdrop, "cyberfile.is": self.cyberfile,
+                        "erome.com": self.Erome, "gfycat.com": self.gfycat,
+                        "gofile.io": self.GoFile, "jpg.church": self.ShareX,
+                        "kemono.party": self.Kemono, "pixeldrain.com": self.Pixeldrain,
                         "pixl.is": self.ShareX, "putme.ga": self.ShareX,
                         "putmega.com": self.ShareX, "redgifs.com": self.redgifs,
-                        "socialmediagirls.com": self.ThotsBay, "thotsbay.com": self.ThotsBay}
+                        "saint.to": self.Saint, "thotsbay.com": self.ThotsBay}
 
     async def Anonfiles(self, url: URL, title=None):
         if not self.anonfiles_crawler:
-            self.anonfiles_crawler = AnonfilesCrawler(
-                include_id=self.include_id)
+            self.anonfiles_crawler = AnonfilesCrawler(include_id=self.include_id)
         domain_obj = await self.anonfiles_crawler.fetch(self.session, url)
         if title:
             await domain_obj.append_title(title)
         await self.Cascade.add_albums(domain_obj)
 
-    async def Chibisafe(self, url: URL, title=None):
-        if not self.chibisafe_crawler:
-            self.chibisafe_crawler = ChibisafeCrawler(
-                include_id=self.include_id)
-        domain_obj = await self.chibisafe_crawler.fetch(self.session, url)
+    async def Bunkr(self, url: URL, title=None):
+        if not self.bunkr_crawler:
+            self.bunkr_crawler = BunkrCrawler(include_id=self.include_id)
+        domain_obj = await self.bunkr_crawler.fetch(self.session, url)
+        if title:
+            await domain_obj.append_title(title)
+        await self.Cascade.add_albums(domain_obj)
+
+    async def Cyberdrop(self, url: URL, title=None):
+        if not self.cyberdrop_crawler:
+            self.cyberdrop_crawler = CyberdropCrawler(include_id=self.include_id)
+        domain_obj = await self.cyberdrop_crawler.fetch(self.session, url)
         if title:
             await domain_obj.append_title(title)
         await self.Cascade.add_albums(domain_obj)
@@ -118,8 +126,7 @@ class ScrapeMapper():
 
     async def gfycat(self, url: URL, title=None):
         if not self.gfycat_crawler:
-            self.gfycat_crawler = GfycatCrawler(
-                scraping_mapper=self, session=self.session)
+            self.gfycat_crawler = GfycatCrawler(scraping_mapper=self, session=self.session)
         content_url = await self.gfycat_crawler.fetch(self.session, url)
         if content_url:
             if title:
@@ -153,6 +160,14 @@ class ScrapeMapper():
                 domain_obj = await self.sharex_crawler.fetch(self.session, url)
         else:
             domain_obj = await self.sharex_crawler.fetch(self.session, url)
+        if title:
+            await domain_obj.append_title(title)
+        await self.Cascade.add_albums(domain_obj)
+
+    async def Saint(self, url: URL, title=None):
+        if not self.saint_crawler:
+            self.saint_crawler = SaintCrawler(include_id=self.include_id)
+        domain_obj = await self.saint_crawler.fetch(self.session, url)
         if title:
             await domain_obj.append_title(title)
         await self.Cascade.add_albums(domain_obj)

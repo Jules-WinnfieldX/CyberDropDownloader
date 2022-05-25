@@ -145,6 +145,11 @@ class ThotsbayCrawler:
                             link = domain / link[1:]
                         content_links.append([URL(link), temp_title])
 
+                    links = post.select('iframe[class=saint-iframe]')
+                    for link in links:
+                        link = link.get('src')
+                        content_links.append([URL(link), temp_title])
+
                     attachments_block = post.select_one("section[class=message-attachments]")
                     links = attachments_block.select("a[class='file-preview js-lbImage']") if attachments_block else []
                     for link in links:
