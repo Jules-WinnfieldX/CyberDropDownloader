@@ -34,7 +34,7 @@ class CyberdropCrawler():
                     title = title + " - " + titlep2
                 title = await make_title_safe(title.replace(r"\n", "").strip())
 
-                links = soup.select("a[target=_blank]")
+                links = soup.select('div[class="image-container column"] a')
                 for link in links:
                     link = URL(link.get('href'))
                     await domain_obj.add_to_album(title, link, url)
