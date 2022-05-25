@@ -33,10 +33,11 @@ def retry(f):
                 return await f(self, *args, **kwargs)
             except FailureException:
                 if not self.disable_attempt_limit:
-                    if self.current_attempt >= self.attempts - 1:
+                    if self.current_attempt[str(args[0])] >= self.attempts - 1:
+                        logger.debug('Skipping %s...' % args[0])
                         raise
                 logger.debug('Retrying %s...' % args[0])
-                self.attempts += 1
+                self.current_attempt[str(args[0])] += 1
                 await asyncio.sleep(2)
     return wrapper
 
@@ -78,7 +79,7 @@ class Downloader:
         self.File_Lock = FileLock()
 
         self.attempts = attempts
-        self.current_attempt = 0
+        self.current_attempt = {}
         self.disable_attempt_limit = disable_attempt_limit
 
         self.exclude_videos = exclude_videos
@@ -103,6 +104,7 @@ class Downloader:
             show_progress: bool = True
     ) -> None:
         """Download the content of given URL"""
+        self.current_attempt[str(url)] = 0
         headers = {'Referer': str(referral), 'user-agent': user_agent}
 
         # return if completed already

@@ -1,8 +1,9 @@
 import argparse
+from argparse import Namespace
 import asyncio
 import logging
 from pathlib import Path
-from argparse import Namespace
+import sys
 
 from colorama import Fore
 from yarl import URL
@@ -101,7 +102,14 @@ def main(args=None):
         format="%(asctime)s:%(levelname)s:%(module)s:%(filename)s:%(lineno)d:%(message)s",
         filemode="w"
     )
-    asyncio.get_event_loop().run_until_complete(download_all(args))
+    if sys.version_info[0] == 3 and sys.version_info[1] >= 8 and sys.platform.startswith('win'):
+        asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(download_all(args))
+    loop.run_until_complete(asyncio.sleep(1))
+    loop.close()
+
 
 
 if __name__ == '__main__':
