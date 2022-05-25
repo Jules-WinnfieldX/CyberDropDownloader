@@ -310,7 +310,7 @@ async def get_downloaders(Cascade: CascadeItem, folder: Path, attempts: int, dis
 
     for domain, domain_obj in Cascade.domains.items():
         max_workers = threads if threads != 0 else multiprocessing.cpu_count()
-        if 'bunkr' in domain:
+        if 'bunkr' in domain or 'pixeldrain' in domain:
             max_workers = 3 if (max_workers > 3) else max_workers
         for title, album_obj in domain_obj.albums.items():
             downloader = Downloader(album_obj, cookie_jar=cookie_jar, title=title, folder=folder,

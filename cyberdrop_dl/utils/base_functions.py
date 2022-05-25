@@ -43,7 +43,6 @@ async def sanitize(input: str) -> str:
 
 
 async def log(text, style=Fore.WHITE) -> None:
-    """Wrapper around print() to add color to text"""
     logger.debug(text)
     print(style + str(text) + Style.RESET_ALL)
 
