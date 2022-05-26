@@ -1,11 +1,10 @@
 import asyncio
 import logging
 import multiprocessing
-import time
 import traceback
 from functools import wraps
 from pathlib import Path
-from typing import List, Optional, Tuple
+from typing import List, Tuple
 from random import gauss
 
 import aiofiles
@@ -18,6 +17,7 @@ from yarl import URL
 from .base_functions import FILE_FORMATS, MAX_FILENAME_LENGTH, log, logger, sanitize, ssl_context, user_agent
 from .sql_helper import SQLHelper
 from .data_classes import AlbumItem, CascadeItem, FileLock
+from .rate_limiting import throttle
 
 
 class FailureException(Exception):
@@ -40,30 +40,6 @@ def retry(f):
                 self.current_attempt[str(args[0])] += 1
                 await asyncio.sleep(2)
     return wrapper
-
-
-async def throttle(self, delay, host) -> None:
-    if delay is None:
-        return
-
-    key: Optional[str] = None
-    while True:
-        if key is None:
-            key = 'throttle:{}'.format(host)
-        now = time.time()
-        last = self.throttle_times.get(key, 0.0)
-        elapsed = now - last
-
-        if elapsed >= delay:
-            self.throttle_times[key] = now
-            return
-
-        remaining = delay - elapsed + 0.25
-
-        log_string = '\nDelaying request to %s for %.2f seconds.' % (
-            host, remaining)
-        logger.debug(log_string)
-        await asyncio.sleep(remaining)
 
 
 class Downloader:

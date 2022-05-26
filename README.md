@@ -88,9 +88,20 @@ optional arguments:
   --thotsbay-password       password to login to thotsbay (only required if the thread requires it)
   --cyberfile-username      username for cyberfile (used to access the api)
   --cyberfile-password      password for cyberfile (used to access the api)
+  --skip-anonfiles          this removes anonfile links from downloads
+  --skip-bunkr              this removes bunkr links from downloads
+  --skip-coomer             this removes coomer links from downloads
+  --skip-cyberdrop          this removes cyberdrop links from downloads
+  --skip-cyberfile          this removes cyberfile links from downloads
+  --skip-erome              this removes erome links from downloads
+  --skip-gfycat             this removes gfycat links from downloads
+  --skip-gofile             this removes gofile links from downloads
+  --skip-jpgchurch          this removes jpgchurch links from downloads
+  --skip-kemono             this removes kemono links from downloads
+  --skip-pixeldrain         this removes pixeldrain links from downloads
+  --skip-pixl               this removes pixl links from downloads
+  --skip-putmega            this removes putmega links from downloads
+  --skip-redgif             this removes redgif links from downloads
+  --skip-saint              this removes saint links from downloads
+  
 ```
-
-# Credit
-The majority of the new download methodology came from alexdotis' [Chibisafe-Sharex-Scraper](https://github.com/alexdotis/Chibisafe-Sharex-Scraper).
-Added to his code was the ability to take a more descriptive url object containing the album title, netloc and content urls. 
-The download methodology now also checks for existing files. Simplified bunkr pairing to stop blank objects from being created and passed to the rest of the program.

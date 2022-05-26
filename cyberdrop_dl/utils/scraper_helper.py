@@ -18,16 +18,18 @@ from .crawlers.Saint_Spider import SaintCrawler
 from .crawlers.ShareX_Spider import ShareXCrawler
 from .crawlers.Thotsbay_Spider import ThotsbayCrawler
 from .base_functions import log
-from .data_classes import CascadeItem, AsyncRateLimiter
+from .data_classes import CascadeItem, SkipData
+from .rate_limiting import AsyncRateLimiter
 
 
 class ScrapeMapper():
-    def __init__(self, *, session, include_id=False, thotsbay_auth=None, separate_posts=False):
+    def __init__(self, *, session, include_id=False, thotsbay_auth=None, separate_posts=False, skip_data: SkipData):
         self.include_id = include_id
         self.separate_posts = separate_posts
         self.thotsbay_auth = thotsbay_auth
         self.session = session
         self.Cascade = CascadeItem({})
+        self.skip_data = skip_data
 
         self.anonfiles_crawler = None
         self.bunkr_crawler = None
@@ -45,8 +47,7 @@ class ScrapeMapper():
         self.thotsbay_crawler = None
 
         self.semaphore = asyncio.Semaphore(1)
-        self.mapping = {"anonfiles.com": self.Anonfiles, "bunkr.is": self.Bunkr,
-                        "bunkr.to": self.Bunkr, "coomer.party": self.coomer,
+        self.mapping = {"anonfiles.com": self.Anonfiles, "bunkr": self.Bunkr, "coomer.party": self.coomer,
                         "cyberdrop": self.Cyberdrop, "cyberfile.is": self.cyberfile,
                         "erome.com": self.Erome, "gfycat.com": self.gfycat,
                         "gofile.io": self.GoFile, "jpg.church": self.ShareX,
@@ -182,8 +183,12 @@ class ScrapeMapper():
     async def map_url(self, url_to_map: URL, title=None):
         for key, value in self.mapping.items():
             if key in url_to_map.host:
-                await value(url=url_to_map, title=title)
-                return
+                if not self.skip_data.sites[key]:
+                    await value(url=url_to_map, title=title)
+                    return
+                else:
+                    await log("Skipping scrape of " + str(url_to_map))
+                    return
         await log(str(url_to_map) + " is not supported currently.")
         async with aiofiles.open("./Unsupported_Urls.txt", mode='a') as f:
             await f.write(str(url_to_map)+"\n")
