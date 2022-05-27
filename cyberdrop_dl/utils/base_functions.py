@@ -80,18 +80,6 @@ async def regex_links(urls) -> list:
     return yarl_links
 
 
-async def bunkr_parse(url: URL) -> URL:
-    """Fix the URL for bunkr.is."""
-    extension = '.' + str(url).split('.')[-1]
-    if extension.lower() in FILE_FORMATS['Videos']:
-        url = URL('https://media-files.bunkr.is/').with_name(url.name)
-        return url
-    if extension.lower() in FILE_FORMATS['Images']:
-        url = url.with_host('cdn.bunkr.is')
-        return url
-    return url
-
-
 async def cyberdrop_parse(url: URL) -> URL:
     mapping_direct = [r'img-...cyberdrop...',
                       r'f.cyberdrop...', r'fs-...cyberdrop...']
@@ -104,11 +92,9 @@ async def cyberdrop_parse(url: URL) -> URL:
 async def check_direct(url: URL):
     mapping_direct = ['i.pixl.is', r's..putmega.com', r's..putme.ga', r'img-...cyberdrop...', r'f.cyberdrop...',
                       r'fs-...cyberdrop...', r'cdn.bunkr...', r'media-files.bunkr...', r'jpg.church/images/...',
-                      r'stream.bunkr...', r'simp..jpg.church']
+                      r'simp..jpg.church']
     for domain in mapping_direct:
         extension = '.' + str(url).split('.')[-1]
         if re.search(domain, url.host):
-            return True
-        elif extension in FILE_FORMATS['Videos'] or extension in FILE_FORMATS['Images'] or extension in FILE_FORMATS['Audio'] or extension in FILE_FORMATS['Other']:
             return True
     return False
