@@ -24,7 +24,7 @@ class BunkrCrawler():
                     text = await response.text()
                     soup = BeautifulSoup(text, 'html.parser')
                     link = soup.select_one("a[id=downloadBtn]").get('href')
-                    await domain_obj.add_to_album("Bunkr Loose Files", link, url)
+                    await domain_obj.add_to_album("Bunkr Loose Files", URL(link), url)
 
                     await log("Finished scrape of " + str(url), Fore.WHITE)
                     return domain_obj
