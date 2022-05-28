@@ -152,7 +152,7 @@ class SkipData:
     async def add_skips(self, anonfiles, bunkr, coomer, cyberdrop, cyberfile, erome, gfycat, gofile, jpgchurch,
                         kemono, pixeldrain, pixl, putmega, redgifs, saint):
         if anonfiles:
-            self.sites['anonfiles'] = True
+            self.sites['anonfiles.com'] = True
         if bunkr:
             self.sites['bunkr'] = True
         if coomer:
