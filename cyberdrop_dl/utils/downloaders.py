@@ -80,7 +80,8 @@ class Downloader:
             show_progress: bool = True
     ) -> None:
         """Download the content of given URL"""
-        self.current_attempt[str(url)] = 0
+        if str(url) not in self.current_attempt.keys():
+            self.current_attempt[str(url)] = 0
         headers = {'Referer': str(referral), 'user-agent': user_agent}
 
         # return if completed already
