@@ -100,6 +100,8 @@ class Downloader:
                         try:
                             filename = resp.content_disposition.filename
                             filename = await sanitize(filename)
+                            if not (ext in FILE_FORMATS['Images'] or ext in FILE_FORMATS['Videos'] or ext in FILE_FORMATS['Audio'] or ext in FILE_FORMATS['Other']):
+                                return
                         except:
                             await log("\nCouldn't get filename for: " + str(url))
                             return
