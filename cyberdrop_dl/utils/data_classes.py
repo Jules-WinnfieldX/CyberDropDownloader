@@ -43,10 +43,11 @@ class DomainItem:
     albums: Dict[str, AlbumItem]
 
     async def add_to_album(self, title: str, link: URL, referral: URL):
-        if title in self.albums.keys():
-            await self.albums[title].add_link_pair(link, referral)
-        else:
-            self.albums[title] = AlbumItem(title=title, link_pairs=[(link, referral)])
+        if link:
+            if title in self.albums.keys():
+                await self.albums[title].add_link_pair(link, referral)
+            else:
+                self.albums[title] = AlbumItem(title=title, link_pairs=[(link, referral)])
 
     async def add_album(self, title: str, album: AlbumItem):
         if title in self.albums.keys():
