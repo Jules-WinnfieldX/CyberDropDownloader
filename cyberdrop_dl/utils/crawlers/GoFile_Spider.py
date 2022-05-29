@@ -40,9 +40,8 @@ class GofileCrawler():
         content_id = url.name if url.host == 'gofile.io' else url
         try:
             content = self.client.get_content(content_id)
-        except Exception as e:
+        except:
             await log("Error scraping " + str(url))
-            await log(e)
             return
         if not content:
             return
