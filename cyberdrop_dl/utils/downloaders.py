@@ -36,7 +36,7 @@ def retry(f):
                     if self.current_attempt[str(args[0])] >= self.attempts - 1:
                         logger.debug('Skipping %s...' % args[0])
                         raise
-                logger.debug('Retrying %s...' % args[0])
+                logger.debug(f'Retrying ({self.current_attempt[str(args[0])]}) {args[0]}...')
                 self.current_attempt[str(args[0])] += 1
                 await asyncio.sleep(2)
     return wrapper
