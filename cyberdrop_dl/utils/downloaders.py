@@ -38,6 +38,12 @@ def retry(f):
                         raise
                 logger.debug(f'Retrying ({self.current_attempt[str(args[0])]}) {args[0]}...')
                 self.current_attempt[str(args[0])] += 1
+
+                if 'cyberdrop' in args[0].host:
+                    args = list(args)
+                    args[0] = URL(str(args[0]).replace('fs-05.', 'fs-04.'))
+                    args = tuple(args)
+
                 await asyncio.sleep(2)
     return wrapper
 
@@ -82,6 +88,7 @@ class Downloader:
         """Download the content of given URL"""
         if str(url) not in self.current_attempt.keys():
             self.current_attempt[str(url)] = 0
+
         headers = {'Referer': str(referral), 'user-agent': user_agent}
 
         # return if completed already
