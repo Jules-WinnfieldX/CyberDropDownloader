@@ -11,12 +11,16 @@ class BunkrCrawler():
     def __init__(self, *, include_id=False):
         self.include_id = include_id
 
-    async def fetch(self, session, url):
+    async def fetch(self, session, url: URL):
         domain_obj = DomainItem(url.host, {})
 
         if await check_direct(url):
-            await domain_obj.add_to_album(link=url, referral=url, title="Bunkr Loose Files")
-            return domain_obj
+            ext = '.' + str(url).split('.')[-1]
+            if ext in FILE_FORMATS['Videos']:
+                url = URL('http://stream.bunkr.is/v/' + url.name)
+            else:
+                await domain_obj.add_to_album(link=url, referral=url, title="Bunkr Loose Files")
+                return domain_obj
 
         if "stream.bunkr." in url.host:
             link = await self.stream(session, url)
