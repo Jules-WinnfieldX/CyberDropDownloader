@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module type="PYTHON_MODULE" version="4">
+  <component name="NewModuleRootManager">
+    <content url="file://$MODULE_DIR$">
+      <excludeFolder url="file://$MODULE_DIR$/Downloads-2" />
+      <excludeFolder url="file://$MODULE_DIR$/Downloads-3" />
+      <excludeFolder url="file://$MODULE_DIR$/Downloads-4" />
+      <excludeFolder url="file://$MODULE_DIR$/Downloads-5" />
+      <excludeFolder url="file://$MODULE_DIR$/Downloads-6" />
+      <excludeFolder url="file://$MODULE_DIR$/Downloads-7" />
+      <excludeFolder url="file://$MODULE_DIR$/Downloads-8" />
+      <excludeFolder url="file://$MODULE_DIR$/Downloads-9" />
+      <excludeFolder url="file://$MODULE_DIR$/Downloads-13" />
+      <excludeFolder url="file://$MODULE_DIR$/Downloads-14" />
+      <excludeFolder url="file://$MODULE_DIR$/Downloads-15" />
+      <excludeFolder url="file://$MODULE_DIR$/Downloads" />
+    </content>
+    <orderEntry type="inheritedJdk" />
+    <orderEntry type="sourceFolder" forTests="false" />
+  </component>
+  <component name="PyDocumentationSettings">
+    <option name="format" value="PLAIN" />
+    <option name="myDocStringFormat" value="Plain" />
+  </component>
+</module>
