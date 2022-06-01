@@ -1,11 +1,6 @@
 import asyncio
-import collections
-from collections import defaultdict
 from dataclasses import dataclass
-from datetime import datetime
-from types import TracebackType
-from typing import Dict, List, Optional, Tuple, Callable, Awaitable, Any, Type
-from random import gauss
+from typing import Dict, List, Optional, Tuple
 
 import aiohttp
 from yarl import URL
@@ -48,11 +43,11 @@ class DomainItem:
     albums: Dict[str, AlbumItem]
 
     async def add_to_album(self, title: str, link: URL, referral: URL):
-        if title in self.albums.keys():
-            await self.albums[title].add_link_pair(link, referral)
-        else:
-            self.albums[title] = AlbumItem(
-                title=title, link_pairs=[(link, referral)])
+        if link:
+            if title in self.albums.keys():
+                await self.albums[title].add_link_pair(link, referral)
+            else:
+                self.albums[title] = AlbumItem(title=title, link_pairs=[(link, referral)])
 
     async def add_album(self, title: str, album: AlbumItem):
         if title in self.albums.keys():
@@ -90,8 +85,7 @@ class CascadeItem:
         if domain in self.domains.keys():
             await self.domains[domain].add_to_album(title, link, referral)
         else:
-            self.domains[domain] = DomainItem(
-                domain, {title: AlbumItem(title, [(link, referral)])})
+            self.domains[domain] = DomainItem(domain, {title: AlbumItem(title, [(link, referral)])})
 
     async def add_album(self, domain: str, title: str, album: AlbumItem):
         if domain in self.domains.keys():
@@ -146,58 +140,45 @@ class AuthData:
     password: str
 
 
-class AsyncRateLimiter:
-    """
-    Provides rate limiting for an operation with a configurable number of requests for a time period.
-    """
+@dataclass
+class SkipData:
+    sites = {"anonfiles.com": False, "bunkr": False, "coomer.party": False,
+             "cyberdrop": False, "cyberfile.is": False, "erome.com": False, "gfycat.com": False,
+             "gofile.io": False, "jpg.church": False, "kemono.party": False, "pixeldrain.com": False,
+             "pixl.is": False, "putme.ga": False, "putmega.com": False, "redgifs.com": False,
+             "saint.to": False, "thotsbay.com": False}
 
-    __lock: asyncio.Lock
-    callback: Optional[Callable[[float], Awaitable[Any]]]
-    max_calls: int
-    period: float
-    calls: collections.deque
+    async def add_skips(self, anonfiles, bunkr, coomer, cyberdrop, cyberfile, erome, gfycat, gofile, jpgchurch,
+                        kemono, pixeldrain, pixl, putmega, redgifs, saint):
+        if anonfiles:
+            self.sites['anonfiles.com'] = True
+        if bunkr:
+            self.sites['bunkr'] = True
+        if coomer:
+            self.sites['coomer.party'] = True
+        if cyberdrop:
+            self.sites['cyberdrop'] = True
+        if cyberfile:
+            self.sites['cyberfile.is'] = True
+        if erome:
+            self.sites['erome.com'] = True
+        if gfycat:
+            self.sites['gfycat.com'] = True
+        if gofile:
+            self.sites['gofile.io'] = True
+        if jpgchurch:
+            self.sites['jpg.church'] = True
+        if kemono:
+            self.sites['kemono.party'] = True
+        if pixeldrain:
+            self.sites['pixeldrain.com'] = True
+        if pixl:
+            self.sites['pixl.is'] = True
+        if putmega:
+            self.sites['putme.ga'] = True
+            self.sites['putmega.com'] = True
+        if redgifs:
+            self.sites['redgifs.com'] = True
+        if saint:
+            self.sites['saint.to'] = True
 
-    def __init__(
-        self,
-        max_calls: int,
-        period: float = 1.0,
-        callback: Optional[Callable[[float], Awaitable[Any]]] = None,
-    ):
-        if period <= 0:
-            raise ValueError("Rate limiting period should be > 0")
-        if max_calls <= 0:
-            raise ValueError("Rate limiting number of calls should be > 0")
-        self.calls = collections.deque()
-
-        self.period = period
-        self.max_calls = max_calls
-        self.callback = callback
-        self.__lock = asyncio.Lock()
-
-    async def __aenter__(self) -> "AsyncRateLimiter":
-        async with self.__lock:
-            if len(self.calls) >= self.max_calls:
-                until = datetime.utcnow().timestamp() + self.period - self._timespan
-                if self.callback:
-                    asyncio.ensure_future(self.callback(until))
-                sleep_time = until - datetime.utcnow().timestamp()
-                if sleep_time > 0:
-                    await asyncio.sleep(sleep_time)
-            return self
-
-    async def __aexit__(
-        self,
-        exc_type: Type[BaseException],
-        exc_val: BaseException,
-        exc_tb: TracebackType,
-    ) -> None:
-        async with self.__lock:
-            # Store the last operation timestamp.
-            self.calls.append(datetime.utcnow().timestamp())
-
-            while self._timespan >= self.period:
-                self.calls.popleft()
-
-    @property
-    def _timespan(self) -> float:
-        return self.calls[-1] - self.calls[0]

@@ -2,11 +2,11 @@ from bs4 import BeautifulSoup
 from colorama import Fore
 from yarl import URL
 
-from ..base_functions import bunkr_parse, log, logger, make_title_safe, ssl_context, check_direct
+from ..base_functions import log, logger, make_title_safe, ssl_context, check_direct
 from ..data_classes import DomainItem
 
 
-class ChibisafeCrawler():
+class CyberdropCrawler():
     def __init__(self, *, include_id=False):
         self.include_id = include_id
 
@@ -14,11 +14,8 @@ class ChibisafeCrawler():
         domain_obj = DomainItem(url.host, {})
 
         if await check_direct(url):
-            if "bunkr" in url.host:
-                link = await bunkr_parse(url)
-            else:
-                link = URL(url)
-            await domain_obj.add_to_album(link=link, referral=url, title="Chibisafe Loose Files")
+            link = URL(url)
+            await domain_obj.add_to_album(link=link, referral=url, title="Cyberdrop Loose Files")
             return domain_obj
 
         await log("Starting scrape of " + str(url), Fore.WHITE)
@@ -37,11 +34,9 @@ class ChibisafeCrawler():
                     title = title + " - " + titlep2
                 title = await make_title_safe(title.replace(r"\n", "").strip())
 
-                links = soup.select("a[class=image]")
+                links = soup.select('div[class="image-container column"] a')
                 for link in links:
                     link = URL(link.get('href'))
-                    if 'bunkr' in link.host:
-                        link = await bunkr_parse(link)
                     await domain_obj.add_to_album(title, link, url)
 
         except Exception as e:

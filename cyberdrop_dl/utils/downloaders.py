@@ -1,11 +1,10 @@
 import asyncio
 import logging
 import multiprocessing
-import time
 import traceback
 from functools import wraps
 from pathlib import Path
-from typing import List, Optional, Tuple
+from typing import List, Tuple
 from random import gauss
 
 import aiofiles
@@ -18,6 +17,7 @@ from yarl import URL
 from .base_functions import FILE_FORMATS, MAX_FILENAME_LENGTH, log, logger, sanitize, ssl_context, user_agent
 from .sql_helper import SQLHelper
 from .data_classes import AlbumItem, CascadeItem, FileLock
+from .rate_limiting import throttle
 
 
 class FailureException(Exception):
@@ -33,36 +33,19 @@ def retry(f):
                 return await f(self, *args, **kwargs)
             except FailureException:
                 if not self.disable_attempt_limit:
-                    if self.current_attempt >= self.attempts - 1:
+                    if self.current_attempt[str(args[0])] >= self.attempts - 1:
+                        logger.debug('Skipping %s...' % args[0])
                         raise
-                logger.debug('Retrying %s...' % args[0])
-                self.attempts += 1
+                logger.debug(f'Retrying ({self.current_attempt[str(args[0])]}) {args[0]}...')
+                self.current_attempt[str(args[0])] += 1
+
+                if 'cyberdrop' in args[0].host:
+                    args = list(args)
+                    args[0] = URL(str(args[0]).replace('fs-05.', 'fs-04.'))
+                    args = tuple(args)
+
                 await asyncio.sleep(2)
     return wrapper
-
-
-async def throttle(self, delay, host) -> None:
-    if delay is None:
-        return
-
-    key: Optional[str] = None
-    while True:
-        if key is None:
-            key = 'throttle:{}'.format(host)
-        now = time.time()
-        last = self.throttle_times.get(key, 0.0)
-        elapsed = now - last
-
-        if elapsed >= delay:
-            self.throttle_times[key] = now
-            return
-
-        remaining = delay - elapsed + 0.25
-
-        log_string = '\nDelaying request to %s for %.2f seconds.' % (
-            host, remaining)
-        logger.debug(log_string)
-        await asyncio.sleep(remaining)
 
 
 class Downloader:
@@ -78,7 +61,7 @@ class Downloader:
         self.File_Lock = FileLock()
 
         self.attempts = attempts
-        self.current_attempt = 0
+        self.current_attempt = {}
         self.disable_attempt_limit = disable_attempt_limit
 
         self.exclude_videos = exclude_videos
@@ -88,7 +71,7 @@ class Downloader:
 
         self.max_workers = max_workers
         self._semaphore = asyncio.Semaphore(max_workers)
-        self.delay = {'bunkr.is': 1.5, 'cyberfile.is': 1}
+        self.delay = {'cyberfile.is': 1}
         self.throttle_times = {}
 
     """Changed from aiohttp exceptions caught to FailureException to allow for partial downloads."""
@@ -103,6 +86,9 @@ class Downloader:
             show_progress: bool = True
     ) -> None:
         """Download the content of given URL"""
+        if str(url) not in self.current_attempt.keys():
+            self.current_attempt[str(url)] = 0
+
         headers = {'Referer': str(referral), 'user-agent': user_agent}
 
         # return if completed already
@@ -122,6 +108,8 @@ class Downloader:
                         try:
                             filename = resp.content_disposition.filename
                             filename = await sanitize(filename)
+                            if not (ext in FILE_FORMATS['Images'] or ext in FILE_FORMATS['Videos'] or ext in FILE_FORMATS['Audio'] or ext in FILE_FORMATS['Other']):
+                                return
                         except:
                             await log("\nCouldn't get filename for: " + str(url))
                             return
@@ -310,8 +298,8 @@ async def get_downloaders(Cascade: CascadeItem, folder: Path, attempts: int, dis
 
     for domain, domain_obj in Cascade.domains.items():
         max_workers = threads if threads != 0 else multiprocessing.cpu_count()
-        if 'bunkr' in domain:
-            max_workers = 2 if (max_workers > 2) else max_workers
+        if 'bunkr' in domain or 'pixeldrain' in domain:
+            max_workers = 3 if (max_workers > 3) else max_workers
         for title, album_obj in domain_obj.albums.items():
             downloader = Downloader(album_obj, cookie_jar=cookie_jar, title=title, folder=folder,
                                     attempts=attempts, disable_attempt_limit=disable_attempt_limit,

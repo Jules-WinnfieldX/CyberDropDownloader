@@ -27,7 +27,7 @@ class PixelDrainCrawler:
         except Exception as e:
             await log("Error scraping " + str(url))
             logger.debug(e)
-            return None, []
+            return None
 
     async def fetch(self, session, url):
         await log("Starting scrape of " + str(url), Fore.WHITE)
@@ -36,8 +36,9 @@ class PixelDrainCrawler:
         identifier = str(url).split('/')[-1]
         if url.parts[1] == 'l':
             links = await self.get_listings(session, identifier, url)
-            for link in links:
-                await domain_obj.add_to_album(identifier, link, url)
+            if links:
+                for link in links:
+                    await domain_obj.add_to_album(identifier, link, url)
         else:
             link = await self.create_download_link(identifier)
             await domain_obj.add_to_album("Loose Pixeldrain Files", link, url)

@@ -43,7 +43,6 @@ async def sanitize(input: str) -> str:
 
 
 async def log(text, style=Fore.WHITE) -> None:
-    """Wrapper around print() to add color to text"""
     logger.debug(text)
     print(style + str(text) + Style.RESET_ALL)
 
@@ -59,7 +58,6 @@ async def make_title_safe(title: str):
 
 
 async def purge_dir(dir, in_place=True):
-
     deleted = []
     dir_tree = list(os.walk(dir, topdown=False))
 
@@ -72,8 +70,6 @@ async def purge_dir(dir, in_place=True):
     if in_place:
         list(map(os.rmdir, deleted))
 
-    return deleted
-
 
 async def regex_links(urls) -> list:
     all_links = [x.group().replace(".md.", ".") for x in re.finditer(
@@ -82,18 +78,6 @@ async def regex_links(urls) -> list:
     for link in all_links:
         yarl_links.append(URL(link))
     return yarl_links
-
-
-async def bunkr_parse(url: URL) -> URL:
-    """Fix the URL for bunkr.is."""
-    extension = '.' + str(url).split('.')[-1]
-    if extension.lower() in FILE_FORMATS['Videos']:
-        url = URL('https://media-files.bunkr.is/').with_name(url.name)
-        return url
-    if extension.lower() in FILE_FORMATS['Images']:
-        url = url.with_host('cdn.bunkr.is')
-        return url
-    return url
 
 
 async def cyberdrop_parse(url: URL) -> URL:
@@ -107,12 +91,10 @@ async def cyberdrop_parse(url: URL) -> URL:
 
 async def check_direct(url: URL):
     mapping_direct = ['i.pixl.is', r's..putmega.com', r's..putme.ga', r'img-...cyberdrop...', r'f.cyberdrop...',
-                      r'fs-...cyberdrop...', r'cdn.bunkr...', r'media-files.bunkr...', r'jpg.church/images/...',
-                      r'stream.bunkr...', r'simp..jpg.church']
+                      r'fs-...cyberdrop...', r'cdn.bunkr...', r'cdn..bunkr...', r'media-files.bunkr...', r'jpg.church/images/...',
+                      r'simp..jpg.church']
     for domain in mapping_direct:
         extension = '.' + str(url).split('.')[-1]
         if re.search(domain, url.host):
-            return True
-        elif extension in FILE_FORMATS['Videos'] or extension in FILE_FORMATS['Images'] or extension in FILE_FORMATS['Audio'] or extension in FILE_FORMATS['Other']:
             return True
     return False
