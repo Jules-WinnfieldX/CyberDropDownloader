@@ -69,3 +69,8 @@ URLs.txt
 URLs-Coomer.party-done.xlsx
 *.mov
 *.xlsx
+*.mp4
+*.mov
+*.xlsx
+~$URLs-Coomer.party-done.xlsx
+*.mov
