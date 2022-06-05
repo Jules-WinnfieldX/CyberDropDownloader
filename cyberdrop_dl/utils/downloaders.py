@@ -43,6 +43,10 @@ def retry(f):
                     args = list(args)
                     args[0] = URL(str(args[0]).replace('fs-05.', 'fs-04.'))
                     args = tuple(args)
+                if 'media-files.bunkr' in args[0].host:
+                    args = list(args)
+                    args[0] = URL(str(args[0]).replace('media-files.', 'media-files2.'))
+                    args = tuple(args)
 
                 await asyncio.sleep(2)
     return wrapper
@@ -219,7 +223,10 @@ class Downloader:
                 logger.debug("Error status code: " + str(e.code))
                 if 400 <= e.code < 500 and e.code != 429:
                     logger.debug("We ran into a 400 level error: %s" % str(e.code))
-                    return
+                    if 'media-files.bunkr' in url.host:
+                        pass
+                    else:
+                        return
                 resp.close()
             except Exception as e2:
                 pass
