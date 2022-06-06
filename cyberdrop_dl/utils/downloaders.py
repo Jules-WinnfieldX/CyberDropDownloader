@@ -94,10 +94,17 @@ class Downloader:
             self.current_attempt[str(url)] = 0
 
         headers = {'Referer': str(referral), 'user-agent': user_agent}
+        db_path = url.path
+
+        if 'anonfiles' in url.host:
+            db_path = db_path.split('/')
+            db_path.pop(0)
+            db_path.pop(1)
+            db_path = '/'+'/'.join(db_path)
 
         # return if completed already
-        if await self.SQL_helper.sql_check_existing(url.path):
-            logger.debug(msg=f"{url.path} found in DB: Skipping {filename}")
+        if await self.SQL_helper.sql_check_existing(db_path):
+            logger.debug(msg=f"{db_path} found in DB: Skipping {filename}")
             return
 
         try:
@@ -154,11 +161,11 @@ class Downloader:
                         async with session.get(url, headers=headers, ssl=ssl_context, raise_for_status=True) as resp:
                             total_size = int(resp.headers.get('Content-Length', str(0)))
                         if complete_file.stat().st_size == total_size:
-                            await self.SQL_helper.sql_insert_file(url.path, complete_file.name, 1)
+                            await self.SQL_helper.sql_insert_file(db_path, complete_file.name, 1)
                             logger.debug("\nFile already exists and matches expected size: " + str(complete_file))
                             return
 
-                    download_name = await self.SQL_helper.get_download_filename(url.path)
+                    download_name = await self.SQL_helper.get_download_filename(db_path)
                     iterations = 1
 
                     if not download_name:
@@ -172,7 +179,7 @@ class Downloader:
                     else:
                         filename = download_name
 
-                await self.SQL_helper.sql_insert_file(url.path, filename, 0)
+                await self.SQL_helper.sql_insert_file(db_path, filename, 0)
 
                 complete_file = (self.folder / self.title / filename)
                 resume_point = 0
@@ -206,7 +213,7 @@ class Downloader:
                                 await asyncio.sleep(0)
                                 await f.write(chunk)
                                 progress.update(len(chunk))
-            await self.rename_file(filename, url)
+            await self.rename_file(filename, url, db_path)
             await self.File_Lock.remove_lock(original_filename)
 
         except (aiohttp.client_exceptions.ClientPayloadError, aiohttp.client_exceptions.ClientOSError,
@@ -233,7 +240,7 @@ class Downloader:
 
             raise FailureException(e)
 
-    async def rename_file(self, filename: str, url: URL) -> None:
+    async def rename_file(self, filename: str, url: URL, db_path: str) -> None:
         """Rename complete file."""
         complete_file = (self.folder / self.title / filename)
         temp_file = complete_file.with_suffix(complete_file.suffix + '.part')
@@ -243,7 +250,7 @@ class Downloader:
         else:
             temp_file.rename(complete_file)
 
-        await self.SQL_helper.sql_update_file(url.path, filename, 1)
+        await self.SQL_helper.sql_update_file(db_path, filename, 1)
         logger.debug("Finished " + filename)
 
     async def download_and_store(
