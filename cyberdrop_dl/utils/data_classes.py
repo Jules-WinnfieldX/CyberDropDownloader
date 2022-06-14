@@ -1,5 +1,5 @@
 import asyncio
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import ClassVar, Dict, List, Optional, Tuple
 
 import aiohttp
@@ -147,7 +147,7 @@ class SkipData:
         "erome.com", "gfycat.com", "gofile.io", "jpg.church", "kemono.party",
         "pixeldrain.com", "pixl.is", "putme.ga", "putmega.com", "redgifs.com",
         "saint.to", "thotsbay.com")
-    sites = {host: False for host in supported_hosts}
+    sites: Dict[str, bool] = field(default_factory=lambda: {host: False for host in SkipData.supported_hosts})
 
     async def add_skips(self, skip_hosts: List[str]):
         if not skip_hosts:
