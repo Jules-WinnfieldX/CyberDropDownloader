@@ -1,6 +1,6 @@
 import asyncio
 from dataclasses import dataclass
-from typing import Dict, List, Optional, Tuple
+from typing import ClassVar, Dict, List, Optional, Tuple
 
 import aiohttp
 from yarl import URL
@@ -142,43 +142,15 @@ class AuthData:
 
 @dataclass
 class SkipData:
-    sites = {"anonfiles.com": False, "bunkr": False, "coomer.party": False,
-             "cyberdrop": False, "cyberfile.is": False, "erome.com": False, "gfycat.com": False,
-             "gofile.io": False, "jpg.church": False, "kemono.party": False, "pixeldrain.com": False,
-             "pixl.is": False, "putme.ga": False, "putmega.com": False, "redgifs.com": False,
-             "saint.to": False, "thotsbay.com": False}
+    supported_hosts: ClassVar[Tuple[str]] = (
+        "anonfiles.com", "bunkr", "coomer.party", "cyberdrop", "cyberfile.is",
+        "erome.com", "gfycat.com", "gofile.io", "jpg.church", "kemono.party",
+        "pixeldrain.com", "pixl.is", "putme.ga", "putmega.com", "redgifs.com",
+        "saint.to", "thotsbay.com")
+    sites = {host: False for host in supported_hosts}
 
-    async def add_skips(self, anonfiles, bunkr, coomer, cyberdrop, cyberfile, erome, gfycat, gofile, jpgchurch,
-                        kemono, pixeldrain, pixl, putmega, redgifs, saint):
-        if anonfiles:
-            self.sites['anonfiles.com'] = True
-        if bunkr:
-            self.sites['bunkr'] = True
-        if coomer:
-            self.sites['coomer.party'] = True
-        if cyberdrop:
-            self.sites['cyberdrop'] = True
-        if cyberfile:
-            self.sites['cyberfile.is'] = True
-        if erome:
-            self.sites['erome.com'] = True
-        if gfycat:
-            self.sites['gfycat.com'] = True
-        if gofile:
-            self.sites['gofile.io'] = True
-        if jpgchurch:
-            self.sites['jpg.church'] = True
-        if kemono:
-            self.sites['kemono.party'] = True
-        if pixeldrain:
-            self.sites['pixeldrain.com'] = True
-        if pixl:
-            self.sites['pixl.is'] = True
-        if putmega:
-            self.sites['putme.ga'] = True
-            self.sites['putmega.com'] = True
-        if redgifs:
-            self.sites['redgifs.com'] = True
-        if saint:
-            self.sites['saint.to'] = True
-
+    async def add_skips(self, skip_hosts: List[str]):
+        if not skip_hosts:
+            return
+        for host in skip_hosts:
+            self.sites[host] = True
