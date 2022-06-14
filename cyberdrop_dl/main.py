@@ -51,8 +51,7 @@ def parse_args():
     parser.add_argument("--skip-redgif", help="This removes redgif links from downloads", action="store_true")
     parser.add_argument("--skip-saint", help="This removes saint.to links from downloads", action="store_true")
 
-    parser.add_argument("links", metavar="link", nargs="*",
-                        help="link to content to download (passing multiple links is supported)", default=[])
+    parser.add_argument("links", metavar="link", nargs="*",help="link to content to download (passing multiple links is supported)", default=[])
     args = parser.parse_args()
     return args
 

@@ -40,9 +40,15 @@ def retry(f):
                 self.current_attempt[str(args[0])] += 1
 
                 if 'cyberdrop' in args[0].host:
-                    args = list(args)
-                    args[0] = URL(str(args[0]).replace('fs-05.', 'fs-04.'))
-                    args = tuple(args)
+                    ext = '.'+args[0].name.split('.')[-1]
+                    if ext in FILE_FORMATS['Images']:
+                        args = list(args)
+                        args[0] = args[0].with_host('img-01.cyberdrop.to')
+                        args = tuple(args)
+                    else:
+                        args = list(args)
+                        args[0] = URL(str(args[0]).replace('fs-05.', 'fs-04.'))
+                        args = tuple(args)
                 if 'media-files.bunkr' in args[0].host:
                     args = list(args)
                     args[0] = URL(str(args[0]).replace('media-files.', 'media-files2.'))
