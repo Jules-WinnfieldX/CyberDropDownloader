@@ -35,7 +35,7 @@ def parse_args():
     parser.add_argument("--separate-posts", help="Separates thotsbay scraping into folders by post number", action="store_true")
     parser.add_argument("--thotsbay-username", type=str, help="username to login to thotsbay", default=None)
     parser.add_argument("--thotsbay-password", type=str, help="password to login to thotsbay", default=None)
-    parser.add_argument("--skip", dest="skip_hosts", choices=SkipData.supported_hosts, help="This removes host links from downloads", action="append")
+    parser.add_argument("--skip", dest="skip_hosts", choices=SkipData.supported_hosts, help="This removes host links from downloads", action="append", default=[])
     parser.add_argument("links", metavar="link", nargs="*", help="link to content to download (passing multiple links is supported)", default=[])
     args = parser.parse_args()
     return args
@@ -62,8 +62,7 @@ async def download_all(args: argparse.Namespace):
     with open(input_file, "r", encoding="utf8") as f:
         links += await regex_links(f.read())
     thotsbay_auth = AuthData(args.thotsbay_username, args.thotsbay_password)
-    skip_data = SkipData()
-    await skip_data.add_skips(args.skip_hosts)
+    skip_data = SkipData(args.skip_hosts)
     content_object = await scrape(links, args.include_id, thotsbay_auth, args.separate_posts, skip_data)
     if await content_object.is_empty():
         logging.error(f'ValueError No links')

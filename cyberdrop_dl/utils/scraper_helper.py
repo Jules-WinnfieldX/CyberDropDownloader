@@ -183,12 +183,11 @@ class ScrapeMapper():
     async def map_url(self, url_to_map: URL, title=None):
         for key, value in self.mapping.items():
             if key in url_to_map.host:
-                if not self.skip_data.sites[key]:
+                if key not in self.skip_data.sites:
                     await value(url=url_to_map, title=title)
-                    return
                 else:
                     await log("Skipping scrape of " + str(url_to_map))
-                    return
+                return
         await log(str(url_to_map) + " is not supported currently.")
         async with aiofiles.open("./Unsupported_Urls.txt", mode='a') as f:
             await f.write(str(url_to_map)+"\n")
