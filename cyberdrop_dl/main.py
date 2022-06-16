@@ -99,7 +99,7 @@ async def download_all(args: argparse.Namespace):
         await downloader.download_content()
     logger.debug("Finished")
 
-    partial_downloads = [f for f in args.output_folder.glob("*.part") if f.is_file()]
+    partial_downloads = [f for f in args.output_folder.rglob("*.part") if f.is_file()]
     combined = '\t'.join(partial_downloads)
 
     await log('Purging empty directories')
