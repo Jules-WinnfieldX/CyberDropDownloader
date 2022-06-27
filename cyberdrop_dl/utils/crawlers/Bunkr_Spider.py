@@ -3,7 +3,7 @@ from colorama import Fore
 from yarl import URL
 import json
 
-from ..base_functions import log, logger, make_title_safe, ssl_context, check_direct, FILE_FORMATS
+from ..base_functions import log, logger, make_title_safe, ssl_context, check_direct, FILE_FORMATS, user_agent
 from ..data_classes import DomainItem
 
 
@@ -44,7 +44,9 @@ class BunkrCrawler():
                 for file in json_obj['files']:
                     ext = '.' + file['name'].split('.')[-1].lower()
                     if ext in FILE_FORMATS['Videos']:
-                        link = await self.stream(session, URL("https://stream.bunkr.is/v/" + file['name']))
+                        cdn_loc = file['cdn']
+                        media_loc = cdn_loc.replace('cdn', 'media-files')
+                        link = URL(media_loc + file['name'])
                     else:
                         link = URL(file['cdn'] + '/' + file['name'])
                     await domain_obj.add_to_album(title, link, url)
@@ -58,14 +60,14 @@ class BunkrCrawler():
 
         return domain_obj
 
-    async def stream(self, session, url):
+    async def stream(self, session, url, retry=None):
         try:
-            async with session.get(url, ssl=ssl_context) as response:
+            async with session.get(url, ssl=ssl_context, headers={'Referer': str(url), 'user-agent': user_agent}) as response:
                 text = await response.text()
                 soup = BeautifulSoup(text, 'html.parser')
                 json_obj = json.loads(soup.select_one("script[id=__NEXT_DATA__]").text)
                 if not json_obj['props']['pageProps']:
-                    link = URL('https://media-files.bunkr.is/' + url.name)
+                    raise Exception("Couldn't get link from HTML")
                 else:
                     link = URL(json_obj['props']['pageProps']['file']['mediafiles'] + '/' + json_obj['props']['pageProps']['file']['name'])
                 return link
