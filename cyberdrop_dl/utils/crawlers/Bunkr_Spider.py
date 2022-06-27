@@ -48,7 +48,7 @@ class BunkrCrawler():
                     if ext in FILE_FORMATS['Videos']:
                         cdn_loc = file['cdn']
                         media_loc = cdn_loc.replace('cdn', 'media-files')
-                        link = URL(media_loc + file['name'])
+                        link = URL(media_loc + '/' + file['name'])
                     else:
                         link = URL(file['cdn'] + '/' + file['name'])
                     await domain_obj.add_to_album(title, link, url)
