@@ -163,12 +163,12 @@ class CyberfileCrawler:
                     text = await response.text()
                     soup = BeautifulSoup(text.replace("\\", ""), 'html.parser')
                     menu = soup.select_one('ul[class="dropdown-menu dropdown-info account-dropdown-resize-menu"] li a')
+                    button = soup.select_one('div[class="btn-group responsiveMobileMargin"] button')
                     if menu:
                         html_download_text = menu.get("onclick")
                         link = URL(html_download_text.replace("openUrl('", "").replace("'); return false;", ""))
                         download_links.append((title, link))
-                    button = soup.select_one('div[class="btn-group responsiveMobileMargin"] button')
-                    if button:
+                    elif button:
                         html_download_text = button.get("onclick")
                         link = URL(html_download_text.replace("openUrl('", "").replace("'); return false;", ""))
                         download_links.append((title, link))
