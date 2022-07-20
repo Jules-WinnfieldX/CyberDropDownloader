@@ -24,7 +24,15 @@ class SQLHelper:
                                     completed INTEGER NOT NULL,
                                     PRIMARY KEY (path)
                                 );"""
+        pre_alloc = "CREATE TABLE t(x);"
+        pre_alloc2 = "INSERT INTO t VALUES(zeroblob(25*1024*1024));"  # 25 mb
+        drop_pre = "DROP TABLE t;"
         self.curs.execute(create_table_query)
+        self.conn.commit()
+        self.curs.execute(pre_alloc)
+        self.curs.execute(pre_alloc2)
+        self.conn.commit()
+        self.curs.execute(drop_pre)
         self.conn.commit()
         await self.check_columns()
 
