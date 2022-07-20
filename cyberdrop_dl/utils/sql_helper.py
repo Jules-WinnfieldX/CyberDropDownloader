@@ -25,15 +25,19 @@ class SQLHelper:
                                     PRIMARY KEY (path)
                                 );"""
         pre_alloc = "CREATE TABLE t(x);"
-        pre_alloc2 = "INSERT INTO t VALUES(zeroblob(25*1024*1024));"  # 25 mb
+        pre_alloc2 = "INSERT INTO t VALUES(zeroblob(50*1024*1024));"  # 50 mb
         drop_pre = "DROP TABLE t;"
         self.curs.execute(create_table_query)
         self.conn.commit()
-        self.curs.execute(pre_alloc)
-        self.curs.execute(pre_alloc2)
-        self.conn.commit()
-        self.curs.execute(drop_pre)
-        self.conn.commit()
+        check_prealloc = "PRAGMA freelist_count;"
+        self.curs.execute(check_prealloc)
+        free = self.curs.fetchone()[0]
+        if free <= 1024:
+            self.curs.execute(pre_alloc)
+            self.curs.execute(pre_alloc2)
+            self.conn.commit()
+            self.curs.execute(drop_pre)
+            self.conn.commit()
         await self.check_columns()
 
     async def check_columns(self):
