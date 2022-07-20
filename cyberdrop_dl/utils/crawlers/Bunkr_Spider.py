@@ -62,7 +62,7 @@ class BunkrCrawler():
 
         return domain_obj
 
-    async def stream(self, session, url, retry=None):
+    async def stream(self, session, url):
         try:
             async with session.get(url, ssl=ssl_context, headers={'Referer': str(url), 'user-agent': user_agent}) as response:
                 text = await response.text()

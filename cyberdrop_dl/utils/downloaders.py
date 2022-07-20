@@ -49,11 +49,6 @@ def retry(f):
                         args = list(args)
                         args[0] = URL(str(args[0]).replace('fs-05.', 'fs-04.'))
                         args = tuple(args)
-                if 'media-files.bunkr' in args[0].host:
-                    args = list(args)
-                    args[0] = URL(str(args[0]).replace('media-files.', 'media-files2.'))
-                    args = tuple(args)
-
                 await asyncio.sleep(2)
     return wrapper
 

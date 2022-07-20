@@ -94,7 +94,6 @@ async def check_direct(url: URL):
                       r'fs-...cyberdrop...', r'cdn.bunkr...', r'cdn..bunkr...', r'media-files.bunkr...', r'jpg.church/images/...',
                       r'simp..jpg.church']
     for domain in mapping_direct:
-        extension = '.' + str(url).split('.')[-1]
         if re.search(domain, url.host):
             return True
     return False
