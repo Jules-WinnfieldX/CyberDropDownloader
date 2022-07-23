@@ -73,7 +73,7 @@ async def throttle(self, delay, host) -> None:
     key: Optional[str] = None
     while True:
         if key is None:
-            key = 'throttle:{}'.format(host)
+            key = f'throttle:{host}'
         now = time.time()
         last = self.throttle_times.get(key, 0.0)
         elapsed = now - last
@@ -84,7 +84,6 @@ async def throttle(self, delay, host) -> None:
 
         remaining = delay - elapsed + 0.25
 
-        log_string = '\nDelaying request to %s for %.2f seconds.' % (
-            host, remaining)
+        log_string = f'\nDelaying request to {host} for {remaining:.2f} seconds.'
         logger.debug(log_string)
         await asyncio.sleep(remaining)

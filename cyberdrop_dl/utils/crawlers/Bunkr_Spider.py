@@ -1,7 +1,8 @@
+import json
+
 from bs4 import BeautifulSoup
 from colorama import Fore
 from yarl import URL
-import json
 
 from ..base_functions import log, logger, make_title_safe, ssl_context, check_direct, FILE_FORMATS, user_agent
 from ..data_classes import DomainItem
@@ -18,11 +19,8 @@ class BunkrCrawler():
             ext = '.' + str(url).split('.')[-1]
             if ext in FILE_FORMATS['Videos']:
                 url = URL(str(url).replace('https://cdn', 'https://media-files'))
-                await domain_obj.add_to_album(link=url, referral=url, title="Bunkr Loose Files")
-                return domain_obj
-            else:
-                await domain_obj.add_to_album(link=url, referral=url, title="Bunkr Loose Files")
-                return domain_obj
+            await domain_obj.add_to_album(link=url, referral=url, title="Bunkr Loose Files")
+            return domain_obj
 
         if "stream.bunkr." in url.host:
             link = await self.stream(session, url)
@@ -70,8 +68,7 @@ class BunkrCrawler():
                 json_obj = json.loads(soup.select_one("script[id=__NEXT_DATA__]").text)
                 if not json_obj['props']['pageProps']:
                     raise Exception("Couldn't get link from HTML")
-                else:
-                    link = URL(json_obj['props']['pageProps']['file']['mediafiles'] + '/' + json_obj['props']['pageProps']['file']['name'])
+                link = URL(json_obj['props']['pageProps']['file']['mediafiles'] + '/' + json_obj['props']['pageProps']['file']['name'])
                 return link
 
         except Exception as e:

@@ -1,6 +1,3 @@
-import asyncio
-import re
-
 from bs4 import BeautifulSoup
 from colorama import Fore
 from yarl import URL
@@ -19,7 +16,7 @@ class KemonoCrawler:
         results = []
 
         if "thumbnail" in url.parts:
-            parts = [x for x in url.parts if x != "thumbnail" and x != "/"]
+            parts = [x for x in url.parts if x not in ("thumbnail", "/")]
             link = URL("https://kemono.party/" + "/".join(parts))
             await domain_obj.add_to_album("Loose Kemono.Party Files", link, link)
         elif "data" in url.parts:

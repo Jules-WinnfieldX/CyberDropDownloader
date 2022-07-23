@@ -83,7 +83,7 @@ async def download_all(args: argparse.Namespace):
                               args.skip_putmega, args.skip_redgif, args.skip_saint)
     content_object = await scrape(links, args.include_id, thotsbay_auth, args.separate_posts, skip_data)
     if await content_object.is_empty():
-        logging.error(f'ValueError No links')
+        logging.error('ValueError No links')
         await log("No links found, check the URL.txt\nIf the link works in your web browser, "
                   "please open an issue ticket with me.", Fore.RED)
         await log("This program does not currently support password protected albums.", Fore.RED)

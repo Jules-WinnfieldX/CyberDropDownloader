@@ -1,7 +1,7 @@
 from bs4 import BeautifulSoup
 from yarl import URL
 
-from ..base_functions import logger, ssl_context
+from ..base_functions import log, logger, ssl_context
 
 
 class GfycatCrawler():
