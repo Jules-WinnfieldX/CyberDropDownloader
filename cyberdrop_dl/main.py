@@ -35,22 +35,8 @@ def parse_args():
     parser.add_argument("--separate-posts", help="Separates thotsbay scraping into folders by post number", action="store_true")
     parser.add_argument("--thotsbay-username", type=str, help="username to login to thotsbay", default=None)
     parser.add_argument("--thotsbay-password", type=str, help="password to login to thotsbay", default=None)
-    parser.add_argument("--skip-anonfiles", help="This removes anonfile links from downloads", action="store_true")
-    parser.add_argument("--skip-bunkr", help="This removes bunkr links from downloads", action="store_true")
-    parser.add_argument("--skip-coomer", help="This removes coomer links from downloads", action="store_true")
-    parser.add_argument("--skip-cyberdrop", help="This removes cyberdrop links from downloads", action="store_true")
-    parser.add_argument("--skip-cyberfile", help="This removes cyberfile links from downloads", action="store_true")
-    parser.add_argument("--skip-erome", help="This removes erome links from downloads", action="store_true")
-    parser.add_argument("--skip-gfycat", help="This removes gfycat links from downloads", action="store_true")
-    parser.add_argument("--skip-gofile", help="This removes gofile links from downloads", action="store_true")
-    parser.add_argument("--skip-jpgchurch", help="This removes jpg.church links from downloads", action="store_true")
-    parser.add_argument("--skip-kemono", help="This removes kemono links from downloads", action="store_true")
-    parser.add_argument("--skip-pixeldrain", help="This removes pixeldrain links from downloads", action="store_true")
-    parser.add_argument("--skip-pixl", help="This removes pixl links from downloads", action="store_true")
-    parser.add_argument("--skip-putmega", help="This removes putmega links from downloads", action="store_true")
-    parser.add_argument("--skip-redgif", help="This removes redgif links from downloads", action="store_true")
-    parser.add_argument("--skip-saint", help="This removes saint.to links from downloads", action="store_true")
-    parser.add_argument("links", metavar="link", nargs="*",help="link to content to download (passing multiple links is supported)", default=[])
+    parser.add_argument("--skip", dest="skip_hosts", choices=SkipData.supported_hosts, help="This removes host links from downloads", action="append", default=[])
+    parser.add_argument("links", metavar="link", nargs="*", help="link to content to download (passing multiple links is supported)", default=[])
     args = parser.parse_args()
     return args
 
@@ -76,11 +62,7 @@ async def download_all(args: argparse.Namespace):
     with open(input_file, "r", encoding="utf8") as f:
         links += await regex_links(f.read())
     thotsbay_auth = AuthData(args.thotsbay_username, args.thotsbay_password)
-    skip_data = SkipData()
-    await skip_data.add_skips(args.skip_anonfiles, args.skip_bunkr, args.skip_coomer, args.skip_cyberdrop,
-                              args.skip_cyberfile, args.skip_erome, args.skip_gfycat, args.skip_gofile,
-                              args.skip_jpgchurch, args.skip_kemono, args.skip_pixeldrain, args.skip_pixl,
-                              args.skip_putmega, args.skip_redgif, args.skip_saint)
+    skip_data = SkipData(args.skip_hosts)
     content_object = await scrape(links, args.include_id, thotsbay_auth, args.separate_posts, skip_data)
     if await content_object.is_empty():
         logging.error('ValueError No links')
@@ -125,7 +107,6 @@ def main(args=None):
     loop.run_until_complete(download_all(args))
     loop.run_until_complete(asyncio.sleep(1))
     loop.close()
-
 
 
 if __name__ == '__main__':
