@@ -1,9 +1,10 @@
+import json
+
 from bs4 import BeautifulSoup
 from colorama import Fore
 from yarl import URL
-import json
 
-from ..base_functions import log, logger, make_title_safe, ssl_context, check_direct, FILE_FORMATS
+from ..base_functions import log, logger, make_title_safe, ssl_context, check_direct, FILE_FORMATS, user_agent
 from ..data_classes import DomainItem
 
 
@@ -17,10 +18,9 @@ class BunkrCrawler():
         if await check_direct(url):
             ext = '.' + str(url).split('.')[-1]
             if ext in FILE_FORMATS['Videos']:
-                url = URL('http://stream.bunkr.is/v/' + url.name)
-            else:
-                await domain_obj.add_to_album(link=url, referral=url, title="Bunkr Loose Files")
-                return domain_obj
+                url = URL(str(url).replace('https://cdn', 'https://media-files'))
+            await domain_obj.add_to_album(link=url, referral=url, title="Bunkr Loose Files")
+            return domain_obj
 
         if "stream.bunkr." in url.host:
             link = await self.stream(session, url)
@@ -44,7 +44,9 @@ class BunkrCrawler():
                 for file in json_obj['files']:
                     ext = '.' + file['name'].split('.')[-1].lower()
                     if ext in FILE_FORMATS['Videos']:
-                        link = await self.stream(session, URL("https://stream.bunkr.is/v/" + file['name']))
+                        cdn_loc = file['cdn']
+                        media_loc = cdn_loc.replace('cdn', 'media-files')
+                        link = URL(media_loc + '/' + file['name'])
                     else:
                         link = URL(file['cdn'] + '/' + file['name'])
                     await domain_obj.add_to_album(title, link, url)
@@ -60,14 +62,13 @@ class BunkrCrawler():
 
     async def stream(self, session, url):
         try:
-            async with session.get(url, ssl=ssl_context) as response:
+            async with session.get(url, ssl=ssl_context, headers={'Referer': str(url), 'user-agent': user_agent}) as response:
                 text = await response.text()
                 soup = BeautifulSoup(text, 'html.parser')
                 json_obj = json.loads(soup.select_one("script[id=__NEXT_DATA__]").text)
                 if not json_obj['props']['pageProps']:
-                    link = URL('https://media-files.bunkr.is/' + url.name)
-                else:
-                    link = URL(json_obj['props']['pageProps']['file']['mediafiles'] + '/' + json_obj['props']['pageProps']['file']['name'])
+                    raise Exception("Couldn't get link from HTML")
+                link = URL(json_obj['props']['pageProps']['file']['mediafiles'] + '/' + json_obj['props']['pageProps']['file']['name'])
                 return link
 
         except Exception as e:

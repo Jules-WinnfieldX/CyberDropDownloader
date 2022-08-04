@@ -1,9 +1,8 @@
 from bs4 import BeautifulSoup
 from colorama import Fore
 from yarl import URL
-import json
 
-from ..base_functions import log, logger, make_title_safe, ssl_context, check_direct
+from ..base_functions import log, logger, ssl_context
 from ..data_classes import DomainItem
 
 

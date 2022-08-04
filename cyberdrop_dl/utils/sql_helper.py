@@ -24,8 +24,20 @@ class SQLHelper:
                                     completed INTEGER NOT NULL,
                                     PRIMARY KEY (path)
                                 );"""
+        pre_alloc = "CREATE TABLE t(x);"
+        pre_alloc2 = "INSERT INTO t VALUES(zeroblob(50*1024*1024));"  # 50 mb
+        drop_pre = "DROP TABLE t;"
         self.curs.execute(create_table_query)
         self.conn.commit()
+        check_prealloc = "PRAGMA freelist_count;"
+        self.curs.execute(check_prealloc)
+        free = self.curs.fetchone()[0]
+        if free <= 1024:
+            self.curs.execute(pre_alloc)
+            self.curs.execute(pre_alloc2)
+            self.conn.commit()
+            self.curs.execute(drop_pre)
+            self.conn.commit()
         await self.check_columns()
 
     async def check_columns(self):
@@ -49,10 +61,7 @@ class SQLHelper:
             return False
         self.curs.execute("""SELECT completed FROM downloads WHERE path = ?""", (path, ))
         sql_file_check = self.curs.fetchone()
-        if sql_file_check:
-            if sql_file_check[0] == 1:
-                return True
-        return False
+        return sql_file_check and sql_file_check[0] == 1
 
     async def sql_insert_file(self, path, downloaded_filename, completed):
         self.curs.execute("""INSERT OR IGNORE INTO downloads VALUES (?, ?, ?)""", (path, downloaded_filename, completed, ))
@@ -65,18 +74,14 @@ class SQLHelper:
     async def check_filename(self, filename):
         self.curs.execute("""SELECT EXISTS(SELECT 1 FROM downloads WHERE downloaded_filename = ?)""", (filename, ))
         sql_check = self.curs.fetchone()[0]
-        if sql_check == 1:
-            return True
-        else:
-            return False
+        return sql_check == 1
 
     async def get_download_filename(self, path):
         self.curs.execute("""SELECT downloaded_filename FROM downloads WHERE path = ?""", (path, ))
         filename = self.curs.fetchone()
         if filename:
             return filename[0]
-        else:
-            return None
+        return None
 
     def exit_handler(self):
         try:

@@ -12,9 +12,7 @@ class FileLock:
 
     async def check_lock(self, filename):
         await asyncio.sleep(.1)
-        if filename.lower() in self.locked_files:
-            return True
-        return False
+        return filename.lower() in self.locked_files
 
     async def add_lock(self, filename):
         self.locked_files.append(filename.lower())
@@ -94,8 +92,8 @@ class CascadeItem:
             self.domains[domain] = DomainItem(domain, {title: album})
 
     async def is_empty(self):
-        for domain_str, domain in self.domains.items():
-            for album_str, album in domain.albums.items():
+        for _, domain in self.domains.items():
+            for _, album in domain.albums.items():
                 if album.link_pairs:
                     return False
         return True
@@ -103,7 +101,7 @@ class CascadeItem:
     async def append_title(self, title):
         if not title:
             return
-        for domain_str, domain in self.domains.items():
+        for _, domain in self.domains.items():
             new_albums = {}
             for album_str, album in domain.albums.items():
                 new_title = title+'/'+album_str
@@ -119,17 +117,16 @@ class CascadeItem:
                         await self.add_album(domain_str, album_str, album)
 
     async def dedupe(self):
-        for domain_str, domain in self.domains.items():
-            for album_str, album in domain.albums.items():
+        for _, domain in self.domains.items():
+            for _, album in domain.albums.items():
                 check = []
                 allowed = []
                 for pair in album.link_pairs:
-                    url, referrer = pair
+                    url, _ = pair
                     if url in check:
                         continue
-                    else:
-                        check.append(url)
-                        allowed.append(pair)
+                    check.append(url)
+                    allowed.append(pair)
                 album.link_pairs = allowed
 
 
@@ -143,8 +140,8 @@ class AuthData:
 @dataclass
 class SkipData:
     supported_hosts: ClassVar[Tuple[str]] = (
-        "anonfiles.com", "bunkr", "coomer.party", "cyberdrop", "cyberfile.is",
-        "erome.com", "gfycat.com", "gofile.io", "jpg.church", "kemono.party",
-        "pixeldrain.com", "pixl.is", "putme.ga", "putmega.com", "redgifs.com",
-        "saint.to", "thotsbay.com")
+        "anonfiles", "bunkr", "coomer.party", "cyberdrop", "cyberfile",
+        "erome", "gfycat", "gofile", "jpg.church", "kemono.party",
+        "pixeldrain", "pixl.is", "putme.ga", "putmega.com", "redgifs",
+        "saint", "thotsbay")
     sites: List[str]

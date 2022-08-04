@@ -35,7 +35,7 @@ It'll repeat that for every link you give it.
 
 # Installation
 
-## Manually
+## Script method
 Go to the [releases page](https://github.com/Jules-WinnfieldX/CyberDropDownloader/releases) and download the Cyberdrop_DL.zip file. Extract it to wherever you want the program to be.
 ## Using `pip`
 Once Python is installed, run `pip3 install cyberdrop-dl`.
@@ -44,12 +44,12 @@ Advanced users may want to use virtual environments (via `pipx`), but it's **NOT
 
 # Usage
 
-## Manual way (Manual install above)
+## Script method
 Put the links in the URLs.txt file then run `Start Windows.bat` (Windows) or `Start Mac.command` (OS X) or `Start Linux.sh` (Linux).
 
 ** Mac users will need to run the command `chmod +x 'Start Mac.command'` to make the file executable.
 
-## Simple (Pip install above)
+## Pip install method
 1. Run `cyberdrop-dl` once to generate an empty `URLs.txt` file.
 2. Copy and paste your links into `URLs.txt`.
 Each link you add has to go on its own line (paste link, press enter, repeat).

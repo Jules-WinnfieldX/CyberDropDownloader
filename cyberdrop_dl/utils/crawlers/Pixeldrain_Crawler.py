@@ -1,6 +1,5 @@
 import json
 
-from bs4 import BeautifulSoup
 from colorama import Fore
 from yarl import URL
 

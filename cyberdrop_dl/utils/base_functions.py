@@ -12,7 +12,7 @@ from yarl import URL
 FILE_FORMATS = {
     'Images': {
         '.jpg', '.jpeg', '.png', '.gif',
-        '.gif', '.webp', '.jpe', '.svg',
+        '.webp', '.jpe', '.svg',
         '.tif', '.tiff', '.jif',
     },
     'Videos': {
@@ -38,8 +38,8 @@ MAX_FILENAME_LENGTH = 100
 logger = logging.getLogger(__name__)
 
 
-async def sanitize(input: str) -> str:
-    return re.sub(r'[<>:"/\\|?*\']', "", input)
+async def sanitize(name: str) -> str:
+    return re.sub(r'[<>:"/\\|?*\']', "", name)
 
 
 async def log(text, style=Fore.WHITE) -> None:
@@ -57,9 +57,9 @@ async def make_title_safe(title: str):
     return title
 
 
-async def purge_dir(dir, in_place=True):
+async def purge_dir(dirname, in_place=True):
     deleted = []
-    dir_tree = list(os.walk(dir, topdown=False))
+    dir_tree = list(os.walk(dirname, topdown=False))
 
     for tree_element in dir_tree:
         sub_dir = tree_element[0]
@@ -93,8 +93,4 @@ async def check_direct(url: URL):
     mapping_direct = ['i.pixl.is', r's..putmega.com', r's..putme.ga', r'img-...cyberdrop...', r'f.cyberdrop...',
                       r'fs-...cyberdrop...', r'cdn.bunkr...', r'cdn..bunkr...', r'media-files.bunkr...', r'jpg.church/images/...',
                       r'simp..jpg.church']
-    for domain in mapping_direct:
-        extension = '.' + str(url).split('.')[-1]
-        if re.search(domain, url.host):
-            return True
-    return False
+    return any(re.search(domain, url.host) for domain in mapping_direct)
