@@ -22,7 +22,6 @@ from .rate_limiting import throttle
 
 class FailureException(Exception):
     """Basic failure exception I can throw to force a retry."""
-    pass
 
 
 def retry(f):
@@ -34,7 +33,7 @@ def retry(f):
             except FailureException:
                 if not self.disable_attempt_limit:
                     if self.current_attempt[str(args[0])] >= self.attempts - 1:
-                        logger.debug('Skipping %s...' % args[0])
+                        logger.debug('Skipping %s...', args[0])
                         raise
                 logger.debug(f'Retrying ({self.current_attempt[str(args[0])]}) {args[0]}...')
                 self.current_attempt[str(args[0])] += 1
@@ -91,7 +90,7 @@ class Downloader:
             show_progress: bool = True
     ) -> None:
         """Download the content of given URL"""
-        if str(url) not in self.current_attempt.keys():
+        if str(url) not in self.current_attempt:
             self.current_attempt[str(url)] = 0
 
         headers = {'Referer': str(referral), 'user-agent': user_agent}
@@ -171,7 +170,7 @@ class Downloader:
 
                     if not download_name:
                         while True:
-                            filename = complete_file.stem + " (%d)" % iterations + ext
+                            filename = f"{complete_file.stem} ({iterations}){ext}"
                             iterations += 1
                             temp_complete_file = (self.folder / self.title / filename)
                             if not temp_complete_file.exists():
@@ -188,7 +187,7 @@ class Downloader:
 
                 if temp_file.exists():
                     resume_point = temp_file.stat().st_size
-                    headers['Range'] = 'bytes=%d-' % resume_point
+                    headers['Range'] = f'bytes={resume_point}-'
 
                 for key, value in self.delay.items():
                     if key in url.host:
@@ -197,7 +196,7 @@ class Downloader:
                 async with session.get(url, headers=headers, ssl=ssl_context, raise_for_status=True) as resp:
                     content_type = resp.headers.get('Content-Type')
                     if 'text' in content_type.lower() or 'html' in content_type.lower():
-                        logger.debug(f"Server for %s is either down or the file no longer exists" % str(url))
+                        logger.debug("Server for %s is either down or the file no longer exists", str(url))
                         await self.File_Lock.remove_lock(original_filename)
                         return
 
@@ -230,13 +229,13 @@ class Downloader:
             try:
                 logger.debug("Error status code: " + str(e.code))
                 if 400 <= e.code < 500 and e.code != 429:
-                    logger.debug("We ran into a 400 level error: %s" % str(e.code))
+                    logger.debug("We ran into a 400 level error: %s", str(e.code))
                     if 'media-files.bunkr' in url.host:
                         pass
                     else:
                         return
                 resp.close()
-            except Exception as e2:
+            except Exception:
                 pass
 
             raise FailureException(e)

@@ -47,14 +47,13 @@ class ThotsbayCrawler:
                         await self.login(session, url)
                         self.lock = 0
                         break
-                    else:
-                        await asyncio.sleep(2)
+                    await asyncio.sleep(2)
             else:
                 await log("login wasn't provided, consider using --thotsbay-username and --thotsbay-password")
                 await log("Not being logged in might cause issues.")
             await self.parse_thread(session, url, Cascade, None)
         except Exception as e:
-            await log("there was an error signing into %s" % url.host)
+            await log(f"there was an error signing into {url.host}")
             await log(e)
             return
 
