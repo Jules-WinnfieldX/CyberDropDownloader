@@ -6,7 +6,7 @@ from datetime import datetime
 from types import TracebackType
 from typing import Optional, Callable, Awaitable, Any, Type
 
-from cyberdrop_dl.base_functions.base_functions import logger
+from ..base_functions.base_functions import logger
 
 
 class AsyncRateLimiter:
@@ -66,7 +66,7 @@ class AsyncRateLimiter:
         return self.calls[-1] - self.calls[0]
 
 
-async def throttle(self, delay, host) -> None:
+async def throttle(self, delay: int, host: str) -> None:
     if delay is None or delay == 0:
         return
 

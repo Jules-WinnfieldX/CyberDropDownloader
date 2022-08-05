@@ -3,7 +3,7 @@ import logging
 import traceback
 from functools import wraps
 from pathlib import Path
-from typing import List, Tuple
+from typing import List, Tuple, Dict
 from random import gauss
 
 import aiofiles
@@ -15,7 +15,6 @@ from yarl import URL
 from ..base_functions.base_functions import FILE_FORMATS, MAX_FILENAME_LENGTH, log, logger, sanitize
 from ..base_functions.sql_helper import SQLHelper
 from ..base_functions.data_classes import AlbumItem, CascadeItem, FileLock
-from ..client.rate_limiting import throttle
 from ..client.client import Client, DownloadSession
 
 
@@ -53,7 +52,7 @@ def retry(f):
 
 class Downloader:
     def __init__(self, album_obj: AlbumItem, folder: Path, title: str, attempts: int,
-                 disable_attempt_limit: bool, max_workers: int, excludes: dict[str, bool], SQL_helper: SQLHelper,
+                 disable_attempt_limit: bool, max_workers: int, excludes: Dict[str, bool], SQL_helper: SQLHelper,
                  client: Client):
         self.album_obj = album_obj
         self.client = client
@@ -262,7 +261,7 @@ class Downloader:
 
 
 async def get_downloaders(Cascade: CascadeItem, folder: Path, attempts: int, disable_attempt_limit: bool,
-                          max_workers: int, excludes: dict[str, bool], SQL_helper: SQLHelper, client: Client) -> List[Downloader]:
+                          max_workers: int, excludes: Dict[str, bool], SQL_helper: SQLHelper, client: Client) -> List[Downloader]:
     """Get a list of downloaders for each supported type of URLs.
     We shouldn't just assume that each URL will have the same netloc as
     the first one, so we need to classify them one by one, sort them to
