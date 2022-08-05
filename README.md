@@ -88,6 +88,7 @@ optional arguments:
   --thotsbay-password       password to login to thotsbay (only required if the thread requires it)
   --skip                    this removes the specified hosts links from downloads
   --ratelimit               this will add a ratelimiter to requests made in the program, the number you provide is in seconds
+  --throttle                this is a throttle between requests during the downloading phase, the number is in seconds
 ```
 --skip can use: "anonfiles", "bunkr", "coomer.party", "cyberdrop", "cyberfile",
         "erome", "gfycat", "gofile", "jpg.church", "kemono.party",
