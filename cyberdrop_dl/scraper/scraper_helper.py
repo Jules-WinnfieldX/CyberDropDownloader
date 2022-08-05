@@ -51,8 +51,9 @@ class ScrapeMapper():
         self.thotsbay_crawler = None
 
         self.jpgchurch_limiter = AsyncRateLimiter(19)
+        self.bunkr_limiter = AsyncRateLimiter(15)
+        self.thotsbay_limiter = asyncio.Semaphore(4)
         self.semaphore = asyncio.Semaphore(1)
-        self.total_semaphore = asyncio.Semaphore(threads)
         self.mapping = {"anonfiles.com": self.Anonfiles, "bunkr": self.Bunkr, "coomer.party": self.coomer,
                         "cyberdrop": self.Cyberdrop, "cyberfile.is": self.cyberfile,
                         "erome.com": self.Erome, "gfycat.com": self.gfycat,
@@ -76,7 +77,8 @@ class ScrapeMapper():
         bunkr_session = Session(self.client)
         if not self.bunkr_crawler:
             self.bunkr_crawler = BunkrCrawler(include_id=self.include_id)
-        domain_obj = await self.bunkr_crawler.fetch(bunkr_session, url)
+        async with self.bunkr_limiter:
+            domain_obj = await self.bunkr_crawler.fetch(bunkr_session, url)
         if title:
             await domain_obj.append_title(title)
         await self.Cascade.add_albums(domain_obj)
@@ -211,15 +213,15 @@ class ScrapeMapper():
         if not self.thotsbay_crawler:
             self.thotsbay_crawler = ThotsbayCrawler(include_id=self.include_id, auth=self.thotsbay_auth,
                                                     scraping_mapper=self, separate_posts=self.separate_posts)
-        await self.Cascade.extend(await self.thotsbay_crawler.fetch(thotsbay_session, url))
+        async with self.thotsbay_limiter:
+            await self.Cascade.extend(await self.thotsbay_crawler.fetch(thotsbay_session, url))
         await thotsbay_session.exit_handler()
 
     async def map_url(self, url_to_map: URL, title=None):
         for key, value in self.mapping.items():
             if key in url_to_map.host:
                 if key not in self.skip_data.sites:
-                    async with self.total_semaphore:
-                        await value(url=url_to_map, title=title)
+                    await value(url=url_to_map, title=title)
                 else:
                     await log("Skipping scrape of " + str(url_to_map))
                 return
