@@ -1,4 +1,5 @@
 import argparse
+import multiprocessing
 from argparse import Namespace
 import asyncio
 import logging
@@ -9,11 +10,12 @@ from colorama import Fore
 from yarl import URL
 
 from . import __version__ as VERSION
-from .utils.base_functions import clear, log, logger, purge_dir, regex_links
-from .utils.data_classes import AuthData, SkipData
-from .utils.downloaders import get_downloaders
-from .utils.scraper import scrape
-from .utils.sql_helper import SQLHelper
+from cyberdrop_dl.base_functions.base_functions import clear, log, logger, purge_dir, regex_links
+from cyberdrop_dl.base_functions.data_classes import AuthData, SkipData
+from cyberdrop_dl.base_functions.sql_helper import SQLHelper
+from cyberdrop_dl.client.client import Client
+from cyberdrop_dl.client.downloaders import get_downloaders
+from cyberdrop_dl.scraper.scraper import scrape
 
 
 def parse_args():
@@ -36,6 +38,8 @@ def parse_args():
     parser.add_argument("--thotsbay-username", type=str, help="username to login to thotsbay", default=None)
     parser.add_argument("--thotsbay-password", type=str, help="password to login to thotsbay", default=None)
     parser.add_argument("--skip", dest="skip_hosts", choices=SkipData.supported_hosts, help="This removes host links from downloads", action="append", default=[])
+    parser.add_argument("--ratelimit", type=int, help="this will add a ratelimiter to requests made in the program during scraping, the number you provide is in requests/seconds", default=50)
+    parser.add_argument("--throttle", type=int, help="This is a throttle between requests during the downloading phase, the number is in seconds", default=0.5)
     parser.add_argument("links", metavar="link", nargs="*", help="link to content to download (passing multiple links is supported)", default=[])
     args = parser.parse_args()
     return args
@@ -53,17 +57,26 @@ async def download_all(args: argparse.Namespace):
         await log(f"{input_file} created. Populate it and retry.")
         exit(1)
 
+    client = Client(args.ratelimit, args.throttle)
     SQL_helper = SQLHelper(args.ignore_history, args.db_file)
     await SQL_helper.sql_initialize()
+
+    threads = args.threads if args.threads != 0 else multiprocessing.cpu_count()
 
     links = args.links
     links = list(map(URL, links))
 
     with open(input_file, "r", encoding="utf8") as f:
         links += await regex_links(f.read())
+
     thotsbay_auth = AuthData(args.thotsbay_username, args.thotsbay_password)
     skip_data = SkipData(args.skip_hosts)
-    content_object = await scrape(links, args.include_id, thotsbay_auth, args.separate_posts, skip_data)
+    excludes = {'videos': args.exclude_videos, 'images': args.exclude_images, 'audio': args.exclude_audio,
+                'other': args.exclude_other}
+    content_object = await scrape(links, client, args.include_id, thotsbay_auth, args.separate_posts,
+                                  skip_data, threads)
+
+
     if await content_object.is_empty():
         logging.error('ValueError No links')
         await log("No links found, check the URL.txt\nIf the link works in your web browser, "
@@ -71,11 +84,10 @@ async def download_all(args: argparse.Namespace):
         await log("This program does not currently support password protected albums.", Fore.RED)
         exit(0)
     await clear()
+
     downloaders = await get_downloaders(content_object, folder=args.output_folder, attempts=args.attempts,
-                                        disable_attempt_limit=args.disable_attempt_limit,
-                                        threads=args.threads, exclude_videos=args.exclude_videos,
-                                        exclude_images=args.exclude_images, exclude_audio=args.exclude_audio,
-                                        exclude_other=args.exclude_other, SQL_helper=SQL_helper)
+                                        disable_attempt_limit=args.disable_attempt_limit, max_workers=threads,
+                                        excludes=excludes, SQL_helper=SQL_helper, client=client)
 
     for downloader in downloaders:
         await downloader.download_content()

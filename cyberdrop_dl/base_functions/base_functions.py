@@ -1,9 +1,7 @@
 import logging
 import os
 import re
-import ssl
 
-import certifi
 from colorama import Fore, Style
 from yarl import URL
 
@@ -29,9 +27,6 @@ FILE_FORMATS = {
         '.json', '.torrent', '.zip', '.rar', '.7z'
     }
 }
-
-user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.75 Safari/537.36'
-ssl_context = ssl.create_default_context(cafile=certifi.where())
 
 MAX_FILENAME_LENGTH = 100
 

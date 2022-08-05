@@ -71,7 +71,6 @@ class DomainItem:
 class CascadeItem:
     """Class for keeping track of domains for each scraper type"""
     domains: Dict[str, DomainItem]
-    cookies: aiohttp.CookieJar = None
 
     async def add_albums(self, domain_item: DomainItem):
         domain = domain_item.domain

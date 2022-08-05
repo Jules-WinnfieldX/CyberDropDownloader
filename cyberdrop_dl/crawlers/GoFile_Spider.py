@@ -1,19 +1,19 @@
 import http
 from typing import Union
 
-from colorama import Fore
 from gofile import Gofile
 from yarl import URL
 
-from ..base_functions import log
-from ..data_classes import DomainItem
+from ..base_functions.base_functions import log
+from ..base_functions.data_classes import DomainItem
+from ..client.client import Session
 
 
 class GofileCrawler():
     def __init__(self):
         self.client = Gofile()
 
-    async def fetch(self, session, url):
+    async def fetch(self, session: Session, url: URL):
         domain_obj = DomainItem('gofile.io', {})
 
         # Set cookie in cookie_jar
@@ -21,21 +21,21 @@ class GofileCrawler():
         morsel = http.cookies.Morsel()
         morsel['domain'] = 'gofile.io'
         morsel.set('accountToken', client_token, client_token)
-        session.cookie_jar.update_cookies({'gofile.io': morsel})
+        session.client_session.cookie_jar.update_cookies({'gofile.io': morsel})
 
         results = await self.get_links(url)
 
-        await log("Starting scrape of " + str(url), Fore.WHITE)
+        await log("Starting scrape of " + str(url))
 
         if results:
             for result in results:
                 await domain_obj.add_to_album(result['title'], result['url'], result['referral'])
 
-        await log("Finished scrape of " + str(url), Fore.WHITE)
+        await log("Finished scrape of " + str(url))
 
         return domain_obj
 
-    async def get_links(self, url, og_title=None):
+    async def get_links(self, url: URL, og_title=None):
         results = []
         content_id = url.name if url.host == 'gofile.io' else url
         try:

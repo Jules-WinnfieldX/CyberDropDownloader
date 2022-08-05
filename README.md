@@ -58,10 +58,10 @@ It will begin to download everything.
 4. Enjoy!
 
 ## Custom way (Pip install above)
-If you know what you're doing, you can use some of the available options to adjust how the program runs.
+If you know what you're doing, you can use the available options to adjust how the program runs.
 ```
 $ cyberdrop-dl -h
-usage: cyberdrop-dl [-h] [-V] [-i INPUT_FILE] [-o OUTPUT_FOLDER] [--log-file LOG_FILE] [--threads THREADS] [--attempts ATTEMPTS] [--include-id] [link ...]
+usage: cyberdrop-dl [-h] [-V] [-i INPUT_FILE] [-o OUTPUT_FOLDER] [--log-file LOG_FILE] [--threads THREADS] [--attempts ATTEMPTS] [--include-id] [--exclude-videos] [--exclude-images] [--exclude-audio] [--exclude-other] [--ignore-history] [--thotsbay-username "USERNAME"] [--thotsbay-password "PASSWORD"] [--skip SITE] [link ...]
 
 Bulk downloader for multiple file hosts
 
@@ -86,22 +86,11 @@ optional arguments:
   --ignore-history          ignores previous history and downloads everything
   --thotsbay-username       username to login to thotsbay (only required if the thread requires it)
   --thotsbay-password       password to login to thotsbay (only required if the thread requires it)
-  --cyberfile-username      username for cyberfile (used to access the api)
-  --cyberfile-password      password for cyberfile (used to access the api)
-  --skip-anonfiles          this removes anonfile links from downloads
-  --skip-bunkr              this removes bunkr links from downloads
-  --skip-coomer             this removes coomer links from downloads
-  --skip-cyberdrop          this removes cyberdrop links from downloads
-  --skip-cyberfile          this removes cyberfile links from downloads
-  --skip-erome              this removes erome links from downloads
-  --skip-gfycat             this removes gfycat links from downloads
-  --skip-gofile             this removes gofile links from downloads
-  --skip-jpgchurch          this removes jpgchurch links from downloads
-  --skip-kemono             this removes kemono links from downloads
-  --skip-pixeldrain         this removes pixeldrain links from downloads
-  --skip-pixl               this removes pixl links from downloads
-  --skip-putmega            this removes putmega links from downloads
-  --skip-redgif             this removes redgif links from downloads
-  --skip-saint              this removes saint links from downloads
-  
+  --skip                    this removes the specified hosts links from downloads
+  --ratelimit               this will add a ratelimiter to requests made in the program, the number you provide is in seconds
 ```
+--skip can use: "anonfiles", "bunkr", "coomer.party", "cyberdrop", "cyberfile",
+        "erome", "gfycat", "gofile", "jpg.church", "kemono.party",
+        "pixeldrain", "pixl.is", "putme.ga", "putmega.com", "redgifs",
+        "saint", "thotsbay"
+

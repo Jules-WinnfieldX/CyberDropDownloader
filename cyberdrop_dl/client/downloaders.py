@@ -1,6 +1,5 @@
 import asyncio
 import logging
-import multiprocessing
 import traceback
 from functools import wraps
 from pathlib import Path
@@ -10,14 +9,14 @@ from random import gauss
 import aiofiles
 import aiofiles.os
 import aiohttp.client_exceptions
-from colorama import Fore
 from tqdm import tqdm
 from yarl import URL
 
-from .base_functions import FILE_FORMATS, MAX_FILENAME_LENGTH, log, logger, sanitize, ssl_context, user_agent
-from .sql_helper import SQLHelper
-from .data_classes import AlbumItem, CascadeItem, FileLock
-from .rate_limiting import throttle
+from ..base_functions.base_functions import FILE_FORMATS, MAX_FILENAME_LENGTH, log, logger, sanitize
+from ..base_functions.sql_helper import SQLHelper
+from ..base_functions.data_classes import AlbumItem, CascadeItem, FileLock
+from ..client.rate_limiting import throttle
+from ..client.client import Client, DownloadSession
 
 
 class FailureException(Exception):
@@ -53,11 +52,11 @@ def retry(f):
 
 
 class Downloader:
-    def __init__(self, album_obj: AlbumItem, cookie_jar, folder: Path, title: str, attempts: int,
-                 disable_attempt_limit: bool, max_workers: int, exclude_videos: bool, exclude_images: bool,
-                 exclude_audio: bool, exclude_other: bool, SQL_helper: SQLHelper):
+    def __init__(self, album_obj: AlbumItem, folder: Path, title: str, attempts: int,
+                 disable_attempt_limit: bool, max_workers: int, excludes: dict[str, bool], SQL_helper: SQLHelper,
+                 client: Client):
         self.album_obj = album_obj
-        self.cookie_jar = cookie_jar
+        self.client = client
         self.folder = folder
         self.title = title
 
@@ -68,32 +67,22 @@ class Downloader:
         self.current_attempt = {}
         self.disable_attempt_limit = disable_attempt_limit
 
-        self.exclude_videos = exclude_videos
-        self.exclude_images = exclude_images
-        self.exclude_audio = exclude_audio
-        self.exclude_other = exclude_other
+        self.excludes = excludes
 
         self.max_workers = max_workers
         self._semaphore = asyncio.Semaphore(max_workers)
         self.delay = {'cyberfile.is': 1, 'anonfiles.com': 1}
-        self.throttle_times = {}
 
     """Changed from aiohttp exceptions caught to FailureException to allow for partial downloads."""
 
     @retry
-    async def download_file(
-            self,
-            url: URL,
-            referral: URL,
-            filename: str,
-            session: aiohttp.ClientSession,
-            show_progress: bool = True
-    ) -> None:
+    async def download_file(self, url: URL, referral: URL, filename: str, session: DownloadSession,
+                            show_progress: bool = True) -> None:
         """Download the content of given URL"""
         if str(url) not in self.current_attempt:
             self.current_attempt[str(url)] = 0
 
-        headers = {'Referer': str(referral), 'user-agent': user_agent}
+        referer = str(referral)
         db_path = url.path
 
         if 'anonfiles' in url.host:
@@ -111,39 +100,41 @@ class Downloader:
             async with self._semaphore:
                 # If ext isn't allowable we likely have an invalid filename, lets go get it.
                 ext = '.' + filename.split('.')[-1].lower()
-                if not (ext in FILE_FORMATS['Images'] or ext in FILE_FORMATS['Videos'] or ext in FILE_FORMATS['Audio'] or ext in FILE_FORMATS['Other']):
+                current_throttle = self.client.throttle
+                if not (ext in FILE_FORMATS['Images'] or ext in FILE_FORMATS['Videos'] or
+                        ext in FILE_FORMATS['Audio'] or ext in FILE_FORMATS['Other']):
                     for key, value in self.delay.items():
                         if key in url.host:
-                            await throttle(self, value, key)
-                    async with session.get(url, headers=headers, ssl=ssl_context, raise_for_status=True) as resp:
-                        try:
-                            filename = resp.content_disposition.filename
-                            filename = await sanitize(filename)
-                            ext = '.' + filename.split('.')[-1].lower()
-                            if not (ext in FILE_FORMATS['Images'] or ext in FILE_FORMATS['Videos'] or ext in FILE_FORMATS['Audio'] or ext in FILE_FORMATS['Other']):
-                                return
-                        except:
-                            await log("\nCouldn't get filename for: " + str(url))
+                            if value > current_throttle:
+                                current_throttle = value
+                    try:
+                        filename = await session.get_filename(url, referer, current_throttle)
+                        filename = await sanitize(filename)
+                        ext = '.' + filename.split('.')[-1].lower()
+                        if not (ext in FILE_FORMATS['Images'] or ext in FILE_FORMATS['Videos'] or ext in FILE_FORMATS['Audio'] or ext in FILE_FORMATS['Other']):
                             return
+                    except:
+                        await log("\nCouldn't get filename for: " + str(url))
+                        return
 
                 # Make suffix always lower case
                 ext = '.' + filename.split('.')[-1].lower()
                 filename = filename.replace('.' + filename.split('.')[-1], ext)
 
                 # Skip based on CLI arg.
-                if self.exclude_videos:
+                if self.excludes['videos']:
                     if ext in FILE_FORMATS['Videos']:
                         logging.debug("Skipping " + filename)
                         return
-                if self.exclude_images:
+                if self.excludes['images']:
                     if ext in FILE_FORMATS['Images']:
                         logging.debug("Skipping " + filename)
                         return
-                if self.exclude_audio:
+                if self.excludes['audio']:
                     if ext in FILE_FORMATS['Audio']:
                         logging.debug("Skipping " + filename)
                         return
-                if self.exclude_other:
+                if self.excludes['other']:
                     if ext in FILE_FORMATS['Other']:
                         logging.debug("Skipping " + filename)
                         return
@@ -158,8 +149,7 @@ class Downloader:
 
                 if complete_file.exists() or partial_file.exists():
                     if complete_file.exists():
-                        async with session.get(url, headers=headers, ssl=ssl_context, raise_for_status=True) as resp:
-                            total_size = int(resp.headers.get('Content-Length', str(0)))
+                        total_size = session.get_filesize(url, referer, current_throttle)
                         if complete_file.stat().st_size == total_size:
                             await self.SQL_helper.sql_insert_file(db_path, complete_file.name, 1)
                             logger.debug("\nFile already exists and matches expected size: " + str(complete_file))
@@ -185,34 +175,19 @@ class Downloader:
                 resume_point = 0
                 temp_file = complete_file.with_suffix(complete_file.suffix + '.part')
 
+                range = None
                 if temp_file.exists():
                     resume_point = temp_file.stat().st_size
-                    headers['Range'] = f'bytes={resume_point}-'
+                    range = f'bytes={resume_point}-'
 
                 for key, value in self.delay.items():
                     if key in url.host:
-                        await throttle(self, value, key)
+                        current_throttle = value
 
-                async with session.get(url, headers=headers, ssl=ssl_context, raise_for_status=True) as resp:
-                    content_type = resp.headers.get('Content-Type')
-                    if 'text' in content_type.lower() or 'html' in content_type.lower():
-                        logger.debug("Server for %s is either down or the file no longer exists", str(url))
-                        await self.File_Lock.remove_lock(original_filename)
-                        return
+                await session.download_file(url, referer, current_throttle, range, original_filename, filename,
+                                            temp_file, resume_point, show_progress, self.File_Lock, self.folder,
+                                            self.title)
 
-                    total = int(resp.headers.get('Content-Length', str(0))) + resume_point
-                    (self.folder / self.title).mkdir(parents=True, exist_ok=True)
-
-                    with tqdm(
-                            total=total, unit_scale=True,
-                            unit='B', leave=False, initial=resume_point,
-                            desc=filename, disable=(not show_progress)
-                    ) as progress:
-                        async with aiofiles.open(temp_file, mode='ab') as f:
-                            async for chunk, _ in resp.content.iter_chunks():
-                                await asyncio.sleep(0)
-                                await f.write(chunk)
-                                progress.update(len(chunk))
             await self.rename_file(filename, url, db_path)
             await self.File_Lock.remove_lock(original_filename)
 
@@ -234,7 +209,6 @@ class Downloader:
                         pass
                     else:
                         return
-                resp.close()
             except Exception:
                 pass
 
@@ -253,12 +227,7 @@ class Downloader:
         await self.SQL_helper.sql_update_file(db_path, filename, 1)
         logger.debug("Finished " + filename)
 
-    async def download_and_store(
-            self,
-            url_tuple: Tuple,
-            session: aiohttp.ClientSession,
-            show_progress: bool = True
-    ) -> None:
+    async def download_and_store(self, url_tuple: Tuple, session: DownloadSession, show_progress: bool = True) -> None:
         """Download the content of given URL and store it in a file."""
         url, referral = url_tuple
 
@@ -276,14 +245,9 @@ class Downloader:
                                      show_progress=show_progress)
         except Exception:
             logger.debug(traceback.format_exc())
-            await log(f"\nError attempting {filename}: See downloader.log for details\n", Fore.WHITE)
+            await log(f"\nError attempting {filename}: See downloader.log for details\n")
 
-    async def download_all(
-            self,
-            album_obj: AlbumItem,
-            session: aiohttp.ClientSession,
-            show_progress: bool = True
-    ) -> None:
+    async def download_all(self, album_obj: AlbumItem, session: DownloadSession, show_progress: bool = True) -> None:
         """Download the data from all given links and store them into corresponding files."""
         coros = [self.download_and_store(url_object, session, show_progress)
                  for url_object in album_obj.link_pairs]
@@ -292,14 +256,13 @@ class Downloader:
 
     async def download_content(self, show_progress: bool = True) -> None:
         """Download the content of all links and save them as files."""
-        async with aiohttp.ClientSession(cookie_jar=self.cookie_jar) as session:
-            await self.download_all(self.album_obj, session, show_progress=show_progress)
+        session = DownloadSession(self.client)
+        await self.download_all(self.album_obj, session, show_progress=show_progress)
         self.SQL_helper.conn.commit()
 
 
-async def get_downloaders(Cascade: CascadeItem, folder: Path, attempts: int, disable_attempt_limit: bool, threads: int,
-                    exclude_videos: bool, exclude_images: bool, exclude_audio: bool, exclude_other: bool,
-                    SQL_helper: SQLHelper) -> List[Downloader]:
+async def get_downloaders(Cascade: CascadeItem, folder: Path, attempts: int, disable_attempt_limit: bool,
+                          max_workers: int, excludes: dict[str, bool], SQL_helper: SQLHelper, client: Client) -> List[Downloader]:
     """Get a list of downloaders for each supported type of URLs.
     We shouldn't just assume that each URL will have the same netloc as
     the first one, so we need to classify them one by one, sort them to
@@ -309,17 +272,12 @@ async def get_downloaders(Cascade: CascadeItem, folder: Path, attempts: int, dis
 
     downloaders = []
 
-    cookie_jar = Cascade.cookies
-
     for domain, domain_obj in Cascade.domains.items():
-        max_workers = threads if threads != 0 else multiprocessing.cpu_count()
         if 'bunkr' in domain or 'pixeldrain' in domain or 'anonfiles' in domain:
             max_workers = 2 if (max_workers > 2) else max_workers
         for title, album_obj in domain_obj.albums.items():
-            downloader = Downloader(album_obj, cookie_jar=cookie_jar, title=title, folder=folder,
-                                    attempts=attempts, disable_attempt_limit=disable_attempt_limit,
-                                    max_workers=max_workers, exclude_videos=exclude_videos,
-                                    exclude_images=exclude_images, exclude_audio=exclude_audio,
-                                    exclude_other=exclude_other, SQL_helper=SQL_helper)
+            downloader = Downloader(album_obj, title=title, folder=folder, attempts=attempts,
+                                    disable_attempt_limit=disable_attempt_limit, max_workers=max_workers,
+                                    excludes=excludes, SQL_helper=SQL_helper, client=client)
             downloaders.append(downloader)
     return downloaders
