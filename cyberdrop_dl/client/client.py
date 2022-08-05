@@ -21,6 +21,7 @@ class Client:
     def __init__(self, ratelimit: int, throttle: int):
         self.ratelimit = ratelimit
         self.throttle = throttle
+        self.simultaneous_session_limit = asyncio.Semaphore(100)
         self.user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.75 Safari/537.36'
         self.ssl_context = ssl.create_default_context(cafile=certifi.where())
         self.cookies = aiohttp.CookieJar(quote_cookie=False)
@@ -35,39 +36,45 @@ class Session:
                                                     cookie_jar=self.client.cookies)
 
     async def get_BS4(self, url: URL):
-        async with self.rate_limiter:
-            async with self.client_session.get(url, ssl=self.client.ssl_context) as response:
-                text = await response.text()
-                soup = BeautifulSoup(text, 'html.parser')
-                return soup
+        async with self.client.simultaneous_session_limit:
+            async with self.rate_limiter:
+                async with self.client_session.get(url, ssl=self.client.ssl_context) as response:
+                    text = await response.text()
+                    soup = BeautifulSoup(text, 'html.parser')
+                    return soup
 
     async def get_text(self, url: URL):
-        async with self.rate_limiter:
-            async with self.client_session.get(url, ssl=self.client.ssl_context) as response:
-                text = await response.text()
-                return text
+        async with self.client.simultaneous_session_limit:
+            async with self.rate_limiter:
+                async with self.client_session.get(url, ssl=self.client.ssl_context) as response:
+                    text = await response.text()
+                    return text
 
     async def get_json(self, url: URL):
-        async with self.rate_limiter:
-            async with self.client_session.get(url, ssl=self.client.ssl_context) as response:
-                content = json.loads(await response.content.read())
-                return content
+        async with self.client.simultaneous_session_limit:
+            async with self.rate_limiter:
+                async with self.client_session.get(url, ssl=self.client.ssl_context) as response:
+                    content = json.loads(await response.content.read())
+                    return content
 
     async def post_no_resp(self, url: URL, headers: dict):
-        async with self.rate_limiter:
-            async with self.client_session.get(url, headers=headers, ssl=self.client.ssl_context) as response:
-                pass
+        async with self.client.simultaneous_session_limit:
+            async with self.rate_limiter:
+                async with self.client_session.get(url, headers=headers, ssl=self.client.ssl_context) as response:
+                    pass
 
     async def post_data_no_resp(self, url: URL, data: dict):
-        async with self.rate_limiter:
-            async with self.client_session.post(url, data=data, headers=self.headers, ssl=self.client.ssl_context) as response:
-                pass
+        async with self.client.simultaneous_session_limit:
+            async with self.rate_limiter:
+                async with self.client_session.post(url, data=data, headers=self.headers, ssl=self.client.ssl_context) as response:
+                    pass
 
     async def post(self, url: URL, data: dict):
-        async with self.rate_limiter:
-            async with self.client_session.post(url, data=data, headers=self.headers, ssl=self.client.ssl_context) as response:
-                content = json.loads(await response.content.read())
-                return content
+        async with self.client.simultaneous_session_limit:
+            async with self.rate_limiter:
+                async with self.client_session.post(url, data=data, headers=self.headers, ssl=self.client.ssl_context) as response:
+                    content = json.loads(await response.content.read())
+                    return content
 
     async def exit_handler(self):
         try:
