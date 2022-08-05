@@ -21,7 +21,7 @@ class Client:
     def __init__(self, ratelimit: int, throttle: int):
         self.ratelimit = ratelimit
         self.throttle = throttle
-        self.simultaneous_session_limit = asyncio.Semaphore(100)
+        self.simultaneous_session_limit = asyncio.Semaphore(50)
         self.user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.75 Safari/537.36'
         self.ssl_context = ssl.create_default_context(cafile=certifi.where())
         self.cookies = aiohttp.CookieJar(quote_cookie=False)
