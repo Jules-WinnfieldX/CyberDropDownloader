@@ -148,7 +148,7 @@ class Downloader:
 
                 if complete_file.exists() or partial_file.exists():
                     if complete_file.exists():
-                        total_size = session.get_filesize(url, referer, current_throttle)
+                        total_size = await session.get_filesize(url, referer, current_throttle)
                         if complete_file.stat().st_size == total_size:
                             await self.SQL_helper.sql_insert_file(db_path, complete_file.name, 1)
                             logger.debug("\nFile already exists and matches expected size: " + str(complete_file))
