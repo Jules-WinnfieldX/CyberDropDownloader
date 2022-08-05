@@ -17,7 +17,7 @@
 | PixelDrain   | Albums: Pixeldrain.com/l/... <br> Single Files: Pixeldrain.com/u/...                                                                                                                                                                   |
 | Pixl         | Albums: pixl.is/album/... <br> Direct Images: pixl.is/image/...  <br> User Profile: pixl.is/#USER# <br> All User Albums: pixl.is/#USER#/albums                                                                                         |
 | Putmega      | Albums: putmega.com/album/... <br> Direct Images: s#.putmega.com/... <br> Direct Images: putmega.com/image/... <br> User Profile: putmega.com/#USER# <br> All User Albums: putmega.com/#USER#/albums <br> Also works with putme.ga     |
-| ThotsBay     | Thread: Thotsbay.com/threads/...  <br> Continue from (will download this post and after): Thotsbay.com/threads/...post-NUMBER                                                                                                          | 
+| ThotsBay     | Thread: Thotsbay.to/threads/...  <br> Continue from (will download this post and after): Thotsbay.to/threads/...post-NUMBER                                                                                                             | 
 
 Reminder to leave the link full (include the https://)
 
