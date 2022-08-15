@@ -51,6 +51,7 @@ class ThotsbayCrawler:
                 await log("Not being logged in might cause issues.")
             await self.parse_thread(session, url, cascade, "")
         except Exception as e:
+            self.lock = 0
             await log(f"there was an error signing into {url.host}")
             await log(e)
             return
