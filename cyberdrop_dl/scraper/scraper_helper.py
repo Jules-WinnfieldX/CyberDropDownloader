@@ -15,7 +15,8 @@ from ..crawlers.LeakedNudes_Spider import LeakedNudesCrawler
 from ..crawlers.Gfycat_Spider import GfycatCrawler
 from ..crawlers.GoFile_Spider import GofileCrawler
 from ..crawlers.Kemono_Spider import KemonoCrawler
-from ..crawlers.Pixeldrain_Crawler import PixelDrainCrawler
+from ..crawlers.Pixeldrain_Spider import PixelDrainCrawler
+from ..crawlers.Postimg_Spider import PostImgCrawler
 from ..crawlers.Redgifs_Spider import RedGifsCrawler
 from ..crawlers.Saint_Spider import SaintCrawler
 from ..crawlers.ShareX_Spider import ShareXCrawler
@@ -50,6 +51,7 @@ class ScrapeMapper():
         self.kemono_crawler = None
         self.leakednudes_crawler = None
         self.pixeldrain_crawler = None
+        self.postimg_crawler = None
         self.redgifs_crawler = None
         self.saint_crawler = None
         self.sharex_crawler = None
@@ -65,8 +67,9 @@ class ScrapeMapper():
                         "erome.com": self.Erome, "gfycat.com": self.gfycat, "gofile.io": self.GoFile,
                         "jpg.church": self.ShareX, "jpg.homes": self.ShareX, "kemono.party": self.Kemono,
                         "leakednudes": self.LeakedNudes, "pixeldrain.com": self.Pixeldrain, "pixl.is": self.ShareX,
-                        "putme.ga": self.ShareX, "putmega.com": self.ShareX, "redgifs.com": self.redgifs,
-                        "saint.to": self.Saint, "socialmediagirls": self.SocialMediaGirls, "thotsbay": self.ThotsBay}
+                        "postimg": self.Postimg, "putme.ga": self.ShareX, "putmega.com": self.ShareX,
+                        "redgifs.com": self.redgifs, "saint.to": self.Saint, "socialmediagirls": self.SocialMediaGirls,
+                        "thotsbay": self.ThotsBay}
 
     async def Anonfiles(self, url: URL, title=None):
         anonfiles_session = Session(self.client)
@@ -184,6 +187,16 @@ class ScrapeMapper():
             await domain_obj.append_title(title)
         await self.Cascade.add_albums(domain_obj)
         await pixeldrain_session.exit_handler()
+
+    async def Postimg(self, url: URL, title=None):
+        postimg_session = Session(self.client)
+        if not self.postimg_crawler:
+            self.postimg_crawler = PostImgCrawler(include_id=self.include_id)
+        domain_obj = await self.postimg_crawler.fetch(postimg_session, url)
+        if title:
+            await domain_obj.append_title(title)
+        await self.Cascade.add_albums(domain_obj)
+        await postimg_session.exit_handler()
 
     async def redgifs(self, url: URL, title=None):
         redgifs_session = Session(self.client)
