@@ -138,8 +138,7 @@ class AuthData:
 @dataclass
 class SkipData:
     supported_hosts: ClassVar[Tuple[str]] = (
-        "anonfiles", "bunkr", "coomer.party", "cyberdrop", "cyberfile",
-        "erome", "gfycat", "gofile", "jpg.church", "kemono.party",
-        "pixeldrain", "pixl.is", "putme.ga", "putmega.com", "redgifs",
-        "saint", "thotsbay")
+        "anonfiles", "bayfiles", "bunkr", "coomer.party", "cyberdrop", "cyberfile", "erome", "gfycat", "gofile",
+        "jpg.church", "jpg.homes", "kemono.party", "leakednudes", "pixeldrain", "pixl.is", "postimage.cc", "putme.ga",
+        "putmega.com", "redgifs", "saint", "socialmediagirls", "thotsbay")
     sites: List[str]

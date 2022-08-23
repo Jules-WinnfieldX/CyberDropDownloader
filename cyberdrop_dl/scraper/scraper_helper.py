@@ -60,13 +60,12 @@ class ScrapeMapper():
         self.bunkr_limiter = AsyncRateLimiter(15)
         self.forum_limiter = asyncio.Semaphore(4)
         self.semaphore = asyncio.Semaphore(1)
-        self.mapping = {"anonfiles.com": self.Anonfiles, "bunkr": self.Bunkr, "coomer.party": self.coomer,
-                        "cyberdrop": self.Cyberdrop, "cyberfile.is": self.cyberfile,
-                        "erome.com": self.Erome, "gfycat.com": self.gfycat,
-                        "gofile.io": self.GoFile, "jpg.church": self.ShareX,
-                        "kemono.party": self.Kemono, "leakednudes": self.LeakedNudes, "pixeldrain.com": self.Pixeldrain,
-                        "pixl.is": self.ShareX, "putme.ga": self.ShareX,
-                        "putmega.com": self.ShareX, "redgifs.com": self.redgifs,
+        self.mapping = {"anonfiles.com": self.Anonfiles, "bayfiles": self.Anonfiles, "bunkr": self.Bunkr,
+                        "coomer.party": self.coomer, "cyberdrop": self.Cyberdrop, "cyberfile.is": self.cyberfile,
+                        "erome.com": self.Erome, "gfycat.com": self.gfycat, "gofile.io": self.GoFile,
+                        "jpg.church": self.ShareX, "jpg.homes": self.ShareX, "kemono.party": self.Kemono,
+                        "leakednudes": self.LeakedNudes, "pixeldrain.com": self.Pixeldrain, "pixl.is": self.ShareX,
+                        "putme.ga": self.ShareX, "putmega.com": self.ShareX, "redgifs.com": self.redgifs,
                         "saint.to": self.Saint, "socialmediagirls": self.SocialMediaGirls, "thotsbay": self.ThotsBay}
 
     async def Anonfiles(self, url: URL, title=None):

@@ -17,7 +17,7 @@ class AnonfilesCrawler:
         try:
             soup = await session.get_BS4(url)
 
-            title = "Anonfiles"
+            title = "Anon Loose Files"
             link = soup.select_one("a[id=download-url]")
             link = URL(link.get('href'))
             await domain_obj.add_to_album(title, link, url)
