@@ -1,3 +1,5 @@
+import re
+
 from bs4 import BeautifulSoup
 from yarl import URL
 
@@ -116,7 +118,7 @@ class CyberfileCrawler:
             text = content['html']
             title = title if title else content['page_title']
             soup = BeautifulSoup(text.replace("\\", ""), 'html.parser')
-            total_pages = int(soup.select_one('input[id=rspTotalPages]').get('value'))
+            total_pages = int(soup.select("a[onclick*=loadImages]")[-1].get('onclick').split(',')[2])
             listings = soup.select("div[class=fileListing] div")
             for listing in listings:
                 try:
@@ -139,16 +141,19 @@ class CyberfileCrawler:
             logger.debug(e)
             return []
 
-    async def folder_content(self, session, url: URL, nodeId, page):
+    async def folder_content(self, session, url: URL, nodeId, page, title=None):
         data = {"pageType": "folder", "nodeId": nodeId, "pageStart": page, "perPage": 0, "filterOrderBy": ""}
         nodes = []
         contents = []
         try:
             content = await session.post(self.load_files, data)
             text = content['html']
-            title = content['page_title']
+            if title:
+                title = title + "/" + content['page_title']
+            else:
+                title = content['page_title']
             soup = BeautifulSoup(text.replace("\\", ""), 'html.parser')
-            total_pages = int(soup.select_one('input[id=rspTotalPages]').get('value'))
+            total_pages = int(soup.select("a[onclick*=loadImages]")[-1].get('onclick').split(',')[2])
             listings = soup.select("div[class=fileListing] div")
             for listing in listings:
                 try:
@@ -163,7 +168,7 @@ class CyberfileCrawler:
             if page < total_pages:
                 contents.extend(await self.folder_content(session, url, nodeId, page+1))
             for node in nodes:
-                contents.extend(await self.folder_content(session, url, node, 1))
+                contents.extend(await self.folder_content(session, url, node, 1, title))
             return contents
 
         except Exception as e:
