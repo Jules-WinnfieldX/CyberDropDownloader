@@ -6,21 +6,26 @@
 
 # Supported Sites
 
-| Website      | Supported Link Types                                                                                                                                                                                                                   |
-|--------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Anonfiles    | Download page: Anonfiles.com/...                                                                                                                                                                                                       |
-| Bunkr        | Albums: bunkr.is/a/... <br> Direct Videos: stream.bunkr.is/v/... <br> Direct Videos: cdn.bunkr.is/... <br> Direct Images: i.bunkr.is/... <br> Also works with Bunkr.to                                                                 |
-| Coomer.party | Profiles: coomer.party/... <br> Thumbnail Links: coomer.party/thumbnail/... <br> Data Links: coomer.party/data/...                                                                                                                     | 
-| Cyberdrop    | Albums: cyberdrop.me/a/... <br> Direct Videos: fs-0#.cyberdrop.me/... <br> Direct Videos: f.cyberdrop.me/... <br> Direct Images: img-0#.cyberdrop.me/... <br> Direct Images: f.cyberdrop.me/... <br> Also works with .cc, .to, and .nl |
-| Cyberfile    | folders: cyberfile.is/folder/... <br> shared: cyberfile.is/shared/... <br> Direct: cyberfile.is/...                                                                                                                                    | 
-| Erome        | Albums: erome.com/a/...                                                                                                                                                                                                                |
-| GoFile       | Albums: gofile.io/d/...                                                                                                                                                                                                                |
-| jpg.church   | Albums: jpg.church/album/... <br> Direct Images: jpg.church/image/... <br> User Profile: jpg.church/#USER# <br> All User Albums: jpg.church/#USER#/albums                                                                              |
-| Kemono.party | Profiles: kemono.party/... <br> Thumbnail Links: kemono.party/thumbnail/... <br> Data Links: kemono.party/data/...                                                                                                                     |
-| PixelDrain   | Albums: Pixeldrain.com/l/... <br> Single Files: Pixeldrain.com/u/...                                                                                                                                                                   |
-| Pixl         | Albums: pixl.is/album/... <br> Direct Images: pixl.is/image/...  <br> User Profile: pixl.is/#USER# <br> All User Albums: pixl.is/#USER#/albums                                                                                         |
-| Putmega      | Albums: putmega.com/album/... <br> Direct Images: s#.putmega.com/... <br> Direct Images: putmega.com/image/... <br> User Profile: putmega.com/#USER# <br> All User Albums: putmega.com/#USER#/albums <br> Also works with putme.ga     |
-| ThotsBay     | Thread: Thotsbay.to/threads/...  <br> Continue from (will download this post and after): Thotsbay.to/threads/...post-NUMBER                                                                                                             | 
+| Website          | Supported Link Types                                                                                                                                                                                                                   |
+|------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Anonfiles        | Download page: Anonfiles.com/...                                                                                                                                                                                                       |
+| Bayfiles         | Download page: Bayfiles.com/...                                                                                                                                                                                                        |
+| Bunkr            | Albums: bunkr.is/a/... <br> Direct Videos: stream.bunkr.is/v/... <br> Direct Videos: cdn.bunkr.is/... <br> Direct Images: i.bunkr.is/... <br> Also works with Bunkr.to                                                                 |
+| Coomer.party     | Profiles: coomer.party/... <br> Thumbnail Links: coomer.party/thumbnail/... <br> Data Links: coomer.party/data/...                                                                                                                     | 
+| Cyberdrop        | Albums: cyberdrop.me/a/... <br> Direct Videos: fs-0#.cyberdrop.me/... <br> Direct Videos: f.cyberdrop.me/... <br> Direct Images: img-0#.cyberdrop.me/... <br> Direct Images: f.cyberdrop.me/... <br> Also works with .cc, .to, and .nl |
+| Cyberfile        | folders: cyberfile.is/folder/... <br> shared: cyberfile.is/shared/... <br> Direct: cyberfile.is/...                                                                                                                                    | 
+| Erome            | Albums: erome.com/a/...                                                                                                                                                                                                                |
+| GoFile           | Albums: gofile.io/d/...                                                                                                                                                                                                                |
+| jpg.church       | Albums: jpg.church/album/... <br> Direct Images: jpg.church/image/... <br> User Profile: jpg.church/#USER# <br> All User Albums: jpg.church/#USER#/albums                                                                              |
+| jpg.homes        | Albums: jpg.homes/album/... <br> Direct Images: jpg.homes/image/... <br> User Profile: jpg.homes/#USER# <br> All User Albums: jpg.homes/#USER#/albums                                                                                  |
+| Kemono.party     | Profiles: kemono.party/... <br> Thumbnail Links: kemono.party/thumbnail/... <br> Data Links: kemono.party/data/...                                                                                                                     |
+| LeakedNudes      | Thread: forum.leakednudes.co/threads/...  <br> Continue from (will download this post and after): forum.leakednudes.co/threads/...post-NUMBER                                                                                          |
+| PixelDrain       | Albums: Pixeldrain.com/l/... <br> Single Files: Pixeldrain.com/u/...                                                                                                                                                                   |
+| Pixl             | Albums: pixl.is/album/... <br> Direct Images: pixl.is/image/...  <br> User Profile: pixl.is/#USER# <br> All User Albums: pixl.is/#USER#/albums                                                                                         |
+| Postimg.cc       | Albums: postimg.cc/gallery/... <br> Direct Images: postimg.cc/...                                                                                                                                                                      |
+| Putmega          | Albums: putmega.com/album/... <br> Direct Images: s#.putmega.com/... <br> Direct Images: putmega.com/image/... <br> User Profile: putmega.com/#USER# <br> All User Albums: putmega.com/#USER#/albums <br> Also works with putme.ga     |
+| SocialMediaGirls | Thread: forum.scoailmediagirls.com/threads/...  <br> Continue from (will download this post and after): forum.scoailmediagirls.com/threads/...post-NUMBER                                                                              |
+| ThotsBay         | Thread: forum.thotsbay.to/threads/...  <br> Continue from (will download this post and after): forum.thotsbay.to/threads/...post-NUMBER                                                                                                | 
 
 Reminder to leave the link full (include the https://)
 
@@ -93,8 +98,7 @@ optional arguments:
   --ratelimit               this will add a ratelimiter to requests made in the program, the number you provide is in seconds
   --throttle                this is a throttle between requests during the downloading phase, the number is in seconds
 ```
---skip can use: "anonfiles", "bunkr", "coomer.party", "cyberdrop", "cyberfile",
-        "erome", "gfycat", "gofile", "jpg.church", "kemono.party",
-        "pixeldrain", "pixl.is", "putme.ga", "putmega.com", "redgifs",
-        "saint", "thotsbay"
+--skip can use: "anonfiles", "bayfiles", "bunkr", "coomer.party", "cyberdrop", "cyberfile", "erome", "gfycat", "gofile",
+        "jpg.church", "jpg.homes", "kemono.party", "leakednudes", "pixeldrain", "pixl.is", "postimg.cc", "putme.ga",
+        "putmega.com", "redgifs", "saint", "socialmediagirls", "thotsbay"
 
