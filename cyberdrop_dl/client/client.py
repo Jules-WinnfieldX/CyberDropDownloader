@@ -107,6 +107,14 @@ class DownloadSession:
             total_size = int(resp.headers.get('Content-Length', str(0)))
             return total_size
 
+    async def get_content_type(self, url: URL, referer: str, current_throttle: int):
+        headers = {'Referer': referer, 'user-agent': self.client.user_agent}
+        await throttle(self, current_throttle, url.host)
+        async with self.client_session.get(url, headers=headers, ssl=self.client.ssl_context,
+                                           raise_for_status=True) as resp:
+            content_type = resp.headers.get('Content-Type')
+            return content_type.lower()
+
     async def download_file(self, url: URL, referer: str, current_throttle: int, range: str, original_filename: str,
                             filename: str, temp_file: str, resume_point: int, show_progress: bool,
                             File_Lock: FileLock, folder: Path, title: str):

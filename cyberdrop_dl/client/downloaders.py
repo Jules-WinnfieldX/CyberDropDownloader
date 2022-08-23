@@ -113,8 +113,18 @@ class Downloader:
                         if not (ext in FILE_FORMATS['Images'] or ext in FILE_FORMATS['Videos'] or ext in FILE_FORMATS['Audio'] or ext in FILE_FORMATS['Other']):
                             return
                     except:
-                        await log("\nCouldn't get filename for: " + str(url))
-                        return
+                        try:
+                            content_type = await session.get_content_type(url, referer, current_throttle)
+                            if "image" in content_type:
+                                ext_temp = content_type.split('/')[-1]
+                                filename = filename + '.' + ext_temp
+                                filename = await sanitize(filename)
+                            else:
+                                await log("Unhandled content_type for checking filename: " + content_type)
+                                raise
+                        except:
+                            await log("\nCouldn't get filename for: " + str(url))
+                            return
 
                 # Make suffix always lower case
                 ext = '.' + filename.split('.')[-1].lower()
@@ -272,11 +282,12 @@ async def get_downloaders(Cascade: CascadeItem, folder: Path, attempts: int, dis
     downloaders = []
 
     for domain, domain_obj in Cascade.domains.items():
+        max_workers_temp = max_workers
         if 'bunkr' in domain or 'pixeldrain' in domain or 'anonfiles' in domain:
-            max_workers = 2 if (max_workers > 2) else max_workers
+            max_workers_temp = 2 if (max_workers > 2) else max_workers
         for title, album_obj in domain_obj.albums.items():
             downloader = Downloader(album_obj, title=title, folder=folder, attempts=attempts,
-                                    disable_attempt_limit=disable_attempt_limit, max_workers=max_workers,
+                                    disable_attempt_limit=disable_attempt_limit, max_workers=max_workers_temp,
                                     excludes=excludes, SQL_helper=SQL_helper, client=client)
             downloaders.append(downloader)
     return downloaders

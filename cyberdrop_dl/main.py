@@ -35,6 +35,10 @@ def parse_args():
     parser.add_argument("--exclude-other", help="skip downloading of images", action="store_true")
     parser.add_argument("--ignore-history", help="This ignores previous download history", action="store_true")
     parser.add_argument("--separate-posts", help="Separates thotsbay scraping into folders by post number", action="store_true")
+    parser.add_argument("--leakednudes-username", type=str, help="username to login to leakednudes", default=None)
+    parser.add_argument("--leakednudes-password", type=str, help="password to login to leakednudes", default=None)
+    parser.add_argument("--socialmediagirls-username", type=str, help="username to login to socialmediagirls", default=None)
+    parser.add_argument("--socialmediagirls-password", type=str, help="password to login to socialmediagirls", default=None)
     parser.add_argument("--thotsbay-username", type=str, help="username to login to thotsbay", default=None)
     parser.add_argument("--thotsbay-password", type=str, help="password to login to thotsbay", default=None)
     parser.add_argument("--skip", dest="skip_hosts", choices=SkipData.supported_hosts, help="This removes host links from downloads", action="append", default=[])
@@ -69,13 +73,14 @@ async def download_all(args: argparse.Namespace):
     with open(input_file, "r", encoding="utf8") as f:
         links += await regex_links(f.read())
 
+    leakednudes_auth = AuthData(args.leakednudes_username, args.leakednudes_password)
+    socialmediagirls_auth = AuthData(args.socialmediagirls_username, args.socialmediagirls_password)
     thotsbay_auth = AuthData(args.thotsbay_username, args.thotsbay_password)
     skip_data = SkipData(args.skip_hosts)
     excludes = {'videos': args.exclude_videos, 'images': args.exclude_images, 'audio': args.exclude_audio,
                 'other': args.exclude_other}
-    content_object = await scrape(links, client, args.include_id, thotsbay_auth, args.separate_posts,
-                                  skip_data, threads)
-
+    content_object = await scrape(links, client, args.include_id, leakednudes_auth, socialmediagirls_auth,
+                                  thotsbay_auth, args.separate_posts, skip_data)
 
     if await content_object.is_empty():
         logging.error('ValueError No links')

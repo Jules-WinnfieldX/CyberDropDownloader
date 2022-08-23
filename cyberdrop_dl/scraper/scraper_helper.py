@@ -11,6 +11,7 @@ from ..crawlers.Coomer_Spider import CoomerCrawler
 from ..crawlers.Cyberdrop_Spider import CyberdropCrawler
 from ..crawlers.Cyberfile_Spider import CyberfileCrawler
 from ..crawlers.Erome_Spider import EromeCrawler
+from ..crawlers.LeakedNudes_Spider import LeakedNudesCrawler
 from ..crawlers.Gfycat_Spider import GfycatCrawler
 from ..crawlers.GoFile_Spider import GofileCrawler
 from ..crawlers.Kemono_Spider import KemonoCrawler
@@ -18,6 +19,7 @@ from ..crawlers.Pixeldrain_Crawler import PixelDrainCrawler
 from ..crawlers.Redgifs_Spider import RedGifsCrawler
 from ..crawlers.Saint_Spider import SaintCrawler
 from ..crawlers.ShareX_Spider import ShareXCrawler
+from ..crawlers.SocialMediaGirls_Spider import SocialMediaGirlsCrawler
 from ..crawlers.Thotsbay_Spider import ThotsbayCrawler
 from ..base_functions.base_functions import log
 from ..base_functions.data_classes import CascadeItem, SkipData
@@ -25,10 +27,12 @@ from ..client.rate_limiting import AsyncRateLimiter
 
 
 class ScrapeMapper():
-    def __init__(self, *, include_id=False, thotsbay_auth=None, separate_posts=False, skip_data: SkipData,
-                 client: Client, threads: int):
+    def __init__(self, *, include_id=False, leakednudes_auth=None, socialmediagirls_auth=None, thotsbay_auth=None,
+                 separate_posts=False, skip_data: SkipData, client: Client):
         self.include_id = include_id
         self.separate_posts = separate_posts
+        self.leakednudes_auth = leakednudes_auth
+        self.socialmediagirls_auth = socialmediagirls_auth
         self.thotsbay_auth = thotsbay_auth
 
         self.client = client
@@ -44,24 +48,26 @@ class ScrapeMapper():
         self.gfycat_crawler = None
         self.gofile_crawler = None
         self.kemono_crawler = None
+        self.leakednudes_crawler = None
         self.pixeldrain_crawler = None
         self.redgifs_crawler = None
         self.saint_crawler = None
         self.sharex_crawler = None
+        self.socialmediagirls_crawler = None
         self.thotsbay_crawler = None
 
         self.jpgchurch_limiter = AsyncRateLimiter(19)
         self.bunkr_limiter = AsyncRateLimiter(15)
-        self.thotsbay_limiter = asyncio.Semaphore(4)
+        self.forum_limiter = asyncio.Semaphore(4)
         self.semaphore = asyncio.Semaphore(1)
         self.mapping = {"anonfiles.com": self.Anonfiles, "bunkr": self.Bunkr, "coomer.party": self.coomer,
                         "cyberdrop": self.Cyberdrop, "cyberfile.is": self.cyberfile,
                         "erome.com": self.Erome, "gfycat.com": self.gfycat,
                         "gofile.io": self.GoFile, "jpg.church": self.ShareX,
-                        "kemono.party": self.Kemono, "pixeldrain.com": self.Pixeldrain,
+                        "kemono.party": self.Kemono, "leakednudes": self.LeakedNudes, "pixeldrain.com": self.Pixeldrain,
                         "pixl.is": self.ShareX, "putme.ga": self.ShareX,
                         "putmega.com": self.ShareX, "redgifs.com": self.redgifs,
-                        "saint.to": self.Saint, "thotsbay": self.ThotsBay}
+                        "saint.to": self.Saint, "socialmediagirls": self.SocialMediaGirls, "thotsbay": self.ThotsBay}
 
     async def Anonfiles(self, url: URL, title=None):
         anonfiles_session = Session(self.client)
@@ -149,6 +155,15 @@ class ScrapeMapper():
         await self.Cascade.add_albums(domain_obj)
         await kemono_session.exit_handler()
 
+    async def LeakedNudes(self, url: URL, title=None):
+        leakednudes_session = Session(self.client)
+        if not self.leakednudes_crawler:
+            self.leakednudes_crawler = LeakedNudesCrawler(include_id=self.include_id, auth=self.leakednudes_auth,
+                                                       scraping_mapper=self, separate_posts=self.separate_posts)
+        async with self.forum_limiter:
+            await self.Cascade.extend(await self.leakednudes_crawler.fetch(leakednudes_session, url))
+        await leakednudes_session.exit_handler()
+
     async def gfycat(self, url: URL, title=None):
         gfycat_session = Session(self.client)
         if not self.gfycat_crawler:
@@ -208,12 +223,23 @@ class ScrapeMapper():
         await self.Cascade.add_albums(domain_obj)
         await sharex_session.exit_handler()
 
+    async def SocialMediaGirls(self, url: URL, title=None):
+        socialmediagirls_session = Session(self.client)
+        if not self.socialmediagirls_crawler:
+            self.socialmediagirls_crawler = SocialMediaGirlsCrawler(include_id=self.include_id,
+                                                                    auth=self.socialmediagirls_auth,
+                                                                    scraping_mapper=self,
+                                                                    separate_posts=self.separate_posts)
+        async with self.forum_limiter:
+            await self.Cascade.extend(await self.socialmediagirls_crawler.fetch(socialmediagirls_session, url))
+        await socialmediagirls_session.exit_handler()
+
     async def ThotsBay(self, url: URL, title=None):
         thotsbay_session = Session(self.client)
         if not self.thotsbay_crawler:
             self.thotsbay_crawler = ThotsbayCrawler(include_id=self.include_id, auth=self.thotsbay_auth,
                                                     scraping_mapper=self, separate_posts=self.separate_posts)
-        async with self.thotsbay_limiter:
+        async with self.forum_limiter:
             await self.Cascade.extend(await self.thotsbay_crawler.fetch(thotsbay_session, url))
         await thotsbay_session.exit_handler()
 

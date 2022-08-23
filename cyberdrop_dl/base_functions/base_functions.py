@@ -34,7 +34,7 @@ logger = logging.getLogger(__name__)
 
 
 async def sanitize(name: str) -> str:
-    return re.sub(r'[<>:"/\\|?*\']', "", name)
+    return re.sub(r'[<>:"/\\|?*\']', "", name).strip()
 
 
 async def log(text, style=Fore.WHITE) -> None:
