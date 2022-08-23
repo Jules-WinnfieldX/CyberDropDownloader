@@ -188,7 +188,11 @@ class SocialMediaGirlsCrawler:
             for link_title_bundle in content_links:
                 link = link_title_bundle[0]
                 temp_title = link_title_bundle[1]
-                tasks.append(self.scraping_mapper.map_url(link, temp_title))
+                in_prog_title = temp_title + "/Attachments"
+                if 'smgmedia' in link.host:
+                    await cascade.add_to_album(url.host, in_prog_title, link, url)
+                else:
+                    tasks.append(self.scraping_mapper.map_url(link, temp_title))
             await asyncio.gather(*tasks)
 
             next_page = soup.select_one('a[class="pageNav-jump pageNav-jump--next"]')
