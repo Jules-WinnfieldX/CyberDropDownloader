@@ -25,7 +25,7 @@
 | Postimg.cc       | Albums: postimg.cc/gallery/... <br> Direct Images: postimg.cc/...                                                                                                                                                                      |
 | Putmega          | Albums: putmega.com/album/... <br> Direct Images: s#.putmega.com/... <br> Direct Images: putmega.com/image/... <br> User Profile: putmega.com/#USER# <br> All User Albums: putmega.com/#USER#/albums <br> Also works with putme.ga     |
 | SocialMediaGirls | Thread: forum.scoailmediagirls.com/threads/...  <br> Continue from (will download this post and after): forum.scoailmediagirls.com/threads/...post-NUMBER                                                                              |
-| ThotsBay         | Thread: forum.thotsbay.to/threads/...  <br> Continue from (will download this post and after): forum.thotsbay.to/threads/...post-NUMBER                                                                                                | 
+| SimpCity         | Thread: simpcity.st/threads/...  <br> Continue from (will download this post and after): simpcity.st/threads/...post-NUMBER                                                                                                            | 
 
 Reminder to leave the link full (include the https://)
 
@@ -92,13 +92,17 @@ optional arguments:
   --exclude-audio           exclude audio files from downloading
   --exclude-other           exclude other files from downloading
   --ignore-history          ignores previous history and downloads everything
-  --thotsbay-username       username to login to thotsbay (only required if the thread requires it)
-  --thotsbay-password       password to login to thotsbay (only required if the thread requires it)
+  --leakednudes-username       username to login to leakednudes (only required if the thread requires it)
+  --leakednudes-password       password to login to leakednudes (only required if the thread requires it)
+  --socialmediagirls-username       username to login to socialmediagirls (only required if the thread requires it)
+  --socialmediagirls-password       password to login to socialmediagirls (only required if the thread requires it)
+  --simpcity-username       username to login to simpcity (only required if the thread requires it)
+  --simpcity-password       password to login to simpcity (only required if the thread requires it)
   --skip                    this removes the specified hosts links from downloads
   --ratelimit               this will add a ratelimiter to requests made in the program, the number you provide is in seconds
   --throttle                this is a throttle between requests during the downloading phase, the number is in seconds
 ```
 --skip can use: "anonfiles", "bayfiles", "bunkr", "coomer.party", "cyberdrop", "cyberfile", "erome", "gfycat", "gofile",
         "jpg.church", "jpg.homes", "kemono.party", "leakednudes", "pixeldrain", "pixl.is", "postimg.cc", "putme.ga",
-        "putmega.com", "redgifs", "saint", "socialmediagirls", "thotsbay"
+        "putmega.com", "redgifs", "saint", "socialmediagirls", "simpcity"
 

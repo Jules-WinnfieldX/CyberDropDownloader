@@ -9,7 +9,7 @@ from ..base_functions.data_classes import AuthData, CascadeItem
 from ..client.client import Session
 
 
-class ThotsbayCrawler:
+class SimpCityCrawler:
     def __init__(self, *, include_id=False, auth: AuthData = None, scraping_mapper, separate_posts=False):
         self.include_id = include_id
         self.separate_posts = separate_posts

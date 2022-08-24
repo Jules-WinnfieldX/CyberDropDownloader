@@ -11,7 +11,7 @@ async def scrape(urls, client: Client, include_id: bool, leakednudes_auth: AuthD
     await log("Starting Scrape")
 
     scraper = ScrapeMapper(client=client, include_id=include_id, leakednudes_auth=leakednudes_auth,
-                           socialmediagirls_auth=socialmediagirls_auth, thotsbay_auth=thotsbay_auth,
+                           socialmediagirls_auth=socialmediagirls_auth, simpcity_auth=thotsbay_auth,
                            separate_posts=separate_posts, skip_data=skip_data)
     tasks = []
     for link in urls:

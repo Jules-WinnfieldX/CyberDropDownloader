@@ -21,20 +21,20 @@ from ..crawlers.Redgifs_Spider import RedGifsCrawler
 from ..crawlers.Saint_Spider import SaintCrawler
 from ..crawlers.ShareX_Spider import ShareXCrawler
 from ..crawlers.SocialMediaGirls_Spider import SocialMediaGirlsCrawler
-from ..crawlers.Thotsbay_Spider import ThotsbayCrawler
+from ..crawlers.SimpCity_Spider import SimpCityCrawler
 from ..base_functions.base_functions import log
 from ..base_functions.data_classes import CascadeItem, SkipData
 from ..client.rate_limiting import AsyncRateLimiter
 
 
 class ScrapeMapper():
-    def __init__(self, *, include_id=False, leakednudes_auth=None, socialmediagirls_auth=None, thotsbay_auth=None,
+    def __init__(self, *, include_id=False, leakednudes_auth=None, socialmediagirls_auth=None, simpcity_auth=None,
                  separate_posts=False, skip_data: SkipData, client: Client):
         self.include_id = include_id
         self.separate_posts = separate_posts
         self.leakednudes_auth = leakednudes_auth
         self.socialmediagirls_auth = socialmediagirls_auth
-        self.thotsbay_auth = thotsbay_auth
+        self.simpcity_auth = simpcity_auth
 
         self.client = client
         self.Cascade = CascadeItem({})
@@ -56,7 +56,7 @@ class ScrapeMapper():
         self.saint_crawler = None
         self.sharex_crawler = None
         self.socialmediagirls_crawler = None
-        self.thotsbay_crawler = None
+        self.simpcity_crawler = None
 
         self.jpgchurch_limiter = AsyncRateLimiter(19)
         self.bunkr_limiter = AsyncRateLimiter(15)
@@ -69,7 +69,7 @@ class ScrapeMapper():
                         "leakednudes": self.LeakedNudes, "pixeldrain.com": self.Pixeldrain, "pixl.is": self.ShareX,
                         "postimg": self.Postimg, "putme.ga": self.ShareX, "putmega.com": self.ShareX,
                         "redgifs.com": self.redgifs, "saint.to": self.Saint, "socialmediagirls": self.SocialMediaGirls,
-                        "thotsbay": self.ThotsBay}
+                        "simpcity": self.SimpCity}
 
     async def Anonfiles(self, url: URL, title=None):
         anonfiles_session = Session(self.client)
@@ -246,14 +246,14 @@ class ScrapeMapper():
             await self.Cascade.extend(await self.socialmediagirls_crawler.fetch(socialmediagirls_session, url))
         await socialmediagirls_session.exit_handler()
 
-    async def ThotsBay(self, url: URL, title=None):
-        thotsbay_session = Session(self.client)
-        if not self.thotsbay_crawler:
-            self.thotsbay_crawler = ThotsbayCrawler(include_id=self.include_id, auth=self.thotsbay_auth,
+    async def SimpCity(self, url: URL, title=None):
+        simpcity_session = Session(self.client)
+        if not self.simpcity_crawler:
+            self.simpcity_crawler = SimpCityCrawler(include_id=self.include_id, auth=self.simpcity_auth,
                                                     scraping_mapper=self, separate_posts=self.separate_posts)
         async with self.forum_limiter:
-            await self.Cascade.extend(await self.thotsbay_crawler.fetch(thotsbay_session, url))
-        await thotsbay_session.exit_handler()
+            await self.Cascade.extend(await self.simpcity_crawler.fetch(simpcity_session, url))
+        await simpcity_session.exit_handler()
 
     async def map_url(self, url_to_map: URL, title=None):
         for key, value in self.mapping.items():
