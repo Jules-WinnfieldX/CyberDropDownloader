@@ -7,11 +7,11 @@ from ..client.client import Client
 
 
 async def scrape(urls, client: Client, include_id: bool, leakednudes_auth: AuthData, socialmediagirls_auth: AuthData,
-                 thotsbay_auth: AuthData, separate_posts: bool, skip_data: SkipData):
+                 simpcity_auth: AuthData, separate_posts: bool, skip_data: SkipData):
     await log("Starting Scrape")
 
     scraper = ScrapeMapper(client=client, include_id=include_id, leakednudes_auth=leakednudes_auth,
-                           socialmediagirls_auth=socialmediagirls_auth, simpcity_auth=thotsbay_auth,
+                           socialmediagirls_auth=socialmediagirls_auth, simpcity_auth=simpcity_auth,
                            separate_posts=separate_posts, skip_data=skip_data)
     tasks = []
     for link in urls:

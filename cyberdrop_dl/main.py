@@ -75,12 +75,12 @@ async def download_all(args: argparse.Namespace):
 
     leakednudes_auth = AuthData(args.leakednudes_username, args.leakednudes_password)
     socialmediagirls_auth = AuthData(args.socialmediagirls_username, args.socialmediagirls_password)
-    thotsbay_auth = AuthData(args.thotsbay_username, args.thotsbay_password)
+    simpcity_auth = AuthData(args.simpcity_username, args.simpcity_password)
     skip_data = SkipData(args.skip_hosts)
     excludes = {'videos': args.exclude_videos, 'images': args.exclude_images, 'audio': args.exclude_audio,
                 'other': args.exclude_other}
     content_object = await scrape(links, client, args.include_id, leakednudes_auth, socialmediagirls_auth,
-                                  thotsbay_auth, args.separate_posts, skip_data)
+                                  simpcity_auth, args.separate_posts, skip_data)
 
     if await content_object.is_empty():
         logging.error('ValueError No links')
