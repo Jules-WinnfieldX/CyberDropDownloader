@@ -34,7 +34,7 @@ def parse_args():
     parser.add_argument("--exclude-audio", help="skip downloading of audio files", action="store_true")
     parser.add_argument("--exclude-other", help="skip downloading of images", action="store_true")
     parser.add_argument("--ignore-history", help="This ignores previous download history", action="store_true")
-    parser.add_argument("--separate-posts", help="Separates thotsbay scraping into folders by post number", action="store_true")
+    parser.add_argument("--separate-posts", help="Separates forum scraping into folders by post number", action="store_true")
     parser.add_argument("--leakednudes-username", type=str, help="username to login to leakednudes", default=None)
     parser.add_argument("--leakednudes-password", type=str, help="password to login to leakednudes", default=None)
     parser.add_argument("--socialmediagirls-username", type=str, help="username to login to socialmediagirls", default=None)
@@ -53,7 +53,9 @@ async def download_all(args: argparse.Namespace):
     await clear()
     await log(f"We are running version {VERSION} of Cyberdrop Downloader", Fore.WHITE)
     print_args = Namespace(**vars(args)).__dict__
-    print_args['thotsbay_password'] = '!REDACTED!'
+    print_args['leakednudes_password'] = '!REDACTED!'
+    print_args['socialmediagirls_password'] = '!REDACTED!'
+    print_args['simpcity_password'] = '!REDACTED!'
     logging.debug(f"Starting downloader with args: {print_args}")
     input_file = args.input_file
     if not input_file.is_file():
