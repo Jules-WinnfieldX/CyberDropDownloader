@@ -47,7 +47,7 @@ class SimpCityCrawler:
                         break
                     await asyncio.sleep(2)
             else:
-                await log("login wasn't provided, consider using --thotsbay-username and --thotsbay-password")
+                await log("login wasn't provided, consider using --simpcity-username and --simpcity-password")
                 await log("Not being logged in might cause issues.")
             await self.parse_thread(session, url, cascade, "")
         except Exception as e:
