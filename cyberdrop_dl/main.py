@@ -71,14 +71,15 @@ async def download_all(args: argparse.Namespace):
 
     links = args.links
     links = list(map(URL, links))
+
+    with open(input_file, "r", encoding="utf8") as f:
+        links += await regex_links(f.read())
+
     links = list(filter(None, links))
 
     if not links:
         await log("No links found, check the URL.txt\nIf the link works in your web browser, "
                   "please open an issue ticket with me.", Fore.RED)
-
-    with open(input_file, "r", encoding="utf8") as f:
-        links += await regex_links(f.read())
 
     leakednudes_auth = AuthData(args.leakednudes_username, args.leakednudes_password)
     socialmediagirls_auth = AuthData(args.socialmediagirls_username, args.socialmediagirls_password)
