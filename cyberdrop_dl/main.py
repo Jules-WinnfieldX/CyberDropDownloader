@@ -71,6 +71,11 @@ async def download_all(args: argparse.Namespace):
 
     links = args.links
     links = list(map(URL, links))
+    links = list(filter(None, links))
+
+    if not links:
+        await log("No links found, check the URL.txt\nIf the link works in your web browser, "
+                  "please open an issue ticket with me.", Fore.RED)
 
     with open(input_file, "r", encoding="utf8") as f:
         links += await regex_links(f.read())
@@ -86,8 +91,7 @@ async def download_all(args: argparse.Namespace):
 
     if await content_object.is_empty():
         logging.error('ValueError No links')
-        await log("No links found, check the URL.txt\nIf the link works in your web browser, "
-                  "please open an issue ticket with me.", Fore.RED)
+        await log("No links found duing scraping, check passwords or that the urls are accessible", Fore.RED)
         await log("This program does not currently support password protected albums.", Fore.RED)
         exit(0)
     await clear()
