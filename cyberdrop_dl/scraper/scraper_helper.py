@@ -258,6 +258,9 @@ class ScrapeMapper():
     async def map_url(self, url_to_map: URL, title=None):
         if not url_to_map:
             return
+        elif not url_to_map.host:
+            await log(str(url_to_map) + " is not supported currently.")
+            return
         for key, value in self.mapping.items():
             if key in url_to_map.host:
                 if key not in self.skip_data.sites:
