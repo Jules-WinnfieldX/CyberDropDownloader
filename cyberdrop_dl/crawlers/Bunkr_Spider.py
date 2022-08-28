@@ -37,7 +37,7 @@ class BunkrCrawler:
             text = await session.get_text(json_fetch)
             json_obj = json.loads(text)['pageProps']
             title = await make_title_safe(json_obj['album']['name'])
-            for file in json_obj['files']:
+            for file in json_obj['album']['files']:
                 ext = '.' + file['name'].split('.')[-1].lower()
                 if ext in FILE_FORMATS['Videos']:
                     cdn_loc = file['cdn']
