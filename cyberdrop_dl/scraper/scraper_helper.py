@@ -64,7 +64,7 @@ class ScrapeMapper():
         self.semaphore = asyncio.Semaphore(1)
         self.mapping = {"anonfiles.com": self.Anonfiles, "bayfiles": self.Anonfiles, "bunkr": self.Bunkr,
                         "coomer.party": self.coomer, "cyberdrop": self.Cyberdrop, "cyberfile.is": self.cyberfile,
-                        "erome.com": self.Erome, "gfycat.com": self.gfycat, "gofile.io": self.GoFile,
+                        "erome.com": self.Erome, "gfycat.com": self.gfycat, "gofile.io": self.GoFile, "img.kiwi": self.ShareX,
                         "jpg.church": self.ShareX, "jpg.homes": self.ShareX, "kemono.party": self.Kemono,
                         "leakednudes": self.LeakedNudes, "pixeldrain.com": self.Pixeldrain, "pixl.is": self.ShareX,
                         "postimg": self.Postimg, "putme.ga": self.ShareX, "putmega.com": self.ShareX,

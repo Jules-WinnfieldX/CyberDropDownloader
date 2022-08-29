@@ -142,11 +142,12 @@ class ShareXCrawler:
             if og_title is not None:
                 title = og_title + "/" + title
 
-            sub_albums = URL(soup.select_one("a[id=tab-sub-link]").get("href"))
-            results.extend(result for result in await self.get_sub_album_links(session, sub_albums, title))
-
-            list_recent = URL(soup.select_one("a[id=list-most-recent-link]").get("href"))
-            results.extend(result for result in await self.get_list_links(session, list_recent, title))
+            try:
+                sub_albums = URL(soup.select_one("a[id=tab-sub-link]").get("href"))
+                results.extend(result for result in await self.get_sub_album_links(session, sub_albums, title))
+            finally:
+                list_recent = URL(soup.select_one("a[id=list-most-recent-link]").get("href"))
+                results.extend(result for result in await self.get_list_links(session, list_recent, title))
 
         except Exception as e:
             logger.debug("Error encountered while handling %s", str(url), exc_info=True)
