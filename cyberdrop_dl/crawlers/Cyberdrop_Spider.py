@@ -35,7 +35,7 @@ class CyberdropCrawler:
             for link in links:
                 link = URL(link.get('href'))
                 if 'cyberdrop' in link.host:
-                    link = URL('https://cyberdrop.me').with_name(link.name)
+                    link = URL('https://fs-01.cyberdrop.cc').with_name(link.name)
                 await domain_obj.add_to_album(title, link, url)
 
         except Exception as e:

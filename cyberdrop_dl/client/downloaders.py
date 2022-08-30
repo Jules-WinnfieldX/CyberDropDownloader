@@ -154,7 +154,7 @@ class Downloader:
                 await self.File_Lock.add_lock(filename)
 
                 complete_file = (self.folder / self.title / filename)
-                partial_file = (self.folder / self.title / filename)
+                partial_file = complete_file.with_suffix(complete_file.suffix + '.part')
 
                 if complete_file.exists() or partial_file.exists():
                     if complete_file.exists():
@@ -181,8 +181,8 @@ class Downloader:
                 await self.SQL_helper.sql_insert_file(db_path, filename, 0)
 
                 complete_file = (self.folder / self.title / filename)
-                resume_point = 0
                 temp_file = complete_file.with_suffix(complete_file.suffix + '.part')
+                resume_point = 0
 
                 range = None
                 if temp_file.exists():
