@@ -27,6 +27,7 @@ def parse_args():
     parser.add_argument("--db-file", help="history database file to write to", default="download_history.sqlite")
     parser.add_argument("--threads", type=int, help="number of threads to use (0 = max)", default=0)
     parser.add_argument("--attempts", type=int, help="number of attempts to download each file", default=10)
+    parser.add_argument("--connection-timeout", type=int, help="number of seconds to wait attempting to connect to a URL during the downloading phase", default=15)
     parser.add_argument("--disable-attempt-limit", help="disables the attempt limitation", action="store_true")
     parser.add_argument("--include-id", help="include the ID in the download folder name", action="store_true")
     parser.add_argument("--exclude-videos", help="skip downloading of video files", action="store_true")
@@ -102,7 +103,7 @@ async def download_all(args: argparse.Namespace):
                                         excludes=excludes, SQL_helper=SQL_helper, client=client)
 
     for downloader in downloaders:
-        await downloader.download_content()
+        await downloader.download_content(conn_timeout=args.connection_timeout)
     logger.debug("Finished")
 
     partial_downloads = [str(f) for f in args.output_folder.rglob("*.part") if f.is_file()]

@@ -85,6 +85,7 @@ optional arguments:
   --db-file                 history DB file to write to
   --threads THREADS         number of threads to use (0 = max)
   --attempts ATTEMPTS       number of attempts to download each file
+  --connection-timeout      number of seconds to wait attempting to connect to a URL during the downloading phase
   --disable-attempt-limit   disables stopping the program based on attempt limits
   --include-id              include the ID in the download folder name
   --exclude-videos          exclude video files from downloading

@@ -263,9 +263,9 @@ class Downloader:
         for func in tqdm(asyncio.as_completed(coros), total=len(coros), desc=self.title, unit='FILES'):
             await func
 
-    async def download_content(self, show_progress: bool = True) -> None:
+    async def download_content(self, show_progress: bool = True, conn_timeout: int = 15) -> None:
         """Download the content of all links and save them as files."""
-        session = DownloadSession(self.client)
+        session = DownloadSession(self.client, conn_timeout)
         await self.download_all(self.album_obj, session, show_progress=show_progress)
         self.SQL_helper.conn.commit()
 

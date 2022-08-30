@@ -84,11 +84,12 @@ class Session:
 
 
 class DownloadSession:
-    def __init__(self, client):
+    def __init__(self, client: Client, conn_timeout: int):
         self.client = client
         self.headers = {"user-agent": client.user_agent}
+        self.timeouts = aiohttp.ClientTimeout(5*60, conn_timeout)
         self.client_session = aiohttp.ClientSession(headers=self.headers, raise_for_status=True,
-                                                    cookie_jar=self.client.cookies)
+                                                    cookie_jar=self.client.cookies, timeout=self.timeouts)
         self.throttle_times = {}
 
     async def get_filename(self, url: URL, referer: str, current_throttle: int):
