@@ -165,8 +165,12 @@ class SimpCityCrawler:
 
                     embed_url = re.search(r"https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,4}\\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)", embed_data)
                     if embed_url:
-                        embed_url = URL(embed_url.group(
-                            0).replace("www.", ""))
+                        embed_url = URL(embed_url.group(0).replace("www.", ""))
+                        content_links.append([embed_url, temp_title])
+
+                    embed_url = re.search(r"https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,4}\/[-a-zA-Z0-9@:%._\+~#=]*\/[-a-zA-Z0-9@:?&%._\+~#=]*", embed_data)
+                    if embed_url:
+                        embed_url = URL(embed_url.group(0).replace("www.", ""))
                         content_links.append([embed_url, temp_title])
 
             forum_direct_urls = [x for x in content_links if x[0].host in url.host]
