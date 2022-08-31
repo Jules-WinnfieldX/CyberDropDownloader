@@ -173,7 +173,7 @@ class SimpCityCrawler:
                         embed_url = URL(embed_url.group(0).replace("www.", ""))
                         content_links.append([embed_url, temp_title])
 
-            forum_direct_urls = [x for x in content_links if x[0].host in url.host]
+            forum_direct_urls = [x for x in content_links if x[0].host.replace(".st", ".su") in url.host]
             content_links = [x for x in content_links if x not in forum_direct_urls]
             for link_title_bundle in forum_direct_urls:
                 link = link_title_bundle[0]
