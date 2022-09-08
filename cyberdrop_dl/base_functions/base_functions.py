@@ -10,7 +10,7 @@ from yarl import URL
 FILE_FORMATS = {
     'Images': {
         '.jpg', '.jpeg', '.png', '.gif',
-        '.webp', '.jpe', '.svg',
+        '.webp', '.jpe', '.svg', '.jfif',
         '.tif', '.tiff', '.jif',
     },
     'Videos': {
