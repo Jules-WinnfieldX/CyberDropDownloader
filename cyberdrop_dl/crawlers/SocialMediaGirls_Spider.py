@@ -66,7 +66,7 @@ class SocialMediaGirlsCrawler:
             domain = URL("https://" + url.host)
 
             title_block = soup.select_one("h1[class=p-title-value]")
-            for elem in title_block.find_all("a"):
+            for elem in title_block.find_all("span"):
                 elem.decompose()
 
             if title:
