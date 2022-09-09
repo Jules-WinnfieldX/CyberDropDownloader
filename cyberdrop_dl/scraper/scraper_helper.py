@@ -11,7 +11,7 @@ from ..crawlers.Coomer_Spider import CoomerCrawler
 from ..crawlers.Cyberdrop_Spider import CyberdropCrawler
 from ..crawlers.Cyberfile_Spider import CyberfileCrawler
 from ..crawlers.Erome_Spider import EromeCrawler
-from ..crawlers.LeakedNudes_Spider import LeakedNudesCrawler
+from ..crawlers.XBunker_Spider import XBunkerCrawler
 from ..crawlers.Gfycat_Spider import GfycatCrawler
 from ..crawlers.GoFile_Spider import GofileCrawler
 from ..crawlers.Kemono_Spider import KemonoCrawler
@@ -28,11 +28,11 @@ from ..client.rate_limiting import AsyncRateLimiter
 
 
 class ScrapeMapper():
-    def __init__(self, *, include_id=False, leakednudes_auth=None, socialmediagirls_auth=None, simpcity_auth=None,
+    def __init__(self, *, include_id=False, xbunker_auth=None, socialmediagirls_auth=None, simpcity_auth=None,
                  separate_posts=False, skip_data: SkipData, client: Client):
         self.include_id = include_id
         self.separate_posts = separate_posts
-        self.leakednudes_auth = leakednudes_auth
+        self.xbunker_auth = xbunker_auth
         self.socialmediagirls_auth = socialmediagirls_auth
         self.simpcity_auth = simpcity_auth
 
@@ -49,7 +49,6 @@ class ScrapeMapper():
         self.gfycat_crawler = None
         self.gofile_crawler = None
         self.kemono_crawler = None
-        self.leakednudes_crawler = None
         self.pixeldrain_crawler = None
         self.postimg_crawler = None
         self.redgifs_crawler = None
@@ -57,6 +56,7 @@ class ScrapeMapper():
         self.sharex_crawler = None
         self.socialmediagirls_crawler = None
         self.simpcity_crawler = None
+        self.xbunker_crawler = None
 
         self.jpgchurch_limiter = AsyncRateLimiter(19)
         self.bunkr_limiter = AsyncRateLimiter(15)
@@ -66,10 +66,10 @@ class ScrapeMapper():
                         "coomer.party": self.coomer, "cyberdrop": self.Cyberdrop, "cyberfile.is": self.cyberfile,
                         "erome.com": self.Erome, "gfycat.com": self.gfycat, "gofile.io": self.GoFile, "img.kiwi": self.ShareX,
                         "jpg.church": self.ShareX, "jpg.homes": self.ShareX, "kemono.party": self.Kemono,
-                        "leakednudes": self.LeakedNudes, "pixeldrain.com": self.Pixeldrain, "pixl.is": self.ShareX,
+                        "pixeldrain.com": self.Pixeldrain, "pixl.is": self.ShareX,
                         "postimg": self.Postimg, "putme.ga": self.ShareX, "putmega.com": self.ShareX,
                         "redgifs.com": self.redgifs, "saint.to": self.Saint, "socialmediagirls": self.SocialMediaGirls,
-                        "simpcity": self.SimpCity}
+                        "simpcity": self.SimpCity, "xbunker": self.XBunker}
 
     async def Anonfiles(self, url: URL, title=None):
         anonfiles_session = Session(self.client)
@@ -156,15 +156,6 @@ class ScrapeMapper():
             await domain_obj.append_title(title)
         await self.Cascade.add_albums(domain_obj)
         await kemono_session.exit_handler()
-
-    async def LeakedNudes(self, url: URL, title=None):
-        leakednudes_session = Session(self.client)
-        if not self.leakednudes_crawler:
-            self.leakednudes_crawler = LeakedNudesCrawler(include_id=self.include_id, auth=self.leakednudes_auth,
-                                                       scraping_mapper=self, separate_posts=self.separate_posts)
-        async with self.forum_limiter:
-            await self.Cascade.extend(await self.leakednudes_crawler.fetch(leakednudes_session, url))
-        await leakednudes_session.exit_handler()
 
     async def gfycat(self, url: URL, title=None):
         gfycat_session = Session(self.client)
@@ -254,6 +245,15 @@ class ScrapeMapper():
         async with self.forum_limiter:
             await self.Cascade.extend(await self.simpcity_crawler.fetch(simpcity_session, url))
         await simpcity_session.exit_handler()
+
+    async def XBunker(self, url: URL, title=None):
+        xbunker_session = Session(self.client)
+        if not self.xbunker_crawler:
+            self.xbunker_crawler = XBunkerCrawler(include_id=self.include_id, auth=self.xbunker_auth,
+                                                  scraping_mapper=self, separate_posts=self.separate_posts)
+        async with self.forum_limiter:
+            await self.Cascade.extend(await self.xbunker_crawler.fetch(xbunker_session, url))
+        await xbunker_session.exit_handler()
 
     async def map_url(self, url_to_map: URL, title=None):
         if not url_to_map:

@@ -6,11 +6,11 @@ from ..base_functions.data_classes import AuthData, SkipData
 from ..client.client import Client
 
 
-async def scrape(urls, client: Client, include_id: bool, leakednudes_auth: AuthData, socialmediagirls_auth: AuthData,
+async def scrape(urls, client: Client, include_id: bool, xbunker_auth: AuthData, socialmediagirls_auth: AuthData,
                  simpcity_auth: AuthData, separate_posts: bool, skip_data: SkipData):
     await log("Starting Scrape")
 
-    scraper = ScrapeMapper(client=client, include_id=include_id, leakednudes_auth=leakednudes_auth,
+    scraper = ScrapeMapper(client=client, include_id=include_id, xbunker_auth=xbunker_auth,
                            socialmediagirls_auth=socialmediagirls_auth, simpcity_auth=simpcity_auth,
                            separate_posts=separate_posts, skip_data=skip_data)
     tasks = []

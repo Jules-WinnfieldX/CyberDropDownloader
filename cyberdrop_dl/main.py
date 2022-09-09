@@ -36,8 +36,8 @@ def parse_args():
     parser.add_argument("--exclude-other", help="skip downloading of images", action="store_true")
     parser.add_argument("--ignore-history", help="This ignores previous download history", action="store_true")
     parser.add_argument("--separate-posts", help="Separates forum scraping into folders by post number", action="store_true")
-    parser.add_argument("--leakednudes-username", type=str, help="username to login to leakednudes", default=None)
-    parser.add_argument("--leakednudes-password", type=str, help="password to login to leakednudes", default=None)
+    parser.add_argument("--xbunker-username", type=str, help="username to login to xbunker", default=None)
+    parser.add_argument("--xbunker-password", type=str, help="password to login to xbunker", default=None)
     parser.add_argument("--socialmediagirls-username", type=str, help="username to login to socialmediagirls", default=None)
     parser.add_argument("--socialmediagirls-password", type=str, help="password to login to socialmediagirls", default=None)
     parser.add_argument("--simpcity-username", type=str, help="username to login to simpcity", default=None)
@@ -54,7 +54,7 @@ async def download_all(args: argparse.Namespace):
     await clear()
     await log(f"We are running version {VERSION} of Cyberdrop Downloader", Fore.WHITE)
     print_args = Namespace(**vars(args)).__dict__
-    print_args['leakednudes_password'] = '!REDACTED!'
+    print_args['xbunker_password'] = '!REDACTED!'
     print_args['socialmediagirls_password'] = '!REDACTED!'
     print_args['simpcity_password'] = '!REDACTED!'
     logging.debug(f"Starting downloader with args: {print_args}")
@@ -82,13 +82,13 @@ async def download_all(args: argparse.Namespace):
         await log("No links found, check the URL.txt\nIf the link works in your web browser, "
                   "please open an issue ticket with me.", Fore.RED)
 
-    leakednudes_auth = AuthData(args.leakednudes_username, args.leakednudes_password)
+    xbunker_auth = AuthData(args.xbunker_username, args.xbunker_password)
     socialmediagirls_auth = AuthData(args.socialmediagirls_username, args.socialmediagirls_password)
     simpcity_auth = AuthData(args.simpcity_username, args.simpcity_password)
     skip_data = SkipData(args.skip_hosts)
     excludes = {'videos': args.exclude_videos, 'images': args.exclude_images, 'audio': args.exclude_audio,
                 'other': args.exclude_other}
-    content_object = await scrape(links, client, args.include_id, leakednudes_auth, socialmediagirls_auth,
+    content_object = await scrape(links, client, args.include_id, xbunker_auth, socialmediagirls_auth,
                                   simpcity_auth, args.separate_posts, skip_data)
 
     if await content_object.is_empty():

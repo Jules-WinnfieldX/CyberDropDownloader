@@ -93,8 +93,8 @@ optional arguments:
   --exclude-audio           exclude audio files from downloading
   --exclude-other           exclude other files from downloading
   --ignore-history          ignores previous history and downloads everything
-  --leakednudes-username       username to login to leakednudes (only required if the thread requires it)
-  --leakednudes-password       password to login to leakednudes (only required if the thread requires it)
+  --xbunker-username        username to login to xbunker (only required if the thread requires it)
+  --xbunker-password        password to login to xbunker (only required if the thread requires it)
   --socialmediagirls-username       username to login to socialmediagirls (only required if the thread requires it)
   --socialmediagirls-password       password to login to socialmediagirls (only required if the thread requires it)
   --simpcity-username       username to login to simpcity (only required if the thread requires it)
@@ -104,6 +104,6 @@ optional arguments:
   --throttle                this is a throttle between requests during the downloading phase, the number is in seconds
 ```
 --skip can use: "anonfiles", "bayfiles", "bunkr", "coomer.party", "cyberdrop", "cyberfile", "erome", "gfycat", "gofile",
-        "jpg.church", "jpg.homes", "kemono.party", "leakednudes", "pixeldrain", "pixl.is", "postimg.cc", "putme.ga",
-        "putmega.com", "redgifs", "saint", "socialmediagirls", "simpcity"
+        "jpg.church", "jpg.homes", "kemono.party", "pixeldrain", "pixl.is", "postimg.cc", "putme.ga",
+        "putmega.com", "redgifs", "saint", "socialmediagirls", "simpcity", "xbunker"
 
