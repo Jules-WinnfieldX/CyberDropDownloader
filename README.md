@@ -93,6 +93,7 @@ optional arguments:
   --exclude-audio           exclude audio files from downloading
   --exclude-other           exclude other files from downloading
   --ignore-history          ignores previous history and downloads everything
+  --output-last-forum-post  Separates forum scraping into folders by post number
   --xbunker-username        username to login to xbunker (only required if the thread requires it)
   --xbunker-password        password to login to xbunker (only required if the thread requires it)
   --socialmediagirls-username       username to login to socialmediagirls (only required if the thread requires it)
