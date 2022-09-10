@@ -1,10 +1,12 @@
 import argparse
 import multiprocessing
+import platform
 from argparse import Namespace
 import asyncio
 import logging
+from asyncio.proactor_events import _ProactorBasePipeTransport
 from pathlib import Path
-import sys
+from functools import wraps
 
 from colorama import Fore
 from yarl import URL
@@ -35,6 +37,7 @@ def parse_args():
     parser.add_argument("--exclude-audio", help="skip downloading of audio files", action="store_true")
     parser.add_argument("--exclude-other", help="skip downloading of images", action="store_true")
     parser.add_argument("--ignore-history", help="This ignores previous download history", action="store_true")
+    parser.add_argument("--output-last-forum-post", help="Separates forum scraping into folders by post number", action="store_true")
     parser.add_argument("--separate-posts", help="Separates forum scraping into folders by post number", action="store_true")
     parser.add_argument("--xbunker-username", type=str, help="username to login to xbunker", default=None)
     parser.add_argument("--xbunker-password", type=str, help="password to login to xbunker", default=None)
@@ -82,6 +85,14 @@ async def download_all(args: argparse.Namespace):
         await log("No links found, check the URL.txt\nIf the link works in your web browser, "
                   "please open an issue ticket with me.", Fore.RED)
 
+    output_url_file = None
+
+    if args.output_last_forum_post:
+        output_url_file: Path = input_file.parent / "URLs_last_post.txt"
+        if output_url_file.exists():
+            output_url_file.unlink()
+            output_url_file.touch()
+
     xbunker_auth = AuthData(args.xbunker_username, args.xbunker_password)
     socialmediagirls_auth = AuthData(args.socialmediagirls_username, args.socialmediagirls_password)
     simpcity_auth = AuthData(args.simpcity_username, args.simpcity_password)
@@ -89,7 +100,7 @@ async def download_all(args: argparse.Namespace):
     excludes = {'videos': args.exclude_videos, 'images': args.exclude_images, 'audio': args.exclude_audio,
                 'other': args.exclude_other}
     content_object = await scrape(links, client, args.include_id, xbunker_auth, socialmediagirls_auth,
-                                  simpcity_auth, args.separate_posts, skip_data)
+                                  simpcity_auth, args.separate_posts, skip_data, [args.output_last_forum_post, output_url_file])
 
     if await content_object.is_empty():
         logging.error('ValueError No links')
@@ -116,6 +127,17 @@ async def download_all(args: argparse.Namespace):
         await log('There are still partial downloads in your folders, please re-run the program.')
 
 
+def silence_event_loop_closed(func):
+    @wraps(func)
+    def wrapper(self, *args, **kwargs):
+        try:
+            return func(self, *args, **kwargs)
+        except RuntimeError as e:
+            if str(e) != 'Event loop is closed':
+                raise
+    return wrapper
+
+
 def main(args=None):
     if not args:
         args = parse_args()
@@ -125,6 +147,10 @@ def main(args=None):
         format="%(asctime)s:%(levelname)s:%(module)s:%(filename)s:%(lineno)d:%(message)s",
         filemode="w"
     )
+
+    if platform.system() == 'Windows':
+        # Silence the "Event loop is closed" exception here.
+        _ProactorBasePipeTransport.__del__ = silence_event_loop_closed(_ProactorBasePipeTransport.__del__)
 
     loop = asyncio.get_event_loop()
     loop.run_until_complete(download_all(args))

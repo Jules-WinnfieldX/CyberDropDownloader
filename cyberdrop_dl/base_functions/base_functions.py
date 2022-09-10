@@ -1,6 +1,8 @@
+import aiofiles
 import logging
 import os
 import re
+from pathlib import Path
 
 from colorama import Fore, Style
 from yarl import URL
@@ -82,6 +84,12 @@ async def cyberdrop_parse(url: URL) -> URL:
     for mapping in mapping_direct:
         url = re.sub(mapping, 'cyberdrop.to', url)
     return URL(url)
+
+
+async def write_last_post_file(file: Path, url: str):
+    async with aiofiles.open(file, mode='a') as f:
+        await f.write(url + '\n')
+    return
 
 
 async def check_direct(url: URL):

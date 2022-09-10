@@ -4,15 +4,16 @@ import re
 from bs4 import BeautifulSoup
 from yarl import URL
 
-from ..base_functions.base_functions import log, logger, make_title_safe
+from ..base_functions.base_functions import log, logger, make_title_safe, write_last_post_file
 from ..base_functions.data_classes import AuthData, CascadeItem
 from ..client.client import Session
 
 
 class XBunkerCrawler:
-    def __init__(self, *, include_id=False, auth: AuthData = None, scraping_mapper, separate_posts=False):
+    def __init__(self, *, include_id=False, auth: AuthData = None, scraping_mapper, separate_posts=False, output_last=[False, None]):
         self.include_id = include_id
         self.separate_posts = separate_posts
+        self.output_last = output_last
         self.username, self.password = (auth.username, auth.password) if auth else (None, None)
         self.scraping_mapper = scraping_mapper
         self.lock = 0
@@ -199,6 +200,14 @@ class XBunkerCrawler:
                         next_page = domain / next_page[1:]
                     next_page = URL(next_page)
                     title = await self.parse_thread(session, next_page, cascade, title)
+
+            if self.output_last[0]:
+                if 'post-' in url.raw_name:
+                    last_post_url = url.parent / post_num_str
+                else:
+                    last_post_url = url / post_num_str
+                await write_last_post_file(self.output_last[1], str(last_post_url))
+
             return
 
         except Exception as e:

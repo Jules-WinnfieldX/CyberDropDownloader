@@ -29,9 +29,10 @@ from ..client.rate_limiting import AsyncRateLimiter
 
 class ScrapeMapper():
     def __init__(self, *, include_id=False, xbunker_auth=None, socialmediagirls_auth=None, simpcity_auth=None,
-                 separate_posts=False, skip_data: SkipData, client: Client):
+                 separate_posts=False, skip_data: SkipData, client: Client, output_last: list):
         self.include_id = include_id
         self.separate_posts = separate_posts
+        self.output_last = output_last
         self.xbunker_auth = xbunker_auth
         self.socialmediagirls_auth = socialmediagirls_auth
         self.simpcity_auth = simpcity_auth
@@ -64,9 +65,9 @@ class ScrapeMapper():
         self.semaphore = asyncio.Semaphore(1)
         self.mapping = {"anonfiles.com": self.Anonfiles, "bayfiles": self.Anonfiles, "bunkr": self.Bunkr,
                         "coomer.party": self.coomer, "cyberdrop": self.Cyberdrop, "cyberfile.is": self.cyberfile,
-                        "erome.com": self.Erome, "gfycat.com": self.gfycat, "gofile.io": self.GoFile, "img.kiwi": self.ShareX,
-                        "jpg.church": self.ShareX, "jpg.homes": self.ShareX, "kemono.party": self.Kemono,
-                        "pixeldrain.com": self.Pixeldrain, "pixl.is": self.ShareX,
+                        "erome.com": self.Erome, "gfycat.com": self.gfycat, "gofile.io": self.GoFile,
+                        "img.kiwi": self.ShareX, "jpg.church": self.ShareX, "jpg.homes": self.ShareX,
+                        "kemono.party": self.Kemono, "pixeldrain.com": self.Pixeldrain, "pixl.is": self.ShareX,
                         "postimg": self.Postimg, "putme.ga": self.ShareX, "putmega.com": self.ShareX,
                         "redgifs.com": self.redgifs, "saint.to": self.Saint, "socialmediagirls": self.SocialMediaGirls,
                         "simpcity": self.SimpCity, "xbunker": self.XBunker}
@@ -232,7 +233,8 @@ class ScrapeMapper():
             self.socialmediagirls_crawler = SocialMediaGirlsCrawler(include_id=self.include_id,
                                                                     auth=self.socialmediagirls_auth,
                                                                     scraping_mapper=self,
-                                                                    separate_posts=self.separate_posts)
+                                                                    separate_posts=self.separate_posts,
+                                                                    output_last=self.output_last)
         async with self.forum_limiter:
             await self.Cascade.extend(await self.socialmediagirls_crawler.fetch(socialmediagirls_session, url))
         await socialmediagirls_session.exit_handler()
@@ -241,7 +243,8 @@ class ScrapeMapper():
         simpcity_session = Session(self.client)
         if not self.simpcity_crawler:
             self.simpcity_crawler = SimpCityCrawler(include_id=self.include_id, auth=self.simpcity_auth,
-                                                    scraping_mapper=self, separate_posts=self.separate_posts)
+                                                    scraping_mapper=self, separate_posts=self.separate_posts,
+                                                    output_last=self.output_last)
         async with self.forum_limiter:
             await self.Cascade.extend(await self.simpcity_crawler.fetch(simpcity_session, url))
         await simpcity_session.exit_handler()
@@ -250,7 +253,8 @@ class ScrapeMapper():
         xbunker_session = Session(self.client)
         if not self.xbunker_crawler:
             self.xbunker_crawler = XBunkerCrawler(include_id=self.include_id, auth=self.xbunker_auth,
-                                                  scraping_mapper=self, separate_posts=self.separate_posts)
+                                                  scraping_mapper=self, separate_posts=self.separate_posts,
+                                                  output_last=self.output_last)
         async with self.forum_limiter:
             await self.Cascade.extend(await self.xbunker_crawler.fetch(xbunker_session, url))
         await xbunker_session.exit_handler()
