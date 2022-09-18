@@ -206,7 +206,9 @@ class SimpCityCrawler:
                     title = await self.parse_thread(session, next_page, cascade, title)
 
             if self.output_last[0]:
-                if 'post-' in url.raw_name:
+                if 'page-' in url.raw_name:
+                    last_post_url = url.parent / post_num_str
+                elif 'post-' in url.raw_name:
                     last_post_url = url.parent / post_num_str
                 else:
                     last_post_url = url / post_num_str
