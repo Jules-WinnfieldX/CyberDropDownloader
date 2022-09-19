@@ -120,7 +120,7 @@ class Downloader:
                                 filename = filename + '.' + ext_temp
                                 filename = await sanitize(filename)
                             else:
-                                await log("Unhandled content_type for checking filename: " + content_type)
+                                await log("\nUnhandled content_type for checking filename: " + content_type)
                                 raise
                         except:
                             await log("\nCouldn't get filename for: " + str(url))
