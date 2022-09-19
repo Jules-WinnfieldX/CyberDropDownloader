@@ -200,15 +200,15 @@ class XBunkerCrawler:
                         next_page = domain / next_page[1:]
                     next_page = URL(next_page)
                     title = await self.parse_thread(session, next_page, cascade, title)
-
-            if self.output_last[0]:
-                if 'page-' in url.raw_name:
-                    last_post_url = url.parent / post_num_str
-                elif 'post-' in url.raw_name:
-                    last_post_url = url.parent / post_num_str
-                else:
-                    last_post_url = url / post_num_str
-                await write_last_post_file(self.output_last[1], str(last_post_url))
+            else:
+                if self.output_last[0]:
+                    if 'page-' in url.raw_name:
+                        last_post_url = url.parent / post_num_str
+                    elif 'post-' in url.raw_name:
+                        last_post_url = url.parent / post_num_str
+                    else:
+                        last_post_url = url / post_num_str
+                    await write_last_post_file(self.output_last[1], str(last_post_url))
 
             return
 
