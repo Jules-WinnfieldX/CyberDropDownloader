@@ -119,13 +119,13 @@ class DownloadSession:
 
     async def download_file(self, url: URL, referer: str, current_throttle: int, range: str, original_filename: str,
                             filename: str, temp_file: str, resume_point: int, show_progress: bool,
-                            File_Lock: FileLock, folder: Path, title: str):
+                            File_Lock: FileLock, folder: Path, title: str, proxy: str):
         headers = {'Referer': referer, 'user-agent': self.client.user_agent}
         if range:
             headers['Range'] = range
         await throttle(self, current_throttle, url.host)
         async with self.client_session.get(url, headers=headers, ssl=self.client.ssl_context,
-                                           raise_for_status=True) as resp:
+                                           raise_for_status=True, proxy=proxy) as resp:
             content_type = resp.headers.get('Content-Type')
             if 'text' in content_type.lower() or 'html' in content_type.lower():
                 logger.debug("Server for %s is either down or the file no longer exists", str(url))

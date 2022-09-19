@@ -53,7 +53,7 @@ def retry(f):
 class Downloader:
     def __init__(self, album_obj: AlbumItem, folder: Path, title: str, attempts: int,
                  disable_attempt_limit: bool, max_workers: int, excludes: Dict[str, bool], SQL_helper: SQLHelper,
-                 client: Client):
+                 client: Client, proxy: str):
         self.album_obj = album_obj
         self.client = client
         self.folder = folder
@@ -71,6 +71,8 @@ class Downloader:
         self.max_workers = max_workers
         self._semaphore = asyncio.Semaphore(max_workers)
         self.delay = {'cyberfile.is': 1, 'anonfiles.com': 1}
+
+        self.proxy = proxy
 
     """Changed from aiohttp exceptions caught to FailureException to allow for partial downloads."""
 
@@ -195,7 +197,7 @@ class Downloader:
 
                 await session.download_file(url, referer, current_throttle, range, original_filename, filename,
                                             temp_file, resume_point, show_progress, self.File_Lock, self.folder,
-                                            self.title)
+                                            self.title, self.proxy)
 
             await self.rename_file(filename, url, db_path)
             await self.File_Lock.remove_lock(original_filename)
@@ -271,7 +273,7 @@ class Downloader:
 
 
 async def get_downloaders(Cascade: CascadeItem, folder: Path, attempts: int, disable_attempt_limit: bool,
-                          max_workers: int, excludes: Dict[str, bool], SQL_helper: SQLHelper, client: Client) -> List[Downloader]:
+                          max_workers: int, excludes: Dict[str, bool], SQL_helper: SQLHelper, client: Client, proxy: str) -> List[Downloader]:
     """Get a list of downloaders for each supported type of URLs.
     We shouldn't just assume that each URL will have the same netloc as
     the first one, so we need to classify them one by one, sort them to
@@ -288,6 +290,6 @@ async def get_downloaders(Cascade: CascadeItem, folder: Path, attempts: int, dis
         for title, album_obj in domain_obj.albums.items():
             downloader = Downloader(album_obj, title=title, folder=folder, attempts=attempts,
                                     disable_attempt_limit=disable_attempt_limit, max_workers=max_workers_temp,
-                                    excludes=excludes, SQL_helper=SQL_helper, client=client)
+                                    excludes=excludes, SQL_helper=SQL_helper, client=client, proxy=proxy)
             downloaders.append(downloader)
     return downloaders

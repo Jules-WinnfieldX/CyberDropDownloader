@@ -38,6 +38,7 @@ def parse_args():
     parser.add_argument("--exclude-other", help="skip downloading of images", action="store_true")
     parser.add_argument("--ignore-history", help="This ignores previous download history", action="store_true")
     parser.add_argument("--output-last-forum-post", help="Separates forum scraping into folders by post number", action="store_true")
+    parser.add_argument("--proxy", help="HTTP/HTTPS proxy used for downloading, format [protocal]://[ip]:[port]", default=None)
     parser.add_argument("--separate-posts", help="Separates forum scraping into folders by post number", action="store_true")
     parser.add_argument("--xbunker-username", type=str, help="username to login to xbunker", default=None)
     parser.add_argument("--xbunker-password", type=str, help="password to login to xbunker", default=None)
@@ -111,7 +112,7 @@ async def download_all(args: argparse.Namespace):
 
     downloaders = await get_downloaders(content_object, folder=args.output_folder, attempts=args.attempts,
                                         disable_attempt_limit=args.disable_attempt_limit, max_workers=threads,
-                                        excludes=excludes, SQL_helper=SQL_helper, client=client)
+                                        excludes=excludes, SQL_helper=SQL_helper, client=client, proxy=args.proxy)
 
     for downloader in downloaders:
         await downloader.download_content(conn_timeout=args.connection_timeout)
