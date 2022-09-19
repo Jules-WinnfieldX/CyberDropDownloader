@@ -103,6 +103,7 @@ optional arguments:
   --skip                    this removes the specified hosts links from downloads
   --ratelimit               this will add a ratelimiter to requests made in the program, the number you provide is in seconds
   --throttle                this is a throttle between requests during the downloading phase, the number is in seconds
+  --proxy                   HTTP/HTTPS proxy used for downloading, format [protocal]://[ip]:[port]
 ```
 --skip can use: "anonfiles", "bayfiles", "bunkr", "coomer.party", "cyberdrop", "cyberfile", "erome", "gfycat", "gofile",
         "jpg.church", "jpg.homes", "kemono.party", "pixeldrain", "pixl.is", "postimg.cc", "putme.ga",
