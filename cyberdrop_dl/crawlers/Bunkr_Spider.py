@@ -32,10 +32,13 @@ class BunkrCrawler:
         try:
             soup = await session.get_BS4(url)
             build_id = json.loads(soup.select_one("script[id=__NEXT_DATA__]").get_text())
-
-            json_fetch = URL("https://" + url.host + "/_next/data/" + build_id['buildId'] + url.path + '.json')
-            text = await session.get_text(json_fetch)
-            json_obj = json.loads(text)['pageProps']
+            try:
+                files = build_id['props']['pageProps']['album']['files']
+                json_obj = build_id['props']['pageProps']
+            except KeyError:
+                json_fetch = URL("https://" + url.host + "/_next/data/" + build_id['buildId'] + url.path + '.json')
+                text = await session.get_text(json_fetch)
+                json_obj = json.loads(text)['pageProps']
             title = await make_title_safe(json_obj['album']['name'])
             for file in json_obj['album']['files']:
                 ext = '.' + file['name'].split('.')[-1].lower()
