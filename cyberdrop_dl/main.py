@@ -153,10 +153,13 @@ def main(args=None):
         # Silence the "Event loop is closed" exception here.
         _ProactorBasePipeTransport.__del__ = silence_event_loop_closed(_ProactorBasePipeTransport.__del__)
 
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(download_all(args))
-    loop.run_until_complete(asyncio.sleep(1))
-    loop.close()
+    try:
+        loop = asyncio.get_event_loop()
+        loop.run_until_complete(download_all(args))
+        loop.run_until_complete(asyncio.sleep(5))
+        loop.close()
+    except RuntimeError:
+        pass
 
 
 if __name__ == '__main__':
