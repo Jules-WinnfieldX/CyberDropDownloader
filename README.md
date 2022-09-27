@@ -28,6 +28,7 @@ The latest version of the program is 3.3.24
 | Postimg.cc       | Albums: postimg.cc/gallery/... <br> Direct Images: postimg.cc/...                                                                                                                                                                      |
 | SocialMediaGirls | Thread: forum.socialmediagirls.com/threads/...  <br> Continue from (will download this post and after): forum.socialmediagirls.com/threads/...post-NUMBER                                                                              |
 | SimpCity         | Thread: simpcity.st/threads/...  <br> Continue from (will download this post and after): simpcity.st/threads/...post-NUMBER                                                                                                            | 
+| XBunkr           | Album: xbunkr.com/a/... <br> Direct Links: media.xbunkr.com/...                                                                                                                                                                        |
 
 Reminder to leave the link full (include the https://)
 
@@ -109,5 +110,5 @@ optional arguments:
 ```
 --skip can use: "anonfiles", "bayfiles", "bunkr", "coomer.party", "cyberdrop", "cyberfile", "erome", "gfycat", "gofile",
         "jpg.church", "jpg.homes", "kemono.party", "pixeldrain", "pixl.is", "postimg.cc", "putme.ga",
-        "putmega.com", "redgifs", "saint", "socialmediagirls", "simpcity", "xbunker"
+        "putmega.com", "redgifs", "saint", "socialmediagirls", "simpcity", "xbunker", "xbunkr"
 

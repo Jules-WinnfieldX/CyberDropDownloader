@@ -11,7 +11,6 @@ from ..crawlers.Coomer_Spider import CoomerCrawler
 from ..crawlers.Cyberdrop_Spider import CyberdropCrawler
 from ..crawlers.Cyberfile_Spider import CyberfileCrawler
 from ..crawlers.Erome_Spider import EromeCrawler
-from ..crawlers.XBunker_Spider import XBunkerCrawler
 from ..crawlers.Gfycat_Spider import GfycatCrawler
 from ..crawlers.GoFile_Spider import GofileCrawler
 from ..crawlers.Kemono_Spider import KemonoCrawler
@@ -22,6 +21,8 @@ from ..crawlers.Saint_Spider import SaintCrawler
 from ..crawlers.ShareX_Spider import ShareXCrawler
 from ..crawlers.SocialMediaGirls_Spider import SocialMediaGirlsCrawler
 from ..crawlers.SimpCity_Spider import SimpCityCrawler
+from ..crawlers.XBunker_Spider import XBunkerCrawler
+from ..crawlers.XBunkr_Spider import XBunkrCrawler
 from ..base_functions.base_functions import log
 from ..base_functions.data_classes import CascadeItem, SkipData
 from ..client.rate_limiting import AsyncRateLimiter
@@ -58,12 +59,14 @@ class ScrapeMapper():
         self.socialmediagirls_crawler = None
         self.simpcity_crawler = None
         self.xbunker_crawler = None
+        self.xbunkr_crawler = None
 
         self.jpgchurch_limiter = AsyncRateLimiter(19)
         self.bunkr_limiter = AsyncRateLimiter(15)
         self.forum_limiter = asyncio.Semaphore(4)
         self.semaphore = asyncio.Semaphore(1)
-        self.mapping = {"anonfiles.com": self.Anonfiles, "bayfiles": self.Anonfiles, "bunkr": self.Bunkr,
+        self.mapping = {"anonfiles.com": self.Anonfiles, "bayfiles": self.Anonfiles, "xbunkr": self.XBunkr,
+                        "bunkr": self.Bunkr,
                         "coomer.party": self.coomer, "cyberdrop": self.Cyberdrop, "cyberfile.is": self.cyberfile,
                         "erome.com": self.Erome, "gfycat.com": self.gfycat, "gofile.io": self.GoFile,
                         "img.kiwi": self.ShareX, "jpg.church": self.ShareX, "jpg.homes": self.ShareX,
@@ -258,6 +261,16 @@ class ScrapeMapper():
         async with self.forum_limiter:
             await self.Cascade.extend(await self.xbunker_crawler.fetch(xbunker_session, url))
         await xbunker_session.exit_handler()
+
+    async def XBunkr(self, url: URL, title=None):
+        xbunkr_session = Session(self.client)
+        if not self.xbunkr_crawler:
+            self.xbunkr_crawler = XBunkrCrawler(include_id=self.include_id)
+        domain_obj = await self.xbunkr_crawler.fetch(xbunkr_session, url)
+        if title:
+            await domain_obj.append_title(title)
+        await self.Cascade.add_albums(domain_obj)
+        await xbunkr_session.exit_handler()
 
     async def map_url(self, url_to_map: URL, title=None):
         if not url_to_map:
