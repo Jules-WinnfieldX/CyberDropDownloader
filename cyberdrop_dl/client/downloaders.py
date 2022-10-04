@@ -113,6 +113,7 @@ class Downloader:
                         filename = await sanitize(filename)
                         ext = '.' + filename.split('.')[-1].lower()
                         if not (ext in FILE_FORMATS['Images'] or ext in FILE_FORMATS['Videos'] or ext in FILE_FORMATS['Audio'] or ext in FILE_FORMATS['Other']):
+                            await log("\nNo file extension on content in link: " + str(url))
                             return
                     except:
                         try:
@@ -262,7 +263,7 @@ class Downloader:
         """Download the data from all given links and store them into corresponding files."""
         coros = [self.download_and_store(url_object, session, show_progress)
                  for url_object in album_obj.link_pairs]
-        for func in tqdm(asyncio.as_completed(coros), total=len(coros), desc=self.title, unit='FILES'):
+        for func in tqdm(asyncio.as_completed(coros), total=len(coros), desc=self.title, unit='FILE'):
             await func
 
     async def download_content(self, show_progress: bool = True, conn_timeout: int = 15) -> None:
