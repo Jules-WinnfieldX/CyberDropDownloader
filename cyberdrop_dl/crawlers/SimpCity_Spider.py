@@ -74,10 +74,6 @@ class SimpCityCrawler:
                 pass
             else:
                 title = title_block.text
-                if self.include_id:
-                    titlep2 = url.name
-                    titlep2 = [s for s in titlep2 if "." in s][-1]
-                    title = title + " - " + titlep2
                 title = await make_title_safe(title.replace(r"\n", "").strip())
 
             content_links = []
