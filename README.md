@@ -103,6 +103,10 @@ optional arguments:
   --socialmediagirls-password       password to login to socialmediagirls (only required if the thread requires it)
   --simpcity-username       username to login to simpcity (only required if the thread requires it)
   --simpcity-password       password to login to simpcity (only required if the thread requires it)
+  --jdownloader-enable      enables sending unsupported urls to a running jdownloader2 instance to download
+  --jdownloader-username    username to login to jdownloader
+  --jdownloader-password    password to login to jdownloader
+  --jdownloader-device      device to login to for jdownloader
   --skip                    this removes the specified hosts links from downloads
   --ratelimit               this will add a ratelimiter to requests made in the program, the number you provide is in seconds
   --throttle                this is a throttle between requests during the downloading phase, the number is in seconds

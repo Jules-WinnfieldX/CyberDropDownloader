@@ -46,6 +46,10 @@ def parse_args():
     parser.add_argument("--socialmediagirls-password", type=str, help="password to login to socialmediagirls", default=None)
     parser.add_argument("--simpcity-username", type=str, help="username to login to simpcity", default=None)
     parser.add_argument("--simpcity-password", type=str, help="password to login to simpcity", default=None)
+    parser.add_argument("--jdownloader-enable", help="enables sending unsupported URLs to a running jdownloader2 instance to download", action="store_true")
+    parser.add_argument("--jdownloader-username", type=str, help="username to login to jdownloader", default=None)
+    parser.add_argument("--jdownloader-password", type=str, help="password to login to jdownloader", default=None)
+    parser.add_argument("--jdownloader-device", type=str, help="device name to login to for jdownloader", default=None)
     parser.add_argument("--skip", dest="skip_hosts", choices=SkipData.supported_hosts, help="This removes host links from downloads", action="append", default=[])
     parser.add_argument("--ratelimit", type=int, help="this will add a ratelimiter to requests made in the program during scraping, the number you provide is in requests/seconds", default=50)
     parser.add_argument("--throttle", type=int, help="This is a throttle between requests during the downloading phase, the number is in seconds", default=0.5)
@@ -61,6 +65,8 @@ async def download_all(args: argparse.Namespace):
     print_args['xbunker_password'] = '!REDACTED!'
     print_args['socialmediagirls_password'] = '!REDACTED!'
     print_args['simpcity_password'] = '!REDACTED!'
+    print_args['jdownloader_password'] = '!REDACTED!'
+
     logging.debug(f"Starting downloader with args: {print_args}")
     input_file = args.input_file
     if not input_file.is_file():
@@ -97,11 +103,13 @@ async def download_all(args: argparse.Namespace):
     xbunker_auth = AuthData(args.xbunker_username, args.xbunker_password)
     socialmediagirls_auth = AuthData(args.socialmediagirls_username, args.socialmediagirls_password)
     simpcity_auth = AuthData(args.simpcity_username, args.simpcity_password)
+    jdownloader_auth = AuthData(args.jdownloader_username, args.jdownloader_password)
     skip_data = SkipData(args.skip_hosts)
     excludes = {'videos': args.exclude_videos, 'images': args.exclude_images, 'audio': args.exclude_audio,
                 'other': args.exclude_other}
-    content_object = await scrape(links, client, args.include_id, xbunker_auth, socialmediagirls_auth,
-                                  simpcity_auth, args.separate_posts, skip_data, [args.output_last_forum_post, output_url_file])
+    content_object = await scrape(links, client, args.include_id, args.jdownloader_enable, args.jdownloader_device, xbunker_auth, socialmediagirls_auth,
+                                  simpcity_auth, jdownloader_auth, args.separate_posts, skip_data,
+                                  [args.output_last_forum_post, output_url_file])
 
     if await content_object.is_empty():
         logging.error('ValueError No links')

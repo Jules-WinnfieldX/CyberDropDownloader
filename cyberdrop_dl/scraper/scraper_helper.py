@@ -1,6 +1,7 @@
 import asyncio
 
 import aiofiles
+from myjdapi import myjdapi
 from yarl import URL
 
 from ..client.client import Client
@@ -29,14 +30,18 @@ from ..client.rate_limiting import AsyncRateLimiter
 
 
 class ScrapeMapper():
-    def __init__(self, *, include_id=False, xbunker_auth=None, socialmediagirls_auth=None, simpcity_auth=None,
-                 separate_posts=False, skip_data: SkipData, client: Client, output_last: list):
+    def __init__(self, *, include_id=False, jdownloader_enable=False, jdownloader_device=None, xbunker_auth=None,
+                 socialmediagirls_auth=None, simpcity_auth=None, jdownloader_auth=None, separate_posts=False,
+                 skip_data: SkipData, client: Client, output_last: list):
         self.include_id = include_id
+        self.jdownloader_enable = jdownloader_enable
+        self.jdownloader_device = jdownloader_device
         self.separate_posts = separate_posts
         self.output_last = output_last
         self.xbunker_auth = xbunker_auth
         self.socialmediagirls_auth = socialmediagirls_auth
         self.simpcity_auth = simpcity_auth
+        self.jdownloader_auth = jdownloader_auth
 
         self.client = client
         self.Cascade = CascadeItem({})
@@ -60,6 +65,8 @@ class ScrapeMapper():
         self.simpcity_crawler = None
         self.xbunker_crawler = None
         self.xbunkr_crawler = None
+
+        self.jdownloader_agent = None
 
         self.jpgchurch_limiter = AsyncRateLimiter(19)
         self.bunkr_limiter = AsyncRateLimiter(15)
@@ -272,6 +279,18 @@ class ScrapeMapper():
         await self.Cascade.add_albums(domain_obj)
         await xbunkr_session.exit_handler()
 
+    async def jdownloader_setup(self):
+        try:
+            if not self.jdownloader_auth.username or not self.jdownloader_auth.password or not self.jdownloader_device:
+                raise Exception("jdownloader credentials were not provided.")
+            jd = myjdapi.Myjdapi()
+            jd.set_app_key("CYBERDROP-DL")
+            jd.connect(self.jdownloader_auth.username, self.jdownloader_auth.password)
+            self.jdownloader_agent = jd.get_device(self.jdownloader_device)
+        except:
+            await log("Failed jdownloader setup")
+            self.jdownloader_enable = False
+
     async def map_url(self, url_to_map: URL, title=None):
         if not url_to_map:
             return
@@ -285,6 +304,16 @@ class ScrapeMapper():
                 else:
                     await log("Skipping scrape of " + str(url_to_map))
                 return
-        await log(str(url_to_map) + " is not supported currently.")
-        async with aiofiles.open("./Unsupported_Urls.txt", mode='a') as f:
-            await f.write(str(url_to_map)+"\n")
+
+        if self.jdownloader_enable:
+            if not self.jdownloader_agent:
+                await self.jdownloader_setup()
+            try:
+                await log("Sending " + str(url_to_map) + " to JDownloader")
+                self.jdownloader_agent.linkgrabber.add_links([{"autostart": False, "links": str(url_to_map)}])
+            except Exception as e:
+                await log("Failed to send " + str(url_to_map) + " to JDownloader")
+        else:
+            await log(str(url_to_map) + " is not supported currently.")
+            async with aiofiles.open("./Unsupported_Urls.txt", mode='a') as f:
+                await f.write(str(url_to_map)+"\n")
