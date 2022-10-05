@@ -309,9 +309,11 @@ class ScrapeMapper():
             if not self.jdownloader_agent:
                 await self.jdownloader_setup()
             try:
+                if "facebook" in url_to_map.host.lower() or "instagram" in url_to_map.host.lower():
+                    raise Exception("Blacklisted META")
                 await log("Sending " + str(url_to_map) + " to JDownloader")
                 self.jdownloader_agent.linkgrabber.add_links([{"autostart": False, "links": str(url_to_map)}])
-            except Exception as e:
+            except:
                 await log("Failed to send " + str(url_to_map) + " to JDownloader")
         else:
             await log(str(url_to_map) + " is not supported currently.")
