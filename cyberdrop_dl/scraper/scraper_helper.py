@@ -4,6 +4,7 @@ import aiofiles
 from myjdapi import myjdapi
 from yarl import URL
 
+
 from ..client.client import Client
 from ..client.client import Session
 from ..crawlers.Anonfiles_Spider import AnonfilesCrawler
@@ -18,6 +19,7 @@ from ..crawlers.Kemono_Spider import KemonoCrawler
 from ..crawlers.Pixeldrain_Spider import PixelDrainCrawler
 from ..crawlers.Postimg_Spider import PostImgCrawler
 from ..crawlers.Redgifs_Spider import RedGifsCrawler
+from ..crawlers.Rule34_Spider import Rule34Crawler
 from ..crawlers.Saint_Spider import SaintCrawler
 from ..crawlers.ShareX_Spider import ShareXCrawler
 from ..crawlers.SocialMediaGirls_Spider import SocialMediaGirlsCrawler
@@ -59,6 +61,7 @@ class ScrapeMapper():
         self.pixeldrain_crawler = None
         self.postimg_crawler = None
         self.redgifs_crawler = None
+        self.rule34_crawler = None
         self.saint_crawler = None
         self.sharex_crawler = None
         self.socialmediagirls_crawler = None
@@ -79,7 +82,7 @@ class ScrapeMapper():
                         "img.kiwi": self.ShareX, "jpg.church": self.ShareX, "jpg.homes": self.ShareX,
                         "kemono.party": self.Kemono, "pixeldrain.com": self.Pixeldrain, "pixl.is": self.ShareX,
                         "postimg": self.Postimg, "putme.ga": self.ShareX, "putmega.com": self.ShareX,
-                        "redgifs.com": self.redgifs, "saint.to": self.Saint, "socialmediagirls": self.SocialMediaGirls,
+                        "redgifs.com": self.redgifs, "rule34.xxx": self.Rule34, "saint.to": self.Saint, "socialmediagirls": self.SocialMediaGirls,
                         "simpcity": self.SimpCity, "xbunker": self.XBunker}
 
     async def Anonfiles(self, url: URL, title=None):
@@ -211,6 +214,19 @@ class ScrapeMapper():
             else:
                 await self.Cascade.add_to_album("redgifs.com", "gifs", content_url, url)
         await redgifs_session.exit_handler()
+
+    async def Rule34(self, url: URL, title=None):
+        rule34_session = Session(self.client)
+        if not self.rule34_crawler:
+            self.rule34_crawler = Rule34Crawler()
+        domain_obj = await self.rule34_crawler.fetch(rule34_session, url)
+        
+        if title:
+            await domain_obj.append_title(title)
+        await self.Cascade.add_albums(domain_obj)
+            
+        await rule34_session.exit_handler()
+
 
     async def Saint(self, url: URL, title=None):
         saint_session = Session(self.client)
