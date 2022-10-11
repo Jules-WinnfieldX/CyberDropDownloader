@@ -3,6 +3,7 @@ import json
 import logging
 import ssl
 from pathlib import Path
+import xml.etree.ElementTree as ET
 
 import aiofiles
 from bs4 import BeautifulSoup
@@ -57,6 +58,14 @@ class Session:
                 async with self.client_session.get(url, ssl=self.client.ssl_context) as response:
                     content = json.loads(await response.content.read())
                     return content
+
+    async def get_xml(self, url: URL):
+        async with self.client.simultaneous_session_limit:
+            async with self.rate_limiter:
+                async with self.client_session.get(url, ssl=self.client.ssl_context) as response:
+                    text = await response.content.read()
+                    xmlTree = ET.fromstring(text)
+                    return xmlTree
 
     async def post_no_resp(self, url: URL, headers: dict):
         async with self.client.simultaneous_session_limit:
