@@ -187,6 +187,8 @@ class Downloader:
                 temp_file = complete_file.with_suffix(complete_file.suffix + '.part')
                 resume_point = 0
 
+                await self.SQL_helper.sql_insert_temp(str(temp_file))
+
                 range = None
                 if temp_file.exists():
                     resume_point = temp_file.stat().st_size

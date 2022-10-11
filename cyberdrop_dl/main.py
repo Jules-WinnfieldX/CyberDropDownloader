@@ -127,13 +127,16 @@ async def download_all(args: argparse.Namespace):
     logger.debug("Finished")
 
     partial_downloads = [str(f) for f in args.output_folder.rglob("*.part") if f.is_file()]
+    temp_downloads_check = [str(f) for f in await SQL_helper.get_temp_names() if Path(f).is_file()]
 
     await log('Purging empty directories')
     await purge_dir(args.output_folder)
 
     await log('Finished downloading. Enjoy :)')
     if partial_downloads:
-        await log('There are still partial downloads in your folders, please re-run the program.')
+        await log('There are partial downloads in the downloads folder.')
+    if temp_downloads_check:
+        await log('There are partial downloads from this run, please re-run the program.')
 
 
 def silence_event_loop_closed(func):

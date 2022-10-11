@@ -24,11 +24,20 @@ class SQLHelper:
                                     completed INTEGER NOT NULL,
                                     PRIMARY KEY (path)
                                 );"""
+        create_temp_download_name_query = """CREATE TABLE IF NOT EXISTS downloads_temp (
+                                                downloaded_filename TEXT
+                                            );"""
+        temp_truncate_query = """DELETE FROM downloads_temp;"""
         pre_alloc = "CREATE TABLE t(x);"
         pre_alloc2 = "INSERT INTO t VALUES(zeroblob(50*1024*1024));"  # 50 mb
         drop_pre = "DROP TABLE t;"
         self.curs.execute(create_table_query)
         self.conn.commit()
+        self.curs.execute(create_temp_download_name_query)
+        self.conn.commit()
+        self.curs.execute(temp_truncate_query)
+        self.conn.commit()
+
         check_prealloc = "PRAGMA freelist_count;"
         self.curs.execute(check_prealloc)
         free = self.curs.fetchone()[0]
@@ -63,6 +72,10 @@ class SQLHelper:
         sql_file_check = self.curs.fetchone()
         return sql_file_check and sql_file_check[0] == 1
 
+    async def sql_insert_temp(self, downloaded_filename):
+        self.curs.execute("""INSERT OR IGNORE INTO downloads_temp VALUES (?)""", (downloaded_filename,))
+        self.conn.commit()
+
     async def sql_insert_file(self, path, downloaded_filename, completed):
         self.curs.execute("""INSERT OR IGNORE INTO downloads VALUES (?, ?, ?)""", (path, downloaded_filename, completed, ))
         self.conn.commit()
@@ -82,6 +95,12 @@ class SQLHelper:
         if filename:
             return filename[0]
         return None
+
+    async def get_temp_names(self):
+        self.curs.execute("SELECT downloaded_filename FROM downloads_temp;")
+        filenames = self.curs.fetchall()
+        filenames = list(sum(filenames, ()))
+        return filenames
 
     def exit_handler(self):
         try:
