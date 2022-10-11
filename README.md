@@ -1,7 +1,7 @@
 # `cyberdrop-dl`
 **Bulk downloader for multiple file hosts** 
 
-The latest version of the program is 3.4.1
+The latest version of the program is 3.4.2
 
 <a href="https://www.buymeacoffee.com/juleswinnft" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
 
@@ -27,7 +27,7 @@ The latest version of the program is 3.4.1
 | Pixl             | Albums: pixl.is/album/... <br> Direct Images: pixl.is/image/...  <br> User Profile: pixl.is/#USER# <br> All User Albums: pixl.is/#USER#/albums                                                                                         |
 | Postimg.cc       | Albums: postimg.cc/gallery/... <br> Direct Images: postimg.cc/...                                                                                                                                                                      |
 | SocialMediaGirls | Thread: forum.socialmediagirls.com/threads/...  <br> Continue from (will download this post and after): forum.socialmediagirls.com/threads/...post-NUMBER                                                                              |
-| rule34.xxx | Direct Media (Image and Video): rule34.xxx/index.php?page=post&s=view&id=... |
+| rule34.xxx       | Direct Media (Image and Video): rule34.xxx/index.php?page=post&s=view&id=...                                                                                                                                                           |
 | SimpCity         | Thread: simpcity.st/threads/...  <br> Continue from (will download this post and after): simpcity.st/threads/...post-NUMBER                                                                                                            | 
 | XBunkr           | Album: xbunkr.com/a/... <br> Direct Links: media.xbunkr.com/...                                                                                                                                                                        |
 
@@ -87,6 +87,7 @@ optional arguments:
   -o OUTPUT_FOLDER, --output-folder OUTPUT_FOLDER    folder to download files to
   --log-file LOG_FILE       log file to write to
   --db-file                 history DB file to write to
+  --config-file             config file to read arguments from
   --threads THREADS         number of threads to use (0 = max)
   --attempts ATTEMPTS       number of attempts to download each file
   --connection-timeout      number of seconds to wait attempting to connect to a URL during the downloading phase
