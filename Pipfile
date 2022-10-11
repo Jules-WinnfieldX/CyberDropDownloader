@@ -43,5 +43,6 @@ Automat = "==20.2.0"
 Protego = "==0.2.1"
 PyDispatcher = "==2.0.6"
 myjdapi = "==1.1.6"
+PyYAML = "==6.0"
 
 
