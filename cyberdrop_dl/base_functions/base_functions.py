@@ -1,11 +1,16 @@
+from typing import Dict
+
 import aiofiles
 import logging
 import os
 import re
 from pathlib import Path
 
+import yaml
 from colorama import Fore, Style
 from yarl import URL
+
+from .config_schema import config_default, files_args, authentication_args, jdownloader_args, runtime_args
 
 """This file contains generic information and functions that are used around the program"""
 
@@ -61,7 +66,7 @@ async def purge_dir(dirname, in_place=True):
     for tree_element in dir_tree:
         sub_dir = tree_element[0]
         dir_count = len(os.listdir(sub_dir))
-        if dir_count == 0: # Helps with readability and i've had issues with it deleting non-empty dirs
+        if dir_count == 0:  # Helps with readability and i've had issues with it deleting non-empty dirs
             deleted.append(sub_dir)
 
     if in_place:
@@ -94,6 +99,85 @@ async def write_last_post_file(file: Path, url: str):
 
 async def check_direct(url: URL):
     mapping_direct = ['i.pixl.is', r's..putmega.com', r's..putme.ga', r'img-...cyberdrop...', r'f.cyberdrop...',
-                      r'fs-...cyberdrop...', r'cdn.bunkr...', r'cdn..bunkr...', r'media-files.bunkr...', r'media-files..bunkr...', r'jpg.church/images/...',
-                      r'simp..jpg.church']
+                      r'fs-...cyberdrop...', r'cdn.bunkr...', r'cdn..bunkr...', r'media-files.bunkr...',
+                      r'media-files..bunkr...', r'jpg.church/images/...', r'simp..jpg.church']
     return any(re.search(domain, url.host) for domain in mapping_direct)
+
+
+async def create_config(config: Path, passed_args=None):
+    if config.is_file() and not passed_args:
+        await validate_config(config)
+        return
+
+    config_data = config_default
+    if passed_args:
+        for arg in authentication_args:
+            if arg in passed_args.keys():
+                config_data[0]["Configuration"]["Authentication"][arg] = passed_args[arg]
+        for arg in files_args:
+            if arg in passed_args.keys():
+                config_data[0]["Configuration"]["Files"][arg] = str(passed_args[arg])
+        for arg in jdownloader_args:
+            if arg in passed_args.keys():
+                config_data[0]["Configuration"]["JDownloader"][arg] = passed_args[arg]
+        for arg in runtime_args:
+            if arg in passed_args.keys():
+                config_data[0]["Configuration"]["Runtime"][arg] = passed_args[arg]
+
+    with open(config, 'w') as yamlfile:
+        yaml.dump(config_data, yamlfile)
+    return
+
+
+async def validate_config(config: Path):
+    with open(config, "r") as yamlfile:
+        data = yaml.load(yamlfile, Loader=yaml.FullLoader)
+    data = data[0]["Configuration"]
+    recreate = 0
+    try:
+        if not set(authentication_args).issubset(set(data['Authentication'].keys())):
+            recreate = 1
+        if not set(authentication_args).issubset(set(data['Files'].keys())):
+            recreate = 1
+        if not set(authentication_args).issubset(set(data['JDownloader'].keys())):
+            recreate = 1
+        if not set(authentication_args).issubset(set(data['Runtime'].keys())):
+            recreate = 1
+
+        if recreate:
+            config.unlink()
+            await log("Recreating Config")
+
+            args = {}
+            args_list = [data['Authentication'], data['Files'], data['JDownloader'], data['Runtime']]
+            for dic in args_list:
+                args.update(dic)
+            await create_config(config, args)
+
+    except KeyError:
+        config.unlink()
+        await log("Config was malformed, recreating.")
+        await create_config(config)
+
+
+async def run_args(config: Path, cmd_arg: Dict):
+    with open(config, "r") as yamlfile:
+        data = yaml.load(yamlfile, Loader=yaml.FullLoader)
+    data = data[0]["Configuration"]
+    if data['Apply_Config']:
+        return data
+
+    config_data = config_default[0]["Configuration"]
+    for arg in authentication_args:
+        if arg in cmd_arg.keys():
+            config_data["Authentication"][arg] = cmd_arg[arg]
+    for arg in files_args:
+        if arg in cmd_arg.keys():
+            config_data["Files"][arg] = cmd_arg[arg]
+    for arg in jdownloader_args:
+        if arg in cmd_arg.keys():
+            config_data["JDownloader"][arg] = cmd_arg[arg]
+    for arg in runtime_args:
+        if arg in cmd_arg.keys():
+            config_data["Runtime"][arg] = cmd_arg[arg]
+    return config_data

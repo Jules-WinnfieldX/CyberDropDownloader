@@ -1,10 +1,8 @@
 import argparse
 import multiprocessing
-import platform
 from argparse import Namespace
 import asyncio
 import logging
-from asyncio.proactor_events import _ProactorBasePipeTransport
 from pathlib import Path
 from functools import wraps
 
@@ -12,7 +10,8 @@ from colorama import Fore
 from yarl import URL
 
 from . import __version__ as VERSION
-from cyberdrop_dl.base_functions.base_functions import clear, log, logger, purge_dir, regex_links
+from cyberdrop_dl.base_functions.base_functions import clear, create_config, log, logger, purge_dir, regex_links, \
+    run_args
 from cyberdrop_dl.base_functions.data_classes import AuthData, SkipData
 from cyberdrop_dl.base_functions.sql_helper import SQLHelper
 from cyberdrop_dl.client.client import Client
@@ -25,8 +24,9 @@ def parse_args():
     parser.add_argument("-V", "--version", action="version", version="%(prog)s " + VERSION)
     parser.add_argument("-i", "--input-file", type=Path, help="file containing links to download", default="URLs.txt")
     parser.add_argument("-o", "--output-folder", type=Path, help="folder to download files to", default="Downloads")
-    parser.add_argument("--log-file", help="log file to write to", default="downloader.log")
-    parser.add_argument("--db-file", help="history database file to write to", default="download_history.sqlite")
+    parser.add_argument("--log-file", type=Path, help="log file to write to", default="downloader.log")
+    parser.add_argument("--config-file", type=Path, help="config file to read arguments from", default="config.yaml")
+    parser.add_argument("--db-file", type=Path, help="history database file to write to", default="download_history.sqlite")
     parser.add_argument("--threads", type=int, help="number of threads to use (0 = max)", default=0)
     parser.add_argument("--attempts", type=int, help="number of attempts to download each file", default=10)
     parser.add_argument("--connection-timeout", type=int, help="number of seconds to wait attempting to connect to a URL during the downloading phase", default=15)
@@ -67,8 +67,33 @@ async def download_all(args: argparse.Namespace):
     print_args['simpcity_password'] = '!REDACTED!'
     print_args['jdownloader_password'] = '!REDACTED!'
 
-    logging.debug(f"Starting downloader with args: {print_args}")
-    input_file = args.input_file
+    cmd_args = Namespace(**vars(args)).__dict__
+    await create_config(args.config_file, print_args)
+    use_args = await run_args(args.config_file, cmd_args)
+
+    auth_args = use_args['Authentication']
+    auth_args_print = auth_args
+    auth_args_print['xbunker_password'] = '!REDACTED!'
+    auth_args_print['socialmediagirls_password'] = '!REDACTED!'
+    auth_args_print['simpcity_password'] = '!REDACTED!'
+
+    file_args = use_args['Files']
+    for key, value in file_args.items():
+        file_args[key] = Path(value)
+
+    jdownloader_args = use_args['JDownloader']
+    jdownloader_args_print = jdownloader_args
+    jdownloader_args_print['jdownloader_password'] = '!REDACTED!'
+
+    runtime_args = use_args['Runtime']
+
+    logging.debug(f"Starting Cyberdrop-DL")
+    logging.debug(f"Using authorization arguments: {auth_args_print}")
+    logging.debug(f"Using file arguments: {file_args}")
+    logging.debug(f"Using jdownloader arguments: {jdownloader_args}")
+    logging.debug(f"Using runtime arguments: {runtime_args}")
+
+    input_file = file_args['input_file']
     if not input_file.is_file():
         input_file.touch()
         await log(f"{input_file} created. Populate it and retry.")
@@ -159,10 +184,6 @@ def main(args=None):
         format="%(asctime)s:%(levelname)s:%(module)s:%(filename)s:%(lineno)d:%(message)s",
         filemode="w"
     )
-
-    if platform.system() == 'Windows':
-        # Silence the "Event loop is closed" exception here.
-        _ProactorBasePipeTransport.__del__ = silence_event_loop_closed(_ProactorBasePipeTransport.__del__)
 
     try:
         loop = asyncio.get_event_loop()

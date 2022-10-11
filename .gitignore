@@ -1,7 +1,10 @@
-# project stuff
+# Project stuff
 Downloads/
 *.log
 *.sqlite
+config.yaml
+Unsupported_Urls.txt
+URLs_last_post.txt
 
 # Python stuff
 .venv/
@@ -10,11 +13,3 @@ __pycache__/
 build/
 release/
 start_dev.py
-.vscode/settings.json
-
-# Scripts
-run.bat
-input.txt
-_download_log.txt
-input-test.txt
-Unsupported_Urls.txt
