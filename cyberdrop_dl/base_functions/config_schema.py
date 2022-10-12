@@ -48,6 +48,6 @@ authentication_args = ["simpcity_username", "simpcity_password",
                        "socialmediagirls_username", "socialmediagirls_password",
                        "xbunker_username", "xbunker_password"]
 jdownloader_args = ["jdownloader_enable", "jdownloader_username", "jdownloader_password", "jdownloader_device"]
-runtime_args = ["threads", "attempts", "disabled_attempt_limit", "connection_timeout", "ratelimit", "throttle",
+runtime_args = ["threads", "attempts", "disable_attempt_limit", "connection_timeout", "ratelimit", "throttle",
                 "include_id", "exclude_videos", "exclude_images", "exclude_audio", "exclude_other", "ignore_history",
                 "output_last_forum_post", "separate_posts", "skip_hosts", "proxy"]

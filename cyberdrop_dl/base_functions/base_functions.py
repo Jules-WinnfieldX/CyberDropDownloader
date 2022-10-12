@@ -104,8 +104,8 @@ async def check_direct(url: URL):
     return any(re.search(domain, url.host) for domain in mapping_direct)
 
 
-async def create_config(config: Path, passed_args=None):
-    if config.is_file() and not passed_args:
+async def create_config(config: Path, passed_args=None, remake=None):
+    if config.is_file() and not remake:
         await validate_config(config)
         return
 
@@ -137,11 +137,11 @@ async def validate_config(config: Path):
     try:
         if not set(authentication_args).issubset(set(data['Authentication'].keys())):
             recreate = 1
-        if not set(authentication_args).issubset(set(data['Files'].keys())):
+        if not set(files_args).issubset(set(data['Files'].keys())):
             recreate = 1
-        if not set(authentication_args).issubset(set(data['JDownloader'].keys())):
+        if not set(jdownloader_args).issubset(set(data['JDownloader'].keys())):
             recreate = 1
-        if not set(authentication_args).issubset(set(data['Runtime'].keys())):
+        if not set(runtime_args).issubset(set(data['Runtime'].keys())):
             recreate = 1
 
         if recreate:
@@ -152,7 +152,7 @@ async def validate_config(config: Path):
             args_list = [data['Authentication'], data['Files'], data['JDownloader'], data['Runtime']]
             for dic in args_list:
                 args.update(dic)
-            await create_config(config, args)
+            await create_config(config, args, True)
 
     except KeyError:
         config.unlink()
