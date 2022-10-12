@@ -6,3 +6,6 @@
 
 3.4.6
 - Fix bunkr cdn links.
+
+3.4.7
+- Fixed dict not copying correctly, wiping out login details for forum scraping.

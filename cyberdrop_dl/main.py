@@ -72,7 +72,7 @@ async def download_all(args: argparse.Namespace):
     use_args = await run_args(args.config_file, cmd_args)
 
     auth_args = use_args['Authentication']
-    auth_args_print = auth_args
+    auth_args_print = auth_args.copy()
     auth_args_print['xbunker_password'] = '!REDACTED!'
     auth_args_print['socialmediagirls_password'] = '!REDACTED!'
     auth_args_print['simpcity_password'] = '!REDACTED!'
