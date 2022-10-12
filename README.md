@@ -1,7 +1,7 @@
 # `cyberdrop-dl`
 **Bulk downloader for multiple file hosts** 
 
-The latest version of the program is 3.4.4
+The latest version of the program is 3.4.5
 
 <a href="https://www.buymeacoffee.com/juleswinnft" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
 
@@ -13,7 +13,7 @@ The latest version of the program is 3.4.4
 | Anonfiles        | Download page: Anonfiles.com/...                                                                                                                                                                                                       |
 | Bayfiles         | Download page: Bayfiles.com/...                                                                                                                                                                                                        |
 | Bunkr            | Albums: bunkr.is/a/... <br> Direct Videos: stream.bunkr.is/v/... <br> Direct Videos: cdn.bunkr.is/... <br> Direct Images: i.bunkr.is/... <br> Also works with Bunkr.to                                                                 |
-| Coomer.party     | Profiles: coomer.party/... <br> Thumbnail Links: coomer.party/thumbnail/... <br> Data Links: coomer.party/data/...                                                                                                                     | 
+| Coomer.party     | Profiles: coomer.party/... <br> Thumbnail Links: coomer.party/thumbnail/... <br> Data Links: coomer.party/data/... <br> coomer.party/.../post/...                                                                                      | 
 | Cyberdrop        | Albums: cyberdrop.me/a/... <br> Direct Videos: fs-0#.cyberdrop.me/... <br> Direct Videos: f.cyberdrop.me/... <br> Direct Images: img-0#.cyberdrop.me/... <br> Direct Images: f.cyberdrop.me/... <br> Also works with .cc, .to, and .nl |
 | Cyberfile        | folders: cyberfile.is/folder/... <br> shared: cyberfile.is/shared/... <br> Direct: cyberfile.is/...                                                                                                                                    | 
 | Erome            | Albums: erome.com/a/...                                                                                                                                                                                                                |
@@ -21,7 +21,7 @@ The latest version of the program is 3.4.4
 | IMG.Kiwi         | Albums: img.kiwi/album/... <br> Direct Images: img.kiwi/image/... <br> User Profile: img.kiwi/#USER# <br> All User Albums: img.kiwi/#USER#/albums                                                                                      |
 | jpg.church       | Albums: jpg.church/album/... <br> Direct Images: jpg.church/image/... <br> User Profile: jpg.church/#USER# <br> All User Albums: jpg.church/#USER#/albums                                                                              |
 | jpg.homes        | Albums: jpg.homes/album/... <br> Direct Images: jpg.homes/image/... <br> User Profile: jpg.homes/#USER# <br> All User Albums: jpg.homes/#USER#/albums                                                                                  |
-| Kemono.party     | Profiles: kemono.party/... <br> Thumbnail Links: kemono.party/thumbnail/... <br> Data Links: kemono.party/data/...                                                                                                                     |
+| Kemono.party     | Profiles: kemono.party/... <br> Thumbnail Links: kemono.party/thumbnail/... <br> Data Links: kemono.party/data/... <br> Posts: kemono.party/.../post/...                                                                               |
 | LeakedNudes      | Thread: forum.leakednudes.co/threads/...  <br> Continue from (will download this post and after): forum.leakednudes.co/threads/...post-NUMBER                                                                                          |
 | PixelDrain       | Albums: Pixeldrain.com/l/... <br> Single Files: Pixeldrain.com/u/...                                                                                                                                                                   |
 | Pixl             | Albums: pixl.is/album/... <br> Direct Images: pixl.is/image/...  <br> User Profile: pixl.is/#USER# <br> All User Albums: pixl.is/#USER#/albums                                                                                         |

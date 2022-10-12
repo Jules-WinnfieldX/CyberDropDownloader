@@ -20,6 +20,10 @@ class KemonoCrawler:
             await domain_obj.add_to_album("Loose Kemono.Party Files", link, link)
         elif "data" in url.parts:
             await domain_obj.add_to_album("Loose Kemono.Party Files", url, url)
+        elif "post" in url.parts:
+            results = await self.parse_post(session, url, None)
+            for result in results:
+                await domain_obj.add_to_album(result[0], result[1], result[2])
         else:
             results.extend(await self.parse_profile(session, url))
 
@@ -56,12 +60,15 @@ class KemonoCrawler:
             logger.debug(e)
             return []
 
-    async def parse_post(self, session: Session, url: URL, title: str):
+    async def parse_post(self, session: Session, url: URL, title=None):
         try:
             soup = await session.get_BS4(url)
             results = []
 
-            title = title + '/' + await make_title_safe(soup.select_one("h1[class=post__title]").text.replace('\n', '').replace("..", ""))
+            if title:
+                title = title + '/' + await make_title_safe(soup.select_one("h1[class=post__title]").text.replace('\n', '').replace("..", ""))
+            else:
+                title = await make_title_safe(soup.select_one("h1[class=post__title]").text.replace('\n', '').replace("..", ""))
 
             images = soup.select('a[class="fileThumb"]')
             for image in images:

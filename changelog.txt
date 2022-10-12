@@ -1,0 +1,5 @@
+3.4.4
+- Fixed config being recreated constantly due to typo.
+
+3.4.5
+- Added support to Coomer/Kemono for single post scraping.
