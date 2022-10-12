@@ -3,3 +3,6 @@
 
 3.4.5
 - Added support to Coomer/Kemono for single post scraping.
+
+3.4.6
+- Fix bunkr cdn links.
