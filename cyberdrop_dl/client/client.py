@@ -139,7 +139,7 @@ class DownloadSession:
             if 'text' in content_type.lower() or 'html' in content_type.lower():
                 logger.debug("Server for %s is either down or the file no longer exists", str(url))
                 await File_Lock.remove_lock(original_filename)
-                return
+                raise Exception("URL down or not exist")
 
             total = int(resp.headers.get('Content-Length', str(0))) + resume_point
             (folder / title).mkdir(parents=True, exist_ok=True)
