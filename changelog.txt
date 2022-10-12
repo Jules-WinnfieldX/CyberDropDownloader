@@ -9,3 +9,6 @@
 
 3.4.7
 - Fixed dict not copying correctly, wiping out login details for forum scraping.
+
+3.4.9
+- Fixed arg mapping in main func.

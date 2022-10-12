@@ -99,11 +99,11 @@ async def download_all(args: argparse.Namespace):
         await log(f"{input_file} created. Populate it and retry.")
         exit(1)
 
-    client = Client(args.ratelimit, args.throttle)
-    SQL_helper = SQLHelper(args.ignore_history, args.db_file)
+    client = Client(runtime_args['ratelimit'], runtime_args['throttle'])
+    SQL_helper = SQLHelper(runtime_args['ignore_history'], file_args['db_file'])
     await SQL_helper.sql_initialize()
 
-    threads = args.threads if args.threads != 0 else multiprocessing.cpu_count()
+    threads = runtime_args['threads'] if runtime_args['threads'] != 0 else multiprocessing.cpu_count()
 
     links = args.links
     links = list(map(URL, links))
@@ -119,22 +119,23 @@ async def download_all(args: argparse.Namespace):
 
     output_url_file = None
 
-    if args.output_last_forum_post:
+    if runtime_args['output_last_forum_post']:
         output_url_file: Path = input_file.parent / "URLs_last_post.txt"
         if output_url_file.exists():
             output_url_file.unlink()
             output_url_file.touch()
 
-    xbunker_auth = AuthData(args.xbunker_username, args.xbunker_password)
-    socialmediagirls_auth = AuthData(args.socialmediagirls_username, args.socialmediagirls_password)
-    simpcity_auth = AuthData(args.simpcity_username, args.simpcity_password)
-    jdownloader_auth = AuthData(args.jdownloader_username, args.jdownloader_password)
-    skip_data = SkipData(args.skip_hosts)
-    excludes = {'videos': args.exclude_videos, 'images': args.exclude_images, 'audio': args.exclude_audio,
-                'other': args.exclude_other}
-    content_object = await scrape(links, client, args.include_id, args.jdownloader_enable, args.jdownloader_device, xbunker_auth, socialmediagirls_auth,
-                                  simpcity_auth, jdownloader_auth, args.separate_posts, skip_data,
-                                  [args.output_last_forum_post, output_url_file])
+    xbunker_auth = AuthData(auth_args['xbunker_username'], auth_args['xbunker_password'])
+    socialmediagirls_auth = AuthData(auth_args['socialmediagirls_username'], auth_args['socialmediagirls_password'])
+    simpcity_auth = AuthData(auth_args['simpcity_username'], auth_args['simpcity_password'])
+    jdownloader_auth = AuthData(jdownloader_args['jdownloader_username'], jdownloader_args['jdownloader_password'])
+    skip_data = SkipData(runtime_args['skip_hosts'])
+    excludes = {'videos': runtime_args['exclude_videos'], 'images': runtime_args['exclude_images'],
+                'audio': runtime_args['exclude_audio'], 'other': runtime_args['exclude_other']}
+    content_object = await scrape(links, client, runtime_args['include_id'], jdownloader_args['jdownloader_enable'],
+                                  jdownloader_args['jdownloader_device'], xbunker_auth, socialmediagirls_auth,
+                                  simpcity_auth, jdownloader_auth, runtime_args['separate_posts'], skip_data,
+                                  [runtime_args['output_last_forum_post'], output_url_file])
 
     if await content_object.is_empty():
         logging.error('ValueError No links')
@@ -143,19 +144,21 @@ async def download_all(args: argparse.Namespace):
         exit(0)
     await clear()
 
-    downloaders = await get_downloaders(content_object, folder=args.output_folder, attempts=args.attempts,
-                                        disable_attempt_limit=args.disable_attempt_limit, max_workers=threads,
-                                        excludes=excludes, SQL_helper=SQL_helper, client=client, proxy=args.proxy)
+    downloaders = await get_downloaders(content_object, folder=file_args['output_folder'],
+                                        attempts=runtime_args['attempts'],
+                                        disable_attempt_limit=runtime_args['disable_attempt_limit'],
+                                        max_workers=threads, excludes=excludes, SQL_helper=SQL_helper, client=client,
+                                        proxy=runtime_args['proxy'])
 
     for downloader in downloaders:
-        await downloader.download_content(conn_timeout=args.connection_timeout)
+        await downloader.download_content(conn_timeout=runtime_args['connection_timeout'])
     logger.debug("Finished")
 
-    partial_downloads = [str(f) for f in args.output_folder.rglob("*.part") if f.is_file()]
+    partial_downloads = [str(f) for f in file_args['output_folder'].rglob("*.part") if f.is_file()]
     temp_downloads_check = [str(f) for f in await SQL_helper.get_temp_names() if Path(f).is_file()]
 
     await log('Purging empty directories')
-    await purge_dir(args.output_folder)
+    await purge_dir(file_args['output_folder'])
 
     await log('Finished downloading. Enjoy :)')
     if partial_downloads:
