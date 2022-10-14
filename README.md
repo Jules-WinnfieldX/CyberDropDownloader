@@ -47,6 +47,8 @@ It'll repeat that for every link you give it.
 
 # Installation
 
+Mac users will also likely need to open terminal and execute the following command: `xcode-select --install`
+
 ## Script method
 Go to the [releases page](https://github.com/Jules-WinnfieldX/CyberDropDownloader/releases) and download the Cyberdrop_DL.zip file. Extract it to wherever you want the program to be.
 ## Using `pip`
