@@ -1,4 +1,5 @@
 import json
+import re
 
 from yarl import URL
 
@@ -14,9 +15,10 @@ class BunkrCrawler:
     async def fetch(self, session: Session, url: URL):
         domain_obj = DomainItem(url.host, {})
 
+        cdn_possibilities = r"(?:cdn.bunkr...|cdn..bunkr...|cdn...bunkr...)"
         ext = '.' + str(url).split('.')[-1]
         if ext in FILE_FORMATS['Videos']:
-            url = URL(str(url).replace('https://cdn.bunkr.is/', 'https://stream.bunkr.is/v/'))
+            url = URL(re.sub(cdn_possibilities, "stream.bunkr.is/v", str(url)))
 
         if await check_direct(url):
             await domain_obj.add_to_album(link=url, referral=url, title="Bunkr Loose Files")
