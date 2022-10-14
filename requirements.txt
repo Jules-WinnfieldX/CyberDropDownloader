@@ -3,7 +3,6 @@ aiohttp==3.8.3
 beautifulsoup4==4.11.1
 certifi==2022.9.24
 colorama==0.4.5
-gofile==0.2.0
 gofile_client==1.0.1
 myjdapi==1.1.6
 PyYAML==6.0
