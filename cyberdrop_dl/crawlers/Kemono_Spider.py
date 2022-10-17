@@ -40,7 +40,7 @@ class KemonoCrawler:
             title = title + " (Kemono.party)"
             results = []
 
-            posts = soup.select("a[class=fancy-link]")
+            posts = soup.select('article[class="post-card post-card--preview"] a')
             for post in posts:
                 path = post.get('href')
                 if path:
@@ -70,7 +70,7 @@ class KemonoCrawler:
             else:
                 title = await make_title_safe(soup.select_one("h1[class=post__title]").text.replace('\n', '').replace("..", ""))
 
-            images = soup.select('a[class="fileThumb"]')
+            images = soup.select('a[class="fileThumb image-link"]')
             for image in images:
                 image_link = URL("https://kemono.party" + image.get('href'))
                 results.append([title, image_link, url])
