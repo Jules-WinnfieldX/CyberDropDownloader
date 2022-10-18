@@ -40,6 +40,16 @@ MAX_FILENAME_LENGTH = 100
 logger = logging.getLogger(__name__)
 
 
+class FailureException(Exception):
+    """Basic failure exception I can throw to force a retry."""
+
+    def __init__(self, code, message="Something went wrong"):
+        self.code = code
+        self.message = message
+        super().__init__(self.message)
+        super().__init__(self.code)
+
+
 async def sanitize(name: str) -> str:
     return re.sub(r'[<>:"/\\|?*\']', "", name).strip()
 

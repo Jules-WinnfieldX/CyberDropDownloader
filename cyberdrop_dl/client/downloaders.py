@@ -12,14 +12,10 @@ import aiohttp.client_exceptions
 from tqdm import tqdm
 from yarl import URL
 
-from ..base_functions.base_functions import FILE_FORMATS, MAX_FILENAME_LENGTH, log, logger, sanitize
+from ..base_functions.base_functions import FILE_FORMATS, MAX_FILENAME_LENGTH, log, logger, sanitize, FailureException
 from ..base_functions.sql_helper import SQLHelper
 from ..base_functions.data_classes import AlbumItem, CascadeItem, FileLock
 from ..client.client import Client, DownloadSession
-
-
-class FailureException(Exception):
-    """Basic failure exception I can throw to force a retry."""
 
 
 def retry(f):
@@ -226,7 +222,7 @@ class Downloader:
             except Exception:
                 pass
 
-            raise FailureException(e)
+            raise FailureException(code=1, message=e)
 
     async def rename_file(self, filename: str, url: URL, db_path: str) -> None:
         """Rename complete file."""

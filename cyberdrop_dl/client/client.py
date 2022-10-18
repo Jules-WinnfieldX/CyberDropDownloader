@@ -14,7 +14,7 @@ import certifi
 from tqdm import tqdm
 
 from .rate_limiting import AsyncRateLimiter, throttle
-from ..base_functions.base_functions import logger
+from ..base_functions.base_functions import logger, FailureException
 from ..base_functions.data_classes import FileLock
 
 
@@ -139,7 +139,7 @@ class DownloadSession:
             if 'text' in content_type.lower() or 'html' in content_type.lower():
                 logger.debug("Server for %s is either down or the file no longer exists", str(url))
                 await File_Lock.remove_lock(original_filename)
-                raise Exception("URL down or not exist")
+                raise FailureException(code=resp.status, message="Unexpectedly got text as response")
 
             total = int(resp.headers.get('Content-Length', str(0))) + resume_point
             (folder / title).mkdir(parents=True, exist_ok=True)

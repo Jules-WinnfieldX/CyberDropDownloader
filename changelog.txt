@@ -12,3 +12,9 @@
 
 3.4.9
 - Fixed arg mapping in main func.
+
+3.4.19
+- A bunch including:
+- Fixing some of kemono.party
+- Fixing bunkr albums
+- Simplifying requirements

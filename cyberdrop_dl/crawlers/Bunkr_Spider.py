@@ -45,13 +45,15 @@ class BunkrCrawler:
             title = await make_title_safe(json_obj['album']['name'])
             for file in json_obj['album']['files']:
                 ext = '.' + file['name'].split('.')[-1].lower()
+                referrer = URL
                 if ext in FILE_FORMATS['Videos']:
                     cdn_loc = file['cdn']
                     media_loc = cdn_loc.replace('cdn', 'media-files')
+                    referrer = "https://stream.bunkr.is/v/" + file['name']
                     link = URL(media_loc + '/' + file['name'])
                 else:
                     link = URL(file['cdn'] + '/' + file['name'])
-                await domain_obj.add_to_album(title, link, url)
+                await domain_obj.add_to_album(title, link, referrer)
 
         except Exception as e:
             logger.debug("Error encountered while handling %s", str(url), exc_info=True)
