@@ -22,3 +22,6 @@
 3.4.21
 - Better gofile exception handling
 - Fix kemono next page
+
+3.4.22
+- Remove putmega/jpg.homes

@@ -76,13 +76,12 @@ class ScrapeMapper():
         self.forum_limiter = asyncio.Semaphore(4)
         self.semaphore = asyncio.Semaphore(1)
         self.mapping = {"anonfiles.com": self.Anonfiles, "bayfiles": self.Anonfiles, "xbunkr": self.XBunkr,
-                        "bunkr": self.Bunkr,
-                        "coomer.party": self.coomer, "cyberdrop": self.Cyberdrop, "cyberfile.is": self.cyberfile,
-                        "erome.com": self.Erome, "gfycat.com": self.gfycat, "gofile.io": self.GoFile,
-                        "img.kiwi": self.ShareX, "jpg.church": self.ShareX, "jpg.homes": self.ShareX,
+                        "bunkr": self.Bunkr, "coomer.party": self.coomer, "cyberdrop": self.Cyberdrop,
+                        "cyberfile.is": self.cyberfile, "erome.com": self.Erome, "gfycat.com": self.gfycat,
+                        "gofile.io": self.GoFile, "img.kiwi": self.ShareX, "jpg.church": self.ShareX,
                         "kemono.party": self.Kemono, "pixeldrain.com": self.Pixeldrain, "pixl.is": self.ShareX,
-                        "postimg": self.Postimg, "putme.ga": self.ShareX, "putmega.com": self.ShareX,
-                        "redgifs.com": self.redgifs, "rule34.xxx": self.Rule34, "saint.to": self.Saint, "socialmediagirls": self.SocialMediaGirls,
+                        "postimg": self.Postimg, "redgifs.com": self.redgifs, "rule34.xxx": self.Rule34,
+                        "saint.to": self.Saint, "socialmediagirls": self.SocialMediaGirls,
                         "simpcity": self.SimpCity, "xbunker": self.XBunker}
 
     async def Anonfiles(self, url: URL, title=None):
@@ -226,7 +225,6 @@ class ScrapeMapper():
         await self.Cascade.add_albums(domain_obj)
             
         await rule34_session.exit_handler()
-
 
     async def Saint(self, url: URL, title=None):
         saint_session = Session(self.client)
