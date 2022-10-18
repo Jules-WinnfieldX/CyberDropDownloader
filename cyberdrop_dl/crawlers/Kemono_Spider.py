@@ -47,7 +47,7 @@ class KemonoCrawler:
                     post_link = URL("https://kemono.party" + path)
                     results.extend(await self.parse_post(session, post_link, title))
 
-            next_page = soup.select_one('a[title="Next page"]')
+            next_page = soup.select_one('a[class=next]')
             if next_page:
                 next_page = next_page.get('href')
                 if next_page:

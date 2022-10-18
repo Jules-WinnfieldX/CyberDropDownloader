@@ -53,7 +53,10 @@ class GofileCrawler():
         contents: dict[str, dict[str, Union[str, int]]] = content["contents"]
         for val in contents.values():
             if val["type"] == "folder":
-                results.extend(result for result in await self.get_links(URL(val["code"]), title))
+                try:
+                    results.extend(result for result in await self.get_links(URL(val["code"]), title))
+                except Exception as e:
+                    await log(f"Error scraping gofile: {val['code']}")
             else:
                 results.append({'url': URL(val["link"]) if val["link"] != "overloaded" else URL(val["directLink"]),
                                 'title': title, 'referral': URL('https://gofile.io/')})

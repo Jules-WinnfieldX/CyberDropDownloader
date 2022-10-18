@@ -18,3 +18,7 @@
 - Fixing some of kemono.party
 - Fixing bunkr albums
 - Simplifying requirements
+
+3.4.21
+- Better gofile exception handling
+- Fix kemono next page
