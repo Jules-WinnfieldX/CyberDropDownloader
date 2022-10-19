@@ -17,6 +17,7 @@ class BunkrCrawler:
 
         cdn_possibilities = r"(?:cdn.bunkr...|cdn..bunkr...|cdn...bunkr...)"
         ext = '.' + str(url).split('.')[-1]
+        ext = ext.lower()
         if ext in FILE_FORMATS['Videos']:
             url = URL(re.sub(cdn_possibilities, "stream.bunkr.is/v", str(url)))
         if ext in FILE_FORMATS['Images']:
