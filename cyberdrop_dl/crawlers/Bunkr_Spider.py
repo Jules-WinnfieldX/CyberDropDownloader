@@ -19,6 +19,8 @@ class BunkrCrawler:
         ext = '.' + str(url).split('.')[-1]
         if ext in FILE_FORMATS['Videos']:
             url = URL(re.sub(cdn_possibilities, "stream.bunkr.is/v", str(url)))
+        if ext in FILE_FORMATS['Images']:
+            url = URL(str(url).replace("https://cdn", "https://i"))
 
         if await check_direct(url):
             await domain_obj.add_to_album(link=url, referral=url, title="Bunkr Loose Files")

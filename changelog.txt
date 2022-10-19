@@ -25,3 +25,6 @@
 
 3.4.22
 - Remove putmega/jpg.homes
+
+3.4.23
+- Fix bunkr images
