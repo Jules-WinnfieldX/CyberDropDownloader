@@ -28,3 +28,6 @@
 
 3.4.23
 - Fix bunkr images
+
+3.4.25
+- add pdf support

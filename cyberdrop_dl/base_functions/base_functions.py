@@ -25,13 +25,14 @@ FILE_FORMATS = {
         '.swf', '.avi', '.m4p', '.wmv',
         '.mp2', '.m4v', '.qt', '.mpe',
         '.mp4', '.flv', '.mov', '.mpg',
-        '.ogg', '.mkv', '.mts', '.ts'
+        '.ogg', '.mkv', '.mts', '.ts',
     },
     'Audio': {
-        '.mp3', '.flac', '.wav', '.m4a'
+        '.mp3', '.flac', '.wav', '.m4a',
     },
     'Other': {
-        '.json', '.torrent', '.zip', '.rar', '.7z', '.torrent', '.psd'
+        '.json', '.torrent', '.zip', '.rar',
+        '.7z', '.torrent', '.psd', 'pdf',
     }
 }
 
