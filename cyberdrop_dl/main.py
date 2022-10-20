@@ -5,6 +5,7 @@ import asyncio
 import logging
 from pathlib import Path
 from functools import wraps
+from typing import Dict
 
 from colorama import Fore
 from yarl import URL
@@ -40,6 +41,7 @@ def parse_args():
     parser.add_argument("--output-last-forum-post", help="Separates forum scraping into folders by post number", action="store_true")
     parser.add_argument("--proxy", help="HTTP/HTTPS proxy used for downloading, format [protocal]://[ip]:[port]", default=None)
     parser.add_argument("--separate-posts", help="Separates forum scraping into folders by post number", action="store_true")
+    parser.add_argument("--mark-downloaded", help="Sets the scraped files as downloaded without downloading", action="store_true")
     parser.add_argument("--xbunker-username", type=str, help="username to login to xbunker", default=None)
     parser.add_argument("--xbunker-password", type=str, help="password to login to xbunker", default=None)
     parser.add_argument("--socialmediagirls-username", type=str, help="username to login to socialmediagirls", default=None)
@@ -58,9 +60,7 @@ def parse_args():
     return args
 
 
-async def download_all(args: argparse.Namespace):
-    await clear()
-    await log(f"We are running version {VERSION} of Cyberdrop Downloader", Fore.WHITE)
+async def handle_args(args: argparse.Namespace):
     print_args = Namespace(**vars(args)).__dict__
     print_args['xbunker_password'] = '!REDACTED!'
     print_args['socialmediagirls_password'] = '!REDACTED!'
@@ -93,6 +93,45 @@ async def download_all(args: argparse.Namespace):
     logging.debug(f"Using jdownloader arguments: {jdownloader_args}")
     logging.debug(f"Using runtime arguments: {runtime_args}")
 
+    return auth_args, file_args, jdownloader_args, runtime_args
+
+
+async def download_all(auth_args: Dict, file_args: Dict, jdownloader_args: Dict, runtime_args: Dict, links: list,
+                       client: Client, SQL_helper: SQLHelper, threads: int):
+    xbunker_auth = AuthData(auth_args['xbunker_username'], auth_args['xbunker_password'])
+    socialmediagirls_auth = AuthData(auth_args['socialmediagirls_username'], auth_args['socialmediagirls_password'])
+    simpcity_auth = AuthData(auth_args['simpcity_username'], auth_args['simpcity_password'])
+    jdownloader_auth = AuthData(jdownloader_args['jdownloader_username'], jdownloader_args['jdownloader_password'])
+
+    skip_data = SkipData(runtime_args['skip_hosts'])
+    excludes = {'videos': runtime_args['exclude_videos'], 'images': runtime_args['exclude_images'],
+                'audio': runtime_args['exclude_audio'], 'other': runtime_args['exclude_other']}
+
+    content_object = await scrape(urls=links, client=client, file_args=file_args, jdownloader_args=jdownloader_args,
+                                  runtime_args=runtime_args, jdownloader_auth=jdownloader_auth,
+                                  simpcity_auth=simpcity_auth, socialmediagirls_auth=socialmediagirls_auth,
+                                  xbunker_auth=xbunker_auth, skip_data=skip_data)
+
+    if await content_object.is_empty():
+        logging.error('ValueError No links')
+        await log("No links found duing scraping, check passwords or that the urls are accessible", Fore.RED)
+        await log("This program does not currently support password protected albums.", Fore.RED)
+        exit(0)
+    await clear()
+
+    downloaders = await get_downloaders(content_object, excludes=excludes, SQL_helper=SQL_helper, client=client,
+                                        max_workers=threads, file_args=file_args, runtime_args=runtime_args)
+
+    for downloader in downloaders:
+        await downloader.download_content()
+
+
+async def director(args: argparse.Namespace):
+    await clear()
+    await log(f"We are running version {VERSION} of Cyberdrop Downloader", Fore.WHITE)
+
+    auth_args, file_args, jdownloader_args, runtime_args = await handle_args(args)
+
     input_file = file_args['input_file']
     if not input_file.is_file():
         input_file.touch()
@@ -110,48 +149,21 @@ async def download_all(args: argparse.Namespace):
 
     with open(input_file, "r", encoding="utf8") as f:
         links += await regex_links(f.read())
-
     links = list(filter(None, links))
 
     if not links:
         await log("No links found, check the URL.txt\nIf the link works in your web browser, "
                   "please open an issue ticket with me.", Fore.RED)
 
-    output_url_file = None
-
     if runtime_args['output_last_forum_post']:
-        output_url_file: Path = input_file.parent / "URLs_last_post.txt"
+        output_url_file = file_args['output_last_forum_post_file']
         if output_url_file.exists():
             output_url_file.unlink()
             output_url_file.touch()
 
-    xbunker_auth = AuthData(auth_args['xbunker_username'], auth_args['xbunker_password'])
-    socialmediagirls_auth = AuthData(auth_args['socialmediagirls_username'], auth_args['socialmediagirls_password'])
-    simpcity_auth = AuthData(auth_args['simpcity_username'], auth_args['simpcity_password'])
-    jdownloader_auth = AuthData(jdownloader_args['jdownloader_username'], jdownloader_args['jdownloader_password'])
-    skip_data = SkipData(runtime_args['skip_hosts'])
-    excludes = {'videos': runtime_args['exclude_videos'], 'images': runtime_args['exclude_images'],
-                'audio': runtime_args['exclude_audio'], 'other': runtime_args['exclude_other']}
-    content_object = await scrape(links, client, runtime_args['include_id'], jdownloader_args['jdownloader_enable'],
-                                  jdownloader_args['jdownloader_device'], xbunker_auth, socialmediagirls_auth,
-                                  simpcity_auth, jdownloader_auth, runtime_args['separate_posts'], skip_data,
-                                  [runtime_args['output_last_forum_post'], output_url_file])
+    await download_all(auth_args=auth_args, file_args=file_args, jdownloader_args=jdownloader_args,
+                       runtime_args=runtime_args, links=links, client=client, SQL_helper=SQL_helper, threads=threads)
 
-    if await content_object.is_empty():
-        logging.error('ValueError No links')
-        await log("No links found duing scraping, check passwords or that the urls are accessible", Fore.RED)
-        await log("This program does not currently support password protected albums.", Fore.RED)
-        exit(0)
-    await clear()
-
-    downloaders = await get_downloaders(content_object, folder=file_args['output_folder'],
-                                        attempts=runtime_args['attempts'],
-                                        disable_attempt_limit=runtime_args['disable_attempt_limit'],
-                                        max_workers=threads, excludes=excludes, SQL_helper=SQL_helper, client=client,
-                                        proxy=runtime_args['proxy'])
-
-    for downloader in downloaders:
-        await downloader.download_content(conn_timeout=runtime_args['connection_timeout'])
     logger.debug("Finished")
 
     partial_downloads = [str(f) for f in file_args['output_folder'].rglob("*.part") if f.is_file()]
@@ -167,17 +179,6 @@ async def download_all(args: argparse.Namespace):
         await log('There are partial downloads from this run, please re-run the program.')
 
 
-def silence_event_loop_closed(func):
-    @wraps(func)
-    def wrapper(self, *args, **kwargs):
-        try:
-            return func(self, *args, **kwargs)
-        except RuntimeError as e:
-            if str(e) != 'Event loop is closed':
-                raise
-    return wrapper
-
-
 def main(args=None):
     if not args:
         args = parse_args()
@@ -190,7 +191,7 @@ def main(args=None):
 
     try:
         loop = asyncio.get_event_loop()
-        loop.run_until_complete(download_all(args))
+        loop.run_until_complete(director(args))
         loop.run_until_complete(asyncio.sleep(5))
         loop.close()
     except RuntimeError:
@@ -198,8 +199,6 @@ def main(args=None):
 
 
 if __name__ == '__main__':
-    print("""
-    STOP! If you're just trying to download files, check the README.md file for instructions.
-    If you're developing this project, use start.py instead.
-    """)
+    print("""STOP! If you're just trying to download files, check the README.md file for instructions.
+    If you're developing this project, use start.py instead.""")
     exit()

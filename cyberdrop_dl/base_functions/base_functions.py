@@ -32,7 +32,7 @@ FILE_FORMATS = {
     },
     'Other': {
         '.json', '.torrent', '.zip', '.rar',
-        '.7z', '.torrent', '.psd', 'pdf',
+        '.7z', '.torrent', '.psd', '.pdf',
     }
 }
 

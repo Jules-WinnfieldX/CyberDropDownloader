@@ -126,12 +126,12 @@ class DownloadSession:
             content_type = resp.headers.get('Content-Type')
             return content_type.lower()
 
-    async def download_file(self, url: URL, referer: str, current_throttle: int, range: str, original_filename: str,
+    async def download_file(self, url: URL, referer: str, current_throttle: int, range_num: str, original_filename: str,
                             filename: str, temp_file: str, resume_point: int, show_progress: bool,
                             File_Lock: FileLock, folder: Path, title: str, proxy: str):
         headers = {'Referer': referer, 'user-agent': self.client.user_agent}
-        if range:
-            headers['Range'] = range
+        if range_num:
+            headers['Range'] = range_num
         await throttle(self, current_throttle, url.host)
         async with self.client_session.get(url, headers=headers, ssl=self.client.ssl_context,
                                            raise_for_status=True, proxy=proxy) as resp:

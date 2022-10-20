@@ -1,4 +1,5 @@
 import asyncio
+from typing import Dict
 
 import aiofiles
 from myjdapi import myjdapi
@@ -27,19 +28,19 @@ from ..crawlers.SimpCity_Spider import SimpCityCrawler
 from ..crawlers.XBunker_Spider import XBunkerCrawler
 from ..crawlers.XBunkr_Spider import XBunkrCrawler
 from ..base_functions.base_functions import log
-from ..base_functions.data_classes import CascadeItem, SkipData
+from ..base_functions.data_classes import CascadeItem, SkipData, AuthData
 from ..client.rate_limiting import AsyncRateLimiter
 
 
-class ScrapeMapper():
-    def __init__(self, *, include_id=False, jdownloader_enable=False, jdownloader_device=None, xbunker_auth=None,
-                 socialmediagirls_auth=None, simpcity_auth=None, jdownloader_auth=None, separate_posts=False,
-                 skip_data: SkipData, client: Client, output_last: list):
-        self.include_id = include_id
-        self.jdownloader_enable = jdownloader_enable
-        self.jdownloader_device = jdownloader_device
-        self.separate_posts = separate_posts
-        self.output_last = output_last
+class ScrapeMapper:
+    def __init__(self, *, client: Client, file_args: Dict, jdownloader_args: Dict, runtime_args: Dict,
+                 jdownloader_auth: AuthData, simpcity_auth: AuthData, socialmediagirls_auth: AuthData,
+                 xbunker_auth: AuthData, skip_data: SkipData):
+        self.include_id = runtime_args['include_id']
+        self.jdownloader_enable = jdownloader_args['jdownloader_enable']
+        self.jdownloader_device = jdownloader_args['jdownloader_device']
+        self.separate_posts = runtime_args['separate_posts']
+        self.output_last = [runtime_args['output_last_forum_post'], file_args['output_last_forum_post_file']]
         self.xbunker_auth = xbunker_auth
         self.socialmediagirls_auth = socialmediagirls_auth
         self.simpcity_auth = simpcity_auth
@@ -76,11 +77,11 @@ class ScrapeMapper():
         self.forum_limiter = asyncio.Semaphore(4)
         self.semaphore = asyncio.Semaphore(1)
         self.mapping = {"anonfiles.com": self.Anonfiles, "bayfiles": self.Anonfiles, "xbunkr": self.XBunkr,
-                        "bunkr": self.Bunkr, "coomer.party": self.coomer, "cyberdrop": self.Cyberdrop,
-                        "cyberfile.is": self.cyberfile, "erome.com": self.Erome, "gfycat.com": self.gfycat,
+                        "bunkr": self.Bunkr, "coomer.party": self.Coomer, "cyberdrop": self.Cyberdrop,
+                        "cyberfile.is": self.Cyberfile, "erome.com": self.Erome, "gfycat.com": self.Gfycat,
                         "gofile.io": self.GoFile, "img.kiwi": self.ShareX, "jpg.church": self.ShareX,
                         "kemono.party": self.Kemono, "pixeldrain.com": self.Pixeldrain, "pixl.is": self.ShareX,
-                        "postimg": self.Postimg, "redgifs.com": self.redgifs, "rule34.xxx": self.Rule34,
+                        "postimg": self.Postimg, "redgifs.com": self.Redgifs, "rule34.xxx": self.Rule34,
                         "saint.to": self.Saint, "socialmediagirls": self.SocialMediaGirls,
                         "simpcity": self.SimpCity, "xbunker": self.XBunker}
 
@@ -115,7 +116,7 @@ class ScrapeMapper():
         await self.Cascade.add_albums(domain_obj)
         await cyberdrop_session.exit_handler()
 
-    async def coomer(self, url: URL, title=None):
+    async def Coomer(self, url: URL, title=None):
         coomer_session = Session(self.client)
         if not self.coomer_crawler:
             self.coomer_crawler = CoomerCrawler(include_id=self.include_id)
@@ -125,7 +126,7 @@ class ScrapeMapper():
         await self.Cascade.add_albums(domain_obj)
         await coomer_session.exit_handler()
 
-    async def cyberfile(self, url: URL, title=None):
+    async def Cyberfile(self, url: URL, title=None):
         cyberfile_session = Session(self.client)
         if not self.cyberfile_crawler:
             self.cyberfile_crawler = CyberfileCrawler()
@@ -151,7 +152,7 @@ class ScrapeMapper():
         if not self.gofile_crawler:
             try:
                 self.gofile_crawler = GofileCrawler()
-            except:
+            except SystemExit:
                 await log("Couldn't start the GoFile crawler")
                 return
         domain_obj = await self.gofile_crawler.fetch(gofile_session, url)
@@ -170,7 +171,7 @@ class ScrapeMapper():
         await self.Cascade.add_albums(domain_obj)
         await kemono_session.exit_handler()
 
-    async def gfycat(self, url: URL, title=None):
+    async def Gfycat(self, url: URL, title=None):
         gfycat_session = Session(self.client)
         if not self.gfycat_crawler:
             self.gfycat_crawler = GfycatCrawler()
@@ -202,7 +203,7 @@ class ScrapeMapper():
         await self.Cascade.add_albums(domain_obj)
         await postimg_session.exit_handler()
 
-    async def redgifs(self, url: URL, title=None):
+    async def Redgifs(self, url: URL, title=None):
         redgifs_session = Session(self.client)
         if not self.redgifs_crawler:
             self.redgifs_crawler = RedGifsCrawler()

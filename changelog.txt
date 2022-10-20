@@ -31,3 +31,6 @@
 
 3.4.25
 - add pdf support
+
+3.4.26
+- code reorganization
