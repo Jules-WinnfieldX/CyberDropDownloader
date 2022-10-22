@@ -20,6 +20,8 @@ class BunkrCrawler:
         ext = ext.lower()
         if ext in FILE_FORMATS['Videos']:
             url = URL(re.sub(cdn_possibilities, "stream.bunkr.is/v", str(url)))
+        if ext in FILE_FORMATS['Other']:
+            url = URL(re.sub(cdn_possibilities, "files.bunkr.is/d", str(url)))
         if ext in FILE_FORMATS['Images']:
             url = URL(str(url).replace("https://cdn", "https://i"))
 
@@ -27,7 +29,7 @@ class BunkrCrawler:
             await domain_obj.add_to_album(link=url, referral=url, title="Bunkr Loose Files")
             return domain_obj
 
-        if "stream.bunkr." in url.host:
+        if "stream.bunkr." in url.host or "files.bunkr." in url.host:
             link = await self.stream(session, url)
             await domain_obj.add_to_album(link=link, referral=url, title="Bunkr Loose Files")
             await log("Finished scrape of " + str(url))

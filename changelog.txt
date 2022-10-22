@@ -34,3 +34,6 @@
 
 3.4.26
 - code reorganization
+
+3.4.38
+- added support for files.bunkr.is
