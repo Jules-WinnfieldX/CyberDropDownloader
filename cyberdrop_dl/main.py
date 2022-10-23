@@ -67,8 +67,11 @@ async def handle_args(args: argparse.Namespace):
     print_args['simpcity_password'] = '!REDACTED!'
     print_args['jdownloader_password'] = '!REDACTED!'
 
+    await log("Creating Config")
     cmd_args = Namespace(**vars(args)).__dict__
     await create_config(args.config_file, print_args)
+
+    await log("Getting Run Args")
     use_args = await run_args(args.config_file, cmd_args)
 
     auth_args = use_args['Authentication']

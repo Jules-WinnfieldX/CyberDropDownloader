@@ -118,9 +118,11 @@ async def check_direct(url: URL):
 
 async def create_config(config: Path, passed_args=None, remake=None):
     if config.is_file() and not remake:
+        await log("Validating Config")
         await validate_config(config)
         return
 
+    await log("Creating Config File")
     config_data = config_default
     if passed_args:
         for arg in authentication_args:
@@ -169,7 +171,7 @@ async def validate_config(config: Path):
     except KeyError:
         config.unlink()
         await log("Config was malformed, recreating.")
-        await create_config(config)
+        await create_config(config, None, True)
 
 
 async def run_args(config: Path, cmd_arg: Dict):
@@ -179,6 +181,7 @@ async def run_args(config: Path, cmd_arg: Dict):
     if data['Apply_Config']:
         return data
 
+    await log("Gathering Args")
     config_data = config_default[0]["Configuration"]
     for arg in authentication_args:
         if arg in cmd_arg.keys():
