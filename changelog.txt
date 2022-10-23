@@ -35,5 +35,8 @@
 3.4.26
 - code reorganization
 
-3.4.38
+3.4.28
 - added support for files.bunkr.is
+
+3.4.31
+- added more line output during config creation/validation
