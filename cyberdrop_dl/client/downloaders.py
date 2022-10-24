@@ -271,7 +271,7 @@ class Downloader:
                 await self.download_file(url, referral=referral, filename=filename, session=session,
                                          show_progress=show_progress)
         except Exception:
-            await log(f"Error attempting {url}")
+            await log(f"\nError attempting {url}")
 
     async def download_all(self, album_obj: AlbumItem, session: DownloadSession, show_progress: bool = True) -> None:
         """Download the data from all given links and store them into corresponding files."""
