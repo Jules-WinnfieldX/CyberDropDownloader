@@ -74,7 +74,13 @@ class BunkrCrawler:
             soup = await session.get_BS4(url)
             json_obj = json.loads(soup.select_one("script[id=__NEXT_DATA__]").text)
             if not json_obj['props']['pageProps']:
-                raise Exception("Couldn't get link from HTML")
+                try:
+                    build_id = json.loads(soup.select_one("script[id=__NEXT_DATA__]").get_text())
+                    json_fetch = URL("https://" + url.host + "/_next/data/" + build_id['buildId'] + url.path + '.json')
+                    text = await session.get_text(json_fetch)
+                    json_obj = json.loads(text)['pageProps']
+                except:
+                    raise Exception("Couldn't get link from HTML")
             link = URL(json_obj['props']['pageProps']['file']['mediafiles'] + '/' + json_obj['props']['pageProps']['file']['name'])
             return link
 
