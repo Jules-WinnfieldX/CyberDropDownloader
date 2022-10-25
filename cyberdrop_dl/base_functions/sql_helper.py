@@ -14,23 +14,26 @@ class SQLHelper:
         atexit.register(self.exit_handler)
 
     async def sql_initialize(self):
-        if os.path.exists("download_history_size_based.sqlite"):
-            os.remove("download_history_size_based.sqlite")
         self.conn = sqlite3.connect(self.download_history)
         self.curs = self.conn.cursor()
+
+        await self.create_tables()
+        await self.pre_allocate()
+
+        await self.check_columns()
+
+    async def create_tables(self):
         create_table_query = """CREATE TABLE IF NOT EXISTS downloads (
-                                    path TEXT,
-                                    downloaded_filename TEXT,
-                                    completed INTEGER NOT NULL,
-                                    PRIMARY KEY (path)
-                                );"""
+                                            path TEXT,
+                                            downloaded_filename TEXT,
+                                            completed INTEGER NOT NULL,
+                                            PRIMARY KEY (path)
+                                        );"""
         create_temp_download_name_query = """CREATE TABLE IF NOT EXISTS downloads_temp (
-                                                downloaded_filename TEXT
-                                            );"""
+                                                        downloaded_filename TEXT
+                                                    );"""
         temp_truncate_query = """DELETE FROM downloads_temp;"""
-        pre_alloc = "CREATE TABLE t(x);"
-        pre_alloc2 = "INSERT INTO t VALUES(zeroblob(50*1024*1024));"  # 50 mb
-        drop_pre = "DROP TABLE t;"
+
         self.curs.execute(create_table_query)
         self.conn.commit()
         self.curs.execute(create_temp_download_name_query)
@@ -38,16 +41,21 @@ class SQLHelper:
         self.curs.execute(temp_truncate_query)
         self.conn.commit()
 
+    async def pre_allocate(self):
+        pre_alloc = "CREATE TABLE IF NOT EXISTS t(x);"
+        pre_alloc2 = "INSERT INTO t VALUES(zeroblob(50*1024*1024));"  # 50 mb
+        drop_pre = "DROP TABLE t;"
         check_prealloc = "PRAGMA freelist_count;"
+
         self.curs.execute(check_prealloc)
         free = self.curs.fetchone()[0]
         if free <= 1024:
             self.curs.execute(pre_alloc)
+            self.conn.commit()
             self.curs.execute(pre_alloc2)
             self.conn.commit()
             self.curs.execute(drop_pre)
             self.conn.commit()
-        await self.check_columns()
 
     async def check_columns(self):
         self.curs.execute("""SELECT COUNT(*) AS CNTREC FROM pragma_table_info('downloads') WHERE 

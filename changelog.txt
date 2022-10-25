@@ -43,3 +43,6 @@
 
 3.5.4
 - Fix skip sites
+
+3.5.5
+- Fix bug with pre-allocation
