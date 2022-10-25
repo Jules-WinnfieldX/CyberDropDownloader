@@ -71,6 +71,7 @@ class BunkrCrawler:
 
     async def stream(self, session: Session, url: URL):
         try:
+            await log("Starting scrape of " + str(url))
             soup = await session.get_BS4(url)
             json_obj = json.loads(soup.select_one("script[id=__NEXT_DATA__]").text)
             if not json_obj['props']['pageProps']:

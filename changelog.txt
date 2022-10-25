@@ -40,3 +40,6 @@
 
 3.4.31
 - added more line output during config creation/validation
+
+3.5.4
+- Fix skip sites

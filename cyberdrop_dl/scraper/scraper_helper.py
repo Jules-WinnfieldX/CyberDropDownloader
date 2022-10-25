@@ -314,10 +314,10 @@ class ScrapeMapper:
             return
         for key, value in self.mapping.items():
             if key in url_to_map.host:
-                if key not in self.skip_data.sites:
-                    await value(url=url_to_map, title=title)
-                else:
+                if any(site in key for site in self.skip_data.sites):
                     await log("Skipping scrape of " + str(url_to_map))
+                else:
+                    await value(url=url_to_map, title=title)
                 return
 
         if self.jdownloader_enable:
