@@ -1,3 +1,5 @@
+import asyncio
+
 from yarl import URL
 
 from ..base_functions.base_functions import log, logger, make_title_safe
@@ -6,8 +8,9 @@ from ..client.client import Session
 
 
 class CoomerCrawler:
-    def __init__(self, *, include_id=False):
+    def __init__(self, *, include_id=False, scraping_mapper):
         self.include_id = include_id
+        self.scraping_mapper = scraping_mapper
 
     async def fetch(self, session: Session, url: URL):
         await log("Starting scrape of " + str(url))
@@ -79,6 +82,15 @@ class CoomerCrawler:
             for download in downloads:
                 download_link = URL("https://coomer.party" + download.get('href'))
                 results.append([title, download_link, url])
+
+            text_content = soup.select("div[class=post__content] a")
+            tasks = []
+            for content in text_content:
+                link = URL(content.get('href'))
+                tasks.append(self.scraping_mapper.map_url(link, title))
+            await asyncio.gather(*tasks)
+
+            return results
 
             return results
 

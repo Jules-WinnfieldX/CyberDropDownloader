@@ -53,3 +53,6 @@
 3.5.7
 - Close client session after use instead of relying on deletion.
 - Fix jpg.church infinite scroll/not getting all user albums.
+
+3.5.8
+- Follow links on Kemono/Coomer
