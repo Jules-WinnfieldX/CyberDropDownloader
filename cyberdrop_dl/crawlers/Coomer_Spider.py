@@ -8,9 +8,10 @@ from ..client.client import Session
 
 
 class CoomerCrawler:
-    def __init__(self, *, include_id=False, scraping_mapper):
+    def __init__(self, *, include_id=False, scraping_mapper, separate_posts=False):
         self.include_id = include_id
         self.scraping_mapper = scraping_mapper
+        self.separate_posts = separate_posts
 
     async def fetch(self, session: Session, url: URL):
         await log("Starting scrape of " + str(url))
@@ -68,10 +69,14 @@ class CoomerCrawler:
             soup = await session.get_BS4(url)
             results = []
 
-            if title:
-                title = title + '/' + await make_title_safe(soup.select_one("h1[class=post__title]").text.replace('\n', '').replace("..", ""))
+            if self.separate_posts:
+                if title:
+                    title = title + '/' + await make_title_safe(soup.select_one("h1[class=post__title]").text.replace('\n', '').replace("..", ""))
+                else:
+                    title = await make_title_safe(soup.select_one("h1[class=post__title]").text.replace('\n', '').replace("..", ""))
             else:
-                title = await make_title_safe(soup.select_one("h1[class=post__title]").text.replace('\n', '').replace("..", ""))
+                if not title:
+                    title = await make_title_safe(soup.select_one("h1[class=post__title]").text.replace('\n', '').replace("..", ""))
 
             images = soup.select('a[class="fileThumb"]')
             for image in images:
@@ -89,8 +94,6 @@ class CoomerCrawler:
                 link = URL(content.get('href'))
                 tasks.append(self.scraping_mapper.map_url(link, title))
             await asyncio.gather(*tasks)
-
-            return results
 
             return results
 

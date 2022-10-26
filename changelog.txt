@@ -56,3 +56,6 @@
 
 3.5.8
 - Follow links on Kemono/Coomer
+
+3.5.9
+- Change Kemono/Coomer to not separate posts unless flag is set.

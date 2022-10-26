@@ -119,7 +119,7 @@ class ScrapeMapper:
     async def Coomer(self, url: URL, title=None):
         coomer_session = Session(self.client)
         if not self.coomer_crawler:
-            self.coomer_crawler = CoomerCrawler(include_id=self.include_id, scraping_mapper=self)
+            self.coomer_crawler = CoomerCrawler(include_id=self.include_id, scraping_mapper=self, separate_posts=self.separate_posts)
         domain_obj = await self.coomer_crawler.fetch(coomer_session, url)
         if title:
             await domain_obj.append_title(title)
@@ -164,7 +164,7 @@ class ScrapeMapper:
     async def Kemono(self, url: URL, title=None):
         kemono_session = Session(self.client)
         if not self.kemono_crawler:
-            self.kemono_crawler = KemonoCrawler(include_id=self.include_id, scraping_mapper=self)
+            self.kemono_crawler = KemonoCrawler(include_id=self.include_id, scraping_mapper=self, separate_posts=self.separate_posts)
         domain_obj = await self.kemono_crawler.fetch(kemono_session, url)
         if title:
             await domain_obj.append_title(title)
