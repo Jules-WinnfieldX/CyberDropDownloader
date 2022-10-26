@@ -49,3 +49,7 @@
 
 3.5.6
 - Fix support for links with apostrophes
+
+3.5.7
+- Close client session after use instead of relying on deletion.
+- Fix jpg.church infinite scroll/not getting all user albums.

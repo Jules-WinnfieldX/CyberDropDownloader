@@ -118,11 +118,11 @@ async def check_direct(url: URL):
 
 async def create_config(config: Path, passed_args=None, remake=None):
     if config.is_file() and not remake:
-        await log("Validating Config")
+        logging.debug("Validating Config")
         await validate_config(config)
         return
 
-    await log("Creating Config File")
+    logging.debug("Creating Config File")
     config_data = config_default
     if passed_args:
         for arg in authentication_args:
@@ -160,7 +160,7 @@ async def validate_config(config: Path):
 
         if recreate:
             config.unlink()
-            await log("Recreating Config")
+            logging.debug("Recreating Config")
 
             args = {}
             args_list = [data['Authentication'], data['Files'], data['JDownloader'], data['Runtime']]
@@ -181,7 +181,7 @@ async def run_args(config: Path, cmd_arg: Dict):
     if data['Apply_Config']:
         return data
 
-    await log("Gathering Args")
+    logging.debug("Gathering Args")
     config_data = config_default[0]["Configuration"]
     for arg in authentication_args:
         if arg in cmd_arg.keys():

@@ -284,6 +284,7 @@ class Downloader:
         """Download the content of all links and save them as files."""
         session = DownloadSession(self.client, conn_timeout)
         await self.download_all(self.album_obj, session, show_progress=show_progress)
+        await session.client_session.close()
         self.SQL_helper.conn.commit()
 
 

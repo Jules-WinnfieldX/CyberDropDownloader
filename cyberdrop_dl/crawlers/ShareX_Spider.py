@@ -45,6 +45,16 @@ class ShareXCrawler:
             for album in albums:
                 album_url = URL(album.get('href'))
                 results.extend(result for result in await self.parse(session, album_url))
+
+            next_page = soup.select_one('li.pagination-next a')
+            if not next_page:
+                next_page = soup.select_one('a[data-pagination=next]')
+            if next_page is not None:
+                next_page = next_page.get('href')
+                if next_page is not None:
+                    next_page = URL(next_page)
+                    results.extend(result for result in await self.get_albums(session, next_page))
+
         except Exception as e:
             logger.debug("Error encountered while handling %s", str(url), exc_info=True)
             await log("Error scraping " + str(url))
@@ -93,9 +103,8 @@ class ShareXCrawler:
                 titlep2 = url.name
                 title = title + " - " + titlep2
             title = await make_title_safe(title.replace(r"\n", "").strip())
+            results.extend(result for result in await self.get_list_links(session, url, title))
 
-            list_recent = URL(soup.select_one("a[id=list-most-recent-link]").get('href'))
-            results.extend(result for result in await self.get_list_links(session, list_recent, title))
         except Exception as e:
             logger.debug("Error encountered while handling %s", str(url), exc_info=True)
             await log("Error scraping " + str(url))
@@ -115,6 +124,8 @@ class ShareXCrawler:
                 link = link.with_name(link.name.replace('.md.', '.').replace('.th.', '.'))
                 results.append({'url': link, 'title': title, 'referral': url, 'cookies': ''})
             next_page = soup.select_one('li.pagination-next a')
+            if not next_page:
+                next_page = soup.select_one('a[data-pagination=next]')
             if next_page is not None:
                 next_page = next_page.get('href')
                 if next_page is not None:
@@ -126,7 +137,7 @@ class ShareXCrawler:
             logger.debug(e)
         return results
 
-    async def parse(self, session: Session, url: URL, og_title=None):
+    async def parse(self, session: Session, url: URL, og_title=None, page=None, prior_result=None):
         results = []
         try:
             soup = await session.get_BS4(url)
