@@ -16,6 +16,7 @@ from ..crawlers.Cyberfile_Spider import CyberfileCrawler
 from ..crawlers.Erome_Spider import EromeCrawler
 from ..crawlers.Gfycat_Spider import GfycatCrawler
 from ..crawlers.GoFile_Spider import GofileCrawler
+from ..crawlers.HGameCG_Spider import HGameCGCrawler
 from ..crawlers.Kemono_Spider import KemonoCrawler
 from ..crawlers.Pixeldrain_Spider import PixelDrainCrawler
 from ..crawlers.Postimg_Spider import PostImgCrawler
@@ -36,6 +37,7 @@ class ScrapeMapper:
     def __init__(self, *, client: Client, file_args: Dict, jdownloader_args: Dict, runtime_args: Dict,
                  jdownloader_auth: AuthData, simpcity_auth: AuthData, socialmediagirls_auth: AuthData,
                  xbunker_auth: AuthData, skip_data: SkipData):
+
         self.include_id = runtime_args['include_id']
         self.jdownloader_enable = jdownloader_args['jdownloader_enable']
         self.jdownloader_device = jdownloader_args['jdownloader_device']
@@ -58,6 +60,7 @@ class ScrapeMapper:
         self.erome_crawler = None
         self.gfycat_crawler = None
         self.gofile_crawler = None
+        self.hgamecg_crawler = None
         self.kemono_crawler = None
         self.pixeldrain_crawler = None
         self.postimg_crawler = None
@@ -79,10 +82,10 @@ class ScrapeMapper:
         self.mapping = {"anonfiles.com": self.Anonfiles, "bayfiles": self.Anonfiles, "xbunkr": self.XBunkr,
                         "bunkr": self.Bunkr, "coomer.party": self.Coomer, "cyberdrop": self.Cyberdrop,
                         "cyberfile.is": self.Cyberfile, "erome.com": self.Erome, "gfycat.com": self.Gfycat,
-                        "gofile.io": self.GoFile, "img.kiwi": self.ShareX, "jpg.church": self.ShareX,
-                        "kemono.party": self.Kemono, "pixeldrain.com": self.Pixeldrain, "pixl.is": self.ShareX,
-                        "postimg": self.Postimg, "redgifs.com": self.Redgifs, "rule34.xxx": self.Rule34,
-                        "saint.to": self.Saint, "socialmediagirls": self.SocialMediaGirls,
+                        "gofile.io": self.GoFile, "hgamecg.com": self.HGameCG, "img.kiwi": self.ShareX,
+                        "jpg.church": self.ShareX, "kemono.party": self.Kemono, "pixeldrain.com": self.Pixeldrain,
+                        "pixl.is": self.ShareX, "postimg": self.Postimg, "redgifs.com": self.Redgifs,
+                        "rule34.xxx": self.Rule34, "saint.to": self.Saint, "socialmediagirls": self.SocialMediaGirls,
                         "simpcity": self.SimpCity, "xbunker": self.XBunker}
 
     async def Anonfiles(self, url: URL, title=None):
@@ -119,7 +122,8 @@ class ScrapeMapper:
     async def Coomer(self, url: URL, title=None):
         coomer_session = Session(self.client)
         if not self.coomer_crawler:
-            self.coomer_crawler = CoomerCrawler(include_id=self.include_id, scraping_mapper=self, separate_posts=self.separate_posts)
+            self.coomer_crawler = CoomerCrawler(include_id=self.include_id, scraping_mapper=self,
+                                                separate_posts=self.separate_posts)
         domain_obj = await self.coomer_crawler.fetch(coomer_session, url)
         if title:
             await domain_obj.append_title(title)
@@ -161,10 +165,21 @@ class ScrapeMapper:
         await self.Cascade.add_albums(domain_obj)
         await gofile_session.exit_handler()
 
+    async def HGameCG(self, url: URL, title=None):
+        hgamecg_session = Session(self.client)
+        if not self.hgamecg_crawler:
+            self.hgamecg_crawler = HGameCGCrawler()
+        domain_obj = await self.hgamecg_crawler.fetch(hgamecg_session, url)
+        if title:
+            await domain_obj.append_title(title)
+        await self.Cascade.add_albums(domain_obj)
+        await hgamecg_session.exit_handler()
+
     async def Kemono(self, url: URL, title=None):
         kemono_session = Session(self.client)
         if not self.kemono_crawler:
-            self.kemono_crawler = KemonoCrawler(include_id=self.include_id, scraping_mapper=self, separate_posts=self.separate_posts)
+            self.kemono_crawler = KemonoCrawler(include_id=self.include_id, scraping_mapper=self,
+                                                separate_posts=self.separate_posts)
         domain_obj = await self.kemono_crawler.fetch(kemono_session, url)
         if title:
             await domain_obj.append_title(title)

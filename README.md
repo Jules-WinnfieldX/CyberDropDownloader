@@ -1,7 +1,7 @@
 # `cyberdrop-dl`
 **Bulk downloader for multiple file hosts** 
 
-The latest version of the program is 3.5.9
+The latest version of the program is 3.5.11
 
 <a href="https://www.buymeacoffee.com/juleswinnft" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
 
@@ -18,6 +18,7 @@ The latest version of the program is 3.5.9
 | Cyberfile        | folders: cyberfile.is/folder/... <br> shared: cyberfile.is/shared/... <br> Direct: cyberfile.is/...                                                                                                                                    | 
 | Erome            | Albums: erome.com/a/...                                                                                                                                                                                                                |
 | GoFile           | Albums: gofile.io/d/...                                                                                                                                                                                                                |
+| HGameCG          | Albums: hgamecg.com/.../index.html                                                                                                                                                                                                     |
 | IMG.Kiwi         | Albums: img.kiwi/album/... <br> Direct Images: img.kiwi/image/... <br> User Profile: img.kiwi/#USER# <br> All User Albums: img.kiwi/#USER#/albums                                                                                      |
 | jpg.church       | Albums: jpg.church/album/... <br> Direct Images: jpg.church/image/... <br> User Profile: jpg.church/#USER# <br> All User Albums: jpg.church/#USER#/albums                                                                              |
 | Kemono.party     | Profiles: kemono.party/... <br> Thumbnail Links: kemono.party/thumbnail/... <br> Data Links: kemono.party/data/... <br> Posts: kemono.party/.../post/...                                                                               |
@@ -41,28 +42,21 @@ You can get Python from here: https://www.python.org/downloads/
 Make sure you tick the check box for "Add python to path"
 ![alt text](https://simp2.jpg.church/PATHe426c23371048def.png)
 
-`cyberdrop-dl` will take the title of the archive and create a new folder for it, and download all of the available media to that folder.
-It'll repeat that for every link you give it.
-
-# Installation
-
 Mac users will also likely need to open terminal and execute the following command: `xcode-select --install`
 
-## Script method
+# Script Method
 Go to the [releases page](https://github.com/Jules-WinnfieldX/CyberDropDownloader/releases) and download the Cyberdrop_DL.zip file. Extract it to wherever you want the program to be.
-## Using `pip`
-Once Python is installed, run `pip3 install cyberdrop-dl`.
 
-Advanced users may want to use virtual environments (via `pipx`), but it's **NOT** required.
-
-# Usage
-
-## Script method
 Put the links in the URLs.txt file then run `Start Windows.bat` (Windows) or `Start Mac.command` (OS X) or `Start Linux.sh` (Linux).
 
 ** Mac users will need to run the command `chmod +x 'Start Mac.command'` to make the file executable.
 
-## Pip install method
+# CLI Method
+
+Run `pip3 install cyberdrop-dl` in command prompt/terminal
+
+Advanced users may want to use virtual environments (via `pipx`), but it's **NOT** required.
+
 1. Run `cyberdrop-dl` once to generate an empty `URLs.txt` file.
 2. Copy and paste your links into `URLs.txt`.
 Each link you add has to go on its own line (paste link, press enter, repeat).
@@ -70,7 +64,7 @@ Each link you add has to go on its own line (paste link, press enter, repeat).
 It will begin to download everything.
 4. Enjoy!
 
-## Custom way (Pip install above)
+## Arguments
 If you know what you're doing, you can use the available options to adjust how the program runs.
 ```
 $ cyberdrop-dl -h
@@ -117,6 +111,6 @@ optional arguments:
   --ratelimit               this will add a ratelimiter to requests made in the program, the number you provide is in seconds
   --throttle                this is a throttle between requests during the downloading phase, the number is in seconds
 ```
---skip can use: "anonfiles", "bayfiles", "bunkr", "coomer.party", "cyberdrop", "cyberfile", "erome", "gfycat", "gofile",
+--skip can use: "anonfiles", "bayfiles", "bunkr", "coomer.party", "cyberdrop", "cyberfile", "erome", "gfycat", "gofile", "hgamescg",
         "jpg.church", "kemono.party", "pixeldrain", "pixl.is", "postimg.cc", "redgifs", "saint", "socialmediagirls", "simpcity", "xbunker", "xbunkr"
 
