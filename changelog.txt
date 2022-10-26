@@ -46,3 +46,6 @@
 
 3.5.5
 - Fix bug with pre-allocation
+
+3.5.6
+- Fix support for links with apostrophes

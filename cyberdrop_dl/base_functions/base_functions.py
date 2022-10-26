@@ -86,7 +86,7 @@ async def purge_dir(dirname, in_place=True):
 
 async def regex_links(urls) -> list:
     all_links = [x.group().replace(".md.", ".") for x in re.finditer(
-        r"(?:http.*?)(?=('|$|\n|\r\n|\r|\s|\"|\[/URL]|]\[|\[/img]))", urls)]
+        r"(?:http.*?)(?=($|\n|\r\n|\r|\s|\"|\[/URL]|]\[|\[/img]))", urls)]
     yarl_links = []
     for link in all_links:
         yarl_links.append(URL(link))
