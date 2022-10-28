@@ -85,5 +85,5 @@ async def throttle(self, delay: int, host: str) -> None:
         remaining = delay - elapsed + 0.25
 
         log_string = f'\nDelaying request to {host} for {remaining:.2f} seconds.'
-        logger.debug(log_string)
+        # logger.debug(log_string)
         await asyncio.sleep(remaining)
