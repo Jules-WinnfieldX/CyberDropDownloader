@@ -196,7 +196,6 @@ def main(args=None):
         loop = asyncio.get_event_loop()
         loop.run_until_complete(director(args))
         loop.run_until_complete(asyncio.sleep(5))
-        loop.close()
     except RuntimeError:
         pass
 
