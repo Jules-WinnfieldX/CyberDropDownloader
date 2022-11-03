@@ -75,7 +75,7 @@ class ScrapeMapper:
 
         self.jdownloader_agent = None
 
-        self.jpgchurch_limiter = AsyncRateLimiter(19)
+        self.jpgchurch_limiter = AsyncRateLimiter(10)
         self.bunkr_limiter = AsyncRateLimiter(15)
         self.forum_limiter = asyncio.Semaphore(4)
         self.semaphore = asyncio.Semaphore(1)

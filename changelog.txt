@@ -62,3 +62,6 @@
 
 3.5.11
 - Add hgamecg support
+
+3.5.17
+- Reduce limiter for jpg.church to try and reduce timeouts (524 errors).
