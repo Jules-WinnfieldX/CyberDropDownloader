@@ -76,7 +76,8 @@ class ScrapeMapper:
 
         self.jdownloader_agent = None
 
-        self.jpgchurch_limiter = AsyncRateLimiter(10)
+        self.jpgchurch_limiter = AsyncRateLimiter(15)
+        self.jpgchurch_semaphore = asyncio.Semaphore(5)
         self.bunkr_limiter = AsyncRateLimiter(15)
         self.forum_limiter = asyncio.Semaphore(4)
         self.semaphore = asyncio.Semaphore(1)
@@ -258,8 +259,9 @@ class ScrapeMapper:
         if not self.sharex_crawler:
             self.sharex_crawler = ShareXCrawler(include_id=self.include_id)
         if "jpg.church" in url.host and sharex_session.client.ratelimit > 19:
-            async with self.jpgchurch_limiter:
-                domain_obj = await self.sharex_crawler.fetch(sharex_session, url)
+            async with self.jpgchurch_semaphore:
+                async with self.jpgchurch_limiter:
+                    domain_obj = await self.sharex_crawler.fetch(sharex_session, url)
         else:
             domain_obj = await self.sharex_crawler.fetch(sharex_session, url)
         if title:

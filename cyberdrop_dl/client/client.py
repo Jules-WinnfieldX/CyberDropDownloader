@@ -33,9 +33,8 @@ class Session:
         self.client = client
         self.rate_limiter = AsyncRateLimiter(self.client.ratelimit)
         self.headers = {"user-agent": client.user_agent}
-        self.timeouts = aiohttp.ClientTimeout(5 * 60, 15)
-        self.client_session = aiohttp.ClientSession(headers=self.headers, raise_for_status=True,
-                                                    cookie_jar=self.client.cookies, timeout=self.timeouts)
+        self.timeouts = aiohttp.ClientTimeout(5 * 60, 30)
+        self.client_session = aiohttp.ClientSession(headers=self.headers, raise_for_status=True, cookie_jar=self.client.cookies, timeout=self.timeouts)
 
     async def get_BS4(self, url: URL):
         async with self.client.simultaneous_session_limit:

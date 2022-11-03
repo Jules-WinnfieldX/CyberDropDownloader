@@ -68,3 +68,6 @@
 
 3.5.19
 - Added error statement debug for jdownloader connection.
+
+3.5.21
+- Attempt fixes for login issue and JPG.Church
