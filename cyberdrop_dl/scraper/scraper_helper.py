@@ -1,4 +1,5 @@
 import asyncio
+import logging
 from typing import Dict
 
 import aiofiles
@@ -343,7 +344,8 @@ class ScrapeMapper:
                     raise Exception("Blacklisted META")
                 await log("Sending " + str(url_to_map) + " to JDownloader")
                 self.jdownloader_agent.linkgrabber.add_links([{"autostart": False, "links": str(url_to_map)}])
-            except:
+            except Exception as e:
+                logging.debug(e)
                 await log("Failed to send " + str(url_to_map) + " to JDownloader")
         else:
             await log(str(url_to_map) + " is not supported currently.")
