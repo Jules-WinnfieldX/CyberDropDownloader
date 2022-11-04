@@ -71,3 +71,6 @@
 
 3.5.21
 - Attempt fixes for login issue and JPG.Church
+
+3.5.22
+- One more jdownloader exception print.
