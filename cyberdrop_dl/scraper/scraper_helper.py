@@ -320,8 +320,8 @@ class ScrapeMapper:
             jd.set_app_key("CYBERDROP-DL")
             jd.connect(self.jdownloader_auth.username, self.jdownloader_auth.password)
             self.jdownloader_agent = jd.get_device(self.jdownloader_device)
-        except Exception as e:
-            await log(f"Failed jdownloader setup: {e}")
+        except:
+            await log("Failed jdownloader setup")
             self.jdownloader_enable = False
 
     async def map_url(self, url_to_map: URL, title=None):
