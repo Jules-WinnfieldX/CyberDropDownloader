@@ -85,7 +85,7 @@ async def handle_args(args: argparse.Namespace):
         file_args[key] = Path(value)
 
     jdownloader_args = use_args['JDownloader']
-    jdownloader_args_print = jdownloader_args
+    jdownloader_args_print = jdownloader_args.copy()
     jdownloader_args_print['jdownloader_password'] = '!REDACTED!'
 
     runtime_args = use_args['Runtime']
