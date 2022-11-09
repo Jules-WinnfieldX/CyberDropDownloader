@@ -345,7 +345,12 @@ class ScrapeMapper:
                 if "facebook" in url_to_map.host.lower() or "instagram" in url_to_map.host.lower():
                     raise Exception("Blacklisted META")
                 await log("Sending " + str(url_to_map) + " to JDownloader")
-                self.jdownloader_agent.linkgrabber.add_links([{"autostart": False, "links": str(url_to_map)}])
+                self.jdownloader_agent.linkgrabber.add_links([{
+                    "autostart": False,
+                    "links": str(url_to_map),
+                    "packageName": title if title else "Cyberdrop-DL",
+                    "overwritePackagizerRules": True
+                    }])
             except Exception as e:
                 logging.debug(e)
                 await log("Failed to send " + str(url_to_map) + " to JDownloader")
