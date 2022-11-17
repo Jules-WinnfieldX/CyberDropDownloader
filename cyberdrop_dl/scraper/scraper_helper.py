@@ -18,6 +18,7 @@ from ..crawlers.Erome_Spider import EromeCrawler
 from ..crawlers.Gfycat_Spider import GfycatCrawler
 from ..crawlers.GoFile_Spider import GofileCrawler
 from ..crawlers.HGameCG_Spider import HGameCGCrawler
+from ..crawlers.ImgBox_Spider import ImgBoxCrawler
 from ..crawlers.Kemono_Spider import KemonoCrawler
 from ..crawlers.Pixeldrain_Spider import PixelDrainCrawler
 from ..crawlers.Postimg_Spider import PostImgCrawler
@@ -62,6 +63,7 @@ class ScrapeMapper:
         self.gfycat_crawler = None
         self.gofile_crawler = None
         self.hgamecg_crawler = None
+        self.imgbox_crawler = None
         self.kemono_crawler = None
         self.pixeldrain_crawler = None
         self.postimg_crawler = None
@@ -84,11 +86,11 @@ class ScrapeMapper:
         self.mapping = {"anonfiles.com": self.Anonfiles, "bayfiles": self.Anonfiles, "xbunkr": self.XBunkr,
                         "bunkr": self.Bunkr, "coomer.party": self.Coomer, "cyberdrop": self.Cyberdrop,
                         "cyberfile.is": self.Cyberfile, "erome.com": self.Erome, "gfycat.com": self.Gfycat,
-                        "gofile.io": self.GoFile, "hgamecg.com": self.HGameCG, "img.kiwi": self.ShareX,
-                        "jpg.church": self.ShareX, "kemono.party": self.Kemono, "pixeldrain.com": self.Pixeldrain,
-                        "pixl.is": self.ShareX, "postimg": self.Postimg, "redgifs.com": self.Redgifs,
-                        "rule34.xxx": self.Rule34, "saint.to": self.Saint, "socialmediagirls": self.SocialMediaGirls,
-                        "simpcity": self.SimpCity, "xbunker": self.XBunker}
+                        "gofile.io": self.GoFile, "hgamecg.com": self.HGameCG, "imgbox.com": self.ImgBox,
+                        "img.kiwi": self.ShareX, "jpg.church": self.ShareX, "kemono.party": self.Kemono, 
+                        "pixeldrain.com": self.Pixeldrain, "pixl.is": self.ShareX, "postimg": self.Postimg, 
+                        "redgifs.com": self.Redgifs, "rule34.xxx": self.Rule34, "saint.to": self.Saint, 
+                        "socialmediagirls": self.SocialMediaGirls, "simpcity": self.SimpCity, "xbunker": self.XBunker}
 
     async def Anonfiles(self, url: URL, title=None):
         anonfiles_session = Session(self.client)
@@ -176,6 +178,16 @@ class ScrapeMapper:
             await domain_obj.append_title(title)
         await self.Cascade.add_albums(domain_obj)
         await hgamecg_session.exit_handler()
+
+    async def ImgBox(self, url: URL, title=None):
+        imgbox_session = Session(self.client)
+        if not self.imgbox_crawler:
+            self.imgbox_crawler = ImgBoxCrawler(include_id=self.include_id)
+        domain_obj = await self.imgbox_crawler.fetch(imgbox_session, url)
+        if title:
+            await domain_obj.append_title(title)
+        await self.Cascade.add_albums(domain_obj)
+        await imgbox_session.exit_handler()
 
     async def Kemono(self, url: URL, title=None):
         kemono_session = Session(self.client)

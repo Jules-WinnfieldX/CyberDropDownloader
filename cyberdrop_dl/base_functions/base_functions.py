@@ -112,7 +112,7 @@ async def check_direct(url: URL):
     mapping_direct = [r'i.pixl.is', r'i..pixl.is', r'img-...cyberdrop...', r'f.cyberdrop...',
                       r'fs-...cyberdrop...', r'i.bunkr...', r'i..bunkr...', r'i...bunkr...', r'media-files.bunkr...',
                       r'media-files..bunkr...', r'cdn.bunkr...', r'cdn..bunkr...', r'cdn...bunkr...',
-                      r'jpg.church/images/...', r'simp..jpg.church', r's..putmega.com', r's..putme.ga',]
+                      r'jpg.church/images/...', r'simp..jpg.church', r's..putmega.com', r's..putme.ga', r'images..imgbox.com' ]
     return any(re.search(domain, url.host) for domain in mapping_direct)
 
 
