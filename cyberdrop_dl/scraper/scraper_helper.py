@@ -88,7 +88,7 @@ class ScrapeMapper:
                         "cyberfile.is": self.Cyberfile, "erome.com": self.Erome, "gfycat.com": self.Gfycat,
                         "gofile.io": self.GoFile, "hgamecg.com": self.HGameCG, "imgbox.com": self.ImgBox,
                         "img.kiwi": self.ShareX, "jpg.church": self.ShareX, "kemono.party": self.Kemono, 
-                        "pixeldrain.com": self.Pixeldrain, "pixl.is": self.ShareX, "postimg": self.Postimg, 
+                        "pixeldrain.com": self.Pixeldrain, "pixl.li": self.ShareX, "postimg": self.Postimg,
                         "redgifs.com": self.Redgifs, "rule34.xxx": self.Rule34, "saint.to": self.Saint, 
                         "socialmediagirls": self.SocialMediaGirls, "simpcity": self.SimpCity, "xbunker": self.XBunker}
 
@@ -367,6 +367,6 @@ class ScrapeMapper:
                 logging.debug(e)
                 await log("Failed to send " + str(url_to_map) + " to JDownloader")
         else:
-            await log(str(url_to_map) + " is not supported currently.")
+            await log("Not Supported: " + str(url_to_map))
             async with aiofiles.open("./Unsupported_Urls.txt", mode='a') as f:
                 await f.write(str(url_to_map)+"\n")

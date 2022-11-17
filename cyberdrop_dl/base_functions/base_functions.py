@@ -109,7 +109,7 @@ async def write_last_post_file(file: Path, url: str):
 
 
 async def check_direct(url: URL):
-    mapping_direct = [r'i.pixl.is', r'i..pixl.is', r'img-...cyberdrop...', r'f.cyberdrop...',
+    mapping_direct = [r'i.pixl.li', r'i..pixl.li', r'img-...cyberdrop...', r'f.cyberdrop...',
                       r'fs-...cyberdrop...', r'i.bunkr...', r'i..bunkr...', r'i...bunkr...', r'media-files.bunkr...',
                       r'media-files..bunkr...', r'cdn.bunkr...', r'cdn..bunkr...', r'cdn...bunkr...',
                       r'jpg.church/images/...', r'simp..jpg.church', r's..putmega.com', r's..putme.ga', r'images..imgbox.com' ]

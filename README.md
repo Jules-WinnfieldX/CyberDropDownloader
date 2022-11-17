@@ -1,7 +1,7 @@
 # `cyberdrop-dl`
 **Bulk downloader for multiple file hosts** 
 
-The latest version of the program is 3.5.26
+The latest version of the program is 3.5.27
 
 <a href="https://www.buymeacoffee.com/juleswinnft" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
 
@@ -19,13 +19,13 @@ The latest version of the program is 3.5.26
 | Erome            | Albums: erome.com/a/...                                                                                                                                                                                                                |
 | GoFile           | Albums: gofile.io/d/...                                                                                                                                                                                                                |
 | HGameCG          | Albums: hgamecg.com/.../index.html                                                                                                                                                                                                     |
-| ImgBox           | Albums: imgbox.com/g/... <br> Direct Images: images#.imgbox.com/... <br> Single Files: imgbox.com/...            
+| ImgBox           | Albums: imgbox.com/g/... <br> Direct Images: images#.imgbox.com/... <br> Single Files: imgbox.com/...                                                                                                                                  |
 | IMG.Kiwi         | Albums: img.kiwi/album/... <br> Direct Images: img.kiwi/image/... <br> User Profile: img.kiwi/#USER# <br> All User Albums: img.kiwi/#USER#/albums                                                                                      |
 | jpg.church       | Albums: jpg.church/album/... <br> Direct Images: jpg.church/image/... <br> User Profile: jpg.church/#USER# <br> All User Albums: jpg.church/#USER#/albums                                                                              |
 | Kemono.party     | Profiles: kemono.party/... <br> Thumbnail Links: kemono.party/thumbnail/... <br> Data Links: kemono.party/data/... <br> Posts: kemono.party/.../post/...                                                                               |
 | LeakedNudes      | Thread: forum.leakednudes.co/threads/...  <br> Continue from (will download this post and after): forum.leakednudes.co/threads/...post-NUMBER                                                                                          |
 | PixelDrain       | Albums: Pixeldrain.com/l/... <br> Single Files: Pixeldrain.com/u/...                                                                                                                                                                   |
-| Pixl             | Albums: pixl.is/album/... <br> Direct Images: pixl.is/image/...  <br> User Profile: pixl.is/#USER# <br> All User Albums: pixl.is/#USER#/albums                                                                                         |
+| Pixl             | Albums: pixl.li/album/... <br> Direct Images: pixl.li/image/...  <br> User Profile: pixl.li/#USER# <br> All User Albums: pixl.li/#USER#/albums                                                                                         |
 | Postimg.cc       | Albums: postimg.cc/gallery/... <br> Direct Images: postimg.cc/...                                                                                                                                                                      |
 | SocialMediaGirls | Thread: forum.socialmediagirls.com/threads/...  <br> Continue from (will download this post and after): forum.socialmediagirls.com/threads/...post-NUMBER                                                                              |
 | rule34.xxx       | Direct Media (Image and Video): rule34.xxx/index.php?page=post&s=view&id=...                                                                                                                                                           |
@@ -113,5 +113,5 @@ optional arguments:
   --throttle                this is a throttle between requests during the downloading phase, the number is in seconds
 ```
 --skip can use: "anonfiles", "bayfiles", "bunkr", "coomer.party", "cyberdrop", "cyberfile", "erome", "gfycat", "gofile", "hgamescg",
-        "jpg.church", "kemono.party", "pixeldrain", "pixl.is", "postimg.cc", "redgifs", "saint", "socialmediagirls", "simpcity", "xbunker", "xbunkr"
+        "jpg.church", "kemono.party", "pixeldrain", "pixl.li", "postimg.cc", "redgifs", "saint", "socialmediagirls", "simpcity", "xbunker", "xbunkr"
 
