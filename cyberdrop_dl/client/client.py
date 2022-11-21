@@ -136,7 +136,8 @@ class DownloadSession:
                                            raise_for_status=True, proxy=proxy) as resp:
             content_type = resp.headers.get('Content-Type')
             if 'text' in content_type.lower() or 'html' in content_type.lower():
-                logger.debug("Server for %s is either down or the file no longer exists", str(url))
+                logger.debug("Server for %s is experiencing issues, or you are being ratelimited", str(url))
+                logger.debug("Content received: " + await resp.text())
                 await File_Lock.remove_lock(original_filename)
                 raise FailureException(code=resp.status, message="Unexpectedly got text as response")
 

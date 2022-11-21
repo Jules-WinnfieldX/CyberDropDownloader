@@ -169,6 +169,7 @@ class Downloader:
 
             try:
                 logger.debug("Error status code: " + str(e.code))
+                logger.debug("Error message: " + str(e.message))
                 if 400 <= e.code < 500 and e.code != 429:
                     logger.debug("We ran into a 400 level error: %s", str(e.code))
                     if 'media-files.bunkr' in url.host:
