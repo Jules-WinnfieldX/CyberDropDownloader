@@ -28,9 +28,9 @@ class XBunkrCrawler:
 
         except Exception as e:
             logger.debug("Error encountered while handling %s", str(url), exc_info=True)
-            await log("Error scraping " + str(url), self.quiet)
+            await log("Error scraping " + str(url), quiet=self.quiet)
             logger.debug(e)
 
-        await log("Finished scrape of " + str(url), self.quiet)
+        await log("Finished scrape of " + str(url), quiet=self.quiet)
 
         return domain_obj

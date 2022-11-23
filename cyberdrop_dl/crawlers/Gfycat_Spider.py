@@ -29,5 +29,5 @@ class GfycatCrawler:
 
         except Exception as e:
             logger.debug("Error encountered while handling %s", str(url), exc_info=True)
-            await log("Error scraping " + str(url), self.quiet)
+            await log("Error scraping " + str(url), quiet=self.quiet)
             logger.debug(e)

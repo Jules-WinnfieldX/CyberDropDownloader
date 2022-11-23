@@ -33,10 +33,10 @@ class BunkrCrawler:
         if "stream.bunkr." in url.host or "files.bunkr." in url.host:
             link = await self.stream(session, url)
             await domain_obj.add_to_album(link=link, referral=url, title="Bunkr Loose Files")
-            await log("Finished scrape of " + str(url), self.quiet)
+            await log("Finished scrape of " + str(url), quiet=self.quiet)
             return domain_obj
 
-        await log("Starting scrape of " + str(url), self.quiet)
+        await log("Starting scrape of " + str(url), quiet=self.quiet)
 
         try:
             soup = await session.get_BS4(url)
@@ -63,16 +63,16 @@ class BunkrCrawler:
 
         except Exception as e:
             logger.debug("Error encountered while handling %s", str(url), exc_info=True)
-            await log("Error scraping " + str(url), self.quiet)
+            await log("Error scraping " + str(url), quiet=self.quiet)
             logger.debug(e)
 
-        await log("Finished scrape of " + str(url), self.quiet)
+        await log("Finished scrape of " + str(url), quiet=self.quiet)
 
         return domain_obj
 
     async def stream(self, session: Session, url: URL):
         try:
-            await log("Starting scrape of " + str(url), self.quiet)
+            await log("Starting scrape of " + str(url), quiet=self.quiet)
             soup = await session.get_BS4(url)
             json_obj = json.loads(soup.select_one("script[id=__NEXT_DATA__]").text)
             if not json_obj['props']['pageProps']:
@@ -88,5 +88,5 @@ class BunkrCrawler:
 
         except Exception as e:
             logger.debug("Error encountered while handling %s", str(url), exc_info=True)
-            await log("Error scraping " + str(url), self.quiet)
+            await log("Error scraping " + str(url), quiet=self.quiet)
             logger.debug(e)

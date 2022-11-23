@@ -26,13 +26,13 @@ class GofileCrawler():
 
         results = await self.get_links(url)
 
-        await log("Starting scrape of " + str(url), self.quiet)
+        await log("Starting scrape of " + str(url), quiet=self.quiet)
 
         if results:
             for result in results:
                 await domain_obj.add_to_album(result['title'], result['url'], result['referral'])
 
-        await log("Finished scrape of " + str(url), self.quiet)
+        await log("Finished scrape of " + str(url), quiet=self.quiet)
 
         return domain_obj
 
@@ -42,7 +42,7 @@ class GofileCrawler():
         try:
             content = self.client.get_content(content_id)
         except:
-            await log("Error scraping " + str(url), self.quiet)
+            await log("Error scraping " + str(url), quiet=self.quiet)
             return
         if not content:
             return
@@ -57,7 +57,7 @@ class GofileCrawler():
                 try:
                     results.extend(result for result in await self.get_links(URL(val["code"]), title))
                 except Exception as e:
-                    await log(f"Error scraping gofile: {val['code']}", self.quiet)
+                    await log(f"Error scraping gofile: {val['code']}", quiet=self.quiet)
             else:
                 results.append({'url': URL(val["link"]) if val["link"] != "overloaded" else URL(val["directLink"]),
                                 'title': title, 'referral': URL('https://gofile.io/')})

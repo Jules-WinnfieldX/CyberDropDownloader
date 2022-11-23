@@ -15,7 +15,7 @@ class CyberfileCrawler:
         self.file_details = URL('https://cyberfile.is/account/ajax/file_details')
 
     async def fetch(self, session: Session, url: URL):
-        await log("Starting scrape of " + str(url), self.quiet)
+        await log("Starting scrape of " + str(url), quiet=self.quiet)
         domain_obj = DomainItem("cyberfile.is", {})
         download_links = []
         if 'folder' in url.parts:
@@ -33,7 +33,7 @@ class CyberfileCrawler:
                 download_links = await self.get_download_links(session, url, [("Loose Cyberfile Files", contentId)])
         for title, download_link in download_links:
             await domain_obj.add_to_album(title, download_link, url)
-        await log("Finished scrape of " + str(url), self.quiet)
+        await log("Finished scrape of " + str(url), quiet=self.quiet)
         return domain_obj
 
     async def folder_nodeId(self, session: Session, url: URL):
@@ -46,7 +46,7 @@ class CyberfileCrawler:
             return nodeId
 
         except Exception as e:
-            await log("Error scraping " + str(url), self.quiet)
+            await log("Error scraping " + str(url), quiet=self.quiet)
             logger.debug(e)
             return 0
 
@@ -66,7 +66,7 @@ class CyberfileCrawler:
             return None
 
         except Exception as e:
-            await log("Error scraping " + str(url), self.quiet)
+            await log("Error scraping " + str(url), quiet=self.quiet)
             logger.debug(e)
             return 0
 
@@ -105,7 +105,7 @@ class CyberfileCrawler:
             return nodes, contents
 
         except Exception as e:
-            await log("Error scraping " + str(url), self.quiet)
+            await log("Error scraping " + str(url), quiet=self.quiet)
             logger.debug(e)
             return []
 
@@ -138,7 +138,7 @@ class CyberfileCrawler:
             return contents
 
         except Exception as e:
-            await log("Error scraping " + str(url), self.quiet)
+            await log("Error scraping " + str(url), quiet=self.quiet)
             logger.debug(e)
             return []
 
@@ -173,7 +173,7 @@ class CyberfileCrawler:
             return contents
 
         except Exception as e:
-            await log("Error scraping " + str(url), self.quiet)
+            await log("Error scraping " + str(url), quiet=self.quiet)
             logger.debug(e)
             return []
 
@@ -198,6 +198,6 @@ class CyberfileCrawler:
             return download_links
 
         except Exception as e:
-            await log("Error scraping " + str(url), self.quiet)
+            await log("Error scraping " + str(url), quiet=self.quiet)
             logger.debug(e)
             return []

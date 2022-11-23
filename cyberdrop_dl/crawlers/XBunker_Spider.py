@@ -37,7 +37,7 @@ class XBunkerCrawler:
         return await session.post_data_no_resp(domain/"login", data=data)
 
     async def fetch(self, session: Session, url: URL):
-        await log("Starting scrape of " + str(url), self.quiet)
+        await log("Starting scrape of " + str(url), quiet=self.quiet)
         cascade = CascadeItem({})
 
         try:
@@ -50,16 +50,16 @@ class XBunkerCrawler:
                         break
                     await asyncio.sleep(2)
             else:
-                await log("login wasn't provided, consider using --xbunker-username and --xbunker-password", self.quiet)
-                await log("Not being logged in might cause issues.", self.quiet)
+                await log("login wasn't provided, consider using --xbunker-username and --xbunker-password", quiet=self.quiet)
+                await log("Not being logged in might cause issues.", quiet=self.quiet)
             await self.parse_thread(session, url, cascade, "")
         except Exception as e:
             self.lock = 0
-            await log(f"there was an error signing into {url.host}", self.quiet)
-            await log(e, self.quiet)
+            await log(f"there was an error signing into {url.host}", quiet=self.quiet)
+            await log(e, quiet=self.quiet)
             return
 
-        await log("Finished scrape of " + str(url), self.quiet)
+        await log("Finished scrape of " + str(url), quiet=self.quiet)
         return cascade
 
     async def parse_thread(self, session: Session, url: URL, cascade: CascadeItem, title: str):
@@ -212,5 +212,5 @@ class XBunkerCrawler:
 
         except Exception as e:
             logger.debug("Error encountered while handling %s", str(url), exc_info=True)
-            await log("Error scraping " + str(url), self.quiet)
+            await log("Error scraping " + str(url), quiet=self.quiet)
             logger.debug(e)

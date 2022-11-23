@@ -15,7 +15,7 @@ class KemonoCrawler:
         self.separate_posts = separate_posts
 
     async def fetch(self, session: Session, url: URL):
-        await log("Starting scrape of " + str(url), self.quiet)
+        await log("Starting scrape of " + str(url), quiet=self.quiet)
         domain_obj = DomainItem('kemono.party', {})
         results = []
 
@@ -35,7 +35,7 @@ class KemonoCrawler:
         for result in results:
             await domain_obj.add_to_album(result[0], result[1], result[2])
 
-        await log("Finished scrape of " + str(url), self.quiet)
+        await log("Finished scrape of " + str(url), quiet=self.quiet)
         return domain_obj
 
     async def parse_profile(self, session: Session, url: URL):
@@ -61,7 +61,7 @@ class KemonoCrawler:
 
         except Exception as e:
             logger.debug("Error encountered while handling %s", str(url), exc_info=True)
-            await log("Error scraping " + str(url), self.quiet)
+            await log("Error scraping " + str(url), quiet=self.quiet)
             logger.debug(e)
             return []
 
@@ -100,6 +100,6 @@ class KemonoCrawler:
 
         except Exception as e:
             logger.debug("Error encountered while handling %s", str(url), exc_info=True)
-            await log("Error scraping " + str(url), self.quiet)
+            await log("Error scraping " + str(url), quiet=self.quiet)
             logger.debug(e)
             return []

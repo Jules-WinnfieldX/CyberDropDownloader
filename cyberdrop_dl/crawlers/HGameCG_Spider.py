@@ -13,11 +13,11 @@ class HGameCGCrawler:
     async def fetch(self, session: Session, url: URL):
         domain_obj = DomainItem(url.host, {})
 
-        await log("Starting scrape of " + str(url), self.quiet)
+        await log("Starting scrape of " + str(url), quiet=self.quiet)
         results = await self.get_album(session, url)
         for result in results:
             await domain_obj.add_to_album(result['title'], result['url'], result['referral'])
-        await log("Finished scrape of " + str(url), self.quiet)
+        await log("Finished scrape of " + str(url), quiet=self.quiet)
         return domain_obj
 
     async def get_album(self, session: Session, url: URL):
@@ -43,7 +43,7 @@ class HGameCGCrawler:
 
         except Exception as e:
             logger.debug("Error encountered while handling %s", str(url), exc_info=True)
-            await log("Error scraping " + str(url), self.quiet)
+            await log("Error scraping " + str(url), quiet=self.quiet)
             logger.debug(e)
 
         return results

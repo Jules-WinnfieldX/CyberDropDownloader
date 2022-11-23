@@ -14,7 +14,7 @@ class PostImgCrawler:
 
     async def fetch(self, session: Session, url: URL):
         domain_obj = DomainItem(url.host, {})
-        await log("Starting scrape of " + str(url), self.quiet)
+        await log("Starting scrape of " + str(url), quiet=self.quiet)
 
         try:
             if "gallery" in url.parts:
@@ -27,10 +27,10 @@ class PostImgCrawler:
 
         except Exception as e:
             logger.debug("Error encountered while handling %s", str(url), exc_info=True)
-            await log("Error scraping " + str(url), self.quiet)
+            await log("Error scraping " + str(url), quiet=self.quiet)
             logger.debug(e)
 
-        await log("Finished scrape of " + str(url), self.quiet)
+        await log("Finished scrape of " + str(url), quiet=self.quiet)
 
         return domain_obj
 
