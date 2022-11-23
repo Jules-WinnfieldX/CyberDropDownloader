@@ -96,7 +96,7 @@ class ScrapeMapper:
     async def Anonfiles(self, url: URL, title=None):
         anonfiles_session = Session(self.client)
         if not self.anonfiles_crawler:
-            self.anonfiles_crawler = AnonfilesCrawler(include_id=self.include_id)
+            self.anonfiles_crawler = AnonfilesCrawler(include_id=self.include_id, quiet=self.quiet)
         domain_obj = await self.anonfiles_crawler.fetch(anonfiles_session, url)
         if title:
             await domain_obj.append_title(title)
@@ -106,7 +106,7 @@ class ScrapeMapper:
     async def Bunkr(self, url: URL, title=None):
         bunkr_session = Session(self.client)
         if not self.bunkr_crawler:
-            self.bunkr_crawler = BunkrCrawler(include_id=self.include_id)
+            self.bunkr_crawler = BunkrCrawler(include_id=self.include_id, quiet=self.quiet)
         async with self.bunkr_limiter:
             domain_obj = await self.bunkr_crawler.fetch(bunkr_session, url)
         if title:
@@ -117,7 +117,7 @@ class ScrapeMapper:
     async def Cyberdrop(self, url: URL, title=None):
         cyberdrop_session = Session(self.client)
         if not self.cyberdrop_crawler:
-            self.cyberdrop_crawler = CyberdropCrawler(include_id=self.include_id)
+            self.cyberdrop_crawler = CyberdropCrawler(include_id=self.include_id, quiet=self.quiet)
         domain_obj = await self.cyberdrop_crawler.fetch(cyberdrop_session, url)
         if title:
             await domain_obj.append_title(title)
@@ -128,7 +128,7 @@ class ScrapeMapper:
         coomer_session = Session(self.client)
         if not self.coomer_crawler:
             self.coomer_crawler = CoomerCrawler(include_id=self.include_id, scraping_mapper=self,
-                                                separate_posts=self.separate_posts)
+                                                separate_posts=self.separate_posts, quiet=self.quiet)
         domain_obj = await self.coomer_crawler.fetch(coomer_session, url)
         if title:
             await domain_obj.append_title(title)
@@ -138,7 +138,7 @@ class ScrapeMapper:
     async def Cyberfile(self, url: URL, title=None):
         cyberfile_session = Session(self.client)
         if not self.cyberfile_crawler:
-            self.cyberfile_crawler = CyberfileCrawler()
+            self.cyberfile_crawler = CyberfileCrawler(quiet=self.quiet)
         async with self.semaphore:
             domain_obj = await self.cyberfile_crawler.fetch(cyberfile_session, url)
         if title:
@@ -149,7 +149,7 @@ class ScrapeMapper:
     async def Erome(self, url: URL, title=None):
         erome_session = Session(self.client)
         if not self.erome_crawler:
-            self.erome_crawler = EromeCrawler(include_id=self.include_id)
+            self.erome_crawler = EromeCrawler(include_id=self.include_id, quiet=self.quiet)
         domain_obj = await self.erome_crawler.fetch(erome_session, url)
         if title:
             await domain_obj.append_title(title)
@@ -160,7 +160,7 @@ class ScrapeMapper:
         gofile_session = Session(self.client)
         if not self.gofile_crawler:
             try:
-                self.gofile_crawler = GofileCrawler()
+                self.gofile_crawler = GofileCrawler(quiet=self.quiet)
             except SystemExit:
                 await log("Couldn't start the GoFile crawler", self.quiet)
                 return
@@ -173,7 +173,7 @@ class ScrapeMapper:
     async def HGameCG(self, url: URL, title=None):
         hgamecg_session = Session(self.client)
         if not self.hgamecg_crawler:
-            self.hgamecg_crawler = HGameCGCrawler()
+            self.hgamecg_crawler = HGameCGCrawler(quiet=self.quiet)
         domain_obj = await self.hgamecg_crawler.fetch(hgamecg_session, url)
         if title:
             await domain_obj.append_title(title)
@@ -183,7 +183,7 @@ class ScrapeMapper:
     async def ImgBox(self, url: URL, title=None):
         imgbox_session = Session(self.client)
         if not self.imgbox_crawler:
-            self.imgbox_crawler = ImgBoxCrawler(include_id=self.include_id)
+            self.imgbox_crawler = ImgBoxCrawler(include_id=self.include_id, quiet=self.quiet)
         domain_obj = await self.imgbox_crawler.fetch(imgbox_session, url)
         if title:
             await domain_obj.append_title(title)
@@ -194,7 +194,7 @@ class ScrapeMapper:
         kemono_session = Session(self.client)
         if not self.kemono_crawler:
             self.kemono_crawler = KemonoCrawler(include_id=self.include_id, scraping_mapper=self,
-                                                separate_posts=self.separate_posts)
+                                                separate_posts=self.separate_posts, quiet=self.quiet)
         domain_obj = await self.kemono_crawler.fetch(kemono_session, url)
         if title:
             await domain_obj.append_title(title)
@@ -204,7 +204,7 @@ class ScrapeMapper:
     async def Gfycat(self, url: URL, title=None):
         gfycat_session = Session(self.client)
         if not self.gfycat_crawler:
-            self.gfycat_crawler = GfycatCrawler()
+            self.gfycat_crawler = GfycatCrawler(quiet=self.quiet)
         content_url = await self.gfycat_crawler.fetch(gfycat_session, url)
         if content_url:
             if title:
@@ -216,7 +216,7 @@ class ScrapeMapper:
     async def Pixeldrain(self, url: URL, title=None):
         pixeldrain_session = Session(self.client)
         if not self.pixeldrain_crawler:
-            self.pixeldrain_crawler = PixelDrainCrawler()
+            self.pixeldrain_crawler = PixelDrainCrawler(quiet=self.quiet)
         domain_obj = await self.pixeldrain_crawler.fetch(pixeldrain_session, url)
         if title:
             await domain_obj.append_title(title)
@@ -226,7 +226,7 @@ class ScrapeMapper:
     async def Postimg(self, url: URL, title=None):
         postimg_session = Session(self.client)
         if not self.postimg_crawler:
-            self.postimg_crawler = PostImgCrawler(include_id=self.include_id)
+            self.postimg_crawler = PostImgCrawler(include_id=self.include_id, quiet=self.quiet)
         domain_obj = await self.postimg_crawler.fetch(postimg_session, url)
         if title:
             await domain_obj.append_title(title)
@@ -236,7 +236,7 @@ class ScrapeMapper:
     async def Redgifs(self, url: URL, title=None):
         redgifs_session = Session(self.client)
         if not self.redgifs_crawler:
-            self.redgifs_crawler = RedGifsCrawler()
+            self.redgifs_crawler = RedGifsCrawler(quiet=self.quiet)
         content_url = await self.redgifs_crawler.fetch(redgifs_session, url)
         if content_url:
             if title:
@@ -248,7 +248,7 @@ class ScrapeMapper:
     async def Rule34(self, url: URL, title=None):
         rule34_session = Session(self.client)
         if not self.rule34_crawler:
-            self.rule34_crawler = Rule34Crawler()
+            self.rule34_crawler = Rule34Crawler(quiet=self.quiet)
         domain_obj = await self.rule34_crawler.fetch(rule34_session, url)
         
         if title:
@@ -260,7 +260,7 @@ class ScrapeMapper:
     async def Saint(self, url: URL, title=None):
         saint_session = Session(self.client)
         if not self.saint_crawler:
-            self.saint_crawler = SaintCrawler(include_id=self.include_id)
+            self.saint_crawler = SaintCrawler(include_id=self.include_id, quiet=self.quiet)
         domain_obj = await self.saint_crawler.fetch(saint_session, url)
         if title:
             await domain_obj.append_title(title)
@@ -270,7 +270,7 @@ class ScrapeMapper:
     async def ShareX(self, url: URL, title=None):
         sharex_session = Session(self.client)
         if not self.sharex_crawler:
-            self.sharex_crawler = ShareXCrawler(include_id=self.include_id)
+            self.sharex_crawler = ShareXCrawler(include_id=self.include_id, quiet=self.quiet)
         if "jpg.church" in url.host and sharex_session.client.ratelimit > 19:
             async with self.jpgchurch_semaphore:
                 async with self.jpgchurch_limiter:
@@ -290,7 +290,7 @@ class ScrapeMapper:
                                                                     auth=self.socialmediagirls_auth,
                                                                     scraping_mapper=self,
                                                                     separate_posts=self.separate_posts,
-                                                                    output_last=self.output_last)
+                                                                    output_last=self.output_last, quiet=self.quiet)
         async with self.forum_limiter:
             await self.Cascade.extend(await self.socialmediagirls_crawler.fetch(socialmediagirls_session, url))
         await socialmediagirls_session.exit_handler()
@@ -300,7 +300,7 @@ class ScrapeMapper:
         if not self.simpcity_crawler:
             self.simpcity_crawler = SimpCityCrawler(include_id=self.include_id, auth=self.simpcity_auth,
                                                     scraping_mapper=self, separate_posts=self.separate_posts,
-                                                    output_last=self.output_last)
+                                                    output_last=self.output_last, quiet=self.quiet)
         async with self.forum_limiter:
             await self.Cascade.extend(await self.simpcity_crawler.fetch(simpcity_session, url))
         await simpcity_session.exit_handler()
@@ -310,7 +310,7 @@ class ScrapeMapper:
         if not self.xbunker_crawler:
             self.xbunker_crawler = XBunkerCrawler(include_id=self.include_id, auth=self.xbunker_auth,
                                                   scraping_mapper=self, separate_posts=self.separate_posts,
-                                                  output_last=self.output_last)
+                                                  output_last=self.output_last, quiet=self.quiet)
         async with self.forum_limiter:
             await self.Cascade.extend(await self.xbunker_crawler.fetch(xbunker_session, url))
         await xbunker_session.exit_handler()
@@ -318,7 +318,7 @@ class ScrapeMapper:
     async def XBunkr(self, url: URL, title=None):
         xbunkr_session = Session(self.client)
         if not self.xbunkr_crawler:
-            self.xbunkr_crawler = XBunkrCrawler(include_id=self.include_id)
+            self.xbunkr_crawler = XBunkrCrawler(include_id=self.include_id, quiet=self.quiet)
         domain_obj = await self.xbunkr_crawler.fetch(xbunkr_session, url)
         if title:
             await domain_obj.append_title(title)

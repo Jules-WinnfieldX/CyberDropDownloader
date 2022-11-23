@@ -38,11 +38,13 @@ class AlbumItem:
             if link == pair[0]:
                 return pair[1]
 
-    async def replace_link_pair(self, link_pair):
-        for pair in self.link_pairs:
-            if link_pair[1] == pair[1]:
-                self.link_pairs.remove(pair)
-                self.link_pairs.append(link_pair)
+    async def replace_link_pairs(self, link_pairs_in):
+        for link_pair in link_pairs_in:
+            for pair in self.link_pairs:
+                if link_pair[1] == pair[1]:
+                    self.link_pairs.remove(pair)
+                    self.link_pairs.append(link_pair)
+
 
 @dataclass
 class DomainItem:

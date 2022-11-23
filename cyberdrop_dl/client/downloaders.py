@@ -42,12 +42,13 @@ def retry(f):
                                                   simpcity_auth=AuthData("", ""),
                                                   socialmediagirls_auth=AuthData("", ""),
                                                   xbunker_auth=AuthData("", ""), skip_data=skip_data)
+                    await log("Attempting rescrape for ")
                     if not await content_object.is_empty():
                         link_pair = tuple()
                         for domain in content_object.domains.keys():
                             for album in content_object.domains[domain].albums.keys():
-                                link_pair = content_object.domains[domain].albums[album].link_pairs[0]
-                        await self.album_obj.replace_link_pair(link_pair)
+                                link_pairs = content_object.domains[domain].albums[album].link_pairs
+                        await self.album_obj.replace_link_pair(link_pairs)
                         args = list(args)
                         args[0] = link_pair[0]
                         args = tuple(args)
