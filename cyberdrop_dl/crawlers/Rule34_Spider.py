@@ -7,6 +7,10 @@ from ..client.client import Session
 
 
 class Rule34Crawler:
+    def __init__(self, *, include_id=False, quiet: bool):
+        self.include_id = include_id
+        self.quiet = quiet
+
     async def fetch(self, session: Session, url: URL):
         try:
             # get the &id=1234 part from the url
@@ -32,5 +36,5 @@ class Rule34Crawler:
 
         except Exception as e:
             logger.debug("Error encountered while handling %s", str(url), exc_info=True)
-            await log("Error scraping " + str(url))
+            await log("Error scraping " + str(url), self.quiet)
             logger.debug(e)

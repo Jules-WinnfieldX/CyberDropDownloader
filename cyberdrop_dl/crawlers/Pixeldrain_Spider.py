@@ -6,11 +6,12 @@ from ..client.client import Session
 
 
 class PixelDrainCrawler:
-    def __init__(self):
+    def __init__(self, quiet: bool):
+        self.quiet = quiet
         self.api = URL('https://pixeldrain.com/api/')
 
     async def fetch(self, session: Session, url: URL):
-        await log("Starting scrape of " + str(url))
+        await log("Starting scrape of " + str(url), self.quiet)
         domain_obj = DomainItem("pixeldrain.com", {})
 
         identifier = str(url).split('/')[-1]
@@ -23,7 +24,7 @@ class PixelDrainCrawler:
             link = await self.create_download_link(identifier)
             await domain_obj.add_to_album("Loose Pixeldrain Files", link, url)
 
-        await log("Finished scrape of " + str(url))
+        await log("Finished scrape of " + str(url), self.quiet)
         return domain_obj
 
     async def get_listings(self, session: Session, identifier: str, url: URL):
@@ -34,7 +35,7 @@ class PixelDrainCrawler:
                 links.append(await self.create_download_link(file['id']))
             return links
         except Exception as e:
-            await log("Error scraping " + str(url))
+            await log("Error scraping " + str(url), self.quiet)
             logger.debug(e)
             return None
 

@@ -8,13 +8,14 @@ from ..client.client import Session
 
 
 class ShareXCrawler:
-    def __init__(self, *, include_id=False):
+    def __init__(self, *, include_id=False, quiet: bool):
         self.include_id = include_id
+        self.quiet = quiet
 
     async def fetch(self, session: Session, url: URL):
         domain_obj = DomainItem(url.host, {})
 
-        await log("Starting scrape of " + str(url))
+        await log("Starting scrape of " + str(url), self.quiet)
 
         if await check_direct(url):
             url = url.with_name(url.name.replace('.md.', '.').replace('.th.', '.'))
@@ -33,7 +34,7 @@ class ShareXCrawler:
         for result in results:
             await domain_obj.add_to_album(result['title'], result['url'], result['referral'])
 
-        await log("Finished scrape of " + str(url))
+        await log("Finished scrape of " + str(url), self.quiet)
 
         return domain_obj
 
@@ -57,7 +58,7 @@ class ShareXCrawler:
 
         except Exception as e:
             logger.debug("Error encountered while handling %s", str(url), exc_info=True)
-            await log("Error scraping " + str(url))
+            await log("Error scraping " + str(url), self.quiet)
             logger.debug(e)
         return results
 
@@ -72,7 +73,7 @@ class ShareXCrawler:
             results.append({'url': link, 'title': title, 'referral': url, 'cookies': ''})
         except Exception as e:
             logger.debug("Error encountered while handling %s", str(url), exc_info=True)
-            await log("Error scraping " + str(url))
+            await log("Error scraping " + str(url), self.quiet)
             logger.debug(e)
         return results
 
@@ -88,7 +89,7 @@ class ShareXCrawler:
                     results.extend(result for result in await self.parse(session, album_url, og_title=og_title))
         except Exception as e:
             logger.debug("Error encountered while handling %s", str(url), exc_info=True)
-            await log("Error scraping " + str(url))
+            await log("Error scraping " + str(url), self.quiet)
             logger.debug(e)
         return results
 
@@ -107,7 +108,7 @@ class ShareXCrawler:
 
         except Exception as e:
             logger.debug("Error encountered while handling %s", str(url), exc_info=True)
-            await log("Error scraping " + str(url))
+            await log("Error scraping " + str(url), self.quiet)
             logger.debug(e)
         return results
 
@@ -133,7 +134,7 @@ class ShareXCrawler:
                     results.extend(result for result in await self.get_list_links(session, next_page, title))
         except Exception as e:
             logger.debug("Error encountered while handling %s", str(url), exc_info=True)
-            await log("Error scraping " + str(url))
+            await log("Error scraping " + str(url), self.quiet)
             logger.debug(e)
         return results
 
@@ -162,6 +163,6 @@ class ShareXCrawler:
 
         except Exception as e:
             logger.debug("Error encountered while handling %s", str(url), exc_info=True)
-            await log("Error scraping " + str(url))
+            await log("Error scraping " + str(url), self.quiet)
             logger.debug(e)
         return results

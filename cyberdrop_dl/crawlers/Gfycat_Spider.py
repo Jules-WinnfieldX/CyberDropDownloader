@@ -5,6 +5,10 @@ from ..client.client import Session
 
 
 class GfycatCrawler:
+    def __init__(self, *, include_id=False, quiet: bool):
+        self.include_id = include_id
+        self.quiet = quiet
+
     async def fetch(self, session: Session, url: URL):
         try:
             soup = await session.get_BS4(url)
@@ -25,5 +29,5 @@ class GfycatCrawler:
 
         except Exception as e:
             logger.debug("Error encountered while handling %s", str(url), exc_info=True)
-            await log("Error scraping " + str(url))
+            await log("Error scraping " + str(url), self.quiet)
             logger.debug(e)

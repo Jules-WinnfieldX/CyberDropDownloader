@@ -38,9 +38,10 @@ from ..client.rate_limiting import AsyncRateLimiter
 class ScrapeMapper:
     def __init__(self, *, client: Client, file_args: Dict, jdownloader_args: Dict, runtime_args: Dict,
                  jdownloader_auth: AuthData, simpcity_auth: AuthData, socialmediagirls_auth: AuthData,
-                 xbunker_auth: AuthData, skip_data: SkipData):
+                 xbunker_auth: AuthData, skip_data: SkipData, quiet: bool):
 
         self.include_id = runtime_args['include_id']
+        self.quiet = quiet
         self.jdownloader_enable = jdownloader_args['jdownloader_enable']
         self.jdownloader_device = jdownloader_args['jdownloader_device']
         self.separate_posts = runtime_args['separate_posts']
@@ -161,7 +162,7 @@ class ScrapeMapper:
             try:
                 self.gofile_crawler = GofileCrawler()
             except SystemExit:
-                await log("Couldn't start the GoFile crawler")
+                await log("Couldn't start the GoFile crawler", self.quiet)
                 return
         domain_obj = await self.gofile_crawler.fetch(gofile_session, url)
         if title:
@@ -333,19 +334,19 @@ class ScrapeMapper:
             jd.connect(self.jdownloader_auth.username, self.jdownloader_auth.password)
             self.jdownloader_agent = jd.get_device(self.jdownloader_device)
         except:
-            await log("Failed jdownloader setup")
+            await log("Failed jdownloader setup", self.quiet)
             self.jdownloader_enable = False
 
     async def map_url(self, url_to_map: URL, title=None):
         if not url_to_map:
             return
         elif not url_to_map.host:
-            await log(str(url_to_map) + " is not supported currently.")
+            await log(str(url_to_map) + " is not supported currently.", self.quiet)
             return
         for key, value in self.mapping.items():
             if key in url_to_map.host:
                 if any(site in key for site in self.skip_data.sites):
-                    await log("Skipping scrape of " + str(url_to_map))
+                    await log("Skipping scrape of " + str(url_to_map), self.quiet)
                 else:
                     await value(url=url_to_map, title=title)
                 return
@@ -356,7 +357,7 @@ class ScrapeMapper:
             try:
                 if "facebook" in url_to_map.host.lower() or "instagram" in url_to_map.host.lower():
                     raise Exception("Blacklisted META")
-                await log("Sending " + str(url_to_map) + " to JDownloader")
+                await log("Sending " + str(url_to_map) + " to JDownloader", self.quiet)
                 self.jdownloader_agent.linkgrabber.add_links([{
                     "autostart": False,
                     "links": str(url_to_map),
@@ -365,8 +366,8 @@ class ScrapeMapper:
                     }])
             except Exception as e:
                 logging.debug(e)
-                await log("Failed to send " + str(url_to_map) + " to JDownloader")
+                await log("Failed to send " + str(url_to_map) + " to JDownloader", self.quiet)
         else:
-            await log("Not Supported: " + str(url_to_map))
+            await log("Not Supported: " + str(url_to_map), self.quiet)
             async with aiofiles.open("./Unsupported_Urls.txt", mode='a') as f:
                 await f.write(str(url_to_map)+"\n")

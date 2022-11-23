@@ -10,8 +10,10 @@ from ..client.client import Session
 
 
 class XBunkerCrawler:
-    def __init__(self, *, include_id=False, auth: AuthData = None, scraping_mapper, separate_posts=False, output_last=[False, None]):
+    def __init__(self, *, include_id=False, auth: AuthData = None, scraping_mapper, separate_posts=False,
+                 output_last=[False, None], quiet: bool):
         self.include_id = include_id
+        self.quiet = quiet
         self.separate_posts = separate_posts
         self.output_last = output_last
         self.username, self.password = (auth.username, auth.password) if auth else (None, None)
@@ -35,7 +37,7 @@ class XBunkerCrawler:
         return await session.post_data_no_resp(domain/"login", data=data)
 
     async def fetch(self, session: Session, url: URL):
-        await log("Starting scrape of " + str(url))
+        await log("Starting scrape of " + str(url), self.quiet)
         cascade = CascadeItem({})
 
         try:
@@ -48,16 +50,16 @@ class XBunkerCrawler:
                         break
                     await asyncio.sleep(2)
             else:
-                await log("login wasn't provided, consider using --leakednudes-username and --leakednudes-password")
-                await log("Not being logged in might cause issues.")
+                await log("login wasn't provided, consider using --xbunker-username and --xbunker-password", self.quiet)
+                await log("Not being logged in might cause issues.", self.quiet)
             await self.parse_thread(session, url, cascade, "")
         except Exception as e:
             self.lock = 0
-            await log(f"there was an error signing into {url.host}")
-            await log(e)
+            await log(f"there was an error signing into {url.host}", self.quiet)
+            await log(e, self.quiet)
             return
 
-        await log("Finished scrape of " + str(url))
+        await log("Finished scrape of " + str(url), self.quiet)
         return cascade
 
     async def parse_thread(self, session: Session, url: URL, cascade: CascadeItem, title: str):
@@ -210,5 +212,5 @@ class XBunkerCrawler:
 
         except Exception as e:
             logger.debug("Error encountered while handling %s", str(url), exc_info=True)
-            await log("Error scraping " + str(url))
+            await log("Error scraping " + str(url), self.quiet)
             logger.debug(e)

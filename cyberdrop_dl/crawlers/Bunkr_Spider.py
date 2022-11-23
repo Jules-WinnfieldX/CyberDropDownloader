@@ -9,8 +9,9 @@ from ..client.client import Session
 
 
 class BunkrCrawler:
-    def __init__(self, *, include_id=False):
+    def __init__(self, *, include_id=False, quiet: bool):
         self.include_id = include_id
+        self.quiet = quiet
 
     async def fetch(self, session: Session, url: URL):
         domain_obj = DomainItem(url.host, {})
@@ -32,10 +33,10 @@ class BunkrCrawler:
         if "stream.bunkr." in url.host or "files.bunkr." in url.host:
             link = await self.stream(session, url)
             await domain_obj.add_to_album(link=link, referral=url, title="Bunkr Loose Files")
-            await log("Finished scrape of " + str(url))
+            await log("Finished scrape of " + str(url), self.quiet)
             return domain_obj
 
-        await log("Starting scrape of " + str(url))
+        await log("Starting scrape of " + str(url), self.quiet)
 
         try:
             soup = await session.get_BS4(url)
@@ -62,16 +63,16 @@ class BunkrCrawler:
 
         except Exception as e:
             logger.debug("Error encountered while handling %s", str(url), exc_info=True)
-            await log("Error scraping " + str(url))
+            await log("Error scraping " + str(url), self.quiet)
             logger.debug(e)
 
-        await log("Finished scrape of " + str(url))
+        await log("Finished scrape of " + str(url), self.quiet)
 
         return domain_obj
 
     async def stream(self, session: Session, url: URL):
         try:
-            await log("Starting scrape of " + str(url))
+            await log("Starting scrape of " + str(url), self.quiet)
             soup = await session.get_BS4(url)
             json_obj = json.loads(soup.select_one("script[id=__NEXT_DATA__]").text)
             if not json_obj['props']['pageProps']:
@@ -87,5 +88,5 @@ class BunkrCrawler:
 
         except Exception as e:
             logger.debug("Error encountered while handling %s", str(url), exc_info=True)
-            await log("Error scraping " + str(url))
+            await log("Error scraping " + str(url), self.quiet)
             logger.debug(e)

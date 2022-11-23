@@ -1,8 +1,6 @@
 import asyncio
 import logging
-import traceback
 from functools import wraps
-from pathlib import Path
 from typing import List, Tuple, Dict
 from random import gauss
 
@@ -14,8 +12,9 @@ from yarl import URL
 
 from ..base_functions.base_functions import FILE_FORMATS, MAX_FILENAME_LENGTH, log, logger, sanitize, FailureException
 from ..base_functions.sql_helper import SQLHelper
-from ..base_functions.data_classes import AlbumItem, CascadeItem, FileLock
+from ..base_functions.data_classes import AlbumItem, CascadeItem, FileLock, AuthData, SkipData
 from ..client.client import Client, DownloadSession
+from ..scraper.scraper import scrape
 
 
 def retry(f):
@@ -24,7 +23,7 @@ def retry(f):
         while True:
             try:
                 return await f(self, *args, **kwargs)
-            except FailureException:
+            except FailureException as e:
                 if not self.disable_attempt_limit:
                     if self.current_attempt[str(args[0])] >= self.attempts - 1:
                         logger.debug('Skipping %s...', args[0])
@@ -32,8 +31,31 @@ def retry(f):
                 logger.debug(f'Retrying ({self.current_attempt[str(args[0])]}) {args[0]}...')
                 self.current_attempt[str(args[0])] += 1
 
-                if 'cyberdrop' in args[0].host:
-                    ext = '.'+args[0].name.split('.')[-1]
+                if e.rescrape:
+                    skip_data = SkipData(self.runtime_args['skip_hosts'])
+                    jdownloader_args = {"jdownloader_enable": None, "jdownloader_username": None,
+                                        "jdownloader_password": None, "jdownloader_device": None}
+                    links = [await self.album_obj.get_referrer(URL(args[0]))]
+                    content_object = await scrape(urls=links, client=self.client, file_args=self.file_args,
+                                                  jdownloader_args=jdownloader_args,
+                                                  runtime_args=self.runtime_args, jdownloader_auth=AuthData("", ""),
+                                                  simpcity_auth=AuthData("", ""),
+                                                  socialmediagirls_auth=AuthData("", ""),
+                                                  xbunker_auth=AuthData("", ""), skip_data=skip_data)
+                    if not await content_object.is_empty():
+                        link_pair = tuple()
+                        for domain in content_object.domains.keys():
+                            for album in content_object.domains[domain].albums.keys():
+                                link_pair = content_object.domains[domain].albums[album].link_pairs[0]
+                        await self.album_obj.replace_link_pair(link_pair)
+                        args = list(args)
+                        args[0] = link_pair[0]
+                        args = tuple(args)
+                    else:
+                        raise
+
+                elif 'cyberdrop' in args[0].host:
+                    ext = '.' + args[0].name.split('.')[-1]
                     if ext in FILE_FORMATS['Images']:
                         args = list(args)
                         args[0] = args[0].with_host('img-01.cyberdrop.to')
@@ -42,7 +64,9 @@ def retry(f):
                         args = list(args)
                         args[0] = URL(str(args[0]).replace('fs-05.', 'fs-04.'))
                         args = tuple(args)
+
                 await asyncio.sleep(2)
+
     return wrapper
 
 
@@ -70,7 +94,9 @@ class Downloader:
 
         self.proxy = runtime_args['proxy']
 
-    """Changed from aiohttp exceptions caught to FailureException to allow for partial downloads."""
+        self.runtime_args = runtime_args
+        self.file_args = file_args
+
 
     @retry
     async def download_file(self, url: URL, referral: URL, filename: str, session: DownloadSession,
@@ -87,7 +113,7 @@ class Downloader:
             db_path = db_path.split('/')
             db_path.pop(0)
             db_path.pop(1)
-            db_path = '/'+'/'.join(db_path)
+            db_path = '/' + '/'.join(db_path)
 
         # return if completed already
         if await self.SQL_helper.sql_check_existing(db_path):
@@ -157,9 +183,26 @@ class Downloader:
             await self.rename_file(filename, url, db_path)
             await self.File_Lock.remove_lock(original_filename)
 
+        except FailureException as e:
+            try:
+                await self.File_Lock.remove_lock(original_filename)
+            except:
+                pass
+
+            logger.debug(e)
+            logger.debug("Error status code: " + str(e.code))
+            logger.debug("Error message: " + str(e.message))
+            if 400 <= e.code < 500 and e.code != 429:
+                logger.debug("We ran into a 400 level error: %s", str(e.code))
+                if 'media-files.bunkr' in url.host:
+                    pass
+                else:
+                    return
+            raise e
+
         except (aiohttp.client_exceptions.ClientPayloadError, aiohttp.client_exceptions.ClientOSError,
                 aiohttp.client_exceptions.ServerDisconnectedError, asyncio.TimeoutError,
-                aiohttp.client_exceptions.ClientResponseError, FailureException) as e:
+                aiohttp.client_exceptions.ClientResponseError) as e:
             try:
                 await self.File_Lock.remove_lock(original_filename)
             except:
@@ -275,7 +318,6 @@ class Downloader:
             await log(f"\nError attempting {url}")
             if hasattr(e, "message"):
                 logging.debug(f"\n{url} ({e.message})")
-
 
     async def download_all(self, album_obj: AlbumItem, session: DownloadSession, show_progress: bool = True) -> None:
         """Download the data from all given links and store them into corresponding files."""

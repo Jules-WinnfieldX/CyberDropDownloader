@@ -8,12 +8,13 @@ from ..client.client import Session
 
 
 class PostImgCrawler:
-    def __init__(self, *, include_id=False):
+    def __init__(self, *, include_id=False, quiet: bool):
         self.include_id = include_id
+        self.quiet = quiet
 
     async def fetch(self, session: Session, url: URL):
         domain_obj = DomainItem(url.host, {})
-        await log("Starting scrape of " + str(url))
+        await log("Starting scrape of " + str(url), self.quiet)
 
         try:
             if "gallery" in url.parts:
@@ -26,10 +27,10 @@ class PostImgCrawler:
 
         except Exception as e:
             logger.debug("Error encountered while handling %s", str(url), exc_info=True)
-            await log("Error scraping " + str(url))
+            await log("Error scraping " + str(url), self.quiet)
             logger.debug(e)
 
-        await log("Finished scrape of " + str(url))
+        await log("Finished scrape of " + str(url), self.quiet)
 
         return domain_obj
 

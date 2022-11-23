@@ -9,13 +9,13 @@ from ..client.client import Client
 
 async def scrape(urls, client: Client, file_args: Dict, jdownloader_args: Dict, runtime_args: Dict,
                  jdownloader_auth: AuthData, simpcity_auth: AuthData, socialmediagirls_auth: AuthData,
-                 xbunker_auth: AuthData, skip_data: SkipData):
+                 xbunker_auth: AuthData, skip_data: SkipData, quiet=False):
     await log("Starting Scrape")
 
     scraper = ScrapeMapper(client=client, file_args=file_args, jdownloader_args=jdownloader_args,
                            runtime_args=runtime_args, xbunker_auth=xbunker_auth,
                            socialmediagirls_auth=socialmediagirls_auth, simpcity_auth=simpcity_auth,
-                           jdownloader_auth=jdownloader_auth, skip_data=skip_data)
+                           jdownloader_auth=jdownloader_auth, skip_data=skip_data, quiet=quiet)
     tasks = []
     for link in urls:
         tasks.append(scraper.map_url(link))

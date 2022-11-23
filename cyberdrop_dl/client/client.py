@@ -137,9 +137,9 @@ class DownloadSession:
             content_type = resp.headers.get('Content-Type')
             if 'text' in content_type.lower() or 'html' in content_type.lower():
                 logger.debug("Server for %s is experiencing issues, or you are being ratelimited", str(url))
-                logger.debug("Content received: " + await resp.text())
+                logger.debug("Content received: " + content_type.lower())
                 await File_Lock.remove_lock(original_filename)
-                raise FailureException(code=resp.status, message="Unexpectedly got text as response")
+                raise FailureException(code=resp.status, message="Unexpectedly got text as response", rescrape=True)
 
             total = int(resp.headers.get('Content-Length', str(0))) + resume_point
             (folder / title).mkdir(parents=True, exist_ok=True)

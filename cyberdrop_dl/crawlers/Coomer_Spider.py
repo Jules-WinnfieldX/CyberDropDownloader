@@ -8,13 +8,14 @@ from ..client.client import Session
 
 
 class CoomerCrawler:
-    def __init__(self, *, include_id=False, scraping_mapper, separate_posts=False):
+    def __init__(self, *, include_id=False, scraping_mapper, separate_posts=False, quiet: bool):
         self.include_id = include_id
+        self.quiet = quiet
         self.scraping_mapper = scraping_mapper
         self.separate_posts = separate_posts
 
     async def fetch(self, session: Session, url: URL):
-        await log("Starting scrape of " + str(url))
+        await log("Starting scrape of " + str(url), self.quiet)
         domain_obj = DomainItem('coomer.party', {})
         results = []
 
@@ -34,7 +35,7 @@ class CoomerCrawler:
         for result in results:
             await domain_obj.add_to_album(result[0], result[1], result[2])
 
-        await log("Finished scrape of " + str(url))
+        await log("Finished scrape of " + str(url), self.quiet)
         return domain_obj
 
     async def parse_profile(self, session: Session, url: URL):
@@ -60,7 +61,7 @@ class CoomerCrawler:
 
         except Exception as e:
             logger.debug("Error encountered while handling %s", str(url), exc_info=True)
-            await log("Error scraping " + str(url))
+            await log("Error scraping " + str(url), self.quiet)
             logger.debug(e)
             return []
 
@@ -99,6 +100,6 @@ class CoomerCrawler:
 
         except Exception as e:
             logger.debug("Error encountered while handling %s", str(url), exc_info=True)
-            await log("Error scraping " + str(url))
+            await log("Error scraping " + str(url), self.quiet)
             logger.debug(e)
             return []
