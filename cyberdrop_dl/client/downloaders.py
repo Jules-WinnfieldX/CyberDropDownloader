@@ -41,16 +41,17 @@ def retry(f):
                                                   runtime_args=self.runtime_args, jdownloader_auth=AuthData("", ""),
                                                   simpcity_auth=AuthData("", ""),
                                                   socialmediagirls_auth=AuthData("", ""),
-                                                  xbunker_auth=AuthData("", ""), skip_data=skip_data)
-                    await log("Attempting rescrape for " + str(args[0]))
+                                                  xbunker_auth=AuthData("", ""), skip_data=skip_data, quiet=True)
+                    await log("Attempting rescrape for " + str(args[0]), quiet=True)
                     if not await content_object.is_empty():
-                        link_pair = tuple()
+                        link_pairs = []
                         for domain in content_object.domains.keys():
                             for album in content_object.domains[domain].albums.keys():
                                 link_pairs = content_object.domains[domain].albums[album].link_pairs
-                        await self.album_obj.replace_link_pairs(link_pairs)
+                        map = await self.album_obj.replace_link_pairs(link_pairs)
+                        replaced_link = map[args[0]]
                         args = list(args)
-                        args[0] = link_pair[0]
+                        args[0] = replaced_link
                         args = tuple(args)
                     else:
                         raise
@@ -209,7 +210,8 @@ class Downloader:
             except:
                 pass
 
-            logger.debug(e)
+            if hasattr(e, "message"):
+                logging.debug(f"\n{url} ({e.message})")
 
             try:
                 logger.debug("Error status code: " + str(e.code))
