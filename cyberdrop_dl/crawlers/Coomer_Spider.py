@@ -45,7 +45,8 @@ class CoomerCrawler:
             title = title + " (Coomer.party)"
             results = []
 
-            posts = soup.select("a[class=fancy-link]")
+            posts = []
+            posts += soup.select("h2[class=post-card__heading] a")
             for post in posts:
                 path = post.get('href')
                 if path:

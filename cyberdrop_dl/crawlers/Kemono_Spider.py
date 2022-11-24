@@ -46,7 +46,7 @@ class KemonoCrawler:
             results = []
 
             posts = []
-            posts = soup.select('article[class="post-card post-card--preview"] a')
+            posts += soup.select('article[class="post-card post-card--preview"] a')
             posts += soup.select('article[class="post-card"] a')
             for post in posts:
                 path = post.get('href')
