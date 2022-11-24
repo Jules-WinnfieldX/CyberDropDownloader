@@ -67,6 +67,7 @@ class CoomerCrawler:
 
     async def parse_post(self, session: Session, url: URL, title=None):
         try:
+            await log("Scraping post: " + str(url), quiet=self.quiet)
             soup = await session.get_BS4(url)
             results = []
 
