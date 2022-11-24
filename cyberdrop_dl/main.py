@@ -93,7 +93,7 @@ async def handle_args(args: argparse.Namespace):
     logging.debug(f"Starting Cyberdrop-DL")
     logging.debug(f"Using authorization arguments: {auth_args_print}")
     logging.debug(f"Using file arguments: {file_args}")
-    logging.debug(f"Using jdownloader arguments: {jdownloader_args}")
+    logging.debug(f"Using jdownloader arguments: {jdownloader_args_print}")
     logging.debug(f"Using runtime arguments: {runtime_args}")
 
     return auth_args, file_args, jdownloader_args, runtime_args
