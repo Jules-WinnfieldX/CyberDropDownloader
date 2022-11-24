@@ -30,7 +30,7 @@ from ..crawlers.SocialMediaGirls_Spider import SocialMediaGirlsCrawler
 from ..crawlers.SimpCity_Spider import SimpCityCrawler
 from ..crawlers.XBunker_Spider import XBunkerCrawler
 from ..crawlers.XBunkr_Spider import XBunkrCrawler
-from ..base_functions.base_functions import log
+from ..base_functions.base_functions import log, write_last_post_file
 from ..base_functions.data_classes import CascadeItem, SkipData, AuthData
 from ..client.rate_limiting import AsyncRateLimiter
 
@@ -134,6 +134,8 @@ class ScrapeMapper:
 
     async def Coomer(self, url: URL, title=None):
         coomer_session = Session(self.client)
+        if self.output_last[0]:
+            await write_last_post_file(self.output_last[1], str(url))
         if not self.coomer_crawler:
             self.coomer_crawler = CoomerCrawler(include_id=self.include_id, scraping_mapper=self,
                                                 separate_posts=self.separate_posts, quiet=self.quiet)
@@ -200,6 +202,8 @@ class ScrapeMapper:
 
     async def Kemono(self, url: URL, title=None):
         kemono_session = Session(self.client)
+        if self.output_last[0]:
+            await write_last_post_file(self.output_last[1], str(url))
         if not self.kemono_crawler:
             self.kemono_crawler = KemonoCrawler(include_id=self.include_id, scraping_mapper=self,
                                                 separate_posts=self.separate_posts, quiet=self.quiet)
