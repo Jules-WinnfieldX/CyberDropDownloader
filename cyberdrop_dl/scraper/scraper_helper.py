@@ -84,6 +84,14 @@ class ScrapeMapper:
         self.bunkr_limiter = AsyncRateLimiter(15)
         self.forum_limiter = asyncio.Semaphore(4)
         self.semaphore = asyncio.Semaphore(1)
+
+        self.crawlers = [self.anonfiles_crawler, self.bunkr_crawler, self.cyberdrop_crawler, self.coomer_crawler,
+                         self.cyberfile_crawler, self.erome_crawler, self.gfycat_crawler, self.gofile_crawler,
+                         self.hgamecg_crawler, self.imgbox_crawler, self.kemono_crawler, self.pixeldrain_crawler,
+                         self.postimg_crawler, self.redgifs_crawler, self.rule34_crawler, self.saint_crawler,
+                         self.sharex_crawler, self.socialmediagirls_crawler, self.simpcity_crawler,
+                         self.xbunker_crawler, self.xbunkr_crawler]
+
         self.mapping = {"anonfiles.com": self.Anonfiles, "bayfiles": self.Anonfiles, "xbunkr": self.XBunkr,
                         "bunkr": self.Bunkr, "coomer.party": self.Coomer, "cyberdrop": self.Cyberdrop,
                         "cyberfile.is": self.Cyberfile, "erome.com": self.Erome, "gfycat.com": self.Gfycat,
@@ -336,6 +344,11 @@ class ScrapeMapper:
         except:
             await log("Failed jdownloader setup", self.quiet)
             self.jdownloader_enable = False
+
+    async def close(self):
+        for crawler in self.crawlers:
+            crawler = None
+
 
     async def map_url(self, url_to_map: URL, title=None):
         if not url_to_map:

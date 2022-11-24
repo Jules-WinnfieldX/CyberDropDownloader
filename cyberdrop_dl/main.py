@@ -113,7 +113,7 @@ async def download_all(auth_args: Dict, file_args: Dict, jdownloader_args: Dict,
     content_object = await scrape(urls=links, client=client, file_args=file_args, jdownloader_args=jdownloader_args,
                                   runtime_args=runtime_args, jdownloader_auth=jdownloader_auth,
                                   simpcity_auth=simpcity_auth, socialmediagirls_auth=socialmediagirls_auth,
-                                  xbunker_auth=xbunker_auth, skip_data=skip_data)
+                                  xbunker_auth=xbunker_auth, skip_data=skip_data, quiet=False)
 
     if await content_object.is_empty():
         logging.error('ValueError No links')

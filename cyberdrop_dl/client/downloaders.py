@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import sys
 from functools import wraps
 from typing import List, Tuple, Dict
 from random import gauss
@@ -200,7 +201,7 @@ class Downloader:
                     pass
                 else:
                     return
-            raise e
+            raise FailureException(code=e.code, message=e.message, rescrape=e.rescrape)
 
         except (aiohttp.client_exceptions.ClientPayloadError, aiohttp.client_exceptions.ClientOSError,
                 aiohttp.client_exceptions.ServerDisconnectedError, asyncio.TimeoutError,
@@ -318,7 +319,11 @@ class Downloader:
                 await self.download_file(url, referral=referral, filename=filename, session=session,
                                          show_progress=show_progress)
         except Exception as e:
+            if hasattr(e, "rescrape"):
+                if not (self.current_attempt[str(url)] >= self.attempts - 1) and e.rescrape:
+                    return
             await log(f"\nError attempting {url}")
+            await log(sys.exc_info())
             if hasattr(e, "message"):
                 logging.debug(f"\n{url} ({e.message})")
 
