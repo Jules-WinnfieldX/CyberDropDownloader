@@ -239,7 +239,8 @@ class Downloader:
             temp_file.rename(complete_file)
 
         await self.SQL_helper.sql_update_file(db_path, filename, 1)
-        self.current_attempt.pop(url.parts[-1])
+        if url.parts[-1] in self.current_attempt.keys():
+            self.current_attempt.pop(url.parts[-1])
         logger.debug("Finished " + filename)
 
     async def get_filename(self, url: URL, referral: URL, session: DownloadSession):
@@ -329,7 +330,8 @@ class Downloader:
             if hasattr(e, "rescrape"):
                 if not (self.current_attempt[url.parts[-1]] >= self.attempts - 1) and e.rescrape:
                     return
-            self.current_attempt.pop(url.parts[-1])
+            if url.parts[-1] in self.current_attempt.keys():
+                self.current_attempt.pop(url.parts[-1])
             await log(f"\nError attempting {url}")
             await log(sys.exc_info())
             if hasattr(e, "message"):
