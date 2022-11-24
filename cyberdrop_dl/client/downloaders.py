@@ -333,7 +333,6 @@ class Downloader:
             if url.parts[-1] in self.current_attempt.keys():
                 self.current_attempt.pop(url.parts[-1])
             await log(f"\nError attempting {url}")
-            await log(sys.exc_info())
             if hasattr(e, "message"):
                 logging.debug(f"\n{url} ({e.message})")
 
