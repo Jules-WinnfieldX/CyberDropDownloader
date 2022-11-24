@@ -170,7 +170,7 @@ class ScrapeMapper:
             try:
                 self.gofile_crawler = GofileCrawler(quiet=self.quiet)
             except SystemExit:
-                await log("Couldn't start the GoFile crawler", self.quiet)
+                await log("Couldn't start the GoFile crawler", quiet=self.quiet)
                 return
         domain_obj = await self.gofile_crawler.fetch(gofile_session, url)
         if title:
@@ -342,7 +342,7 @@ class ScrapeMapper:
             jd.connect(self.jdownloader_auth.username, self.jdownloader_auth.password)
             self.jdownloader_agent = jd.get_device(self.jdownloader_device)
         except:
-            await log("Failed jdownloader setup", self.quiet)
+            await log("Failed jdownloader setup", quiet=self.quiet)
             self.jdownloader_enable = False
 
     async def close(self):
@@ -354,12 +354,12 @@ class ScrapeMapper:
         if not url_to_map:
             return
         elif not url_to_map.host:
-            await log(str(url_to_map) + " is not supported currently.", self.quiet)
+            await log(str(url_to_map) + " is not supported currently.", quiet=self.quiet)
             return
         for key, value in self.mapping.items():
             if key in url_to_map.host:
                 if any(site in key for site in self.skip_data.sites):
-                    await log("Skipping scrape of " + str(url_to_map), self.quiet)
+                    await log("Skipping scrape of " + str(url_to_map), quiet=self.quiet)
                 else:
                     await value(url=url_to_map, title=title)
                 return
@@ -370,7 +370,7 @@ class ScrapeMapper:
             try:
                 if "facebook" in url_to_map.host.lower() or "instagram" in url_to_map.host.lower():
                     raise Exception("Blacklisted META")
-                await log("Sending " + str(url_to_map) + " to JDownloader", self.quiet)
+                await log("Sending " + str(url_to_map) + " to JDownloader", quiet=self.quiet)
                 self.jdownloader_agent.linkgrabber.add_links([{
                     "autostart": False,
                     "links": str(url_to_map),
@@ -379,8 +379,8 @@ class ScrapeMapper:
                     }])
             except Exception as e:
                 logging.debug(e)
-                await log("Failed to send " + str(url_to_map) + " to JDownloader", self.quiet)
+                await log("Failed to send " + str(url_to_map) + " to JDownloader", quiet=self.quiet)
         else:
-            await log("Not Supported: " + str(url_to_map), self.quiet)
+            await log("Not Supported: " + str(url_to_map), quiet=self.quiet)
             async with aiofiles.open("./Unsupported_Urls.txt", mode='a') as f:
                 await f.write(str(url_to_map)+"\n")

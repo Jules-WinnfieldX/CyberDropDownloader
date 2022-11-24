@@ -247,6 +247,12 @@ class Downloader:
         referer = str(referral)
 
         filename = url.name
+        if hasattr(url, "query_string"):
+            query_str = url.query_string
+            ext = '.' + query_str.split('.')[-1].lower()
+            if (ext in FILE_FORMATS['Images'] or ext in FILE_FORMATS['Videos'] or
+                    ext in FILE_FORMATS['Audio'] or ext in FILE_FORMATS['Other']):
+                filename = query_str.split("=")[-1]
         filename = await sanitize(filename)
         if "v=" in filename:
             filename = filename.split('v=')[0]
