@@ -9,6 +9,7 @@ assignees: Jules-WinnfieldX
 
 **Describe the bug**
 A clear and concise description of what the bug is.
+Make sure to read the FAQ here first: https://github.com/Jules-WinnfieldX/CyberDropDownloader/wiki
 
 **To Help Reproduce**
 Steps to help reproduce the behavior:
