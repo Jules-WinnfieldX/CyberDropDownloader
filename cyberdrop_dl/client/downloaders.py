@@ -26,11 +26,11 @@ def retry(f):
                 return await f(self, *args, **kwargs)
             except FailureException as e:
                 if not self.disable_attempt_limit:
-                    if self.current_attempt[str(args[0])] >= self.attempts - 1:
+                    if self.current_attempt[args[0].parts[-1]] >= self.attempts - 1:
                         logger.debug('Skipping %s...', args[0])
                         raise
-                logger.debug(f'Retrying ({self.current_attempt[str(args[0])]}) {args[0]}...')
-                self.current_attempt[str(args[0])] += 1
+                logger.debug(f'Retrying ({self.current_attempt[args[0].parts[-1]]}) {args[0]}...')
+                self.current_attempt[args[0].parts[-1]] += 1
 
                 if e.rescrape:
                     skip_data = SkipData(self.runtime_args['skip_hosts'])
@@ -105,8 +105,8 @@ class Downloader:
     async def download_file(self, url: URL, referral: URL, filename: str, session: DownloadSession,
                             show_progress: bool = True) -> None:
         """Download the content of given URL"""
-        if str(url) not in self.current_attempt:
-            self.current_attempt[str(url)] = 0
+        if url.parts[-1] not in self.current_attempt:
+            self.current_attempt[url.parts[-1]] = 0
 
         referer = str(referral)
         db_path = url.path
@@ -239,6 +239,7 @@ class Downloader:
             temp_file.rename(complete_file)
 
         await self.SQL_helper.sql_update_file(db_path, filename, 1)
+        self.current_attempt.pop(url.parts[-1])
         logger.debug("Finished " + filename)
 
     async def get_filename(self, url: URL, referral: URL, session: DownloadSession):
@@ -320,8 +321,9 @@ class Downloader:
                                          show_progress=show_progress)
         except Exception as e:
             if hasattr(e, "rescrape"):
-                if not (self.current_attempt[str(url)] >= self.attempts - 1) and e.rescrape:
+                if not (self.current_attempt[url.parts[-1]] >= self.attempts - 1) and e.rescrape:
                     return
+            self.current_attempt.pop(url.parts[-1])
             await log(f"\nError attempting {url}")
             await log(sys.exc_info())
             if hasattr(e, "message"):
