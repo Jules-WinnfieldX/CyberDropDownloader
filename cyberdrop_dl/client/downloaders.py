@@ -328,8 +328,9 @@ class Downloader:
                                          show_progress=show_progress)
         except Exception as e:
             if hasattr(e, "rescrape"):
-                if not (self.current_attempt[url.parts[-1]] >= self.attempts - 1) and e.rescrape:
-                    return
+                if url.parts[-1] in self.current_attempt.keys():
+                    if not (self.current_attempt[url.parts[-1]] >= self.attempts - 1) and e.rescrape:
+                        return
             if url.parts[-1] in self.current_attempt.keys():
                 self.current_attempt.pop(url.parts[-1])
             await log(f"\nError attempting {url}")
