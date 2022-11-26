@@ -120,6 +120,8 @@ class Downloader:
 
         # return if completed already
         if await self.SQL_helper.sql_check_existing(db_path):
+            if url.parts[-1] in self.current_attempt.keys():
+                self.current_attempt.pop(url.parts[-1])
             logger.debug(msg=f"{db_path} found in DB: Skipping {filename}")
             return
 
