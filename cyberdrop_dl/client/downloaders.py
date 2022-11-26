@@ -37,13 +37,14 @@ def retry(f):
                     jdownloader_args = {"jdownloader_enable": None, "jdownloader_username": None,
                                         "jdownloader_password": None, "jdownloader_device": None}
                     links = [await self.album_obj.get_referrer(URL(args[0]))]
+                    await log("Attempting rescrape for " + str(args[0]), quiet=True)
                     content_object = await scrape(urls=links, client=self.client, file_args=self.file_args,
                                                   jdownloader_args=jdownloader_args,
                                                   runtime_args=self.runtime_args, jdownloader_auth=AuthData("", ""),
                                                   simpcity_auth=AuthData("", ""),
                                                   socialmediagirls_auth=AuthData("", ""),
                                                   xbunker_auth=AuthData("", ""), skip_data=skip_data, quiet=True)
-                    await log("Attempting rescrape for " + str(args[0]), quiet=True)
+
                     if not await content_object.is_empty():
                         link_pairs = []
                         for domain in content_object.domains.keys():

@@ -74,3 +74,7 @@
 
 3.5.22
 - One more jdownloader exception print.
+
+3.6.9
+- I haven't kept up with this. I implemented rescraping for some downloads that fail.
+- Nice.
