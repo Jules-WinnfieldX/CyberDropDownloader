@@ -146,6 +146,7 @@ class Downloader:
                         if complete_file.stat().st_size == total_size:
                             await self.SQL_helper.sql_insert_file(db_path, complete_file.name, 1)
                             logger.debug("\nFile already exists and matches expected size: " + str(complete_file))
+                            await self.File_Lock.remove_lock(original_filename)
                             return
 
                     download_name = await self.SQL_helper.get_download_filename(db_path)

@@ -81,3 +81,6 @@
 
 3.6.11
 - If referrer is a forum, we don't rescrape.
+
+3.6.12
+- Removes file lock when file is already downloaded, avoids infinite loops in a fringe circumstance.
