@@ -78,3 +78,6 @@
 3.6.9
 - I haven't kept up with this. I implemented rescraping for some downloads that fail.
 - Nice.
+
+3.6.11
+- If referrer is a forum, we don't rescrape.

@@ -121,6 +121,10 @@ async def check_direct(url: URL):
     return any(re.search(domain, url.host) for domain in mapping_direct)
 
 
+async def is_forum(url: URL):
+    mapping_forum = ['simpcity...', 'socialmediagirls....', 'xbunker...']
+    return any(re.search(domain, url.host) for domain in mapping_forum)
+
 async def create_config(config: Path, passed_args=None, remake=None):
     if config.is_file() and not remake:
         logging.debug("Validating Config")

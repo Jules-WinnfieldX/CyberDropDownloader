@@ -11,7 +11,8 @@ import aiohttp.client_exceptions
 from tqdm import tqdm
 from yarl import URL
 
-from ..base_functions.base_functions import FILE_FORMATS, MAX_FILENAME_LENGTH, log, logger, sanitize, FailureException
+from ..base_functions.base_functions import FILE_FORMATS, MAX_FILENAME_LENGTH, log, logger, sanitize, FailureException, \
+    is_forum
 from ..base_functions.sql_helper import SQLHelper
 from ..base_functions.data_classes import AlbumItem, CascadeItem, FileLock, AuthData, SkipData
 from ..client.client import Client, DownloadSession
@@ -204,6 +205,8 @@ class Downloader:
                     pass
                 else:
                     return
+            if await is_forum(referral):
+                return
             raise FailureException(code=e.code, message=e.message, rescrape=e.rescrape)
 
         except (aiohttp.client_exceptions.ClientPayloadError, aiohttp.client_exceptions.ClientOSError,
