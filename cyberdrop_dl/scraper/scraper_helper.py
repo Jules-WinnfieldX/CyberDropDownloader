@@ -94,12 +94,13 @@ class ScrapeMapper:
 
         self.mapping = {"anonfiles.com": self.Anonfiles, "bayfiles": self.Anonfiles, "xbunkr": self.XBunkr,
                         "bunkr": self.Bunkr, "coomer.party": self.Coomer, "cyberdrop": self.Cyberdrop,
-                        "cyberfile.is": self.Cyberfile, "erome.com": self.Erome, "gfycat.com": self.Gfycat,
-                        "gofile.io": self.GoFile, "hgamecg.com": self.HGameCG, "imgbox.com": self.ImgBox,
-                        "img.kiwi": self.ShareX, "jpg.church": self.ShareX, "kemono.party": self.Kemono, 
-                        "pixeldrain.com": self.Pixeldrain, "pixl.li": self.ShareX, "postimg": self.Postimg,
-                        "redgifs.com": self.Redgifs, "rule34.xxx": self.Rule34, "saint.to": self.Saint, 
-                        "socialmediagirls": self.SocialMediaGirls, "simpcity": self.SimpCity, "xbunker": self.XBunker}
+                        "cyberfile.is": self.Cyberfile, "cyberfile.su": self.Cyberfile, "erome.com": self.Erome,
+                        "gfycat.com": self.Gfycat, "gofile.io": self.GoFile, "hgamecg.com": self.HGameCG,
+                        "imgbox.com": self.ImgBox, "img.kiwi": self.ShareX, "jpg.church": self.ShareX,
+                        "kemono.party": self.Kemono, "pixeldrain.com": self.Pixeldrain, "pixl.li": self.ShareX,
+                        "postimg": self.Postimg, "redgifs.com": self.Redgifs, "rule34.xxx": self.Rule34,
+                        "saint.to": self.Saint,  "socialmediagirls": self.SocialMediaGirls, "simpcity": self.SimpCity,
+                        "xbunker": self.XBunker}
 
     async def Anonfiles(self, url: URL, title=None):
         anonfiles_session = Session(self.client)

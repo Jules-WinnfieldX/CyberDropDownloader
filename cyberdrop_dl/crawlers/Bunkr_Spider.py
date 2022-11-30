@@ -57,6 +57,11 @@ class BunkrCrawler:
                     media_loc = cdn_loc.replace('cdn', 'media-files')
                     referrer = "https://stream.bunkr.is/v/" + file['name']
                     link = URL(media_loc + '/' + file['name'])
+                elif ext in FILE_FORMATS['Other']:
+                    cdn_loc = file['cdn']
+                    media_loc = cdn_loc.replace('cdn', 'media-files')
+                    referrer = "https://files.bunkr.is/d/" + file['name']
+                    link = URL(media_loc + '/' + file['name'])
                 else:
                     link = URL(file['cdn'] + '/' + file['name'])
                 await domain_obj.add_to_album(title, link, referrer)
