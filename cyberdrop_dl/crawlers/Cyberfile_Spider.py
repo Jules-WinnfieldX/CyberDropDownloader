@@ -11,12 +11,12 @@ from ..client.client import Session
 class CyberfileCrawler:
     def __init__(self, quiet: bool):
         self.quiet = quiet
-        self.load_files = URL('https://cyberfile.is/account/ajax/load_files')
-        self.file_details = URL('https://cyberfile.is/account/ajax/file_details')
+        self.load_files = URL('https://cyberfile.su/account/ajax/load_files')
+        self.file_details = URL('https://cyberfile.su/account/ajax/file_details')
 
     async def fetch(self, session: Session, url: URL):
         await log("Starting scrape of " + str(url), quiet=self.quiet)
-        domain_obj = DomainItem("cyberfile.is", {})
+        domain_obj = DomainItem("cyberfile.su", {})
         download_links = []
         if 'folder' in url.parts:
             nodeId = await self.folder_nodeId(session, url)

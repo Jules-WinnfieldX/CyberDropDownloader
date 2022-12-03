@@ -143,6 +143,7 @@ class Downloader:
                             return
 
                     download_name = await self.SQL_helper.get_download_filename(db_path)
+                    # TODO Rescraping causes issues with iterations and different db paths. Dunno solution.
                     iterations = 1
 
                     if not download_name:

@@ -1,7 +1,7 @@
 # `cyberdrop-dl`
 **Bulk downloader for multiple file hosts** 
 
-The latest version of the program is 3.6.14
+The latest version of the program is 3.6.15
 
 <a href="https://www.buymeacoffee.com/juleswinnft" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
 
@@ -15,7 +15,7 @@ The latest version of the program is 3.6.14
 | Bunkr            | Albums: bunkr.is/a/... <br> Direct Videos: stream.bunkr.is/v/... <br> Direct links: cdn.bunkr.is/... <br> Direct links: i.bunkr.is/... <br> Direct links: files.bunkr.is/... <br> Direct links: media-files.bunkr.is/...               |
 | Coomer.party     | Profiles: coomer.party/... <br> Thumbnail Links: coomer.party/thumbnail/... <br> Data Links: coomer.party/data/... <br> coomer.party/.../post/...                                                                                      | 
 | Cyberdrop        | Albums: cyberdrop.me/a/... <br> Direct Videos: fs-0#.cyberdrop.me/... <br> Direct Videos: f.cyberdrop.me/... <br> Direct Images: img-0#.cyberdrop.me/... <br> Direct Images: f.cyberdrop.me/... <br> Also works with .cc, .to, and .nl |
-| Cyberfile        | folders: cyberfile.is/folder/... <br> shared: cyberfile.is/shared/... <br> Direct: cyberfile.is/...                                                                                                                                    | 
+| Cyberfile        | folders: cyberfile.su/folder/... <br> shared: cyberfile.su/shared/... <br> Direct: cyberfile.su/...                                                                                                                                    | 
 | Erome            | Albums: erome.com/a/...                                                                                                                                                                                                                |
 | GoFile           | Albums: gofile.io/d/...                                                                                                                                                                                                                |
 | HGameCG          | Albums: hgamecg.com/.../index.html                                                                                                                                                                                                     |
