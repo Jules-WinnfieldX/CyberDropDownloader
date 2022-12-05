@@ -74,10 +74,16 @@ class KemonoCrawler:
             results = []
 
             if self.separate_posts:
-                if title:
-                    title = title + '/' + await make_title_safe(soup.select_one("h1[class=post__title]").text.replace('\n', '').replace("..", ""))
+                if self.include_id:
+                    if title:
+                        title = title + '/' + str(url.parts[-1]) + " - "  + await make_title_safe(soup.select_one("h1[class=post__title]").text.replace('\n', '').replace("..", ""))
+                    else:
+                        title = await make_title_safe(str(url.parts[-1]) + " - " + soup.select_one("h1[class=post__title]").text.replace('\n', '').replace("..", ""))
                 else:
-                    title = await make_title_safe(soup.select_one("h1[class=post__title]").text.replace('\n', '').replace("..", ""))
+                    if title:
+                        title = title + '/' + await make_title_safe(soup.select_one("h1[class=post__title]").text.replace('\n', '').replace("..", ""))
+                    else:
+                        title = await make_title_safe(soup.select_one("h1[class=post__title]").text.replace('\n', '').replace("..", ""))
             else:
                 if not title:
                     title = await make_title_safe(soup.select_one("h1[class=post__title]").text.replace('\n', '').replace("..", ""))
