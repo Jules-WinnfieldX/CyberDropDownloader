@@ -44,6 +44,14 @@ class Session:
                     soup = BeautifulSoup(text, 'html.parser')
                     return soup
 
+    async def get_BS4_and_url(self, url: URL):
+        async with self.client.simultaneous_session_limit:
+            async with self.rate_limiter:
+                async with self.client_session.get(url, ssl=self.client.ssl_context) as response:
+                    text = await response.text()
+                    soup = BeautifulSoup(text, 'html.parser')
+                    return soup, URL(response.url)
+
     async def get_text(self, url: URL):
         async with self.client.simultaneous_session_limit:
             async with self.rate_limiter:

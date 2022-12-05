@@ -15,6 +15,7 @@ from ..crawlers.Coomer_Spider import CoomerCrawler
 from ..crawlers.Cyberdrop_Spider import CyberdropCrawler
 from ..crawlers.Cyberfile_Spider import CyberfileCrawler
 from ..crawlers.Erome_Spider import EromeCrawler
+from ..crawlers.Fapello_Spider import FapelloCrawler
 from ..crawlers.Gfycat_Spider import GfycatCrawler
 from ..crawlers.GoFile_Spider import GofileCrawler
 from ..crawlers.HGameCG_Spider import HGameCGCrawler
@@ -61,6 +62,7 @@ class ScrapeMapper:
         self.coomer_crawler = None
         self.cyberfile_crawler = None
         self.erome_crawler = None
+        self.fapello_crawler = None
         self.gfycat_crawler = None
         self.gofile_crawler = None
         self.hgamecg_crawler = None
@@ -95,12 +97,12 @@ class ScrapeMapper:
         self.mapping = {"anonfiles.com": self.Anonfiles, "bayfiles": self.Anonfiles, "xbunkr": self.XBunkr,
                         "bunkr": self.Bunkr, "coomer.party": self.Coomer, "cyberdrop": self.Cyberdrop,
                         "cyberfile.is": self.Cyberfile, "cyberfile.su": self.Cyberfile, "erome.com": self.Erome,
-                        "gfycat.com": self.Gfycat, "gofile.io": self.GoFile, "hgamecg.com": self.HGameCG,
-                        "imgbox.com": self.ImgBox, "img.kiwi": self.ShareX, "jpg.church": self.ShareX,
-                        "kemono.party": self.Kemono, "pixeldrain.com": self.Pixeldrain, "pixl.li": self.ShareX,
-                        "postimg": self.Postimg, "redgifs.com": self.Redgifs, "rule34.xxx": self.Rule34,
-                        "saint.to": self.Saint,  "socialmediagirls": self.SocialMediaGirls, "simpcity": self.SimpCity,
-                        "xbunker": self.XBunker}
+                        "fapello": self.Fapello, "gfycat.com": self.Gfycat, "gofile.io": self.GoFile,
+                        "hgamecg.com": self.HGameCG, "imgbox.com": self.ImgBox, "img.kiwi": self.ShareX,
+                        "jpg.church": self.ShareX, "kemono.party": self.Kemono, "pixeldrain.com": self.Pixeldrain,
+                        "pixl.li": self.ShareX, "postimg": self.Postimg, "redgifs.com": self.Redgifs,
+                        "rule34.xxx": self.Rule34, "saint.to": self.Saint,  "socialmediagirls": self.SocialMediaGirls,
+                        "simpcity": self.SimpCity, "xbunker": self.XBunker}
 
     async def Anonfiles(self, url: URL, title=None):
         anonfiles_session = Session(self.client)
@@ -164,6 +166,16 @@ class ScrapeMapper:
             await domain_obj.append_title(title)
         await self.Cascade.add_albums(domain_obj)
         await erome_session.exit_handler()
+
+    async def Fapello(self, url: URL, title=None):
+        fapello_session = Session(self.client)
+        if not self.fapello_crawler:
+            self.fapello_crawler = FapelloCrawler(include_id=self.include_id, quiet=self.quiet)
+        domain_obj = await self.fapello_crawler.fetch(fapello_session, url)
+        if title:
+            await domain_obj.append_title(title)
+        await self.Cascade.add_albums(domain_obj)
+        await fapello_session.exit_handler()
 
     async def GoFile(self, url: URL, title=None):
         gofile_session = Session(self.client)
