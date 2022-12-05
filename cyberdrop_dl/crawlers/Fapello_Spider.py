@@ -5,7 +5,7 @@ from ..base_functions.data_classes import DomainItem
 from ..client.client import Session
 
 
-class EromeCrawler:
+class FapelloCrawler:
     def __init__(self, *, include_id=False, quiet: bool):
         self.include_id = include_id
         self.quiet = quiet
