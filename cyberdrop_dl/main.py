@@ -79,6 +79,7 @@ async def handle_args(args: argparse.Namespace):
     auth_args_print['xbunker_password'] = '!REDACTED!'
     auth_args_print['socialmediagirls_password'] = '!REDACTED!'
     auth_args_print['simpcity_password'] = '!REDACTED!'
+    auth_args_print['pixeldrain_api_key'] = '!REDACTED!'
 
     file_args = use_args['Files']
     for key, value in file_args.items():
@@ -105,15 +106,16 @@ async def download_all(auth_args: Dict, file_args: Dict, jdownloader_args: Dict,
     socialmediagirls_auth = AuthData(auth_args['socialmediagirls_username'], auth_args['socialmediagirls_password'])
     simpcity_auth = AuthData(auth_args['simpcity_username'], auth_args['simpcity_password'])
     jdownloader_auth = AuthData(jdownloader_args['jdownloader_username'], jdownloader_args['jdownloader_password'])
+    pixeldrain_api_key = auth_args['pixeldrain_api_key']
 
     skip_data = SkipData(runtime_args['skip_hosts'])
     excludes = {'videos': runtime_args['exclude_videos'], 'images': runtime_args['exclude_images'],
                 'audio': runtime_args['exclude_audio'], 'other': runtime_args['exclude_other']}
 
     content_object = await scrape(urls=links, client=client, file_args=file_args, jdownloader_args=jdownloader_args,
-                                  runtime_args=runtime_args, jdownloader_auth=jdownloader_auth,
-                                  simpcity_auth=simpcity_auth, socialmediagirls_auth=socialmediagirls_auth,
-                                  xbunker_auth=xbunker_auth, skip_data=skip_data, quiet=False)
+                                  runtime_args=runtime_args, jdownloader_auth=jdownloader_auth, simpcity_auth=simpcity_auth,
+                                  socialmediagirls_auth=socialmediagirls_auth, xbunker_auth=xbunker_auth,
+                                  skip_data=skip_data, quiet=False)
 
     if await content_object.is_empty():
         logging.error('ValueError No links')
@@ -123,7 +125,8 @@ async def download_all(auth_args: Dict, file_args: Dict, jdownloader_args: Dict,
     await clear()
 
     downloaders = await get_downloaders(content_object, excludes=excludes, SQL_helper=SQL_helper, client=client,
-                                        max_workers=threads, file_args=file_args, runtime_args=runtime_args)
+                                        max_workers=threads, file_args=file_args, runtime_args=runtime_args,
+                                        pixeldrain_api_key=pixeldrain_api_key)
 
     for downloader in downloaders:
         await downloader.download_content()

@@ -31,7 +31,7 @@ from ..crawlers.SocialMediaGirls_Spider import SocialMediaGirlsCrawler
 from ..crawlers.SimpCity_Spider import SimpCityCrawler
 from ..crawlers.XBunker_Spider import XBunkerCrawler
 from ..crawlers.XBunkr_Spider import XBunkrCrawler
-from ..base_functions.base_functions import log, write_last_post_file
+from ..base_functions.base_functions import log
 from ..base_functions.data_classes import CascadeItem, SkipData, AuthData
 from ..client.rate_limiting import AsyncRateLimiter
 

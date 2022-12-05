@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import sys
+from base64 import b64encode
 from functools import wraps
 from typing import List, Tuple, Dict
 from random import gauss
@@ -17,6 +18,11 @@ from ..base_functions.sql_helper import SQLHelper
 from ..base_functions.data_classes import AlbumItem, CascadeItem, FileLock, AuthData, SkipData
 from ..client.client import Client, DownloadSession
 from ..scraper.scraper import scrape
+
+
+async def basic_auth(username, password):
+    token = b64encode(f"{username}:{password}".encode('utf-8')).decode("ascii")
+    return f'Basic {token}'
 
 
 def retry(f):
@@ -77,7 +83,7 @@ def retry(f):
 
 class Downloader:
     def __init__(self, album_obj: AlbumItem, title: str, max_workers: int, excludes: Dict[str, bool],
-                 SQL_helper: SQLHelper, client: Client, file_args: Dict, runtime_args: Dict):
+                 SQL_helper: SQLHelper, client: Client, file_args: Dict, runtime_args: Dict, pixeldrain_api_key: str):
         self.album_obj = album_obj
         self.client = client
         self.folder = file_args['output_folder']
@@ -98,6 +104,7 @@ class Downloader:
         self.delay = {'cyberfile.is': 1, 'anonfiles.com': 1}
 
         self.proxy = runtime_args['proxy']
+        self.pixeldrain_api_key = pixeldrain_api_key
 
         self.runtime_args = runtime_args
         self.file_args = file_args
@@ -178,9 +185,12 @@ class Downloader:
                     if key in url.host:
                         current_throttle = value
 
+                headers = {"Authorization": await basic_auth("Cyberdrop-DL", self.pixeldrain_api_key)} \
+                          if self.pixeldrain_api_key else {}
+
                 await session.download_file(url, referer, current_throttle, range_num, original_filename, filename,
                                             temp_file, resume_point, show_progress, self.File_Lock, self.folder,
-                                            self.title, self.proxy)
+                                            self.title, self.proxy, headers)
 
             await self.rename_file(filename, url, db_path)
             await self.File_Lock.remove_lock(original_filename)
@@ -369,7 +379,8 @@ class Downloader:
 
 
 async def get_downloaders(Cascade: CascadeItem, excludes: Dict[str, bool], SQL_helper: SQLHelper, client: Client,
-                          max_workers: int, file_args: Dict, runtime_args: Dict) -> List[Downloader]:
+                          max_workers: int, file_args: Dict, runtime_args: Dict,
+                          pixeldrain_api_key: str) -> List[Downloader]:
     """Get a list of downloader objects to run."""
     downloaders = []
 
@@ -379,7 +390,7 @@ async def get_downloaders(Cascade: CascadeItem, excludes: Dict[str, bool], SQL_h
             max_workers_temp = 2 if (max_workers > 2) else max_workers
         for title, album_obj in domain_obj.albums.items():
             downloader = Downloader(album_obj, title=title, max_workers=max_workers_temp, excludes=excludes,
-                                    SQL_helper=SQL_helper, client=client,
-                                    file_args=file_args, runtime_args=runtime_args)
+                                    SQL_helper=SQL_helper, client=client, file_args=file_args,
+                                    runtime_args=runtime_args, pixeldrain_api_key=pixeldrain_api_key)
             downloaders.append(downloader)
     return downloaders

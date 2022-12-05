@@ -9,6 +9,7 @@ config_default = [
                 "db_file": "download_history.sqlite",
             },
             "Authentication": {
+                "pixeldrain_api_key": "",
                 "simpcity_username": "",
                 "simpcity_password": "",
                 "socialmediagirls_username": "",
@@ -46,7 +47,8 @@ config_default = [
 ]
 
 files_args = ["input_file", "output_folder", "output_last_forum_post_file", "db_file"]
-authentication_args = ["simpcity_username", "simpcity_password",
+authentication_args = ["pixeldrain_api_key",
+                       "simpcity_username", "simpcity_password",
                        "socialmediagirls_username", "socialmediagirls_password",
                        "xbunker_username", "xbunker_password"]
 jdownloader_args = ["jdownloader_enable", "jdownloader_username", "jdownloader_password", "jdownloader_device"]

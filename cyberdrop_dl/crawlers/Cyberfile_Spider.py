@@ -73,7 +73,7 @@ class CyberfileCrawler:
     async def shared_nodeId_root_content(self, session: Session, url: URL, page):
         try:
             # Initial page load to tell server, this is what we want.
-            await session.post_no_resp(url, {'referer': str(url), "user-agent": session.client.user_agent})
+            await session.get_no_resp(url, {'referer': str(url), "user-agent": session.client.user_agent})
 
             # get the content listings
             data = {"pageType": "nonaccountshared", "nodeId": '', "pageStart": page, "perPage": 0, "filterOrderBy": ""}

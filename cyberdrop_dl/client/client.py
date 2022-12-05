@@ -4,6 +4,7 @@ import logging
 import ssl
 from pathlib import Path
 import xml.etree.ElementTree as ET
+from typing import Dict
 
 import aiofiles
 from bs4 import BeautifulSoup
@@ -74,7 +75,7 @@ class Session:
                     xmlTree = ET.fromstring(text)
                     return xmlTree
 
-    async def post_no_resp(self, url: URL, headers: dict):
+    async def get_no_resp(self, url: URL, headers: dict):
         async with self.client.simultaneous_session_limit:
             async with self.rate_limiter:
                 async with self.client_session.get(url, headers=headers, ssl=self.client.ssl_context) as response:
@@ -135,8 +136,9 @@ class DownloadSession:
 
     async def download_file(self, url: URL, referer: str, current_throttle: int, range_num: str, original_filename: str,
                             filename: str, temp_file: str, resume_point: int, show_progress: bool,
-                            File_Lock: FileLock, folder: Path, title: str, proxy: str):
-        headers = {'Referer': referer, 'user-agent': self.client.user_agent}
+                            File_Lock: FileLock, folder: Path, title: str, proxy: str, headers: Dict):
+        headers['Referer'] = referer
+        headers['user-agent'] = self.client.user_agent
         if range_num:
             headers['Range'] = range_num
         await throttle(self, current_throttle, url.host)
