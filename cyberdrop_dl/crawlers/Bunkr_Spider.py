@@ -20,9 +20,9 @@ class BunkrCrawler:
         ext = '.' + str(url).split('.')[-1]
         ext = ext.lower()
         if ext in FILE_FORMATS['Videos']:
-            url = URL(re.sub(cdn_possibilities, "stream.bunkr.is/v", str(url)))
+            url = URL(re.sub(cdn_possibilities, "stream.bunkr.ru/v", str(url)))
         if ext in FILE_FORMATS['Other']:
-            url = URL(re.sub(cdn_possibilities, "files.bunkr.is/d", str(url)))
+            url = URL(re.sub(cdn_possibilities, "files.bunkr.ru/d", str(url)))
         if ext in FILE_FORMATS['Images']:
             url = URL(str(url).replace("https://cdn", "https://i"))
 
@@ -55,12 +55,12 @@ class BunkrCrawler:
                 if ext in FILE_FORMATS['Videos']:
                     cdn_loc = file['cdn']
                     media_loc = cdn_loc.replace('cdn', 'media-files')
-                    referrer = "https://stream.bunkr.is/v/" + file['name']
+                    referrer = "https://stream.bunkr.ru/v/" + file['name']
                     link = URL(media_loc + '/' + file['name'])
                 elif ext in FILE_FORMATS['Other']:
                     cdn_loc = file['cdn']
                     media_loc = cdn_loc.replace('cdn', 'media-files')
-                    referrer = "https://files.bunkr.is/d/" + file['name']
+                    referrer = "https://files.bunkr.ru/d/" + file['name']
                     link = URL(media_loc + '/' + file['name'])
                 else:
                     link = URL(file['cdn'] + '/' + file['name'])
