@@ -87,3 +87,6 @@
 
 3.6.13
 - Changes where the DB check is made, can incredibly boost the speed of skipping completed files in some circumstances.
+
+3.6.21
+- added pixeldrain api key support, kemono/coomer allow include_id, fixed cyberfile, fixed pixeldrain, fixed bunkr,

@@ -281,7 +281,10 @@ class Downloader:
                     if value > current_throttle:
                         current_throttle = value
             try:
-                filename = await session.get_filename(url, referer, current_throttle)
+                if "pixeldrain" in url.host:
+                    filename = await session.get_json_filename(url.with_query(None) / "info", current_throttle, 'name')
+                else:
+                    filename = await session.get_filename(url, referer, current_throttle)
                 filename = await sanitize(filename)
                 ext = '.' + filename.split('.')[-1].lower()
                 if not (ext in FILE_FORMATS['Images'] or ext in FILE_FORMATS['Videos']
@@ -362,6 +365,11 @@ class Downloader:
             await log(f"\nError attempting {url}")
             if hasattr(e, "message"):
                 logging.debug(f"\n{url} ({e.message})")
+            try:
+                logger.debug("Error status code: " + str(e.code))
+                logger.debug("Error message: " + str(e.message))
+            except:
+                pass
 
     async def download_all(self, album_obj: AlbumItem, session: DownloadSession, show_progress: bool = True) -> None:
         """Download the data from all given links and store them into corresponding files."""

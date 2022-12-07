@@ -110,6 +110,13 @@ class DownloadSession:
                                                     cookie_jar=self.client.cookies, timeout=self.timeouts)
         self.throttle_times = {}
 
+    async def get_json_filename(self, url: URL, current_throttle: int, element: str):
+        headers = {'user-agent': self.client.user_agent}
+        await throttle(self, current_throttle, url.host)
+        async with self.client_session.get(url, headers=headers, ssl=self.client.ssl_context) as resp:
+            json_obj = json.loads(await resp.content.read())
+            return json_obj[element]
+
     async def get_filename(self, url: URL, referer: str, current_throttle: int):
         headers = {'Referer': referer, 'user-agent': self.client.user_agent}
         await throttle(self, current_throttle, url.host)
