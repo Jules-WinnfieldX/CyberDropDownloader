@@ -90,3 +90,6 @@
 
 3.6.21
 - added pixeldrain api key support, kemono/coomer allow include_id, fixed cyberfile, fixed pixeldrain, fixed bunkr,
+
+3.6.22
+- dropping support for bayfiles
