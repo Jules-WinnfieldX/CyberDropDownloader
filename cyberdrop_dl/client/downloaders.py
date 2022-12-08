@@ -57,8 +57,8 @@ def retry(f):
                         for domain in content_object.domains.keys():
                             for album in content_object.domains[domain].albums.keys():
                                 link_pairs = content_object.domains[domain].albums[album].link_pairs
-                        map = await self.album_obj.replace_link_pairs(link_pairs)
-                        replaced_link = map[args[0]]
+                        url_map = await self.album_obj.replace_link_pairs(link_pairs)
+                        replaced_link = url_map[args[0]]
                         args = list(args)
                         args[0] = replaced_link
                         args = tuple(args)
@@ -111,31 +111,24 @@ class Downloader:
 
 
     @retry
-    async def download_file(self, url: URL, referral: URL, filename: str, session: DownloadSession,
+    async def download_file(self, url: URL, referral: URL, filename: str, session: DownloadSession, db_path: str,
                             show_progress: bool = True) -> None:
         """Download the content of given URL"""
         if url.parts[-1] not in self.current_attempt:
             self.current_attempt[url.parts[-1]] = 0
 
         referer = str(referral)
-        db_path = url.path
         current_throttle = self.client.throttle
 
-        if 'anonfiles' in url.host:
-            db_path = db_path.split('/')
-            db_path.pop(0)
-            db_path.pop(1)
-            db_path = '/' + '/'.join(db_path)
+        while await self.File_Lock.check_lock(filename):
+            await asyncio.sleep(gauss(1, 1.5))
+        await self.File_Lock.add_lock(filename)
 
         try:
             async with self._semaphore:
                 # Make suffix always lower case
                 original_filename = filename
                 ext = '.' + filename.split('.')[-1]
-
-                while await self.File_Lock.check_lock(filename):
-                    await asyncio.sleep(gauss(1, 1.5))
-                await self.File_Lock.add_lock(filename)
 
                 complete_file = (self.folder / self.title / filename)
                 partial_file = complete_file.with_suffix(complete_file.suffix + '.part')
@@ -150,7 +143,6 @@ class Downloader:
                             return
 
                     download_name = await self.SQL_helper.get_download_filename(db_path)
-                    # TODO Rescraping causes issues with iterations and different db paths. Dunno solution.
                     iterations = 1
 
                     if not download_name:
@@ -186,7 +178,7 @@ class Downloader:
                         current_throttle = value
 
                 headers = {"Authorization": await basic_auth("Cyberdrop-DL", self.pixeldrain_api_key)} \
-                          if self.pixeldrain_api_key else {}
+                          if (self.pixeldrain_api_key and "pixeldrain" in url.host) else {}
 
                 await session.download_file(url, referer, current_throttle, range_num, original_filename, filename,
                                             temp_file, resume_point, show_progress, self.File_Lock, self.folder,
@@ -195,49 +187,30 @@ class Downloader:
             await self.rename_file(filename, url, db_path)
             await self.File_Lock.remove_lock(original_filename)
 
-        except FailureException as e:
-            try:
-                await self.File_Lock.remove_lock(original_filename)
-            except:
-                pass
-
-            logger.debug(e)
-            logger.debug("Error status code: " + str(e.code))
-            logger.debug("Error message: " + str(e.message))
-            if 400 <= e.code < 500 and e.code != 429:
-                logger.debug("We ran into a 400 level error: %s", str(e.code))
-                if 'media-files.bunkr' in url.host:
-                    pass
-                else:
-                    return
-            if await is_forum(referral):
-                return
-            raise FailureException(code=e.code, message=e.message, rescrape=e.rescrape)
-
         except (aiohttp.client_exceptions.ClientPayloadError, aiohttp.client_exceptions.ClientOSError,
                 aiohttp.client_exceptions.ServerDisconnectedError, asyncio.TimeoutError,
-                aiohttp.client_exceptions.ClientResponseError) as e:
-            try:
+                aiohttp.client_exceptions.ClientResponseError, FailureException) as e:
+            if await self.File_Lock.check_lock(original_filename):
                 await self.File_Lock.remove_lock(original_filename)
-            except:
-                pass
 
             if hasattr(e, "message"):
                 logging.debug(f"\n{url} ({e.message})")
 
-            try:
-                logger.debug("Error status code: " + str(e.code))
-                logger.debug("Error message: " + str(e.message))
+            if hasattr(e, "code"):
                 if 400 <= e.code < 500 and e.code != 429:
                     logger.debug("We ran into a 400 level error: %s", str(e.code))
                     if 'media-files.bunkr' in url.host:
                         pass
                     else:
                         return
-            except Exception:
-                pass
+                logger.debug("Error status code: " + str(e.code))
 
-            raise FailureException(code=1, message=e)
+            if e.__class__.__name__ == 'FailureException':
+                if await is_forum(referral):
+                    return
+                raise FailureException(code=e.code, message=e.message, rescrape=e.rescrape)
+            else:
+                raise FailureException(code=1, message=e)
 
     async def rename_file(self, filename: str, url: URL, db_path: str) -> None:
         """Rename complete file."""
@@ -262,8 +235,7 @@ class Downloader:
         if hasattr(url, "query_string"):
             query_str = url.query_string
             ext = '.' + query_str.split('.')[-1].lower()
-            if (ext in FILE_FORMATS['Images'] or ext in FILE_FORMATS['Videos'] or
-                    ext in FILE_FORMATS['Audio'] or ext in FILE_FORMATS['Other']):
+            if await self.check_include(ext):
                 filename = query_str.split("=")[-1]
         filename = await sanitize(filename)
         if "v=" in filename:
@@ -274,8 +246,7 @@ class Downloader:
 
         ext = '.' + filename.split('.')[-1].lower()
         current_throttle = self.client.throttle
-        if not (ext in FILE_FORMATS['Images'] or ext in FILE_FORMATS['Videos'] or
-                ext in FILE_FORMATS['Audio'] or ext in FILE_FORMATS['Other']):
+        if not await self.check_include(ext):
             for key, value in self.delay.items():
                 if key in url.host:
                     if value > current_throttle:
@@ -287,8 +258,7 @@ class Downloader:
                     filename = await session.get_filename(url, referer, current_throttle)
                 filename = await sanitize(filename)
                 ext = '.' + filename.split('.')[-1].lower()
-                if not (ext in FILE_FORMATS['Images'] or ext in FILE_FORMATS['Videos']
-                        or ext in FILE_FORMATS['Audio'] or ext in FILE_FORMATS['Other']):
+                if not await self.check_include(ext):
                     logging.debug("No file extension on content in link: " + str(url))
                     raise FailureException(0)
             except FailureException:
@@ -330,18 +300,27 @@ class Downloader:
                 return False
         return True
 
+    async def check_include(self, ext):
+        if (ext in FILE_FORMATS['Images'] or ext in FILE_FORMATS['Videos']
+                or ext in FILE_FORMATS['Audio'] or ext in FILE_FORMATS['Other']):
+            return True
+
+    async def get_db_path(self, url: URL):
+        db_path = url.path
+        if 'anonfiles' in url.host or 'bayfiles' in url.host:
+            db_path = db_path.split('/')
+            db_path.pop(0)
+            db_path.pop(1)
+            db_path = '/' + '/'.join(db_path)
+        return db_path
+
     async def download_and_store(self, url_tuple: Tuple, session: DownloadSession, show_progress: bool = True) -> None:
         """Download the content of given URL and store it in a file."""
         url, referral = url_tuple
 
         logger.debug("Working on " + str(url))
-        db_path = url.path
 
-        if 'anonfiles' in url.host:
-            db_path = db_path.split('/')
-            db_path.pop(0)
-            db_path.pop(1)
-            db_path = '/' + '/'.join(db_path)
+        db_path = await self.get_db_path(url)
 
         # return if completed already
         if await self.SQL_helper.sql_check_existing(db_path):
@@ -353,35 +332,25 @@ class Downloader:
         try:
             filename = await self.get_filename(url, referral, session)
             if await self.check_exclude(filename):
-                await self.download_file(url, referral=referral, filename=filename, session=session,
+                await self.download_file(url, referral=referral, filename=filename, session=session, db_path=db_path,
                                          show_progress=show_progress)
         except Exception as e:
-            if hasattr(e, "rescrape"):
-                if url.parts[-1] in self.current_attempt.keys():
-                    if not (self.current_attempt[url.parts[-1]] >= self.attempts - 1) and e.rescrape:
-                        return
             if url.parts[-1] in self.current_attempt.keys():
                 self.current_attempt.pop(url.parts[-1])
+            logging.debug(e)
             await log(f"\nError attempting {url}")
             if hasattr(e, "message"):
                 logging.debug(f"\n{url} ({e.message})")
-            try:
+            if hasattr(e, "code"):
                 logger.debug("Error status code: " + str(e.code))
-                logger.debug("Error message: " + str(e.message))
-            except:
-                pass
-
-    async def download_all(self, album_obj: AlbumItem, session: DownloadSession, show_progress: bool = True) -> None:
-        """Download the data from all given links and store them into corresponding files."""
-        coros = [self.download_and_store(url_object, session, show_progress)
-                 for url_object in album_obj.link_pairs]
-        for func in tqdm(asyncio.as_completed(coros), total=len(coros), desc=self.title, unit='FILE'):
-            await func
 
     async def download_content(self, show_progress: bool = True, conn_timeout: int = 15) -> None:
         """Download the content of all links and save them as files."""
         session = DownloadSession(self.client, conn_timeout)
-        await self.download_all(self.album_obj, session, show_progress=show_progress)
+        coros = [self.download_and_store(url_object, session, show_progress)
+                 for url_object in self.album_obj.link_pairs]
+        for func in tqdm(asyncio.as_completed(coros), total=len(coros), desc=self.title, unit='FILE'):
+            await func
         await session.client_session.close()
         self.SQL_helper.conn.commit()
 
