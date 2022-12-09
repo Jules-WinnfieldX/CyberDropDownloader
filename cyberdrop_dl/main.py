@@ -10,6 +10,7 @@ from typing import Dict
 from colorama import Fore
 from yarl import URL
 
+from cyberdrop_dl.scraper.scraper_helper import ScrapeMapper
 from . import __version__ as VERSION
 from cyberdrop_dl.base_functions.base_functions import clear, create_config, log, logger, purge_dir, regex_links, \
     run_args
@@ -124,9 +125,14 @@ async def download_all(auth_args: Dict, file_args: Dict, jdownloader_args: Dict,
         exit(0)
     await clear()
 
+    backup_scraper = ScrapeMapper(client=client, file_args=file_args, jdownloader_args=jdownloader_args,
+                                  runtime_args=runtime_args, jdownloader_auth=jdownloader_auth,
+                                  simpcity_auth=simpcity_auth, socialmediagirls_auth=socialmediagirls_auth,
+                                  xbunker_auth=xbunker_auth, skip_data=skip_data, quiet=True)
+
     downloaders = await get_downloaders(content_object, excludes=excludes, SQL_helper=SQL_helper, client=client,
                                         max_workers=threads, file_args=file_args, runtime_args=runtime_args,
-                                        pixeldrain_api_key=pixeldrain_api_key)
+                                        pixeldrain_api_key=pixeldrain_api_key, scraper=backup_scraper)
 
     for downloader in downloaders:
         await downloader.download_content()

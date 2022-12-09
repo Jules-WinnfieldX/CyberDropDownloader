@@ -18,6 +18,7 @@ from ..base_functions.sql_helper import SQLHelper
 from ..base_functions.data_classes import AlbumItem, CascadeItem, FileLock, AuthData, SkipData
 from ..client.client import Client, DownloadSession
 from ..scraper.scraper import scrape
+from ..scraper.scraper_helper import ScrapeMapper
 
 
 async def basic_auth(username, password):
@@ -40,17 +41,13 @@ def retry(f):
                 self.current_attempt[args[0].parts[-1]] += 1
 
                 if e.rescrape:
-                    skip_data = SkipData(self.runtime_args['skip_hosts'])
-                    jdownloader_args = {"jdownloader_enable": None, "jdownloader_username": None,
-                                        "jdownloader_password": None, "jdownloader_device": None}
-                    links = [await self.album_obj.get_referrer(URL(args[0]))]
+                    link = await self.album_obj.get_referrer(URL(args[0]))
                     await log("Attempting rescrape for " + str(args[0]), quiet=True)
-                    content_object = await scrape(urls=links, client=self.client, file_args=self.file_args,
-                                                  jdownloader_args=jdownloader_args,
-                                                  runtime_args=self.runtime_args, jdownloader_auth=AuthData("", ""),
-                                                  simpcity_auth=AuthData("", ""),
-                                                  socialmediagirls_auth=AuthData("", ""), xbunker_auth=AuthData("", ""),
-                                                  skip_data=skip_data, quiet=True, close=False)
+
+                    async with asyncio.Semaphore(1):
+                        await self.backup_scraper.map_url(link)
+                        content_object = self.backup_scraper.Cascade
+                        self.backup_scraper.Cascade = CascadeItem({})
 
                     if not await content_object.is_empty():
                         link_pairs = []
@@ -83,7 +80,8 @@ def retry(f):
 
 class Downloader:
     def __init__(self, album_obj: AlbumItem, title: str, max_workers: int, excludes: Dict[str, bool],
-                 SQL_helper: SQLHelper, client: Client, file_args: Dict, runtime_args: Dict, pixeldrain_api_key: str):
+                 SQL_helper: SQLHelper, client: Client, file_args: Dict, runtime_args: Dict, pixeldrain_api_key: str,
+                 scraper: ScrapeMapper):
         self.album_obj = album_obj
         self.client = client
         self.folder = file_args['output_folder']
@@ -105,6 +103,8 @@ class Downloader:
 
         self.proxy = runtime_args['proxy']
         self.pixeldrain_api_key = pixeldrain_api_key
+
+        self.backup_scraper = scraper
 
         self.runtime_args = runtime_args
         self.file_args = file_args
@@ -353,8 +353,8 @@ class Downloader:
 
 
 async def get_downloaders(Cascade: CascadeItem, excludes: Dict[str, bool], SQL_helper: SQLHelper, client: Client,
-                          max_workers: int, file_args: Dict, runtime_args: Dict,
-                          pixeldrain_api_key: str) -> List[Downloader]:
+                          max_workers: int, file_args: Dict, runtime_args: Dict, pixeldrain_api_key: str,
+                          scraper: ScrapeMapper) -> List[Downloader]:
     """Get a list of downloader objects to run."""
     downloaders = []
 
@@ -365,6 +365,7 @@ async def get_downloaders(Cascade: CascadeItem, excludes: Dict[str, bool], SQL_h
         for title, album_obj in domain_obj.albums.items():
             downloader = Downloader(album_obj, title=title, max_workers=max_workers_temp, excludes=excludes,
                                     SQL_helper=SQL_helper, client=client, file_args=file_args,
-                                    runtime_args=runtime_args, pixeldrain_api_key=pixeldrain_api_key)
+                                    runtime_args=runtime_args, pixeldrain_api_key=pixeldrain_api_key,
+                                    scraper=scraper)
             downloaders.append(downloader)
     return downloaders
