@@ -182,7 +182,8 @@ class ScrapeMapper:
         if not self.gofile_crawler:
             try:
                 self.gofile_crawler = GofileCrawler(quiet=self.quiet)
-            except SystemExit:
+            except SystemExit as e:
+                logging.debug(e)
                 await log("Couldn't start the GoFile crawler", quiet=self.quiet)
                 return
         domain_obj = await self.gofile_crawler.fetch(gofile_session, url)
