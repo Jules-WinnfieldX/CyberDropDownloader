@@ -49,8 +49,8 @@ def retry(f):
                                                   jdownloader_args=jdownloader_args,
                                                   runtime_args=self.runtime_args, jdownloader_auth=AuthData("", ""),
                                                   simpcity_auth=AuthData("", ""),
-                                                  socialmediagirls_auth=AuthData("", ""),
-                                                  xbunker_auth=AuthData("", ""), skip_data=skip_data, quiet=True)
+                                                  socialmediagirls_auth=AuthData("", ""), xbunker_auth=AuthData("", ""),
+                                                  skip_data=skip_data, quiet=True, close=False)
 
                     if not await content_object.is_empty():
                         link_pairs = []

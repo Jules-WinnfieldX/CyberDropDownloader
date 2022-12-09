@@ -93,3 +93,6 @@
 
 3.6.22
 - dropping support for bayfiles
+
+3.6.27
+- Re-added bayfiles, rescraping no longer recreates the entire scraping objects (lead to unchecked requests with gofile)

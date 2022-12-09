@@ -9,7 +9,7 @@ from ..client.client import Client
 
 async def scrape(urls, client: Client, file_args: Dict, jdownloader_args: Dict, runtime_args: Dict,
                  jdownloader_auth: AuthData, simpcity_auth: AuthData, socialmediagirls_auth: AuthData,
-                 xbunker_auth: AuthData, skip_data: SkipData, quiet=False):
+                 xbunker_auth: AuthData, skip_data: SkipData, quiet=False, close=True):
     await log("Starting Scrape", quiet=quiet)
 
     scraper = ScrapeMapper(client=client, file_args=file_args, jdownloader_args=jdownloader_args,
@@ -21,7 +21,8 @@ async def scrape(urls, client: Client, file_args: Dict, jdownloader_args: Dict, 
         tasks.append(scraper.map_url(link))
     await asyncio.gather(*tasks)
 
-    await scraper.close()
+    if close:
+        await scraper.close()
 
     Cascade = scraper.Cascade
     await Cascade.dedupe()
