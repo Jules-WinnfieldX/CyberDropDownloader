@@ -199,10 +199,7 @@ class Downloader:
             if hasattr(e, "code"):
                 if 400 <= e.code < 500 and e.code != 429:
                     logger.debug("We ran into a 400 level error: %s", str(e.code))
-                    if 'media-files.bunkr' in url.host:
-                        pass
-                    else:
-                        return
+                    return
                 logger.debug("Error status code: " + str(e.code))
 
             if e.__class__.__name__ == 'FailureException':
