@@ -60,5 +60,5 @@ class GofileCrawler():
                     await log(f"Error scraping gofile: {val['code']}", quiet=self.quiet)
             else:
                 results.append({'url': URL(val["link"]) if val["link"] != "overloaded" else URL(val["directLink"]),
-                                'title': title, 'referral': URL('https://gofile.io/')})
+                                'title': title, 'referral': URL(url)})
         return results
