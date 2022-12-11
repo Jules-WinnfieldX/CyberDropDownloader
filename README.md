@@ -1,7 +1,7 @@
 # `cyberdrop-dl`
 **Bulk downloader for multiple file hosts** 
 
-The latest version of the program is 3.6.32
+The latest version of the program is 3.6.33
 
 <a href="https://www.buymeacoffee.com/juleswinnft" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
 
@@ -99,6 +99,7 @@ optional arguments:
   --proxy                   HTTP/HTTPS proxy used for downloading, format [protocal]://[ip]:[port]
   --separate-posts          Separates forum scraping into folders by post number
   --mark-downloaded         Sets the scraped files as downloaded without downloading
+  --pixeldrain-api-key      api key for premium pixeldrain
   --xbunker-username        username to login to xbunker (only required if the thread requires it)
   --xbunker-password        password to login to xbunker (only required if the thread requires it)
   --socialmediagirls-username       username to login to socialmediagirls (only required if the thread requires it)

@@ -15,9 +15,8 @@ from yarl import URL
 from ..base_functions.base_functions import FILE_FORMATS, MAX_FILENAME_LENGTH, log, logger, sanitize, FailureException, \
     is_forum
 from ..base_functions.sql_helper import SQLHelper
-from ..base_functions.data_classes import AlbumItem, CascadeItem, FileLock, AuthData, SkipData
+from ..base_functions.data_classes import AlbumItem, CascadeItem, FileLock
 from ..client.client import Client, DownloadSession
-from ..scraper.scraper import scrape
 from ..scraper.scraper_helper import ScrapeMapper
 
 

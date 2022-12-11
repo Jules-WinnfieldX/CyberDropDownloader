@@ -43,6 +43,7 @@ def parse_args():
     parser.add_argument("--proxy", help="HTTP/HTTPS proxy used for downloading, format [protocal]://[ip]:[port]", default=None)
     parser.add_argument("--separate-posts", help="Separates forum scraping into folders by post number", action="store_true")
     parser.add_argument("--mark-downloaded", help="Sets the scraped files as downloaded without downloading", action="store_true")
+    parser.add_argument("--pixeldrain-api-key", type=str, help="api key for premium pixeldrain", default=None)
     parser.add_argument("--xbunker-username", type=str, help="username to login to xbunker", default=None)
     parser.add_argument("--xbunker-password", type=str, help="password to login to xbunker", default=None)
     parser.add_argument("--socialmediagirls-username", type=str, help="username to login to socialmediagirls", default=None)
