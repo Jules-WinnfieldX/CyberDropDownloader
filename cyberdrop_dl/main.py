@@ -121,7 +121,7 @@ async def download_all(auth_args: Dict, file_args: Dict, jdownloader_args: Dict,
 
     if await content_object.is_empty():
         logging.error('ValueError No links')
-        await log("No links found duing scraping, check passwords or that the urls are accessible", Fore.RED)
+        await log("No links found during scraping, check passwords or that the urls are accessible", Fore.RED)
         await log("This program does not currently support password protected albums.", Fore.RED)
         exit(0)
     await clear()
@@ -161,7 +161,7 @@ async def director(args: argparse.Namespace):
     links = list(map(URL, links))
 
     with open(input_file, "r", encoding="utf8") as f:
-        links += await regex_links(f.read())
+        links += await regex_links([line.rstrip() for line in f])
     links = list(filter(None, links))
 
     if not links:

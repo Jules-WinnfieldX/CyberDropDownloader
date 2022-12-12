@@ -87,14 +87,15 @@ async def purge_dir(dirname, in_place=True):
 
 
 async def regex_links(urls) -> list:
-    if urls.lstrip().startswith('#'):
-        return []
-
-    all_links = [x.group().replace(".md.", ".") for x in re.finditer(
-        r"(?:http.*?)(?=($|\n|\r\n|\r|\s|\"|\[/URL]|]\[|\[/img]))", urls)]
     yarl_links = []
-    for link in all_links:
-        yarl_links.append(URL(link))
+    for line in urls:
+        if line.lstrip().startswith('#'):
+            continue
+
+        all_links = [x.group().replace(".md.", ".") for x in re.finditer(
+            r"(?:http.*?)(?=($|\n|\r\n|\r|\s|\"|\[/URL]|]\[|\[/img]))", line)]
+        for link in all_links:
+            yarl_links.append(URL(link))
     return yarl_links
 
 
