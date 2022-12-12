@@ -6,7 +6,6 @@ import aiofiles
 from myjdapi import myjdapi
 from yarl import URL
 
-
 from ..client.client import Client
 from ..client.client import Session
 from ..crawlers.Anonfiles_Spider import AnonfilesCrawler

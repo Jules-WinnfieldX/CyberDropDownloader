@@ -96,3 +96,6 @@
 
 3.6.27
 - Re-added bayfiles, rescraping no longer recreates the entire scraping objects (lead to unchecked requests with gofile)
+
+3.6.38
+- rescraping should now actually be working, minor bug fixes, updated requirements, should work with python 3.11 now.

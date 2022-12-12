@@ -1,6 +1,5 @@
 import asyncio
 import logging
-import sys
 from base64 import b64encode
 from functools import wraps
 from typing import List, Tuple, Dict
