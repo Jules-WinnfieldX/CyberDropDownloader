@@ -55,7 +55,7 @@ class GofileCrawler():
         for val in contents.values():
             if val["type"] == "folder":
                 try:
-                    results.extend(result for result in await self.get_links(URL(val["code"]), title))
+                    results.extend(result for result in await self.get_links(URL("https://gofile.io/d/"+val["code"]), title))
                 except Exception as e:
                     await log(f"Error scraping gofile: {val['code']}", quiet=self.quiet)
             else:
