@@ -76,7 +76,7 @@ class SocialMediaGirlsCrawler:
                 pass
             else:
                 title = title_block.text
-                title = await make_title_safe(title.replace(r"\n", "").strip())
+                title = await make_title_safe(title.replace("\n", " ").strip())
 
             content_links = []
 
