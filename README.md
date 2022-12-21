@@ -1,7 +1,7 @@
 # `cyberdrop-dl`
 **Bulk downloader for multiple file hosts** 
 
-The latest version of the program is 3.6.39
+The latest version of the program is 3.6.41
 
 <a href="https://www.buymeacoffee.com/juleswinnft" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
 
@@ -95,7 +95,7 @@ optional arguments:
   --exclude-audio           exclude audio files from downloading
   --exclude-other           exclude other files from downloading
   --ignore-history          ignores previous history and downloads everything
-  --output-last-forum-post  Separates forum scraping into folders by post number
+  --output-last-forum-post  Outputs the last post of a forum scrape to use as a starting point for future runs
   --proxy                   HTTP/HTTPS proxy used for downloading, format [protocal]://[ip]:[port]
   --separate-posts          Separates forum scraping into folders by post number
   --mark-downloaded         Sets the scraped files as downloaded without downloading

@@ -39,7 +39,7 @@ def parse_args():
     parser.add_argument("--exclude-audio", help="skip downloading of audio files", action="store_true")
     parser.add_argument("--exclude-other", help="skip downloading of images", action="store_true")
     parser.add_argument("--ignore-history", help="This ignores previous download history", action="store_true")
-    parser.add_argument("--output-last-forum-post", help="Separates forum scraping into folders by post number", action="store_true")
+    parser.add_argument("--output-last-forum-post", help="Outputs the last post of a forum scrape to use as a starting point for future runs", action="store_true")
     parser.add_argument("--proxy", help="HTTP/HTTPS proxy used for downloading, format [protocal]://[ip]:[port]", default=None)
     parser.add_argument("--separate-posts", help="Separates forum scraping into folders by post number", action="store_true")
     parser.add_argument("--mark-downloaded", help="Sets the scraped files as downloaded without downloading", action="store_true")
