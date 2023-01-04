@@ -26,6 +26,7 @@ config_default = [
             "Runtime": {
                 "threads": 0,
                 "attempts": 10,
+                "required_free_space": 5,
                 "disable_attempt_limit": False,
                 "connection_timeout": 15,
                 "ratelimit": 50,
@@ -54,4 +55,4 @@ authentication_args = ["pixeldrain_api_key",
 jdownloader_args = ["jdownloader_enable", "jdownloader_username", "jdownloader_password", "jdownloader_device"]
 runtime_args = ["threads", "attempts", "disable_attempt_limit", "connection_timeout", "ratelimit", "throttle",
                 "include_id", "exclude_videos", "exclude_images", "exclude_audio", "exclude_other", "ignore_history",
-                "output_last_forum_post", "mark_downloaded", "separate_posts", "skip_hosts", "proxy"]
+                "output_last_forum_post", "mark_downloaded", "separate_posts", "skip_hosts", "proxy", "required_free_space"]

@@ -8,11 +8,12 @@ from random import gauss
 import aiofiles
 import aiofiles.os
 import aiohttp.client_exceptions
+from colorama import Fore
 from tqdm import tqdm
 from yarl import URL
 
 from ..base_functions.base_functions import FILE_FORMATS, MAX_FILENAME_LENGTH, log, logger, sanitize, FailureException, \
-    is_forum
+    is_forum, check_free_space
 from ..base_functions.sql_helper import SQLHelper
 from ..base_functions.data_classes import AlbumItem, CascadeItem, FileLock
 from ..client.client import Client, DownloadSession
@@ -66,13 +67,7 @@ def retry(f):
                         args = list(args)
                         args[0] = args[0].with_host('img-01.cyberdrop.to')
                         args = tuple(args)
-                    else:
-                        args = list(args)
-                        args[0] = URL(str(args[0]).replace('fs-05.', 'fs-04.'))
-                        args = tuple(args)
-
                 await asyncio.sleep(2)
-
     return wrapper
 
 
@@ -112,6 +107,10 @@ class Downloader:
     async def download_file(self, url: URL, referral: URL, filename: str, session: DownloadSession, db_path: str,
                             show_progress: bool = True) -> None:
         """Download the content of given URL"""
+        if not await check_free_space(self.runtime_args['required_free_space'], self.file_args['output_folder']):
+            await log("Not enough free space to download file, skipping.", quiet=True)
+            return
+
         if url.parts[-1] not in self.current_attempt:
             self.current_attempt[url.parts[-1]] = 0
 
@@ -346,6 +345,9 @@ class Downloader:
     async def download_content(self, show_progress: bool = True, conn_timeout: int = 15) -> None:
         """Download the content of all links and save them as files."""
         session = DownloadSession(self.client, conn_timeout)
+        if not await check_free_space(self.runtime_args['required_free_space'], self.file_args['output_folder']):
+            await log("Not enough free space to run the program.", Fore.RED)
+            exit(0)
         coros = [self.download_and_store(url_object, session, show_progress)
                  for url_object in self.album_obj.link_pairs]
         for func in tqdm(asyncio.as_completed(coros), total=len(coros), desc=self.title, unit='FILE'):

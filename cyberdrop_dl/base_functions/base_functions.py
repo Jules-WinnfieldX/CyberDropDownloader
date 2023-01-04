@@ -6,6 +6,7 @@ import os
 import re
 from pathlib import Path
 
+import psutil as psutil
 import yaml
 from colorama import Fore, Style
 from yarl import URL
@@ -97,6 +98,15 @@ async def regex_links(urls) -> list:
         for link in all_links:
             yarl_links.append(URL(link))
     return yarl_links
+
+
+async def check_free_space(required_space: int, download_directory: Path):
+    free_space = psutil.disk_usage(str(download_directory.parent)).free
+    free_space = ((free_space / 1024) / 1024) / 1024
+    if required_space > free_space:
+        return False
+    else:
+        return True
 
 
 async def cyberdrop_parse(url: URL) -> URL:

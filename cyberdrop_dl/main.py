@@ -13,7 +13,7 @@ from yarl import URL
 from cyberdrop_dl.scraper.scraper_helper import ScrapeMapper
 from . import __version__ as VERSION
 from cyberdrop_dl.base_functions.base_functions import clear, create_config, log, logger, purge_dir, regex_links, \
-    run_args
+    run_args, check_free_space
 from cyberdrop_dl.base_functions.data_classes import AuthData, SkipData
 from cyberdrop_dl.base_functions.sql_helper import SQLHelper
 from cyberdrop_dl.client.client import Client
@@ -43,6 +43,7 @@ def parse_args():
     parser.add_argument("--proxy", help="HTTP/HTTPS proxy used for downloading, format [protocal]://[ip]:[port]", default=None)
     parser.add_argument("--separate-posts", help="Separates forum scraping into folders by post number", action="store_true")
     parser.add_argument("--mark-downloaded", help="Sets the scraped files as downloaded without downloading", action="store_true")
+    parser.add_argument("--required-free-space", type=int, help="Required free space (in gigabytes) for the program to run", default=5)
     parser.add_argument("--pixeldrain-api-key", type=str, help="api key for premium pixeldrain", default=None)
     parser.add_argument("--xbunker-username", type=str, help="username to login to xbunker", default=None)
     parser.add_argument("--xbunker-password", type=str, help="password to login to xbunker", default=None)
@@ -125,6 +126,10 @@ async def download_all(auth_args: Dict, file_args: Dict, jdownloader_args: Dict,
         await log("This program does not currently support password protected albums.", Fore.RED)
         exit(0)
     await clear()
+
+    if not await check_free_space(runtime_args['required_free_space'], file_args['output_folder']):
+        await log("Not enough free space to run the program.", Fore.RED)
+        return
 
     backup_scraper = ScrapeMapper(client=client, file_args=file_args, jdownloader_args=jdownloader_args,
                                   runtime_args=runtime_args, jdownloader_auth=jdownloader_auth,
