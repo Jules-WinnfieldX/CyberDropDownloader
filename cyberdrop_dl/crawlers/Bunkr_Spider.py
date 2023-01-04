@@ -51,20 +51,24 @@ class BunkrCrawler:
             title = await make_title_safe(json_obj['album']['name'])
             for file in json_obj['album']['files']:
                 ext = '.' + file['name'].split('.')[-1].lower()
-                referrer = url
+                referrer = URL
                 if ext in FILE_FORMATS['Videos']:
-                    referrer = URL("https://stream.bunkr.ru/v/" + file['name'])
-                    link = await self.stream(session, referrer)
-                    if link:
-                        await domain_obj.add_to_album(title, link, referrer)
+                    cdn_loc = file['cdn']
+                    media_loc = cdn_loc.replace('cdn', 'media-files')
+                    if "12" in media_loc:
+                        media_loc = media_loc.replace('.ru', '.la')
+                    referrer = "https://stream.bunkr.ru/v/" + file['name']
+                    link = URL(media_loc + '/' + file['name'])
                 elif ext in FILE_FORMATS['Other']:
-                    referrer = URL("https://files.bunkr.ru/d/" + file['name'])
-                    link = await self.stream(session, referrer)
-                    if link:
-                        await domain_obj.add_to_album(title, link, referrer)
+                    cdn_loc = file['cdn']
+                    media_loc = cdn_loc.replace('cdn', 'media-files')
+                    if "12" in media_loc:
+                        media_loc = media_loc.replace('.ru', '.la')
+                    referrer = "https://files.bunkr.ru/d/" + file['name']
+                    link = URL(media_loc + '/' + file['name'])
                 else:
                     link = URL(file['cdn'] + '/' + file['name'])
-                    await domain_obj.add_to_album(title, link, referrer)
+                await domain_obj.add_to_album(title, link, referrer)
 
         except Exception as e:
             logger.debug("Error encountered while handling %s", str(url), exc_info=True)
@@ -95,4 +99,3 @@ class BunkrCrawler:
             logger.debug("Error encountered while handling %s", str(url), exc_info=True)
             await log("Error scraping " + str(url), quiet=self.quiet)
             logger.debug(e)
-            return
