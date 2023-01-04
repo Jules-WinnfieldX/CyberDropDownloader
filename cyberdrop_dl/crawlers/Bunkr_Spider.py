@@ -51,20 +51,20 @@ class BunkrCrawler:
             title = await make_title_safe(json_obj['album']['name'])
             for file in json_obj['album']['files']:
                 ext = '.' + file['name'].split('.')[-1].lower()
-                referrer = URL
+                referrer = url
                 if ext in FILE_FORMATS['Videos']:
-                    cdn_loc = file['cdn']
-                    media_loc = cdn_loc.replace('cdn', 'media-files')
-                    referrer = "https://stream.bunkr.ru/v/" + file['name']
-                    link = URL(media_loc + '/' + file['name'])
+                    referrer = URL("https://stream.bunkr.ru/v/" + file['name'])
+                    link = await self.stream(session, referrer)
+                    if link:
+                        await domain_obj.add_to_album(title, link, referrer)
                 elif ext in FILE_FORMATS['Other']:
-                    cdn_loc = file['cdn']
-                    media_loc = cdn_loc.replace('cdn', 'media-files')
-                    referrer = "https://files.bunkr.ru/d/" + file['name']
-                    link = URL(media_loc + '/' + file['name'])
+                    referrer = URL("https://files.bunkr.ru/d/" + file['name'])
+                    link = await self.stream(session, referrer)
+                    if link:
+                        await domain_obj.add_to_album(title, link, referrer)
                 else:
                     link = URL(file['cdn'] + '/' + file['name'])
-                await domain_obj.add_to_album(title, link, referrer)
+                    await domain_obj.add_to_album(title, link, referrer)
 
         except Exception as e:
             logger.debug("Error encountered while handling %s", str(url), exc_info=True)
@@ -95,3 +95,4 @@ class BunkrCrawler:
             logger.debug("Error encountered while handling %s", str(url), exc_info=True)
             await log("Error scraping " + str(url), quiet=self.quiet)
             logger.debug(e)
+            return
