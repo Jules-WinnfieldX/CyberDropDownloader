@@ -73,6 +73,19 @@ class SQLHelper:
             self.curs.execute(create_table_query)
             self.conn.commit()
 
+        self.curs.execute("""PRAGMA table_info('downloads')""")
+        sql_check = self.curs.fetchall()
+        sql_check = list(sum(sql_check, ()))
+        columns = {'path': "TEXT", 'downloaded_filename': "TEXT", 'completed': "INTEGER NOT NULL", 'referrer': "TEXT"}
+        for column in columns.keys():
+            if column in sql_check:
+                continue
+            else:
+                query = "ALTER TABLE downloads ADD COLUMN {} {}".format(column, columns[column])
+                self.curs.execute(query)
+                self.conn.commit()
+
+
     async def sql_check_existing(self, path):
         if self.ignore_history:
             return False
@@ -84,12 +97,12 @@ class SQLHelper:
         self.curs.execute("""INSERT OR IGNORE INTO downloads_temp VALUES (?)""", (downloaded_filename,))
         self.conn.commit()
 
-    async def sql_insert_file(self, path, downloaded_filename, completed):
-        self.curs.execute("""INSERT OR IGNORE INTO downloads VALUES (?, ?, ?)""", (path, downloaded_filename, completed, ))
+    async def sql_insert_file(self, path, downloaded_filename, completed, referrer):
+        self.curs.execute("""INSERT OR IGNORE INTO downloads VALUES (?, ?, ?, ?)""", (path, downloaded_filename, completed, referrer, ))
         self.conn.commit()
 
-    async def sql_update_file(self, path, downloaded_filename, completed):
-        self.curs.execute("""INSERT OR REPLACE INTO downloads VALUES (?, ?, ?)""", (path, downloaded_filename, completed, ))
+    async def sql_update_file(self, path, downloaded_filename, completed, referrer):
+        self.curs.execute("""INSERT OR REPLACE INTO downloads VALUES (?, ?, ?, ?)""", (path, downloaded_filename, completed, referrer, ))
         self.conn.commit()
 
     async def check_filename(self, filename):
