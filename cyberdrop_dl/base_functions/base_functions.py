@@ -70,6 +70,7 @@ async def clear() -> None:
 
 async def make_title_safe(title: str):
     title = re.sub(r'[\\*?:"<>|./]', "-", title)
+    title = title[:60].rstrip()
     return title
 
 

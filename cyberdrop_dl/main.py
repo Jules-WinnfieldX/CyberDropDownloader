@@ -115,6 +115,10 @@ async def download_all(auth_args: Dict, file_args: Dict, jdownloader_args: Dict,
     excludes = {'videos': runtime_args['exclude_videos'], 'images': runtime_args['exclude_images'],
                 'audio': runtime_args['exclude_audio'], 'other': runtime_args['exclude_other']}
 
+    if not await check_free_space(runtime_args['required_free_space'], file_args['output_folder']):
+        await log("Not enough free space to run the program.", Fore.RED)
+        return
+
     content_object = await scrape(urls=links, client=client, file_args=file_args, jdownloader_args=jdownloader_args,
                                   runtime_args=runtime_args, jdownloader_auth=jdownloader_auth, simpcity_auth=simpcity_auth,
                                   socialmediagirls_auth=socialmediagirls_auth, xbunker_auth=xbunker_auth,
@@ -126,10 +130,6 @@ async def download_all(auth_args: Dict, file_args: Dict, jdownloader_args: Dict,
         await log("This program does not currently support password protected albums.", Fore.RED)
         exit(0)
     await clear()
-
-    if not await check_free_space(runtime_args['required_free_space'], file_args['output_folder']):
-        await log("Not enough free space to run the program.", Fore.RED)
-        return
 
     backup_scraper = ScrapeMapper(client=client, file_args=file_args, jdownloader_args=jdownloader_args,
                                   runtime_args=runtime_args, jdownloader_auth=jdownloader_auth,
