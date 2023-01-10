@@ -1,7 +1,7 @@
 # `cyberdrop-dl`
 **Bulk downloader for multiple file hosts** 
 
-The latest version of the program is 3.6.46
+The latest version of the program is 3.6.47
 
 <a href="https://www.buymeacoffee.com/juleswinnft" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
 
@@ -112,7 +112,7 @@ optional arguments:
   --jdownloader-password    password to login to jdownloader
   --jdownloader-device      device to login to for jdownloader
   --skip                    this removes the specified hosts links from downloads
-  --ratelimit               this will add a ratelimiter to requests made in the program, the number you provide is in seconds
+  --ratelimit               this will add a ratelimiter to requests made in the program, the number you provide is in requests/second
   --throttle                this is a throttle between requests during the downloading phase, the number is in seconds
 ```
 --skip can use: "anonfiles", "bayfiles", "bunkr", "coomer.party", "cyberdrop", "cyberfile", "erome", "gfycat", "gofile", "hgamescg",

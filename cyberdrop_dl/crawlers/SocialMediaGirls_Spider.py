@@ -64,9 +64,11 @@ class SocialMediaGirlsCrawler:
 
     async def parse_thread(self, session: Session, url: URL, cascade: CascadeItem, title: str):
         try:
-            soup = await session.get_BS4(url)
+            soup, url_return = await session.get_BS4_and_url(url)
 
             domain = URL("https://" + url.host)
+            if url != url_return:
+                return
 
             title_block = soup.select_one("h1[class=p-title-value]")
             for elem in title_block.find_all("span"):
