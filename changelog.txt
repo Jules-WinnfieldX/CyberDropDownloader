@@ -99,3 +99,9 @@
 
 3.6.38
 - rescraping should now actually be working, minor bug fixes, updated requirements, should work with python 3.11 now.
+
+3.6.48
+- I forgot to do this log, lots of fixes.
+
+3.6.49
+- Removed kemono as they've implemented ddos-guard.

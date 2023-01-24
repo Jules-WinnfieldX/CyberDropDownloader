@@ -66,7 +66,6 @@ class ScrapeMapper:
         self.gofile_crawler = None
         self.hgamecg_crawler = None
         self.imgbox_crawler = None
-        self.kemono_crawler = None
         self.pixeldrain_crawler = None
         self.postimg_crawler = None
         self.redgifs_crawler = None
@@ -88,7 +87,7 @@ class ScrapeMapper:
 
         self.crawlers = [self.anonfiles_crawler, self.bunkr_crawler, self.cyberdrop_crawler, self.coomer_crawler,
                          self.cyberfile_crawler, self.erome_crawler, self.gfycat_crawler, self.gofile_crawler,
-                         self.hgamecg_crawler, self.imgbox_crawler, self.kemono_crawler, self.pixeldrain_crawler,
+                         self.hgamecg_crawler, self.imgbox_crawler, self.pixeldrain_crawler,
                          self.postimg_crawler, self.redgifs_crawler, self.rule34_crawler, self.saint_crawler,
                          self.sharex_crawler, self.socialmediagirls_crawler, self.simpcity_crawler,
                          self.xbunker_crawler, self.xbunkr_crawler]
@@ -98,7 +97,7 @@ class ScrapeMapper:
                         "cyberfile.is": self.Cyberfile, "cyberfile.su": self.Cyberfile, "erome.com": self.Erome,
                         "fapello": self.Fapello, "gfycat.com": self.Gfycat, "gofile.io": self.GoFile,
                         "hgamecg.com": self.HGameCG, "imgbox.com": self.ImgBox, "img.kiwi": self.ShareX,
-                        "jpg.church": self.ShareX, "kemono.party": self.Kemono, "pixeldrain.com": self.Pixeldrain,
+                        "jpg.church": self.ShareX, "pixeldrain.com": self.Pixeldrain,
                         "pixl.li": self.ShareX, "postimg": self.Postimg, "redgifs.com": self.Redgifs,
                         "rule34.xxx": self.Rule34, "saint.to": self.Saint,  "socialmediagirls": self.SocialMediaGirls,
                         "simpcity": self.SimpCity, "xbunker": self.XBunker}
@@ -211,16 +210,16 @@ class ScrapeMapper:
         await self.Cascade.add_albums(domain_obj)
         await imgbox_session.exit_handler()
 
-    async def Kemono(self, url: URL, title=None):
-        kemono_session = Session(self.client)
-        if not self.kemono_crawler:
-            self.kemono_crawler = KemonoCrawler(include_id=self.include_id, scraping_mapper=self,
-                                                separate_posts=self.separate_posts, quiet=self.quiet)
-        domain_obj = await self.kemono_crawler.fetch(kemono_session, url)
-        if title:
-            await domain_obj.append_title(title)
-        await self.Cascade.add_albums(domain_obj)
-        await kemono_session.exit_handler()
+    # async def Kemono(self, url: URL, title=None):
+    #     kemono_session = Session(self.client)
+    #     if not self.kemono_crawler:
+    #         self.kemono_crawler = KemonoCrawler(include_id=self.include_id, scraping_mapper=self,
+    #                                             separate_posts=self.separate_posts, quiet=self.quiet)
+    #     domain_obj = await self.kemono_crawler.fetch(kemono_session, url)
+    #     if title:
+    #         await domain_obj.append_title(title)
+    #     await self.Cascade.add_albums(domain_obj)
+    #     await kemono_session.exit_handler()
 
     async def Gfycat(self, url: URL, title=None):
         gfycat_session = Session(self.client)

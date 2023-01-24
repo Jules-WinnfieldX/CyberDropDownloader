@@ -1,7 +1,7 @@
 # `cyberdrop-dl`
 **Bulk downloader for multiple file hosts** 
 
-The latest version of the program is 3.6.48
+The latest version of the program is 3.6.49
 
 <a href="https://www.buymeacoffee.com/juleswinnft" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
 
@@ -23,7 +23,6 @@ The latest version of the program is 3.6.48
 | ImgBox           | Albums: imgbox.com/g/... <br> Direct Images: images#.imgbox.com/... <br> Single Files: imgbox.com/...                                                                                                                                  |
 | IMG.Kiwi         | Albums: img.kiwi/album/... <br> Direct Images: img.kiwi/image/... <br> User Profile: img.kiwi/#USER# <br> All User Albums: img.kiwi/#USER#/albums                                                                                      |
 | jpg.church       | Albums: jpg.church/album/... <br> Direct Images: jpg.church/image/... <br> User Profile: jpg.church/#USER# <br> All User Albums: jpg.church/#USER#/albums                                                                              |
-| Kemono.party     | Profiles: kemono.party/... <br> Thumbnail Links: kemono.party/thumbnail/... <br> Data Links: kemono.party/data/... <br> Posts: kemono.party/.../post/...                                                                               |
 | LeakedNudes      | Thread: forum.leakednudes.co/threads/...  <br> Continue from (will download this post and after): forum.leakednudes.co/threads/...post-NUMBER                                                                                          |
 | PixelDrain       | Albums: Pixeldrain.com/l/... <br> Single Files: Pixeldrain.com/u/...                                                                                                                                                                   |
 | Pixl             | Albums: pixl.li/album/... <br> Direct Images: pixl.li/image/...  <br> User Profile: pixl.li/#USER# <br> All User Albums: pixl.li/#USER#/albums                                                                                         |
