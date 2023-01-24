@@ -114,6 +114,6 @@ optional arguments:
   --ratelimit               this will add a ratelimiter to requests made in the program, the number you provide is in requests/second
   --throttle                this is a throttle between requests during the downloading phase, the number is in seconds
 ```
---skip can use: "anonfiles", "bayfiles", "bunkr", "coomer.party", "cyberdrop", "cyberfile", "erome", "gfycat", "gofile", "hgamescg",
-        "jpg.church", "kemono.party", "pixeldrain", "pixl.li", "postimg.cc", "redgifs", "saint", "socialmediagirls", "simpcity", "xbunker", "xbunkr"
-
+--skip can use: "anonfiles", "bunkr", "coomer.party", "cyberdrop", "cyberfile", "erome", "fapello", "gfycat",
+        "gofile", "hgamecg", "imgbox", "img.kiwi", "jpg.church", "pixeldrain", "pixl.li", "postimg.cc",
+        "redgifs", "rule34", "saint", "socialmediagirls", "simpcity", "xbunker", "xbunkr"
