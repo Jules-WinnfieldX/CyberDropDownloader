@@ -1,23 +1,23 @@
+from __future__ import annotations
+
 import asyncio
 import logging
+import multiprocessing
 from base64 import b64encode
 from functools import wraps
-from typing import List, Tuple, Dict
 from random import gauss
 
-import aiofiles
-import aiofiles.os
 import aiohttp.client_exceptions
-from colorama import Fore
-from tqdm import tqdm
+from rich.progress import TaskID
 from yarl import URL
 
-from ..base_functions.base_functions import FILE_FORMATS, MAX_FILENAME_LENGTH, log, logger, sanitize, FailureException, \
-    is_forum, check_free_space
+from .progress_definitions import CascadeProgress, ForumsProgress
+from ..base_functions.base_functions import log, logger, check_free_space, allowed_filetype, get_db_path
+from ..base_functions.error_classes import DownloadFailure
 from ..base_functions.sql_helper import SQLHelper
-from ..base_functions.data_classes import AlbumItem, CascadeItem, FileLock
+from ..base_functions.data_classes import AlbumItem, CascadeItem, FileLock, ForumItem, DomainItem, MediaItem
 from ..client.client import Client, DownloadSession
-from ..scraper.scraper_helper import ScrapeMapper
+from ..scraper.Scraper import ScrapeMapper
 
 
 async def basic_auth(username, password):
@@ -31,345 +31,269 @@ def retry(f):
         while True:
             try:
                 return await f(self, *args, **kwargs)
-            except FailureException as e:
+            except DownloadFailure as e:
                 if not self.disable_attempt_limit:
+                    # TODO ALL THIS BELOW
                     if self.current_attempt[args[0].parts[-1]] >= self.attempts - 1:
                         logger.debug('Skipping %s...', args[0])
                         raise
+                logger.debug(e)
                 logger.debug(f'Retrying ({self.current_attempt[args[0].parts[-1]]}) {args[0]}...')
                 self.current_attempt[args[0].parts[-1]] += 1
 
-                if e.rescrape:
-                    link = await self.album_obj.get_referrer(URL(args[0]))
-                    await log("Attempting rescrape for " + str(args[0]), quiet=True)
-
-                    async with asyncio.Semaphore(1):
-                        await self.backup_scraper.map_url(link)
-                        content_object = self.backup_scraper.Cascade
-                        self.backup_scraper.Cascade = CascadeItem({})
-
-                    if not await content_object.is_empty():
-                        link_pairs = []
-                        for domain in content_object.domains.keys():
-                            for album in content_object.domains[domain].albums.keys():
-                                link_pairs = content_object.domains[domain].albums[album].link_pairs
-                        url_map = await self.album_obj.replace_link_pairs(link_pairs)
-                        replaced_link = url_map[args[0]]
-                        args = list(args)
-                        args[0] = replaced_link
-                        args = tuple(args)
-                    else:
-                        raise
-
-                elif 'cyberdrop' in args[0].host:
-                    ext = '.' + args[0].name.split('.')[-1]
-                    if ext in FILE_FORMATS['Images']:
-                        args = list(args)
-                        args[0] = args[0].with_host('img-01.cyberdrop.to')
-                        args = tuple(args)
                 await asyncio.sleep(2)
     return wrapper
 
 
+class Files:
+    def __init__(self):
+        self.completed_files = 0
+        self.skipped_files = 0
+        self.failed_files = 0
+
+
 class Downloader:
-    def __init__(self, album_obj: AlbumItem, title: str, max_workers: int, excludes: Dict[str, bool],
-                 SQL_helper: SQLHelper, client: Client, file_args: Dict, runtime_args: Dict, pixeldrain_api_key: str,
-                 scraper: ScrapeMapper):
-        self.album_obj = album_obj
+    def __init__(self, args: dict, client: Client, SQL_Helper: SQLHelper, scraper: ScrapeMapper, max_workers: int,
+                 domain: str, domain_obj: DomainItem, semaphore: asyncio.Semaphore, files: Files):
+        self.backup_scraper = scraper
         self.client = client
-        self.folder = file_args['output_folder']
-        self.title = title
-
-        self.SQL_helper = SQL_helper
+        self.download_session = DownloadSession(client, args["Ratelimiting"]["connection_timeout"])
         self.File_Lock = FileLock()
+        self.SQL_Helper = SQL_Helper
 
-        self.attempts = runtime_args['attempts']
+        self.domain = domain
+        self.domain_obj = domain_obj
+
+        self.files = files
+
         self.current_attempt = {}
-        self.disable_attempt_limit = runtime_args['disable_attempt_limit']
-        self.mark_downloaded = runtime_args['mark_downloaded']
-
-        self.excludes = excludes
-
         self.max_workers = max_workers
-        self._semaphore = asyncio.Semaphore(max_workers)
+        self._semaphore = semaphore
         self.delay = {'cyberfile.is': 1, 'anonfiles.com': 1}
 
-        self.proxy = runtime_args['proxy']
-        self.pixeldrain_api_key = pixeldrain_api_key
+        self.pixeldrain_api_key = args["Authentication"]["pixeldrain_api_key"]
 
-        self.backup_scraper = scraper
+        self.ignore_history = args["Ignore"]["ignore_history"]
+        self.exclude_audio = args["Ignore"]["exclude_audio"]
+        self.exclude_images = args["Ignore"]["exclude_images"]
+        self.exclude_videos = args["Ignore"]["exclude_videos"]
+        self.exclude_other = args["Ignore"]["exclude_other"]
 
-        self.runtime_args = runtime_args
-        self.file_args = file_args
+        self.allowed_attempts = args["Runtime"]["attempts"]
+        self.allow_insecure_connections = args["Runtime"]["allow_insecure_connections"]
+        self.disable_attempt_limit = args["Runtime"]["disable_attempt_limit"]
+        self.download_dir = args["Files"]["output_folder"]
+        self.mark_downloaded = args["Runtime"]["mark_downloaded"]
+        self.proxy = args["Runtime"]["proxy"]
+        self.required_free_space = args["Runtime"]["required_free_space"]
 
+    async def start_domain(self, progress: CascadeProgress, cascade_task: TaskID):
+        domain_task = progress.add_task("[light_pink3]"+self.domain.upper(), progress_type="domain", total=len(self.domain_obj.albums))
+        for album, album_obj in self.domain_obj.albums.items():
+            await self.start_album(progress, domain_task, album, album_obj)
+        progress.advance(cascade_task, 1)
+        progress.update(domain_task, visible=False)
+        progress.update(domain_task, total=len(self.domain_obj.albums), completed=len(self.domain_obj.albums))
+
+    async def start_album(self, progress: CascadeProgress, domain_task: TaskID, album: str, album_obj: AlbumItem):
+        album_task = progress.add_task("[pink3]"+album.upper().split("/")[-1], progress_type="album", total=len(album_obj.media))
+        download_tasks = []
+        for media in album_obj.media:
+            download_tasks.append(self.start_file(progress, album_task, album, media))
+        await asyncio.gather(*download_tasks)
+        progress.update(album_task, visible=False)
+        progress.advance(domain_task, 1)
+
+    async def start_file(self, progress: CascadeProgress, album_task: TaskID, album: str, media: MediaItem):
+        async with self._semaphore:
+            await self.download_file(progress, album_task, album, media)
 
     @retry
-    async def download_file(self, url: URL, referral: URL, filename: str, session: DownloadSession, db_path: str,
-                            show_progress: bool = True) -> None:
-        """Download the content of given URL"""
-        if not await check_free_space(self.runtime_args['required_free_space'], self.file_args['output_folder']):
-            await log("Not enough free space to download file, skipping.", quiet=True)
+    async def download_file(self, progress: CascadeProgress, album_task: TaskID, album: str, media: MediaItem):
+        if media.complete:
+            await log(f"Previously Downloaded: {media.filename}", quiet=True)
+            self.files.skipped_files += 1
+            progress.advance(album_task, 1)
             return
 
-        if url.parts[-1] not in self.current_attempt:
-            self.current_attempt[url.parts[-1]] = 0
+        if not await check_free_space(self.required_free_space, self.download_dir):
+            await log("We've run out of free space.", quiet=True)
+            self.files.skipped_files += 1
+            progress.advance(album_task, 1)
+            return
 
-        referer = str(referral)
-        current_throttle = self.client.throttle
+        if not await allowed_filetype(media, self.exclude_images, self.exclude_videos, self.exclude_audio, self.exclude_other):
+            await log(f"Blocked by file extension: {media.filename}", quiet=True)
+            self.files.skipped_files += 1
+            progress.advance(album_task, 1)
+            return
 
-        while await self.File_Lock.check_lock(filename):
+        while await self.File_Lock.check_lock(media.filename):
             await asyncio.sleep(gauss(1, 1.5))
-        await self.File_Lock.add_lock(filename)
+        await self.File_Lock.add_lock(media.filename)
+
+        if media.url.parts[-1] not in self.current_attempt:
+            self.current_attempt[media.url.parts[-1]] = 0
+
+        current_throttle = self.client.throttle
+        url_path = await get_db_path(URL(media.url))
+
+        original_filename = media.filename
+        complete_file = (self.download_dir / album / media.filename)
+        partial_file = complete_file.with_suffix(complete_file.suffix + '.part')
+
+        while True:
+            if complete_file.exists() or partial_file.exists():
+                downloaded_filename = await self.SQL_Helper.get_downloaded_filename(url_path, original_filename)
+                if downloaded_filename:
+                    if media.filename == downloaded_filename:
+                        if complete_file.exists():
+                            await log(f"Previously Downloaded: {media.filename}", quiet=True)
+                            self.files.skipped_files += 1
+                            await self.SQL_Helper.mark_complete(url_path, original_filename)
+                            progress.advance(album_task, 1)
+                            return
+                        else:
+                            break
+                    else:
+                        media.filename = downloaded_filename
+                        complete_file = (self.download_dir / album / media.filename)
+                        partial_file = complete_file.with_suffix(complete_file.suffix + '.part')
+                        continue
+                else:
+                    iterations = 1
+                    while True:
+                        filename = f"{complete_file.stem} ({iterations}){media.ext}"
+                        iterations += 1
+                        temp_complete_file = (self.download_dir / album / filename)
+                        if not temp_complete_file.exists():
+                            if not await self.SQL_Helper.check_filename(filename):
+                                media.filename = filename
+                                complete_file = (self.download_dir / album / media.filename)
+                                partial_file = complete_file.with_suffix(complete_file.suffix + '.part')
+                                break
+                    break
+            else:
+                break
+
+        await self.SQL_Helper.update_pre_download(complete_file, media.filename, url_path, original_filename)
+
+        if self.mark_downloaded:
+            await self.SQL_Helper.mark_complete(url_path, original_filename)
+
+        resume_point = 0
+        await self.SQL_Helper.sql_insert_temp(str(partial_file))
+        range_num = None
+        if partial_file.exists():
+            resume_point = partial_file.stat().st_size
+            range_num = f'bytes={resume_point}-'
+
+        for key, value in self.delay.items():
+            if key in media.url.host:
+                current_throttle = value
+
+        headers = {"Authorization": await basic_auth("Cyberdrop-DL", self.pixeldrain_api_key)} \
+            if (self.pixeldrain_api_key and "pixeldrain" in media.url.host) else {}
+        if range_num:
+            headers['Range'] = range_num
 
         try:
-            async with self._semaphore:
-                # Make suffix always lower case
-                original_filename = filename
-                ext = '.' + filename.split('.')[-1]
-
-                complete_file = (self.folder / self.title / filename)
-                partial_file = complete_file.with_suffix(complete_file.suffix + '.part')
-
-                if complete_file.exists() or partial_file.exists():
-                    if complete_file.exists():
-                        total_size = await session.get_filesize(url, referer, current_throttle)
-                        if complete_file.stat().st_size == total_size:
-                            await self.SQL_helper.sql_insert_file(db_path, complete_file.name, 1, referer)
-                            logger.debug("\nFile already exists and matches expected size: " + str(complete_file))
-                            await self.File_Lock.remove_lock(original_filename)
-                            return
-
-                    download_name = await self.SQL_helper.get_download_filename(db_path)
-                    iterations = 1
-
-                    if not download_name:
-                        while True:
-                            filename = f"{complete_file.stem} ({iterations}){ext}"
-                            iterations += 1
-                            temp_complete_file = (self.folder / self.title / filename)
-                            if not temp_complete_file.exists():
-                                if not await self.SQL_helper.check_filename(filename):
-                                    break
-                    else:
-                        filename = download_name
-
-                await self.SQL_helper.sql_insert_file(db_path, filename, 0, referer)
-
-                if self.mark_downloaded:
-                    await self.SQL_helper.sql_update_file(db_path, filename, 1, referer)
-                    return
-
-                complete_file = (self.folder / self.title / filename)
-                temp_file = complete_file.with_suffix(complete_file.suffix + '.part')
-                resume_point = 0
-
-                await self.SQL_helper.sql_insert_temp(str(temp_file))
-
-                range_num = None
-                if temp_file.exists():
-                    resume_point = temp_file.stat().st_size
-                    range_num = f'bytes={resume_point}-'
-
-                for key, value in self.delay.items():
-                    if key in url.host:
-                        current_throttle = value
-
-                headers = {"Authorization": await basic_auth("Cyberdrop-DL", self.pixeldrain_api_key)} \
-                          if (self.pixeldrain_api_key and "pixeldrain" in url.host) else {}
-
-                await session.download_file(url, referer, current_throttle, range_num, original_filename, filename,
-                                            temp_file, resume_point, show_progress, self.File_Lock, self.folder,
-                                            self.title, self.proxy, headers)
-
-            await self.rename_file(filename, url, db_path, referer)
+            task_description = media.filename
+            if len(task_description) >= 40:
+                task_description = task_description[:37] + "..."
+            else:
+                task_description = task_description.rjust(40)
+            file_task = progress.add_task("[plum3]"+task_description, progress_type="file")
+            await self.download_session.download_file(media, partial_file, current_throttle, resume_point,
+                                                      self.File_Lock, self.proxy, headers, original_filename,
+                                                      progress, file_task)
+            partial_file.rename(complete_file)
+            await self.SQL_Helper.mark_complete(url_path, original_filename)
+            if media.url.parts[-1] in self.current_attempt.keys():
+                self.current_attempt.pop(media.url.parts[-1])
+            self.files.completed_files += 1
+            progress.advance(album_task, 1)
+            progress.update(file_task, visible=False)
+            await log(f"Completed Download: {media.filename}", quiet=True)
             await self.File_Lock.remove_lock(original_filename)
 
         except (aiohttp.client_exceptions.ClientPayloadError, aiohttp.client_exceptions.ClientOSError,
                 aiohttp.client_exceptions.ServerDisconnectedError, asyncio.TimeoutError,
-                aiohttp.client_exceptions.ClientResponseError, FailureException) as e:
+                aiohttp.client_exceptions.ClientResponseError, DownloadFailure) as e:
             if await self.File_Lock.check_lock(original_filename):
                 await self.File_Lock.remove_lock(original_filename)
 
+            new_error = DownloadFailure(1)
+            try:
+                progress.update(file_task, visible=False)
+            except:
+                pass
+
             if hasattr(e, "message"):
-                logging.debug(f"\n{url} ({e.message})")
+                logging.debug(f"\n{media.url} ({e.message})")
+                new_error.message = e.message
 
             if hasattr(e, "code"):
                 if 400 <= e.code < 500 and e.code != 429:
                     logger.debug("We ran into a 400 level error: %s", str(e.code))
+                    await log(f"Failed Download: {media.filename}", quiet=True)
+                    self.files.failed_files += 1
+                    progress.advance(album_task, 1)
+                    if media.url.parts[-1] in self.current_attempt.keys():
+                        self.current_attempt.pop(media.url.parts[-1])
                     return
                 logger.debug("Error status code: " + str(e.code))
+                new_error.code = e.code
 
-            if e.__class__.__name__ == 'FailureException':
-                if await is_forum(referral):
-                    return
-                raise FailureException(code=e.code, message=e.message, rescrape=e.rescrape)
-            else:
-                raise FailureException(code=1, message=e)
-
-    async def rename_file(self, filename: str, url: URL, db_path: str, referer: str) -> None:
-        """Rename complete file."""
-        complete_file = (self.folder / self.title / filename)
-        temp_file = complete_file.with_suffix(complete_file.suffix + '.part')
-        if complete_file.exists():
-            logger.debug(str(self.folder / self.title / filename) + " Already Exists")
-            await aiofiles.os.remove(temp_file)
-        else:
-            temp_file.rename(complete_file)
-
-        await self.SQL_helper.sql_update_file(db_path, filename, 1, referer)
-        if url.parts[-1] in self.current_attempt.keys():
-            self.current_attempt.pop(url.parts[-1])
-        logger.debug("Finished " + filename)
-
-    async def get_filename(self, url: URL, referral: URL, session: DownloadSession):
-        """Does all the necessary work to try and figure out what exactly the Filename should be."""
-        referer = str(referral)
-
-        filename = url.name
-        if hasattr(url, "query_string"):
-            query_str = url.query_string
-            ext = '.' + query_str.split('.')[-1].lower()
-            if await self.check_include(ext):
-                filename = query_str.split("=")[-1]
-        filename = await sanitize(filename)
-        if "v=" in filename:
-            filename = filename.split('v=')[0]
-        if len(filename) > MAX_FILENAME_LENGTH:
-            fileext = filename.split('.')[-1]
-            filename = filename[:MAX_FILENAME_LENGTH] + '.' + fileext
-
-        ext = '.' + filename.split('.')[-1].lower()
-        current_throttle = self.client.throttle
-        if not await self.check_include(ext):
-            for key, value in self.delay.items():
-                if key in url.host:
-                    if value > current_throttle:
-                        current_throttle = value
-            try:
-                if "pixeldrain" in url.host:
-                    filename = await session.get_json_filename(url.with_query(None) / "info", current_throttle, 'name')
-                else:
-                    filename = await session.get_filename(url, referer, current_throttle)
-                filename = await sanitize(filename)
-                ext = '.' + filename.split('.')[-1].lower()
-                if not await self.check_include(ext):
-                    logging.debug("No file extension on content in link: " + str(url))
-                    raise FailureException(0)
-            except FailureException:
-                try:
-                    content_type = await session.get_content_type(url, referer, current_throttle)
-                    if "image" in content_type:
-                        ext_temp = content_type.split('/')[-1]
-                        filename = filename + '.' + ext_temp
-                        filename = await sanitize(filename)
-                    else:
-                        logging.debug("\nUnhandled content_type for checking filename: " + content_type)
-                        raise FailureException(0)
-                except FailureException:
-                    await log("\nCouldn't get filename for: " + str(url))
-                    raise FailureException(0)
-
-        ext = '.' + filename.split('.')[-1].lower()
-        filename = filename.replace('.' + filename.split('.')[-1], ext)
-        return filename
-
-    async def check_exclude(self, filename):
-        """Check the exclude arguments to see if this file should be skipped (False)."""
-        ext = '.' + filename.split('.')[-1]
-        if self.excludes['videos']:
-            if ext in FILE_FORMATS['Videos']:
-                logging.debug("Skipping " + filename)
-                return False
-        if self.excludes['images']:
-            if ext in FILE_FORMATS['Images']:
-                logging.debug("Skipping " + filename)
-                return False
-        if self.excludes['audio']:
-            if ext in FILE_FORMATS['Audio']:
-                logging.debug("Skipping " + filename)
-                return False
-        if self.excludes['other']:
-            if ext in FILE_FORMATS['Other']:
-                logging.debug("Skipping " + filename)
-                return False
-        return True
-
-    async def check_include(self, ext):
-        if (ext in FILE_FORMATS['Images'] or ext in FILE_FORMATS['Videos']
-                or ext in FILE_FORMATS['Audio'] or ext in FILE_FORMATS['Other']):
-            return True
-
-    async def get_db_path(self, url: URL):
-        db_path = url.path
-        if 'anonfiles' in url.host or 'bayfiles' in url.host:
-            db_path = db_path.split('/')
-            db_path.pop(0)
-            db_path.pop(1)
-            db_path = '/' + '/'.join(db_path)
-        return db_path
-
-    async def download_and_store(self, url_tuple: Tuple, session: DownloadSession, show_progress: bool = True) -> None:
-        """Download the content of given URL and store it in a file."""
-        url, referral = url_tuple
-
-        logger.debug("Working on " + str(url))
-
-        db_path = await self.get_db_path(url)
-
-        # return if completed already
-        if await self.SQL_helper.sql_check_existing(db_path):
-            if url.parts[-1] in self.current_attempt.keys():
-                self.current_attempt.pop(url.parts[-1])
-            logger.debug(msg=f"{db_path} found in DB: Skipping {db_path}")
-            return
-
-        try:
-            filename = await self.get_filename(url, referral, session)
-            if await self.check_exclude(filename):
-                await self.download_file(url, referral=referral, filename=filename, session=session, db_path=db_path,
-                                         show_progress=show_progress)
-        except Exception as e:
-            if hasattr(e, "rescrape"):
-                if url.parts[-1] in self.current_attempt.keys():
-                    if not (self.current_attempt[url.parts[-1]] >= self.attempts - 1) and e.rescrape:
-                        return
-            if url.parts[-1] in self.current_attempt.keys():
-                self.current_attempt.pop(url.parts[-1])
-            logging.debug(e)
-            await log(f"\nError attempting {url}")
-            if hasattr(e, "message"):
-                logging.debug(f"\n{url} ({e.message})")
-            if hasattr(e, "code"):
-                logger.debug("Error status code: " + str(e.code))
-
-    async def download_content(self, show_progress: bool = True, conn_timeout: int = 15) -> None:
-        """Download the content of all links and save them as files."""
-        session = DownloadSession(self.client, conn_timeout)
-        if not await check_free_space(self.runtime_args['required_free_space'], self.file_args['output_folder']):
-            await log("Not enough free space to run the program.", Fore.RED)
-            exit(0)
-        coros = [self.download_and_store(url_object, session, show_progress)
-                 for url_object in self.album_obj.link_pairs]
-        for func in tqdm(asyncio.as_completed(coros), total=len(coros), desc=self.title, unit='FILE'):
-            await func
-        await session.client_session.close()
-        self.SQL_helper.conn.commit()
+            raise new_error
 
 
-async def get_downloaders(Cascade: CascadeItem, excludes: Dict[str, bool], SQL_helper: SQLHelper, client: Client,
-                          max_workers: int, file_args: Dict, runtime_args: Dict, pixeldrain_api_key: str,
-                          scraper: ScrapeMapper) -> List[Downloader]:
-    """Get a list of downloader objects to run."""
-    downloaders = []
+async def download_cascade(args: dict, Cascade: CascadeItem, SQL_Helper: SQLHelper, client: Client,
+                           scraper: ScrapeMapper) -> None:
+    user_threads = args["Runtime"]["simultaneous_downloads"]
+    files = Files()
 
-    for domain, domain_obj in Cascade.domains.items():
-        max_workers_temp = max_workers
-        if 'bunkr' in domain or 'pixeldrain' in domain or 'anonfiles' in domain:
-            max_workers_temp = 2 if (max_workers > 2) else max_workers
-        for title, album_obj in domain_obj.albums.items():
-            downloader = Downloader(album_obj, title=title, max_workers=max_workers_temp, excludes=excludes,
-                                    SQL_helper=SQL_helper, client=client, file_args=file_args,
-                                    runtime_args=runtime_args, pixeldrain_api_key=pixeldrain_api_key,
-                                    scraper=scraper)
-            downloaders.append(downloader)
-    return downloaders
+    with CascadeProgress() as progress:
+        cascade_task = progress.add_task("[light_salmon3]Domains", progress_type="cascade", total=len(Cascade.domains))
+
+        downloaders = []
+        tasks = []
+        for domain, domain_obj in Cascade.domains.items():
+            threads = user_threads if user_threads != 0 else multiprocessing.cpu_count()
+            if 'bunkr' in domain or 'pixeldrain' in domain or 'anonfiles' in domain:
+                threads = 2 if (threads > 2) else threads
+            download_semaphore = asyncio.Semaphore(threads)
+            downloaders.append(Downloader(args, client, SQL_Helper, scraper, threads, domain, domain_obj, download_semaphore, files))
+        for downloader in downloaders:
+            tasks.append(downloader.start_domain(progress, cascade_task))
+        await asyncio.gather(*tasks)
+
+    await log(f"| [green]Files Complete: {files.completed_files}[/green] - [yellow]Files Skipped: {files.skipped_files}[/yellow] - [red]Files Failed: {files.failed_files}[/red] |")
+
+
+async def download_forums(args: dict, Forums: ForumItem, SQL_Helper: SQLHelper, client: Client,
+                          scraper: ScrapeMapper) -> None:
+    user_threads = args["Runtime"]["simultaneous_downloads"]
+    files = Files()
+
+    with ForumsProgress() as progress:
+        forum_task = progress.add_task("[orange3]FORUM THREADS", progress_type="forum", total=len(Forums.threads))
+        for title, Cascade in Forums.threads.items():
+            cascade_task = progress.add_task("[light_salmon3]"+title.upper(), progress_type="cascade", total=len(Cascade.domains))
+
+            downloaders = []
+            tasks = []
+            for domain, domain_obj in Cascade.domains.items():
+                threads = user_threads if user_threads != 0 else multiprocessing.cpu_count()
+                if 'bunkr' in domain or 'pixeldrain' in domain or 'anonfiles' in domain:
+                    threads = 2 if (threads > 2) else threads
+                download_semaphore = asyncio.Semaphore(threads)
+                downloaders.append(Downloader(args, client, SQL_Helper, scraper, threads, domain, domain_obj, download_semaphore, files))
+            for downloader in downloaders:
+                tasks.append(downloader.start_domain(progress, cascade_task))
+            await asyncio.gather(*tasks)
+
+            progress.advance(forum_task, 1)
+    await log("")
+    await log(f"| [green]Files Complete: {files.completed_files}[/green] - [yellow]Files Skipped: {files.skipped_files}[/yellow] - [red]Files Failed: {files.failed_files}[/red] |")
+

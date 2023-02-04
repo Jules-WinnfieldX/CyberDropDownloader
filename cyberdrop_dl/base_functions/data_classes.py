@@ -1,72 +1,67 @@
 import asyncio
 from dataclasses import dataclass
+from pathlib import Path
 from typing import ClassVar, Dict, List, Optional, Tuple
 
 from yarl import URL
 
 
 @dataclass
-class FileLock:
-    locked_files = []
+class MediaItem:
+    url: URL
+    referrer: URL
+    complete: bool
+    filename: str
+    ext: str
 
-    async def check_lock(self, filename):
-        await asyncio.sleep(.1)
-        return filename.lower() in self.locked_files
+    async def is_complete(self):
+        return self.complete
 
-    async def add_lock(self, filename):
-        self.locked_files.append(filename.lower())
-
-    async def remove_lock(self, filename):
-        self.locked_files.remove(filename.lower())
+    async def mark_completed(self):
+        self.complete = True
 
 
 @dataclass
 class AlbumItem:
     """Class for keeping track of download links for each album"""
     title: str
-    link_pairs: List[Tuple]
-    password: Optional[str] = None
+    media: List[MediaItem]
 
-    async def add_link_pair(self, link, referral):
-        self.link_pairs.append((link, referral))
+    async def add_media(self, media_item: MediaItem):
+        self.media.append(media_item)
 
     async def set_new_title(self, new_title: str):
         self.title = new_title
 
-    async def get_referrer(self, link: URL):
-        for pair in self.link_pairs:
-            if link == pair[0]:
-                return pair[1]
+    async def append_title(self, title):
+        new_title = title + '/' + self.title
+        self.title = new_title
 
-    async def replace_link_pairs(self, link_pairs_in):
-        map = {}
-        for link_pair in link_pairs_in:
-            for pair in self.link_pairs:
-                if link_pair[0].parts[-1] == pair[0].parts[-1]:
-                    self.link_pairs.remove(pair)
-                    self.link_pairs.append(link_pair)
-                    map[pair[0]] = link_pair[0]
-        return map
+    async def is_empty(self):
+        if not self.media:
+            return True
+        return False
 
 
 @dataclass
 class DomainItem:
+    """Class for keeping track of albums for each scraper type"""
     domain: str
     albums: Dict[str, AlbumItem]
 
-    async def add_to_album(self, title: str, link: URL, referral: URL):
-        if link:
-            if title in self.albums.keys():
-                await self.albums[title].add_link_pair(link, referral)
-            else:
-                self.albums[title] = AlbumItem(title=title, link_pairs=[(link, referral)])
+    async def add_to_album(self, title: str, media: MediaItem):
+        if title in self.albums.keys():
+            await self.albums[title].add_media(media)
+        else:
+            self.albums[title] = AlbumItem(title=title, media=[media])
 
     async def add_album(self, title: str, album: AlbumItem):
         if title in self.albums.keys():
             stored_album = self.albums[title]
-            for link_pair in album.link_pairs:
-                link, referral = link_pair
-                await stored_album.add_link_pair(link, referral)
+            for media_item in album.media:
+                if media_item in stored_album.media:
+                    continue
+                await stored_album.add_media(media_item)
         else:
             self.albums[title] = album
 
@@ -92,11 +87,11 @@ class CascadeItem:
         for title, album in albums.items():
             await self.add_album(domain, title, album)
 
-    async def add_to_album(self, domain: str, title: str, link: URL, referral: URL):
+    async def add_to_album(self, domain: str, title: str, media_item: MediaItem):
         if domain in self.domains.keys():
-            await self.domains[domain].add_to_album(title, link, referral)
+            await self.domains[domain].add_to_album(title, media_item)
         else:
-            self.domains[domain] = DomainItem(domain, {title: AlbumItem(title, [(link, referral)])})
+            self.domains[domain] = DomainItem(domain, {title: AlbumItem(title, [media_item])})
 
     async def add_album(self, domain: str, title: str, album: AlbumItem):
         if domain in self.domains.keys():
@@ -107,11 +102,11 @@ class CascadeItem:
     async def is_empty(self):
         for _, domain in self.domains.items():
             for _, album in domain.albums.items():
-                if album.link_pairs:
+                if album.media:
                     return False
         return True
 
-    async def append_title(self, title):
+    async def append_title(self, title: str):
         if not title:
             return
         for _, domain in self.domains.items():
@@ -134,24 +129,70 @@ class CascadeItem:
             for _, album in domain.albums.items():
                 check = []
                 allowed = []
-                for pair in album.link_pairs:
-                    url, _ = pair
-                    if url in check:
+                for media_item in album.media:
+                    if media_item.url in check:
                         continue
-                    check.append(url)
-                    allowed.append(pair)
-                album.link_pairs = allowed
+                    check.append(media_item.url)
+                    allowed.append(media_item)
+                album.media = allowed
 
 
 @dataclass
-class AuthData:
-    """Class for keeping username and password"""
-    username: str
-    password: str
+class ForumItem:
+    threads: Dict[str, CascadeItem]
+
+    async def add_album_to_thread(self, title: str, domain: str, album: AlbumItem):
+        if title not in self.threads.keys():
+            self.threads[title] = CascadeItem({domain: DomainItem(domain, {album.title: album})})
+        else:
+            await self.threads[title].add_album(domain, album.title, album)
+
+    async def add_thread(self, title: str, cascade: CascadeItem):
+        if title not in self.threads.keys():
+            self.threads[title] = cascade
+        else:
+            await self.threads[title].extend(cascade)
+
+    async def is_empty(self):
+        for _, Cascade in self.threads.items():
+            for _, domain in Cascade.domains.items():
+                for _, album in domain.albums.items():
+                    if album.media:
+                        return False
+        return True
+
+    async def dedupe(self):
+        for _, Cascade in self.threads.items():
+            for _, domain in Cascade.domains.items():
+                for _, album in domain.albums.items():
+                    check = []
+                    allowed = []
+                    for media_item in album.media:
+                        if media_item.url in check:
+                            continue
+                        check.append(media_item.url)
+                        allowed.append(media_item)
+                    album.media = allowed
+
+@dataclass
+class FileLock:
+    """Rudimentary file lock system"""
+    locked_files = []
+
+    async def check_lock(self, filename):
+        await asyncio.sleep(.1)
+        return filename.lower() in self.locked_files
+
+    async def add_lock(self, filename):
+        self.locked_files.append(filename.lower())
+
+    async def remove_lock(self, filename):
+        self.locked_files.remove(filename.lower())
 
 
 @dataclass
 class SkipData:
+    """The allows optoins for domains to skip when scraping"""
     supported_hosts: ClassVar[Tuple[str]] = (
         "anonfiles", "bunkr", "coomer.party", "cyberdrop", "cyberfile", "erome", "fapello", "gfycat",
         "gofile", "hgamecg", "imgbox", "img.kiwi", "jpg.church", "pixeldrain", "pixl.li", "postimg.cc",

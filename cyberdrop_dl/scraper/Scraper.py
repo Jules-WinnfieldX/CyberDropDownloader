@@ -1,0 +1,138 @@
+import asyncio
+import logging
+from typing import Dict
+
+import aiofiles
+from yarl import URL
+
+from cyberdrop_dl.base_functions.base_functions import log
+from cyberdrop_dl.base_functions.data_classes import SkipData, CascadeItem, ForumItem, AlbumItem
+from cyberdrop_dl.base_functions.sql_helper import SQLHelper
+from cyberdrop_dl.client.client import Client, ScrapeSession
+from cyberdrop_dl.client.rate_limiting import AsyncRateLimiter
+from cyberdrop_dl.crawlers.Anonfiles_Spider import AnonfilesCrawler
+from cyberdrop_dl.crawlers.Bunkr_Spider import BunkrCrawler
+from cyberdrop_dl.crawlers.Cyberdrop_Spider import CyberdropCrawler
+from cyberdrop_dl.crawlers.Xenforo_Spider import XenforoCrawler
+from cyberdrop_dl.scraper.JDownloader_Integration import JDownloader
+
+
+class ScrapeMapper:
+    def __init__(self, args: Dict, client: Client, SQL_Helper: SQLHelper, quiet: bool):
+        self.args = args
+        self.client = client
+        self.SQL_Helper = SQL_Helper
+        self.Cascade = CascadeItem({})
+        self.Forums = ForumItem({})
+        self.skip_data = SkipData(args['Ignore']['skip_hosts'])
+
+        self.anonfiles_crawler = None
+        self.bunkr_crawler = None
+        self.cyberdrop_crawler = None
+        self.coomer_crawler = None
+        self.cyberfile_crawler = None
+        self.erome_crawler = None
+        self.fapello_crawler = None
+        self.gfycat_crawler = None
+        self.gofile_crawler = None
+        self.hgamecg_crawler = None
+        self.imgbox_crawler = None
+        self.pixeldrain_crawler = None
+        self.postimg_crawler = None
+        self.redgifs_crawler = None
+        self.rule34_crawler = None
+        self.saint_crawler = None
+        self.sharex_crawler = None
+        self.xbunkr_crawler = None
+        self.xenforo_crawler = None
+
+        self.include_id = args['Runtime']['include_id']
+        self.quiet = quiet
+        self.jdownloader = JDownloader(args['JDownloader'], quiet)
+
+        self.jpgchurch_limiter = AsyncRateLimiter(15)
+        self.jpgchurch_semaphore = asyncio.Semaphore(5)
+        self.bunkr_limiter = AsyncRateLimiter(15)
+        self.forum_limiter = asyncio.Semaphore(4)
+        self.semaphore = asyncio.Semaphore(1)
+
+        self.mapping = {"anonfiles.com": self.Anonfiles, "bunkr": self.Bunkr, "cyberdrop": self.Cyberdrop,
+                        "simpcity": self.Xenforo, "socialmediagirls": self.Xenforo, "xbunker": self.Xenforo}
+
+    async def handle_additions(self, domain: str, album_obj: AlbumItem, title=None):
+        if title:
+            await album_obj.append_title(title)
+            await self.Forums.add_album_to_thread(title, domain, album_obj)
+        else:
+            await self.Cascade.add_album(domain, album_obj.title, album_obj)
+
+    """Regular filehost handling"""
+
+    async def Anonfiles(self, url: URL, title=None):
+        anonfiles_session = ScrapeSession(self.client)
+        if not self.anonfiles_crawler:
+            self.anonfiles_crawler = AnonfilesCrawler(quiet=self.quiet, SQL_Helper=self.SQL_Helper)
+        album_obj = await self.anonfiles_crawler.fetch(anonfiles_session, url)
+        await self.handle_additions("anonfiles", album_obj, title)
+        await anonfiles_session.exit_handler()
+
+    async def Bunkr(self, url: URL, title=None):
+        bunkr_session = ScrapeSession(self.client)
+        if not self.bunkr_crawler:
+            self.bunkr_crawler = BunkrCrawler(quiet=self.quiet, SQL_Helper=self.SQL_Helper)
+        async with self.bunkr_limiter:
+            album_obj = await self.bunkr_crawler.fetch(bunkr_session, url)
+        if not await album_obj.is_empty():
+            await self.handle_additions("bunkr", album_obj, title)
+        await bunkr_session.exit_handler()
+
+    async def Cyberdrop(self, url: URL, title=None):
+        cyberdrop_session = ScrapeSession(self.client)
+        if not self.cyberdrop_crawler:
+            self.bunkr_crawler = CyberdropCrawler(include_id=self.include_id, quiet=self.quiet, SQL_Helper=self.SQL_Helper)
+        album_obj = await self.bunkr_crawler.fetch(cyberdrop_session, url)
+        await self.handle_additions("cyberdrop", album_obj, title)
+        await cyberdrop_session.exit_handler()
+
+    """Archive Sites"""
+
+    """Forum handling"""
+
+    async def Xenforo(self, url: URL, title=None):
+        xenforo_session = ScrapeSession(self.client)
+        if not self.xenforo_crawler:
+            self.xenforo_crawler = XenforoCrawler(scraping_mapper=self, args=self.args, SQL_Helper=self.SQL_Helper,
+                                                  quiet=self.quiet)
+        async with self.forum_limiter:
+            cascade, title = await self.xenforo_crawler.fetch(xenforo_session, url)
+        if not title or await cascade.is_empty():
+            await xenforo_session.exit_handler()
+            return
+        await self.Forums.add_thread(title, cascade)
+        await xenforo_session.exit_handler()
+
+    async def map_url(self, url_to_map: URL, title=None):
+        if not url_to_map:
+            return
+        elif not url_to_map.host:
+            await log(f"[yellow]Not Supported: {str(url_to_map)}[/yellow]", quiet=self.quiet)
+            return
+        for key, value in self.mapping.items():
+            if key in url_to_map.host:
+                if any(site in key for site in self.skip_data.sites):
+                    await log(f"[yellow]Skipping: {str(url_to_map)}[/yellow]", quiet=self.quiet)
+                else:
+                    await value(url=url_to_map, title=title)
+                return
+
+        if self.jdownloader.jdownloader_enable:
+            async with asyncio.Semaphore(1):
+                self.jdownloader.quiet = self.quiet
+                if not self.jdownloader.jdownloader_agent:
+                    await self.jdownloader.jdownloader_setup()
+            await self.jdownloader.direct_unsupported_to_jdownloader(url_to_map, title)
+
+        else:
+            await log(f"[yellow]Not Supported: {str(url_to_map)}[/yellow]", quiet=self.quiet)
+            async with aiofiles.open(self.args["Files"]["unsupported_urls_file"], mode='a') as f:
+                await f.write(str(url_to_map)+"\n")

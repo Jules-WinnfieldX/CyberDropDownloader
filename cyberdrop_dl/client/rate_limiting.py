@@ -10,9 +10,7 @@ from ..base_functions.base_functions import logger
 
 
 class AsyncRateLimiter:
-    """
-    Provides rate limiting for an operation with a configurable number of requests for a time period.
-    """
+    """Provides rate limiting for an operation with a configurable number of requests for a time period."""
 
     __lock: asyncio.Lock
     callback: Optional[Callable[[float], Awaitable[Any]]]
@@ -67,6 +65,7 @@ class AsyncRateLimiter:
 
 
 async def throttle(self, delay: int, host: str) -> None:
+    """Throttles requests to domains by a parameter amount of time"""
     if delay is None or delay == 0:
         return
 
@@ -83,7 +82,4 @@ async def throttle(self, delay: int, host: str) -> None:
             return
 
         remaining = delay - elapsed + 0.25
-
-        log_string = f'\nDelaying request to {host} for {remaining:.2f} seconds.'
-        # logger.debug(log_string)
         await asyncio.sleep(remaining)

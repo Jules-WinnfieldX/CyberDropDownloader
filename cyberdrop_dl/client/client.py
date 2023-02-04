@@ -1,35 +1,39 @@
+from __future__ import annotations
 import asyncio
 import json
 import logging
 import ssl
 from pathlib import Path
-import xml.etree.ElementTree as ET
-from typing import Dict
 
 import aiofiles
 from bs4 import BeautifulSoup
+from rich.progress import TaskID
 from yarl import URL
 
 import aiohttp
 import certifi
-from tqdm import tqdm
 
+from .progress_definitions import CascadeProgress
 from .rate_limiting import AsyncRateLimiter, throttle
-from ..base_functions.base_functions import logger, FailureException
-from ..base_functions.data_classes import FileLock
+from ..base_functions.base_functions import logger
+from ..base_functions.data_classes import FileLock, MediaItem
+from ..base_functions.error_classes import DownloadFailure
 
 
 class Client:
-    def __init__(self, ratelimit: int, throttle: int):
+    """Creates a 'client' that can be referenced by scraping or download sessions"""
+    def __init__(self, ratelimit: int, throttle: int, secure: bool):
         self.ratelimit = ratelimit
         self.throttle = throttle
         self.simultaneous_session_limit = asyncio.Semaphore(50)
-        self.user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.75 Safari/537.36'
+        self.user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/109.0'
         self.ssl_context = ssl.create_default_context(cafile=certifi.where())
+        self.verify_ssl = secure
         self.cookies = aiohttp.CookieJar(quote_cookie=False)
 
 
-class Session:
+class ScrapeSession:
+    """AIOHTTP operations for scraping"""
     def __init__(self, client: Client) -> None:
         self.client = client
         self.rate_limiter = AsyncRateLimiter(self.client.ratelimit)
@@ -45,13 +49,12 @@ class Session:
                     soup = BeautifulSoup(text, 'html.parser')
                     return soup
 
-    async def get_BS4_and_url(self, url: URL):
+    async def get_json(self, url: URL):
         async with self.client.simultaneous_session_limit:
             async with self.rate_limiter:
                 async with self.client_session.get(url, ssl=self.client.ssl_context) as response:
-                    text = await response.text()
-                    soup = BeautifulSoup(text, 'html.parser')
-                    return soup, URL(response.url)
+                    content = json.loads(await response.content.read())
+                    return content
 
     async def get_text(self, url: URL):
         async with self.client.simultaneous_session_limit:
@@ -60,39 +63,11 @@ class Session:
                     text = await response.text()
                     return text
 
-    async def get_json(self, url: URL):
-        async with self.client.simultaneous_session_limit:
-            async with self.rate_limiter:
-                async with self.client_session.get(url, ssl=self.client.ssl_context) as response:
-                    content = json.loads(await response.content.read())
-                    return content
-
-    async def get_xml(self, url: URL):
-        async with self.client.simultaneous_session_limit:
-            async with self.rate_limiter:
-                async with self.client_session.get(url, ssl=self.client.ssl_context) as response:
-                    text = await response.content.read()
-                    xmlTree = ET.fromstring(text)
-                    return xmlTree
-
-    async def get_no_resp(self, url: URL, headers: dict):
-        async with self.client.simultaneous_session_limit:
-            async with self.rate_limiter:
-                async with self.client_session.get(url, headers=headers, ssl=self.client.ssl_context) as response:
-                    pass
-
     async def post_data_no_resp(self, url: URL, data: dict):
         async with self.client.simultaneous_session_limit:
             async with self.rate_limiter:
                 async with self.client_session.post(url, data=data, headers=self.headers, ssl=self.client.ssl_context) as response:
                     pass
-
-    async def post(self, url: URL, data: dict):
-        async with self.client.simultaneous_session_limit:
-            async with self.rate_limiter:
-                async with self.client_session.post(url, data=data, headers=self.headers, ssl=self.client.ssl_context) as response:
-                    content = json.loads(await response.content.read())
-                    return content
 
     async def exit_handler(self):
         try:
@@ -102,69 +77,36 @@ class Session:
 
 
 class DownloadSession:
+    """AIOHTTP operations for downloading"""
     def __init__(self, client: Client, conn_timeout: int):
         self.client = client
         self.headers = {"user-agent": client.user_agent}
         self.timeouts = aiohttp.ClientTimeout(5*60, conn_timeout)
-        self.client_session = aiohttp.ClientSession(headers=self.headers, raise_for_status=True,
-                                                    cookie_jar=self.client.cookies, timeout=self.timeouts)
+        self.client_session = aiohttp.ClientSession(headers=self.headers, raise_for_status=True, cookie_jar=self.client.cookies, timeout=self.timeouts)
         self.throttle_times = {}
 
-    async def get_json_filename(self, url: URL, current_throttle: int, element: str):
-        headers = {'user-agent': self.client.user_agent}
-        await throttle(self, current_throttle, url.host)
-        async with self.client_session.get(url, headers=headers, ssl=self.client.ssl_context) as resp:
-            json_obj = json.loads(await resp.content.read())
-            return json_obj[element]
-
-    async def get_filename(self, url: URL, referer: str, current_throttle: int):
-        headers = {'Referer': referer, 'user-agent': self.client.user_agent}
-        await throttle(self, current_throttle, url.host)
-        async with self.client_session.get(url, headers=headers, ssl=self.client.ssl_context,
-                                           raise_for_status=True) as resp:
-            filename = resp.content_disposition.filename
-            return filename
-
-    async def get_filesize(self, url: URL, referer: str, current_throttle: int):
-        headers = {'Referer': referer, 'user-agent': self.client.user_agent}
-        await throttle(self, current_throttle, url.host)
-        async with self.client_session.get(url, headers=headers, ssl=self.client.ssl_context,
-                                           raise_for_status=True) as resp:
-            total_size = int(resp.headers.get('Content-Length', str(0)))
-            return total_size
-
-    async def get_content_type(self, url: URL, referer: str, current_throttle: int):
-        headers = {'Referer': referer, 'user-agent': self.client.user_agent}
-        await throttle(self, current_throttle, url.host)
-        async with self.client_session.get(url, headers=headers, ssl=self.client.ssl_context,
-                                           raise_for_status=True) as resp:
-            content_type = resp.headers.get('Content-Type')
-            return content_type.lower()
-
-    async def download_file(self, url: URL, referer: str, current_throttle: int, range_num: str, original_filename: str,
-                            filename: str, temp_file: str, resume_point: int, show_progress: bool,
-                            File_Lock: FileLock, folder: Path, title: str, proxy: str, headers: Dict):
-        headers['Referer'] = referer
+    async def download_file(self, media: MediaItem, file: Path, current_throttle: int, resume_point: int,
+                            File_Lock: FileLock, proxy: str, headers: dict, original_filename: str,
+                            progress: CascadeProgress, file_task: TaskID):
+        headers['Referer'] = str(media.referrer)
         headers['user-agent'] = self.client.user_agent
-        if range_num:
-            headers['Range'] = range_num
-        await throttle(self, current_throttle, url.host)
-        async with self.client_session.get(url, headers=headers, ssl=self.client.ssl_context,
+        await throttle(self, current_throttle, media.url.host)
+        async with self.client_session.get(media.url, headers=headers, ssl=self.client.ssl_context,
                                            raise_for_status=True, proxy=proxy) as resp:
             content_type = resp.headers.get('Content-Type')
             if 'text' in content_type.lower() or 'html' in content_type.lower():
-                logger.debug("Server for %s is experiencing issues, or you are being ratelimited", str(url))
-                logger.debug("Content received: " + content_type.lower())
+                logger.debug("Server for %s is experiencing issues, you are being ratelimited, or cookies have expired", str(media.url))
                 await File_Lock.remove_lock(original_filename)
-                raise FailureException(code=resp.status, message="Unexpectedly got text as response", rescrape=True)
+                raise DownloadFailure(code=resp.status, message="Unexpectedly got text as response")
 
             total = int(resp.headers.get('Content-Length', str(0))) + resume_point
-            (folder / title).mkdir(parents=True, exist_ok=True)
+            file.parent.mkdir(parents=True, exist_ok=True)
 
-            with tqdm(total=total, unit_scale=True, unit='B', leave=False, initial=resume_point, desc=filename,
-                      disable=(not show_progress)) as progress:
-                async with aiofiles.open(temp_file, mode='ab') as f:
-                    async for chunk, _ in resp.content.iter_chunks():
-                        await asyncio.sleep(0)
-                        await f.write(chunk)
-                        progress.update(len(chunk))
+            progress.update(file_task, total=total)
+            progress.advance(file_task, resume_point)
+
+            async with aiofiles.open(file, mode='ab') as f:
+                async for chunk, _ in resp.content.iter_chunks():
+                    await asyncio.sleep(0)
+                    await f.write(chunk)
+                    progress.advance(file_task, len(chunk))
