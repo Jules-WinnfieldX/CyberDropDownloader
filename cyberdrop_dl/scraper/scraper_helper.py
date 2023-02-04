@@ -66,6 +66,7 @@ class ScrapeMapper:
         self.gofile_crawler = None
         self.hgamecg_crawler = None
         self.imgbox_crawler = None
+        self.kemono_crawler = None
         self.pixeldrain_crawler = None
         self.postimg_crawler = None
         self.redgifs_crawler = None
@@ -90,7 +91,7 @@ class ScrapeMapper:
                          self.hgamecg_crawler, self.imgbox_crawler, self.pixeldrain_crawler,
                          self.postimg_crawler, self.redgifs_crawler, self.rule34_crawler, self.saint_crawler,
                          self.sharex_crawler, self.socialmediagirls_crawler, self.simpcity_crawler,
-                         self.xbunker_crawler, self.xbunkr_crawler]
+                         self.xbunker_crawler, self.xbunkr_crawler, self.kemono_crawler]
 
         self.mapping = {"anonfiles.com": self.Anonfiles, "xbunkr": self.XBunkr,
                         "bunkr": self.Bunkr, "coomer.party": self.Coomer, "cyberdrop": self.Cyberdrop,
@@ -100,7 +101,7 @@ class ScrapeMapper:
                         "jpg.church": self.ShareX, "pixeldrain.com": self.Pixeldrain,
                         "pixl.li": self.ShareX, "postimg": self.Postimg, "redgifs.com": self.Redgifs,
                         "rule34.xxx": self.Rule34, "saint.to": self.Saint,  "socialmediagirls": self.SocialMediaGirls,
-                        "simpcity": self.SimpCity, "xbunker": self.XBunker}
+                        "simpcity": self.SimpCity, "xbunker": self.XBunker, "kemono": self.Kemono}
 
     async def Anonfiles(self, url: URL, title=None):
         anonfiles_session = Session(self.client)
@@ -210,16 +211,16 @@ class ScrapeMapper:
         await self.Cascade.add_albums(domain_obj)
         await imgbox_session.exit_handler()
 
-    # async def Kemono(self, url: URL, title=None):
-    #     kemono_session = Session(self.client)
-    #     if not self.kemono_crawler:
-    #         self.kemono_crawler = KemonoCrawler(include_id=self.include_id, scraping_mapper=self,
-    #                                             separate_posts=self.separate_posts, quiet=self.quiet)
-    #     domain_obj = await self.kemono_crawler.fetch(kemono_session, url)
-    #     if title:
-    #         await domain_obj.append_title(title)
-    #     await self.Cascade.add_albums(domain_obj)
-    #     await kemono_session.exit_handler()
+    async def Kemono(self, url: URL, title=None):
+        kemono_session = Session(self.client)
+        if not self.kemono_crawler:
+            self.kemono_crawler = KemonoCrawler(include_id=self.include_id, scraping_mapper=self,
+                                                separate_posts=self.separate_posts, quiet=self.quiet)
+        domain_obj = await self.kemono_crawler.fetch(kemono_session, url)
+        if title:
+            await domain_obj.append_title(title)
+        await self.Cascade.add_albums(domain_obj)
+        await kemono_session.exit_handler()
 
     async def Gfycat(self, url: URL, title=None):
         gfycat_session = Session(self.client)

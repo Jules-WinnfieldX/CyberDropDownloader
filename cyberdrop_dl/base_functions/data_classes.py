@@ -155,5 +155,5 @@ class SkipData:
     supported_hosts: ClassVar[Tuple[str]] = (
         "anonfiles", "bunkr", "coomer.party", "cyberdrop", "cyberfile", "erome", "fapello", "gfycat",
         "gofile", "hgamecg", "imgbox", "img.kiwi", "jpg.church", "pixeldrain", "pixl.li", "postimg.cc",
-        "redgifs", "rule34", "saint", "socialmediagirls", "simpcity", "xbunker", "xbunkr")
+        "redgifs", "rule34", "saint", "socialmediagirls", "simpcity", "xbunker", "xbunkr", "kemono")
     sites: List[str]
