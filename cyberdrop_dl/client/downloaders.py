@@ -33,13 +33,14 @@ def retry(f):
                 return await f(self, *args, **kwargs)
             except DownloadFailure as e:
                 if not self.disable_attempt_limit:
-                    # TODO ALL THIS BELOW
-                    if self.current_attempt[args[0].parts[-1]] >= self.attempts - 1:
-                        logger.debug('Skipping %s...', args[0])
-                        raise
-                logger.debug(e)
-                logger.debug(f'Retrying ({self.current_attempt[args[0].parts[-1]]}) {args[0]}...')
-                self.current_attempt[args[0].parts[-1]] += 1
+                    if self.current_attempt[args[3].filename] >= self.allowed_attempts - 1:
+                        logger.debug(e, exc_info=True)
+                        logger.debug('Skipping %s...', args[3].url)
+                        self.files.failed_files += 1
+                        break
+                logger.debug(e.message)
+                logger.debug(f'Retrying ({self.current_attempt[args[3].filename]}) {args[3].url}...')
+                self.current_attempt[args[3].filename] += 1
 
                 await asyncio.sleep(2)
     return wrapper
@@ -202,7 +203,7 @@ class Downloader:
             if len(task_description) >= 40:
                 task_description = task_description[:37] + "..."
             else:
-                task_description = task_description.rjust(40)
+                task_description = task_description.ljust(40)
             file_task = progress.add_task("[plum3]"+task_description, progress_type="file")
             await self.download_session.download_file(media, partial_file, current_throttle, resume_point,
                                                       self.File_Lock, self.proxy, headers, original_filename,
@@ -223,7 +224,7 @@ class Downloader:
             if await self.File_Lock.check_lock(original_filename):
                 await self.File_Lock.remove_lock(original_filename)
 
-            new_error = DownloadFailure(1)
+            new_error = DownloadFailure(code=1)
             try:
                 progress.update(file_task, visible=False)
             except:
@@ -231,7 +232,7 @@ class Downloader:
 
             if hasattr(e, "message"):
                 logging.debug(f"\n{media.url} ({e.message})")
-                new_error.message = e.message
+            new_error.message = repr(e)
 
             if hasattr(e, "code"):
                 if 400 <= e.code < 500 and e.code != 429:
