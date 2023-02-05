@@ -29,7 +29,7 @@ XMR: 46vMP5MXVZqQeGzkA1mbX9WQKU8fbWRBJGAktDcjYkCMRDY7HMdLzi1DFsHCPLgms968cyUz1gC
 | HGameCG          | Albums: hgamecg.com/.../index.html                                                                                                                                                                                                     |
 | ImgBox           | Albums: imgbox.com/g/... <br> Direct Images: images#.imgbox.com/... <br> Single Files: imgbox.com/...                                                                                                                                  |
 | IMG.Kiwi         | Albums: img.kiwi/album/... <br> Direct Images: img.kiwi/image/... <br> User Profile: img.kiwi/#USER# <br> All User Albums: img.kiwi/#USER#/albums                                                                                      |
-| jpg.church       | Albums: jpg.church/album/... <br> Direct Images: jpg.church/image/... <br> User Profile: jpg.church/#USER# <br> All User Albums: jpg.church/#USER#/albums                                                                              |
+| jpg.fish         | Albums: jpg.fish/album/... <br> Direct Images: jpg.fish/image/... <br> User Profile: jpg.fish/#USER# <br> All User Albums: jpg.fish/#USER#/albums                                                                              |
 | Kemono.party     | Profiles: kemono.party/... <br> Thumbnail Links: kemono.party/thumbnail/... <br> Data Links: kemono.party/data/... <br> kemono.party/.../post/...                                                                                      |
 | LeakedNudes      | Thread: forum.leakednudes.co/threads/...  <br> Continue from (will download this post and after): forum.leakednudes.co/threads/...post-NUMBER                                                                                          |
 | PixelDrain       | Albums: Pixeldrain.com/l/... <br> Single Files: Pixeldrain.com/u/...                                                                                                                                                                   |
@@ -123,5 +123,5 @@ optional arguments:
   --throttle                this is a throttle between requests during the downloading phase, the number is in seconds
 ```
 --skip can use: "anonfiles", "bunkr", "coomer.party", "cyberdrop", "cyberfile", "erome", "fapello", "gfycat",
-        "gofile", "hgamecg", "imgbox", "img.kiwi", "jpg.church", "pixeldrain", "pixl.li", "postimg.cc",
+        "gofile", "hgamecg", "imgbox", "img.kiwi", "jpg.fish", "pixeldrain", "pixl.li", "postimg.cc",
         "redgifs", "rule34", "saint", "socialmediagirls", "simpcity", "xbunker", "xbunkr"

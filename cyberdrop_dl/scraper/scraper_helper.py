@@ -98,7 +98,7 @@ class ScrapeMapper:
                         "cyberfile.is": self.Cyberfile, "cyberfile.su": self.Cyberfile, "erome.com": self.Erome,
                         "fapello": self.Fapello, "gfycat.com": self.Gfycat, "gofile.io": self.GoFile,
                         "hgamecg.com": self.HGameCG, "imgbox.com": self.ImgBox, "img.kiwi": self.ShareX,
-                        "jpg.church": self.ShareX, "pixeldrain.com": self.Pixeldrain,
+                        "jpg.church": self.ShareX, "jpg.fish": self.ShareX, "pixeldrain.com": self.Pixeldrain,
                         "pixl.li": self.ShareX, "postimg": self.Postimg, "redgifs.com": self.Redgifs,
                         "rule34.xxx": self.Rule34, "saint.to": self.Saint,  "socialmediagirls": self.SocialMediaGirls,
                         "simpcity": self.SimpCity, "xbunker": self.XBunker, "kemono": self.Kemono}
