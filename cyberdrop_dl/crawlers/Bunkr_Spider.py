@@ -63,8 +63,6 @@ class BunkrCrawler:
                 referrer = link
                 if "cdn" in link.host:
                     link = URL(str(link).replace("https://cdn", "https://i"))
-                elif ext in FILE_FORMATS['Videos']:
-                    link = URL("https://media-files.bunkr.ru" + temp_partial_link[2:])
                 else:
                     link = await self.stream(session, link)
                 await domain_obj.add_to_album(title, link, referrer)
