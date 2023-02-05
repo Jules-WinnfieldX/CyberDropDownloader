@@ -180,6 +180,7 @@ class Downloader:
                 await session.download_file(url, referer, current_throttle, range_num, original_filename, filename,
                                             temp_file, resume_point, show_progress, self.File_Lock, self.folder,
                                             self.title, self.proxy, headers)
+                await asyncio.sleep(0.1)
 
             await self.rename_file(filename, url, db_path, referer)
             await self.File_Lock.remove_lock(original_filename)

@@ -53,6 +53,9 @@ class BunkrCrawler:
             title = await make_title_safe(title.get_text())
             for file in soup.select('figure[class="relative w-full"] a'):
                 link = file.get("href")
+
+                media_loc = file.select_one("img").get("src").split("//i")[-1].split(".bunkr.")[0]
+
                 temp_partial_link = link
                 if link.startswith("/"):
                     link = URL("https://" + url.host + link)
@@ -64,7 +67,8 @@ class BunkrCrawler:
                 if "cdn" in link.host:
                     link = URL(str(link).replace("https://cdn", "https://i"))
                 else:
-                    link = await self.stream(session, link)
+                    link = URL(f"https://media-files{media_loc}.bunkr.ru" + temp_partial_link[2:])
+
                 await domain_obj.add_to_album(title, link, referrer)
 
         except Exception as e:
