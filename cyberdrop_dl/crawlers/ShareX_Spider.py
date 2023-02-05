@@ -116,7 +116,7 @@ class ShareXCrawler:
         results = []
         try:
             soup = await session.get_BS4(url)
-            if url.host == 'jpg.church':
+            if url.host == 'jpg.fish' or url.host == 'jpg.church':
                 links = soup.select("a[href*=img] img")
             else:
                 links = soup.select("a[href*=image] img")
