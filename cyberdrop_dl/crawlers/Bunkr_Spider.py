@@ -15,14 +15,15 @@ class BunkrCrawler:
 
     async def fetch(self, session: Session, url: URL):
         domain_obj = DomainItem(url.host, {})
+        await log("Starting scrape of " + str(url), quiet=self.quiet)
 
         cdn_possibilities = r"(?:cdn.bunkr...|cdn..bunkr...|cdn...bunkr...)"
         ext = '.' + str(url).split('.')[-1]
         ext = ext.lower()
         if ext in FILE_FORMATS['Videos']:
-            url = URL(re.sub(cdn_possibilities, "stream.bunkr.ru/v", str(url)))
+            url = URL(re.sub(cdn_possibilities, "bunkr.su/v", str(url)))
         if ext in FILE_FORMATS['Other']:
-            url = URL(re.sub(cdn_possibilities, "files.bunkr.ru/d", str(url)))
+            url = URL(re.sub(cdn_possibilities, "bunkr.su/d", str(url)))
         if ext in FILE_FORMATS['Images']:
             url = URL(str(url).replace("https://cdn", "https://i"))
 
@@ -30,44 +31,42 @@ class BunkrCrawler:
             await domain_obj.add_to_album(link=url, referral=url, title="Bunkr Loose Files")
             return domain_obj
 
-        if "stream.bunkr." in url.host or "files.bunkr." in url.host:
+        if "v" in url.parts or "d" in url.host:
             link = await self.stream(session, url)
             await domain_obj.add_to_album(link=link, referral=url, title="Bunkr Loose Files")
             await log("Finished scrape of " + str(url), quiet=self.quiet)
             return domain_obj
 
-        await log("Starting scrape of " + str(url), quiet=self.quiet)
+        if "a" in url.parts:
+            await self.album(session, url, domain_obj)
 
+        await log("Finished scrape of " + str(url), quiet=self.quiet)
+
+        return domain_obj
+
+    async def album(self, session, url: URL, domain_obj: DomainItem):
         try:
             soup = await session.get_BS4(url)
-            build_id = json.loads(soup.select_one("script[id=__NEXT_DATA__]").get_text())
-            try:
-                files = build_id['props']['pageProps']['album']['files']
-                json_obj = build_id['props']['pageProps']
-            except KeyError:
-                json_fetch = URL("https://" + url.host + "/_next/data/" + build_id['buildId'] + url.path + '.json')
-                text = await session.get_text(json_fetch)
-                json_obj = json.loads(text)['pageProps']
-            title = await make_title_safe(json_obj['album']['name'])
-            for file in json_obj['album']['files']:
-                ext = '.' + file['name'].split('.')[-1].lower()
-                referrer = URL
-                if ext in FILE_FORMATS['Videos']:
-                    cdn_loc = file['cdn']
-                    media_loc = cdn_loc.replace('cdn', 'media-files')
-                    if "12" in media_loc:
-                        media_loc = media_loc.replace('.ru', '.la')
-                    referrer = "https://stream.bunkr.ru/v/" + file['name']
-                    link = URL(media_loc + '/' + file['name'])
-                elif ext in FILE_FORMATS['Other']:
-                    cdn_loc = file['cdn']
-                    media_loc = cdn_loc.replace('cdn', 'media-files')
-                    if "12" in media_loc:
-                        media_loc = media_loc.replace('.ru', '.la')
-                    referrer = "https://files.bunkr.ru/d/" + file['name']
-                    link = URL(media_loc + '/' + file['name'])
+            title = soup.select_one('h1[class="text-[24px] font-bold text-dark dark:text-white"]')
+            for elem in title.find_all("span"):
+                elem.decompose()
+            title = await make_title_safe(title.get_text())
+            for file in soup.select('figure[class="relative w-full"] a'):
+                link = file.get("href")
+                temp_partial_link = link
+                if link.startswith("/"):
+                    link = URL("https://" + url.host + link)
+                link = URL(link)
+                ext = '.' + str(link).split('.')[-1]
+                ext = ext.lower()
+
+                referrer = link
+                if "cdn" in link.host:
+                    link = URL(str(link).replace("https://cdn", "https://i"))
+                elif ext in FILE_FORMATS['Videos']:
+                    link = URL("https://media-files.bunkr.ru" + temp_partial_link[2:])
                 else:
-                    link = URL(file['cdn'] + '/' + file['name'])
+                    link = await self.stream(session, link)
                 await domain_obj.add_to_album(title, link, referrer)
 
         except Exception as e:
@@ -75,24 +74,21 @@ class BunkrCrawler:
             await log("Error scraping " + str(url), quiet=self.quiet)
             logger.debug(e)
 
-        await log("Finished scrape of " + str(url), quiet=self.quiet)
-
-        return domain_obj
-
     async def stream(self, session: Session, url: URL):
         try:
-            await log("Starting scrape of " + str(url), quiet=self.quiet)
             soup = await session.get_BS4(url)
-            json_obj = json.loads(soup.select_one("script[id=__NEXT_DATA__]").text)
-            if not json_obj['props']['pageProps']:
-                try:
-                    build_id = json.loads(soup.select_one("script[id=__NEXT_DATA__]").get_text())
-                    json_fetch = URL("https://" + url.host + "/_next/data/" + build_id['buildId'] + url.path + '.json')
-                    text = await session.get_text(json_fetch)
-                    json_obj = {'props': json.loads(text)}
-                except:
-                    raise Exception("Couldn't get link from HTML")
-            link = URL(json_obj['props']['pageProps']['file']['mediafiles'] + '/' + json_obj['props']['pageProps']['file']['name'])
+            head = soup.select_one("head")
+            scripts = soup.select('script[type="text/javascript"]')
+            link = None
+
+            for script in scripts:
+                if script.text:
+                    if "link.href" in script.text:
+                        link = script.text.split('link.href = "')[-1].split('";')[0]
+                        break
+            if not link:
+                raise
+            link = URL(link)
             return link
 
         except Exception as e:
