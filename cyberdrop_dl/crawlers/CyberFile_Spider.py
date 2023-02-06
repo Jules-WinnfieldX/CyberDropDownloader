@@ -83,7 +83,7 @@ class CyberFileCrawler:
                     pass
 
             if page < total_pages:
-                contents.extend(await self.get_folder_content(session, url, nodeId, page+1))
+                contents.extend(await self.get_folder_content(session, url, nodeId, page+1, title))
             for node in nodes:
                 contents.extend(await self.get_folder_content(session, url, node, 1, title))
             return contents
