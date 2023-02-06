@@ -51,7 +51,8 @@ class BunkrCrawler:
             for elem in title.find_all("span"):
                 elem.decompose()
             title = await make_title_safe(title.get_text())
-            for file in soup.select('figure[class="relative w-full"] a'):
+            files = soup.select('a[class*="grid-images_box-link"]')
+            for file in files:
                 link = file.get("href")
 
                 media_loc = file.select_one("img").get("src").split("//i")[-1].split(".bunkr.")[0]
