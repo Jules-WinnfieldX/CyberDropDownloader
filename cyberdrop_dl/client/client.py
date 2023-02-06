@@ -44,8 +44,7 @@ class ScrapeSession:
     async def get_BS4(self, url: URL):
         async with self.client.simultaneous_session_limit:
             async with self.rate_limiter:
-                async with self.client_session.get(url, ssl=self.client.ssl_context,
-                                                   verify_ssl=self.client.verify_ssl) as response:
+                async with self.client_session.get(url, ssl=self.client.ssl_context) as response:
                     text = await response.text()
                     soup = BeautifulSoup(text, 'html.parser')
                     return soup
@@ -53,8 +52,7 @@ class ScrapeSession:
     async def get_BS4_and_url(self, url: URL):
         async with self.client.simultaneous_session_limit:
             async with self.rate_limiter:
-                async with self.client_session.get(url, ssl=self.client.ssl_context,
-                                                   verify_ssl=self.client.verify_ssl) as response:
+                async with self.client_session.get(url, ssl=self.client.ssl_context) as response:
                     text = await response.text()
                     soup = BeautifulSoup(text, 'html.parser')
                     return soup, URL(response.url)
@@ -62,39 +60,34 @@ class ScrapeSession:
     async def get_json(self, url: URL):
         async with self.client.simultaneous_session_limit:
             async with self.rate_limiter:
-                async with self.client_session.get(url, ssl=self.client.ssl_context,
-                                                   verify_ssl=self.client.verify_ssl) as response:
+                async with self.client_session.get(url, ssl=self.client.ssl_context) as response:
                     content = json.loads(await response.content.read())
                     return content
 
     async def get_text(self, url: URL):
         async with self.client.simultaneous_session_limit:
             async with self.rate_limiter:
-                async with self.client_session.get(url, ssl=self.client.ssl_context,
-                                                   verify_ssl=self.client.verify_ssl) as response:
+                async with self.client_session.get(url, ssl=self.client.ssl_context) as response:
                     text = await response.text()
                     return text
 
     async def post(self, url: URL, data: dict):
         async with self.client.simultaneous_session_limit:
             async with self.rate_limiter:
-                async with self.client_session.post(url, data=data, headers=self.headers, ssl=self.client.ssl_context,
-                                                    verify_ssl=self.client.verify_ssl) as response:
+                async with self.client_session.post(url, data=data, headers=self.headers, ssl=self.client.ssl_context) as response:
                     content = json.loads(await response.content.read())
                     return content
 
     async def get_no_resp(self, url: URL, headers: dict):
         async with self.client.simultaneous_session_limit:
             async with self.rate_limiter:
-                async with self.client_session.get(url, headers=headers, ssl=self.client.ssl_context,
-                                                   verify_ssl=self.client.verify_ssl) as response:
+                async with self.client_session.get(url, headers=headers, ssl=self.client.ssl_context) as response:
                     pass
 
     async def post_data_no_resp(self, url: URL, data: dict):
         async with self.client.simultaneous_session_limit:
             async with self.rate_limiter:
-                async with self.client_session.post(url, data=data, headers=self.headers, ssl=self.client.ssl_context,
-                                                    verify_ssl=self.client.verify_ssl) as response:
+                async with self.client_session.post(url, data=data, headers=self.headers, ssl=self.client.ssl_context) as response:
                     pass
 
     async def exit_handler(self):
@@ -120,8 +113,7 @@ class DownloadSession:
         headers['user-agent'] = self.client.user_agent
         await throttle(self, current_throttle, media.url.host)
         async with self.client_session.get(media.url, headers=headers, ssl=self.client.ssl_context,
-                                           raise_for_status=True, proxy=proxy,
-                                           verify_ssl=self.client.verify_ssl) as resp:
+                                           raise_for_status=True, proxy=proxy) as resp:
             content_type = resp.headers.get('Content-Type')
             if 'text' in content_type.lower() or 'html' in content_type.lower():
                 logger.debug("Server for %s is experiencing issues, you are being ratelimited, or cookies have expired", str(media.url))

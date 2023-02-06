@@ -60,7 +60,7 @@ class ScrapeMapper:
         self.semaphore = asyncio.Semaphore(1)
 
         self.mapping = {"anonfiles.com": self.Anonfiles, "bunkr": self.Bunkr, "cyberdrop": self.Cyberdrop,
-                        "cyberfile": self.CyberFile, "erome": self.Erome,
+                        "cyberfile": self.CyberFile, "erome": self.Erome, "fapello": self.Fapello,
                         "simpcity": self.Xenforo, "socialmediagirls": self.Xenforo, "xbunker": self.Xenforo}
 
     async def handle_additions(self, domain: str, album_obj: Optional[AlbumItem], domain_obj: Optional[DomainItem], title=None):

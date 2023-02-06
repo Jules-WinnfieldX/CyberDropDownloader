@@ -81,5 +81,5 @@ async def throttle(self, delay: int, host: str) -> None:
             self.throttle_times[key] = now
             return
 
-        remaining = delay - elapsed + 0.25
+        remaining = delay - elapsed + 0.1
         await asyncio.sleep(remaining)

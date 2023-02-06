@@ -59,7 +59,6 @@ class FapelloCrawler:
 
     async def parse_post(self, session: ScrapeSession, url: URL):
         try:
-            await log("Scraping post: " + str(url), quiet=self.quiet)
             soup = await session.get_BS4(url)
             results = []
 
