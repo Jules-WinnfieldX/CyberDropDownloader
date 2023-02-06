@@ -92,7 +92,7 @@ class Downloader:
 
         self.max_workers = max_workers
         self._semaphore = asyncio.Semaphore(max_workers)
-        self.delay = {'cyberfile.is': 1, 'anonfiles.com': 1}
+        self.delay = {'cyberfile.is': 1, 'anonfiles.com': 1, 'bunkr': 1}
 
         self.proxy = runtime_args['proxy']
         self.pixeldrain_api_key = pixeldrain_api_key

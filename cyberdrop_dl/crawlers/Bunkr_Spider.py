@@ -68,7 +68,10 @@ class BunkrCrawler:
                 if "cdn" in link.host:
                     link = URL(str(link).replace("https://cdn", "https://i"))
                 else:
-                    link = URL(f"https://media-files{media_loc}.bunkr.ru" + temp_partial_link[2:])
+                    if media_loc != '12':
+                        link = URL(f"https://media-files{media_loc}.bunkr.ru" + temp_partial_link[2:])
+                    else:
+                        link = URL(f"https://media-files{media_loc}.bunkr.la" + temp_partial_link[2:])
 
                 await domain_obj.add_to_album(title, link, referrer)
 
