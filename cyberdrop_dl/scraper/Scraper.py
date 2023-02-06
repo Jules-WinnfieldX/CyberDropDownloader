@@ -59,7 +59,7 @@ class ScrapeMapper:
         self.semaphore = asyncio.Semaphore(1)
 
         self.mapping = {"anonfiles.com": self.Anonfiles, "bunkr": self.Bunkr, "cyberdrop": self.Cyberdrop,
-                        "cyberfile": self.CyberFile,
+                        "cyberfile": self.CyberFile, "erome": self.Erome,
                         "simpcity": self.Xenforo, "socialmediagirls": self.Xenforo, "xbunker": self.Xenforo}
 
     async def handle_additions(self, domain: str, album_obj: Optional[AlbumItem], domain_obj: Optional[DomainItem], title=None):
@@ -78,7 +78,7 @@ class ScrapeMapper:
                 for title, album in domain_obj.albums.items():
                     await self.Cascade.add_album(domain, album.title, album)
 
-    """Regular filehost handling"""
+    """Regular file host handling"""
 
     async def Anonfiles(self, url: URL, title=None):
         anonfiles_session = ScrapeSession(self.client)
@@ -117,9 +117,9 @@ class ScrapeMapper:
     async def Erome(self, url, title=None):
         erome_session = ScrapeSession(self.client)
         if not self.erome_crawler:
-            self.erome_crawler = EromeCrawler(quiet=self.quiet, SQL_Helper=self.SQL_Helper)
-        album_obj = await self.erome_crawler.fetch(erome_session, url)
-        await self.handle_additions("erome", album_obj, None, title)
+            self.erome_crawler = EromeCrawler(include_id=self.include_id, quiet=self.quiet, SQL_Helper=self.SQL_Helper)
+        domain_obj = await self.erome_crawler.fetch(erome_session, url)
+        await self.handle_additions("erome", None, domain_obj, title)
         await erome_session.exit_handler()
 
     """Archive Sites"""
@@ -138,6 +138,8 @@ class ScrapeMapper:
             return
         await self.Forums.add_thread(title, cascade)
         await xenforo_session.exit_handler()
+
+    """URL to Function Mapper"""
 
     async def map_url(self, url_to_map: URL, title=None):
         if not url_to_map:

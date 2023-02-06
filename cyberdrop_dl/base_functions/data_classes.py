@@ -72,6 +72,10 @@ class DomainItem:
         else:
             self.albums[title] = album
 
+    async def extend(self, domain):
+        for title, album in domain.albums.items():
+            await self.add_album(title, album)
+
     async def append_title(self, title):
         if not title:
             return
