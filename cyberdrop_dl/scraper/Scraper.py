@@ -15,6 +15,7 @@ from cyberdrop_dl.crawlers.Bunkr_Spider import BunkrCrawler
 from cyberdrop_dl.crawlers.CyberFile_Spider import CyberFileCrawler
 from cyberdrop_dl.crawlers.Cyberdrop_Spider import CyberdropCrawler
 from cyberdrop_dl.crawlers.Erome_Spider import EromeCrawler
+from cyberdrop_dl.crawlers.Fapello_Spider import FapelloCrawler
 from cyberdrop_dl.crawlers.Xenforo_Spider import XenforoCrawler
 from cyberdrop_dl.scraper.JDownloader_Integration import JDownloader
 
@@ -123,6 +124,14 @@ class ScrapeMapper:
         await erome_session.exit_handler()
 
     """Archive Sites"""
+
+    async def Fapello(self, url, title=None):
+        fapello_session = ScrapeSession(self.client)
+        if not self.fapello_crawler:
+            self.fapello_crawler = FapelloCrawler(quiet=self.quiet, SQL_Helper=self.SQL_Helper)
+        album_obj = await self.fapello_crawler.fetch(fapello_session, url)
+        await self.handle_additions("fapello", album_obj, None, title)
+        await fapello_session.exit_handler()
 
     """Forum handling"""
 

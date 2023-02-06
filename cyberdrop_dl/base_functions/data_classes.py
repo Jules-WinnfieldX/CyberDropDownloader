@@ -37,6 +37,9 @@ class AlbumItem:
         new_title = title + '/' + self.title
         self.title = new_title
 
+    async def extend(self, album):
+        self.media.extend(album.media)
+
     async def is_empty(self):
         if not self.media:
             return True
