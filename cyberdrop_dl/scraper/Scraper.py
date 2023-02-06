@@ -1,17 +1,18 @@
 import asyncio
 import logging
-from typing import Dict
+from typing import Dict, Optional
 
 import aiofiles
 from yarl import URL
 
 from cyberdrop_dl.base_functions.base_functions import log
-from cyberdrop_dl.base_functions.data_classes import SkipData, CascadeItem, ForumItem, AlbumItem
+from cyberdrop_dl.base_functions.data_classes import SkipData, CascadeItem, ForumItem, AlbumItem, DomainItem
 from cyberdrop_dl.base_functions.sql_helper import SQLHelper
 from cyberdrop_dl.client.client import Client, ScrapeSession
 from cyberdrop_dl.client.rate_limiting import AsyncRateLimiter
 from cyberdrop_dl.crawlers.Anonfiles_Spider import AnonfilesCrawler
 from cyberdrop_dl.crawlers.Bunkr_Spider import BunkrCrawler
+from cyberdrop_dl.crawlers.CyberFile_Spider import CyberFileCrawler
 from cyberdrop_dl.crawlers.Cyberdrop_Spider import CyberdropCrawler
 from cyberdrop_dl.crawlers.Xenforo_Spider import XenforoCrawler
 from cyberdrop_dl.scraper.JDownloader_Integration import JDownloader
@@ -57,14 +58,24 @@ class ScrapeMapper:
         self.semaphore = asyncio.Semaphore(1)
 
         self.mapping = {"anonfiles.com": self.Anonfiles, "bunkr": self.Bunkr, "cyberdrop": self.Cyberdrop,
+                        "cyberfile": self.CyberFile,
                         "simpcity": self.Xenforo, "socialmediagirls": self.Xenforo, "xbunker": self.Xenforo}
 
-    async def handle_additions(self, domain: str, album_obj: AlbumItem, title=None):
-        if title:
-            await album_obj.append_title(title)
-            await self.Forums.add_album_to_thread(title, domain, album_obj)
-        else:
-            await self.Cascade.add_album(domain, album_obj.title, album_obj)
+    async def handle_additions(self, domain: str, album_obj: Optional[AlbumItem], domain_obj: Optional[DomainItem], title=None):
+        if album_obj:
+            if title:
+                await album_obj.append_title(title)
+                await self.Forums.add_album_to_thread(title, domain, album_obj)
+            else:
+                await self.Cascade.add_album(domain, album_obj.title, album_obj)
+        if domain_obj:
+            if title:
+                await domain_obj.append_title(title)
+                for title, album in domain_obj.albums.items():
+                    await self.Cascade.add_album(domain, album.title, album)
+            else:
+                for title, album in domain_obj.albums.items():
+                    await self.Cascade.add_album(domain, album.title, album)
 
     """Regular filehost handling"""
 
@@ -73,7 +84,7 @@ class ScrapeMapper:
         if not self.anonfiles_crawler:
             self.anonfiles_crawler = AnonfilesCrawler(quiet=self.quiet, SQL_Helper=self.SQL_Helper)
         album_obj = await self.anonfiles_crawler.fetch(anonfiles_session, url)
-        await self.handle_additions("anonfiles", album_obj, title)
+        await self.handle_additions("anonfiles", album_obj, None, title)
         await anonfiles_session.exit_handler()
 
     async def Bunkr(self, url: URL, title=None):
@@ -83,7 +94,7 @@ class ScrapeMapper:
         async with self.bunkr_limiter:
             album_obj = await self.bunkr_crawler.fetch(bunkr_session, url)
         if not await album_obj.is_empty():
-            await self.handle_additions("bunkr", album_obj, title)
+            await self.handle_additions("bunkr", album_obj, None, title)
         await bunkr_session.exit_handler()
 
     async def Cyberdrop(self, url: URL, title=None):
@@ -91,13 +102,16 @@ class ScrapeMapper:
         if not self.cyberdrop_crawler:
             self.bunkr_crawler = CyberdropCrawler(include_id=self.include_id, quiet=self.quiet, SQL_Helper=self.SQL_Helper)
         album_obj = await self.bunkr_crawler.fetch(cyberdrop_session, url)
-        await self.handle_additions("cyberdrop", album_obj, title)
+        await self.handle_additions("cyberdrop", album_obj, None, title)
         await cyberdrop_session.exit_handler()
 
     async def CyberFile(self, url, title=None):
         cyberfile_session = ScrapeSession(self.client)
         if not self.cyberfile_crawler:
-            self.cyberfile_crawler = CyberFileCrawler
+            self.cyberfile_crawler = CyberFileCrawler(quiet=self.quiet, SQL_Helper=self.SQL_Helper)
+        domain_obj = await self.cyberfile_crawler.fetch(cyberfile_session, url)
+        await self.handle_additions("cyberfile", None, domain_obj, title)
+        await cyberfile_session.exit_handler()
 
     """Archive Sites"""
 

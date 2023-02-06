@@ -4,7 +4,7 @@ import sqlite3
 from pathlib import Path
 
 from cyberdrop_dl.base_functions.base_functions import get_db_path
-from cyberdrop_dl.base_functions.data_classes import AlbumItem, CascadeItem, MediaItem
+from cyberdrop_dl.base_functions.data_classes import AlbumItem, CascadeItem, MediaItem, DomainItem
 
 
 class SQLHelper:
@@ -97,6 +97,16 @@ class SQLHelper:
                     url_path = await get_db_path(media.url)
                     self.curs.execute("""INSERT OR IGNORE INTO media VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
                                       (domain, url_path, album_path, str(media.referrer), "", "", media.filename, 0,))
+        self.conn.commit()
+
+    async def insert_domain(self, domain_name: str, album_path: str, domain: DomainItem):
+        if domain.albums:
+            for title, album in domain.albums.items():
+                for media in album.media:
+                    if not media.complete:
+                        url_path = await get_db_path(media.url)
+                        self.curs.execute("""INSERT OR IGNORE INTO media VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+                                          (domain_name, url_path, album_path, str(media.referrer), "", "", media.filename, 0,))
         self.conn.commit()
 
     async def insert_cascade(self, cascade: CascadeItem):

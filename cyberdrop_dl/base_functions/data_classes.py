@@ -55,6 +55,13 @@ class DomainItem:
         else:
             self.albums[title] = AlbumItem(title=title, media=[media])
 
+    async def add_media(self, title: str, media: MediaItem):
+        if title in self.albums.keys():
+            album = self.albums[title]
+            await album.add_media(media)
+        else:
+            self.albums[title] = AlbumItem(title, [media])
+
     async def add_album(self, title: str, album: AlbumItem):
         if title in self.albums.keys():
             stored_album = self.albums[title]

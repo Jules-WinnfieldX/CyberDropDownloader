@@ -63,6 +63,19 @@ class ScrapeSession:
                     text = await response.text()
                     return text
 
+    async def post(self, url: URL, data: dict):
+        async with self.client.simultaneous_session_limit:
+            async with self.rate_limiter:
+                async with self.client_session.post(url, data=data, headers=self.headers, ssl=self.client.ssl_context) as response:
+                    content = json.loads(await response.content.read())
+                    return content
+
+    async def get_no_resp(self, url: URL, headers: dict):
+        async with self.client.simultaneous_session_limit:
+            async with self.rate_limiter:
+                async with self.client_session.get(url, headers=headers, ssl=self.client.ssl_context) as response:
+                    pass
+
     async def post_data_no_resp(self, url: URL, data: dict):
         async with self.client.simultaneous_session_limit:
             async with self.rate_limiter:
