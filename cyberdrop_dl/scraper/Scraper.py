@@ -113,6 +113,9 @@ class ScrapeMapper:
         await self.handle_additions("cyberfile", None, domain_obj, title)
         await cyberfile_session.exit_handler()
 
+    async def Erome(self, url, title=None):
+
+
     """Archive Sites"""
 
     """Forum handling"""

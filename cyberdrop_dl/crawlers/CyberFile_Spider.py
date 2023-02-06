@@ -3,7 +3,7 @@ import re
 from bs4 import BeautifulSoup
 from yarl import URL
 
-from ..base_functions.base_functions import log, logger, get_filename_and_ext
+from ..base_functions.base_functions import log, logger, get_filename_and_ext, make_title_safe
 from ..base_functions.data_classes import DomainItem, AlbumItem, MediaItem
 from ..base_functions.sql_helper import SQLHelper
 from ..client.client import ScrapeSession
@@ -66,9 +66,12 @@ class CyberFileCrawler:
             content = await session.post(self.load_files, data)
             text = content['html']
             if title:
-                title = title + "/" + content['page_title']
+                title = title + "/" + await make_title_safe(content['page_title'])
             else:
                 title = content['page_title']
+                title = await make_title_safe(title)
+
+
             soup = BeautifulSoup(text.replace("\\", ""), 'html.parser')
             total_pages = int(soup.select("a[onclick*=loadImages]")[-1].get('onclick').split(',')[2])
             listings = soup.select("div[class=fileListing] div")
@@ -126,14 +129,13 @@ class CyberFileCrawler:
 
             content = await session.post(self.load_files, data)
             text = content['html']
-            title = content['page_title']
             soup = BeautifulSoup(text.replace("\\", ""), 'html.parser')
             total_pages = int(soup.select_one('input[id=rspTotalPages]').get('value'))
             listings = soup.select("div[class=fileListing] div")
             for listing in listings:
-                title = content['page_title']
+                title = await make_title_safe(content['page_title'])
                 try:
-                    title = title + '/' + listing.select_one('span[class=filename]').text
+                    title = title + '/' + await make_title_safe(listing.select_one('span[class=filename]').text)
                     nodes.append((title, int(listing.get('folderid'))))
                 except (TypeError, AttributeError):
                     pass
@@ -162,7 +164,7 @@ class CyberFileCrawler:
 
             content = await session.post(self.load_files, data)
             text = content['html']
-            title = title if title else content['page_title']
+            title = title if title else await make_title_safe(content['page_title'])
             soup = BeautifulSoup(text.replace("\\", ""), 'html.parser')
             total_pages = int(soup.select("a[onclick*=loadImages]")[-1].get('onclick').split(',')[2])
             listings = soup.select("div[class=fileListing] div")
@@ -198,6 +200,7 @@ class CyberFileCrawler:
                 soup = BeautifulSoup(text.replace("\\", ""), 'html.parser')
                 menu = soup.select_one('ul[class="dropdown-menu dropdown-info account-dropdown-resize-menu"] li a')
                 button = soup.select_one('div[class="btn-group responsiveMobileMargin"] button')
+
                 if menu:
                     html_download_text = menu.get("onclick")
                     link = URL(html_download_text.replace("openUrl('", "").replace("'); return false;", ""))
