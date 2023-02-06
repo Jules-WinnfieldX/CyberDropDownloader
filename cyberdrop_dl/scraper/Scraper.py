@@ -94,6 +94,11 @@ class ScrapeMapper:
         await self.handle_additions("cyberdrop", album_obj, title)
         await cyberdrop_session.exit_handler()
 
+    async def CyberFile(self, url, title=None):
+        cyberfile_session = ScrapeSession(self.client)
+        if not self.cyberfile_crawler:
+            self.cyberfile_crawler = CyberFileCrawler
+
     """Archive Sites"""
 
     """Forum handling"""
