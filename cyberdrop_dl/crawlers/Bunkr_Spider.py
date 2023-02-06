@@ -20,7 +20,7 @@ class BunkrCrawler:
         album_obj = AlbumItem("Bunkr Loose Items", [])
         await log(f"[green]Starting: {str(url)}[/green]", quiet=self.quiet)
 
-        if "v" in url.parts or "d" in url.host:
+        if "v" in url.parts or "d" in url.parts:
             media = await self.get_file(session, url)
             if not media.filename:
                 return album_obj
@@ -58,10 +58,8 @@ class BunkrCrawler:
                 referrer = URL(re.sub(cdn_possibilities, "bunkr.su/v", str(url)))
             else:
                 referrer = URL(re.sub(cdn_possibilities, "bunkr.su/d", str(url)))
-            url = URL(str(url).replace("https://cdn", "https://media-files"))
             filename, ext = await get_filename_and_ext(url.name)
-            check_complete = await self.SQL_Helper.check_complete_singular("bunkr", url.path)
-            media_item = MediaItem(url, url, check_complete, filename, ext)
+            media_item = await self.get_file(session, referrer)
             await album_obj.add_media(media_item)
             await self.SQL_Helper.insert_album("bunkr", url.path, album_obj)
             await log(f"[green]Finished: {str(url)}[/green]", quiet=self.quiet)
@@ -81,6 +79,7 @@ class BunkrCrawler:
                         break
             if not link:
                 raise
+            link = URL(link)
             filename, ext = await get_filename_and_ext(link.name)
 
             complete = await self.SQL_Helper.check_complete_singular("bunkr", link.path)
