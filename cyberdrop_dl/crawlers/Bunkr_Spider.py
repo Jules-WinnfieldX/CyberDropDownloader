@@ -114,7 +114,7 @@ class BunkrCrawler:
                 elem.decompose()
             title = await make_title_safe(title.get_text())
             await album.set_new_title(title)
-            for file in soup.select('figure[class="relative w-full"] a'):
+            for file in soup.select('a[class*="grid-images_box-link"]'):
                 link = file.get("href")
                 media_loc = file.select_one("img").get("src").split("//i")[-1].split(".bunkr.")[0]
 
