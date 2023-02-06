@@ -14,6 +14,7 @@ from cyberdrop_dl.crawlers.Anonfiles_Spider import AnonfilesCrawler
 from cyberdrop_dl.crawlers.Bunkr_Spider import BunkrCrawler
 from cyberdrop_dl.crawlers.CyberFile_Spider import CyberFileCrawler
 from cyberdrop_dl.crawlers.Cyberdrop_Spider import CyberdropCrawler
+from cyberdrop_dl.crawlers.Erome_Spider import EromeCrawler
 from cyberdrop_dl.crawlers.Xenforo_Spider import XenforoCrawler
 from cyberdrop_dl.scraper.JDownloader_Integration import JDownloader
 
@@ -114,7 +115,12 @@ class ScrapeMapper:
         await cyberfile_session.exit_handler()
 
     async def Erome(self, url, title=None):
-
+        erome_session = ScrapeSession(self.client)
+        if not self.erome_crawler:
+            self.erome_crawler = EromeCrawler(quiet=self.quiet, SQL_Helper=self.SQL_Helper)
+        album_obj = await self.erome_crawler.fetch(erome_session, url)
+        await self.handle_additions("erome", album_obj, None, title)
+        await erome_session.exit_handler()
 
     """Archive Sites"""
 

@@ -65,6 +65,7 @@ class CyberFileCrawler:
         try:
             content = await session.post(self.load_files, data)
             text = content['html']
+            original_title = title
             if title:
                 title = title + "/" + await make_title_safe(content['page_title'])
             else:
@@ -86,7 +87,7 @@ class CyberFileCrawler:
                     pass
 
             if page < total_pages:
-                contents.extend(await self.get_folder_content(session, url, nodeId, page+1, title))
+                contents.extend(await self.get_folder_content(session, url, nodeId, page+1, original_title))
             for node in nodes:
                 contents.extend(await self.get_folder_content(session, url, node, 1, title))
             return contents
@@ -164,14 +165,18 @@ class CyberFileCrawler:
 
             content = await session.post(self.load_files, data)
             text = content['html']
-            title = title if title else await make_title_safe(content['page_title'])
+
+            title = title if title else content['page_title']
+
             soup = BeautifulSoup(text.replace("\\", ""), 'html.parser')
             total_pages = int(soup.select("a[onclick*=loadImages]")[-1].get('onclick').split(',')[2])
             listings = soup.select("div[class=fileListing] div")
             for listing in listings:
                 try:
-                    nodes.append(int(listing.get('folderid')))
-                except TypeError:
+                    filename = listing.select_one('span[class=filename]')
+                    temp_title = title + '/' + await make_title_safe(filename.text)
+                    nodes.append((temp_title, int(listing.get('folderid'))))
+                except (TypeError, AttributeError):
                     pass
                 try:
                     contents.append((title, int(listing.get('fileid'))))
@@ -180,7 +185,7 @@ class CyberFileCrawler:
 
             if page < total_pages:
                 contents.extend(await self.get_shared_content(session, url, nodeId, page + 1, title))
-            for node in nodes:
+            for title, node in nodes:
                 contents.extend(await self.get_shared_content(session, url, node, 1, title))
             return contents
 
