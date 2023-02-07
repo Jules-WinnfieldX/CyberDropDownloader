@@ -18,6 +18,7 @@ from cyberdrop_dl.crawlers.Erome_Spider import EromeCrawler
 from cyberdrop_dl.crawlers.Fapello_Spider import FapelloCrawler
 from cyberdrop_dl.crawlers.Gfycat_Spider import GfycatCrawler
 from cyberdrop_dl.crawlers.GoFile_Spider import GoFileCrawler
+from cyberdrop_dl.crawlers.HGameCG_Spider import HGameCGCrawler
 from cyberdrop_dl.crawlers.Xenforo_Spider import XenforoCrawler
 from cyberdrop_dl.scraper.JDownloader_Integration import JDownloader
 
@@ -63,7 +64,7 @@ class ScrapeMapper:
 
         self.mapping = {"anonfiles": self.Anonfiles, "bunkr": self.Bunkr, "cyberdrop": self.Cyberdrop,
                         "cyberfile": self.CyberFile, "erome": self.Erome, "fapello": self.Fapello,
-                        "gfycat": self.Gfycat, "gofile": self.GoFile,
+                        "gfycat": self.Gfycat, "gofile": self.GoFile, "hgamecg": self.HGameCG,
                         "simpcity": self.Xenforo, "socialmediagirls": self.Xenforo, "xbunker": self.Xenforo}
 
     async def handle_additions(self, domain: str, album_obj: Optional[AlbumItem], domain_obj: Optional[DomainItem], title=None):
@@ -142,6 +143,14 @@ class ScrapeMapper:
         domain_obj = await self.gofile_crawler.fetch(gofile_session, url)
         await self.handle_additions("gofile", None, domain_obj, title)
         await gofile_session.exit_handler()
+
+    async def HGameCG(self, url, title=None):
+        hgamecg_session = ScrapeSession(self.client)
+        if not self.hgamecg_crawler:
+            self.hgamecg_crawler = HGameCGCrawler(quiet=self.quiet, SQL_Helper=self.SQL_Helper)
+        album_obj = await self.hgamecg_crawler.fetch(hgamecg_session, url)
+        await self.handle_additions("hgamecg", album_obj, None, title)
+        await hgamecg_session.exit_handler()
 
     """Archive Sites"""
 
