@@ -13,7 +13,7 @@ from yarl import URL
 import aiohttp
 import certifi
 
-from .progress_definitions import CascadeProgress
+from cyberdrop_dl.downloader.progress_definitions import CascadeProgress
 from .rate_limiting import AsyncRateLimiter, throttle
 from ..base_functions.base_functions import logger
 from ..base_functions.data_classes import FileLock, MediaItem

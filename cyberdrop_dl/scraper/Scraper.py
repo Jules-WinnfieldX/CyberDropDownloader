@@ -16,6 +16,8 @@ from cyberdrop_dl.crawlers.CyberFile_Spider import CyberFileCrawler
 from cyberdrop_dl.crawlers.Cyberdrop_Spider import CyberdropCrawler
 from cyberdrop_dl.crawlers.Erome_Spider import EromeCrawler
 from cyberdrop_dl.crawlers.Fapello_Spider import FapelloCrawler
+from cyberdrop_dl.crawlers.Gfycat_Spider import GfycatCrawler
+from cyberdrop_dl.crawlers.GoFile_Spider import GoFileCrawler
 from cyberdrop_dl.crawlers.Xenforo_Spider import XenforoCrawler
 from cyberdrop_dl.scraper.JDownloader_Integration import JDownloader
 
@@ -59,8 +61,9 @@ class ScrapeMapper:
         self.forum_limiter = asyncio.Semaphore(4)
         self.semaphore = asyncio.Semaphore(1)
 
-        self.mapping = {"anonfiles.com": self.Anonfiles, "bunkr": self.Bunkr, "cyberdrop": self.Cyberdrop,
+        self.mapping = {"anonfiles": self.Anonfiles, "bunkr": self.Bunkr, "cyberdrop": self.Cyberdrop,
                         "cyberfile": self.CyberFile, "erome": self.Erome, "fapello": self.Fapello,
+                        "gfycat": self.Gfycat, "gofile": self.GoFile,
                         "simpcity": self.Xenforo, "socialmediagirls": self.Xenforo, "xbunker": self.Xenforo}
 
     async def handle_additions(self, domain: str, album_obj: Optional[AlbumItem], domain_obj: Optional[DomainItem], title=None):
@@ -102,8 +105,8 @@ class ScrapeMapper:
     async def Cyberdrop(self, url: URL, title=None):
         cyberdrop_session = ScrapeSession(self.client)
         if not self.cyberdrop_crawler:
-            self.bunkr_crawler = CyberdropCrawler(include_id=self.include_id, quiet=self.quiet, SQL_Helper=self.SQL_Helper)
-        album_obj = await self.bunkr_crawler.fetch(cyberdrop_session, url)
+            self.cyberdrop_crawler = CyberdropCrawler(include_id=self.include_id, quiet=self.quiet, SQL_Helper=self.SQL_Helper)
+        album_obj = await self.cyberdrop_crawler.fetch(cyberdrop_session, url)
         await self.handle_additions("cyberdrop", album_obj, None, title)
         await cyberdrop_session.exit_handler()
 
@@ -122,6 +125,22 @@ class ScrapeMapper:
         domain_obj = await self.erome_crawler.fetch(erome_session, url)
         await self.handle_additions("erome", None, domain_obj, title)
         await erome_session.exit_handler()
+
+    async def Gfycat(self, url, title=None):
+        gfycat_session = ScrapeSession(self.client)
+        if not self.gfycat_crawler:
+            self.gfycat_crawler = GfycatCrawler(quiet=self.quiet, SQL_Helper=self.SQL_Helper)
+        album_obj = await self.gfycat_crawler.fetch(gfycat_session, url)
+        await self.handle_additions("gfycat", album_obj, None, title)
+        await gfycat_session.exit_handler()
+
+    async def GoFile(self, url, title=None):
+        gofile_session = ScrapeSession(self.client)
+        if not self.gofile_crawler:
+            self.gofile_crawler = GoFileCrawler(quiet=self.quiet, SQL_Helper=self.SQL_Helper)
+        album_obj = await self.gofile_crawler.fetch(gofile_session, url)
+        await self.handle_additions("gfycat", album_obj, None, title)
+        await gofile_session.exit_handler()
 
     """Archive Sites"""
 

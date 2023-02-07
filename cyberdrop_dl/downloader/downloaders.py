@@ -12,12 +12,12 @@ from rich.progress import TaskID
 from yarl import URL
 
 from .progress_definitions import CascadeProgress, ForumsProgress
-from ..base_functions.base_functions import log, logger, check_free_space, allowed_filetype, get_db_path
-from ..base_functions.error_classes import DownloadFailure
-from ..base_functions.sql_helper import SQLHelper
-from ..base_functions.data_classes import AlbumItem, CascadeItem, FileLock, ForumItem, DomainItem, MediaItem
-from ..client.client import Client, DownloadSession
-from ..scraper.Scraper import ScrapeMapper
+from cyberdrop_dl.base_functions.base_functions import log, logger, check_free_space, allowed_filetype, get_db_path
+from cyberdrop_dl.base_functions.error_classes import DownloadFailure
+from cyberdrop_dl.base_functions.sql_helper import SQLHelper
+from cyberdrop_dl.base_functions.data_classes import AlbumItem, CascadeItem, FileLock, ForumItem, DomainItem, MediaItem
+from cyberdrop_dl.client.client import Client, DownloadSession
+from cyberdrop_dl.scraper.Scraper import ScrapeMapper
 
 
 async def basic_auth(username, password):

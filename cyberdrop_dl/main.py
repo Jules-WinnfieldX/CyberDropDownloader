@@ -3,14 +3,13 @@ import asyncio
 import logging
 from pathlib import Path
 
-import rich
 from yarl import URL
 
 from cyberdrop_dl.base_functions.base_functions import log, clear, regex_links, check_free_space, purge_dir
 from cyberdrop_dl.base_functions.config_manager import run_args, document_args
 from cyberdrop_dl.base_functions.sql_helper import SQLHelper
 from cyberdrop_dl.client.client import Client
-from cyberdrop_dl.client.downloaders import download_cascade, download_forums
+from cyberdrop_dl.downloader.downloaders import download_cascade, download_forums
 from cyberdrop_dl.scraper.Scraper import ScrapeMapper
 from . import __version__ as VERSION
 from .base_functions.data_classes import SkipData, CascadeItem, ForumItem
