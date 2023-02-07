@@ -33,13 +33,13 @@ def retry(f):
                 return await f(self, *args, **kwargs)
             except DownloadFailure as e:
                 if not self.disable_attempt_limit:
-                    if self.current_attempt[args[3].filename] >= self.allowed_attempts - 1:
+                    if self.current_attempt[args[3].url.parts[-1]] >= self.allowed_attempts - 1:
                         logger.debug(e, exc_info=True)
                         logger.debug('Skipping %s...', args[3].url)
                         self.files.failed_files += 1
                         break
                 logger.debug(e.message)
-                logger.debug(f'Retrying ({self.current_attempt[args[3].filename]}) {args[3].url}...')
+                logger.debug(f'Retrying ({self.current_attempt[args[3].url.parts[-1]]}) {args[3].url}...')
                 self.current_attempt[args[3].filename] += 1
 
                 await asyncio.sleep(2)

@@ -49,9 +49,6 @@ class BunkrCrawler:
             filename, ext = await get_filename_and_ext(url.name)
             media_item = MediaItem(url, url, check_complete, filename, ext)
             await album_obj.add_media(media_item)
-            await self.SQL_Helper.insert_album("bunkr", url.path, album_obj)
-            await log(f"[green]Finished: {str(url)}[/green]", quiet=self.quiet)
-            return album_obj
         else:
             referrer = url
             if ext in FILE_FORMATS['Videos']:
@@ -61,9 +58,10 @@ class BunkrCrawler:
             filename, ext = await get_filename_and_ext(url.name)
             media_item = await self.get_file(session, referrer)
             await album_obj.add_media(media_item)
-            await self.SQL_Helper.insert_album("bunkr", url.path, album_obj)
-            await log(f"[green]Finished: {str(url)}[/green]", quiet=self.quiet)
-            return album_obj
+
+        await self.SQL_Helper.insert_album("bunkr", url.path, album_obj)
+        await log(f"[green]Finished: {str(url)}[/green]", quiet=self.quiet)
+        return album_obj
 
     async def get_file(self, session: ScrapeSession, url: URL):
         try:
