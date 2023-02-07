@@ -26,7 +26,7 @@ class HGameCGCrawler:
         try:
             soup = await session.get_BS4(url)
             title = await make_title_safe(soup.select_one("div[class=navbar] h1").get_text())
-            await album_obj.set_new_title(title)
+            title = await album_obj.set_new_title(title)
 
             images = soup.select("div[class=image] a")
             for image in images:
