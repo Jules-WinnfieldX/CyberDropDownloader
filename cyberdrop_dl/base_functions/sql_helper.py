@@ -93,20 +93,19 @@ class SQLHelper:
     async def insert_album(self, domain: str, album_path: str, album: AlbumItem):
         if album.media:
             for media in album.media:
-                if not media.complete:
-                    url_path = await get_db_path(media.url)
-                    self.curs.execute("""INSERT OR IGNORE INTO media VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
-                                      (domain, url_path, album_path, str(media.referrer), "", "", media.filename, 0,))
+                url_path = await get_db_path(media.url)
+                self.curs.execute("""INSERT OR IGNORE INTO media VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+                                  (domain, url_path, album_path, str(media.referrer), "", "", media.filename, 0,))
         self.conn.commit()
 
     async def insert_domain(self, domain_name: str, album_path: str, domain: DomainItem):
         if domain.albums:
             for title, album in domain.albums.items():
                 for media in album.media:
-                    if not media.complete:
-                        url_path = await get_db_path(media.url)
-                        self.curs.execute("""INSERT OR IGNORE INTO media VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
-                                          (domain_name, url_path, album_path, str(media.referrer), "", "", media.filename, 0,))
+                    url_path = await get_db_path(media.url)
+                    self.curs.execute("""INSERT OR IGNORE INTO media VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+                                      (domain_name, url_path, album_path, str(media.referrer), "", "",
+                                       media.filename, 0,))
         self.conn.commit()
 
     async def insert_cascade(self, cascade: CascadeItem):
@@ -114,15 +113,15 @@ class SQLHelper:
             for domain, domain_obj in cascade.domains.items():
                 for title, album_obj in domain_obj.albums.items():
                     for media in album_obj.media:
-                        if not media.complete:
-                            url_path = media.url.path
-                            self.curs.execute("""INSERT OR IGNORE INTO media VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
-                                              (domain, url_path, media.referrer.path, str(media.referrer), "",
-                                               "", media.filename, 0,))
+                        url_path = media.url.path
+                        self.curs.execute("""INSERT OR IGNORE INTO media VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+                                          (domain, url_path, media.referrer.path, str(media.referrer), "",
+                                           "", media.filename, 0,))
         self.conn.commit()
 
     async def get_downloaded_filename(self, url_path, filename):
-        self.curs.execute("""SELECT download_filename FROM media WHERE url_path = ? and original_filename = ?""", (url_path, filename,))
+        self.curs.execute("""SELECT download_filename FROM media WHERE url_path = ? and original_filename = ?""",
+                          (url_path, filename,))
         sql_file_check = self.curs.fetchone()
         if sql_file_check:
             return sql_file_check[0]

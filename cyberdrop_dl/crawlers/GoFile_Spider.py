@@ -1,11 +1,10 @@
 import http
 from typing import Union
 
-from gofile import Gofile
 from yarl import URL
 
-from ..base_functions.base_functions import log
-from ..base_functions.data_classes import DomainItem
+from ..base_functions.base_functions import log, logger, make_title_safe, get_filename_and_ext, get_db_path
+from ..base_functions.data_classes import DomainItem, AlbumItem, MediaItem
 from ..base_functions.sql_helper import SQLHelper
 from ..client.client import ScrapeSession
 
@@ -13,53 +12,82 @@ from ..client.client import ScrapeSession
 class GoFileCrawler:
     def __init__(self, quiet: bool, SQL_Helper: SQLHelper):
         self.quiet = quiet
-        self.client = Gofile()
+        self.SQL_Helper = SQL_Helper
 
-    async def fetch(self, session: ScrapeSession, url: URL):
-        domain_obj = DomainItem('gofile.io', {})
+        self.api_address = URL("https://api.gofile.io")
+        self.token = None
 
-        # Set cookie in cookie_jar
-        client_token = self.client.token
+    async def get_token(self, session: ScrapeSession):
+        if self.token:
+            return
+
+        try:
+            json_obj = await session.get_json(self.api_address / "createAccount")
+            if json_obj["status"] == "ok":
+                self.token = json_obj["data"]["token"]
+                await self.set_cookie(session)
+            else:
+                raise
+        except Exception as e:
+            logger.debug("Error encountered while getting GoFile token", exc_info=True)
+            await log(f"[red]Error: Couldn't generate GoFile token[/red]", quiet=self.quiet)
+            logger.debug(e)
+
+    async def set_cookie(self, session: ScrapeSession):
+        client_token = self.token
         morsel = http.cookies.Morsel()
         morsel['domain'] = 'gofile.io'
         morsel.set('accountToken', client_token, client_token)
         session.client_session.cookie_jar.update_cookies({'gofile.io': morsel})
 
-        results = await self.get_links(url)
-
-        await log("Starting scrape of " + str(url), quiet=self.quiet)
-
-        if results:
-            for result in results:
-                await domain_obj.add_to_album(result['title'], result['url'], result['referral'])
-
-        await log("Finished scrape of " + str(url), quiet=self.quiet)
-
-        return domain_obj
-
-    async def get_links(self, url: URL, og_title=None):
-        results = []
-        content_id = url.name if url.host == 'gofile.io' else url
+    async def fetch(self, session: ScrapeSession, url: URL):
         try:
-            content = self.client.get_content(content_id)
-        except:
-            await log("Error scraping " + str(url), quiet=self.quiet)
-            return
-        if not content:
-            return
+            await log(f"[green]Starting: {str(url)}[/green]", quiet=self.quiet)
+            domain_obj = DomainItem("gofile", {})
+            content_id = url.name
+            results = await self.get_links(session, url, content_id, None)
+            for title, media_item in results:
+                await domain_obj.add_media(title, media_item)
 
-        title = content["name"]
-        if og_title is not None:
-            title = og_title + '/' + title
+            url_path = await get_db_path(url)
+            await self.SQL_Helper.insert_domain("gofile", url_path, domain_obj)
+            await log(f"[green]Finished: {str(url)}[/green]", quiet=self.quiet)
+            return domain_obj
+
+        except Exception as e:
+            logger.debug("Error encountered while handling %s", str(url), exc_info=True)
+            await log(f"[red]Error: {str(url)}[/red]", quiet=self.quiet)
+            logger.debug(e)
+
+    async def get_links(self, session: ScrapeSession, url: URL, content_id: str, title=None):
+        results = []
+        params = {
+            "token": self.token,
+            "contentId": content_id,
+            "websiteToken": "12345",
+        }
+        content = await session.get_json_with_params(self.api_address / "getContent", params)
+        if content["status"] != "ok":
+            raise
+
+        content = content['data']
+        if title:
+            title = title + "/" + await make_title_safe(content["name"])
+        else:
+            title = await make_title_safe(content["name"])
 
         contents: dict[str, dict[str, Union[str, int]]] = content["contents"]
+        sub_folders = []
         for val in contents.values():
             if val["type"] == "folder":
-                try:
-                    results.extend(result for result in await self.get_links(URL("https://gofile.io/d/"+val["code"]), title))
-                except Exception as e:
-                    await log(f"Error scraping gofile: {val['code']}", quiet=self.quiet)
+                sub_folders.append(val['code'])
             else:
-                results.append({'url': URL(val["link"]) if val["link"] != "overloaded" else URL(val["directLink"]),
-                                'title': title, 'referral': URL(url)})
+                filename, ext = await get_filename_and_ext(val['name'])
+                link = URL(val["link"]) if val["link"] != "overloaded" else URL(val["directLink"])
+                link_path = await get_db_path(link)
+                complete = await self.SQL_Helper.check_complete_singular("gofile", link_path)
+                media_item = MediaItem(link, url, complete, filename, ext)
+                results.append([title, media_item])
+        for sub_folder in sub_folders:
+            results.extend(await self.get_links(session, url, sub_folder, title))
         return results

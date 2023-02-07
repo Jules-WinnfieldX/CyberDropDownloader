@@ -97,7 +97,7 @@ class Downloader:
         progress.update(domain_task, total=len(self.domain_obj.albums), completed=len(self.domain_obj.albums))
 
     async def start_album(self, progress: CascadeProgress, domain_task: TaskID, album: str, album_obj: AlbumItem):
-        album_task = progress.add_task("[pink3]"+album.upper().split("/")[-1], progress_type="album", total=len(album_obj.media))
+        album_task = progress.add_task("[pink3]"+album.upper(), progress_type="album", total=len(album_obj.media))
         download_tasks = []
         for media in album_obj.media:
             download_tasks.append(self.start_file(progress, album_task, album, media))

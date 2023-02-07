@@ -138,8 +138,9 @@ class ScrapeMapper:
         gofile_session = ScrapeSession(self.client)
         if not self.gofile_crawler:
             self.gofile_crawler = GoFileCrawler(quiet=self.quiet, SQL_Helper=self.SQL_Helper)
-        album_obj = await self.gofile_crawler.fetch(gofile_session, url)
-        await self.handle_additions("gfycat", album_obj, None, title)
+        await self.gofile_crawler.get_token(session=gofile_session)
+        domain_obj = await self.gofile_crawler.fetch(gofile_session, url)
+        await self.handle_additions("gofile", None, domain_obj, title)
         await gofile_session.exit_handler()
 
     """Archive Sites"""

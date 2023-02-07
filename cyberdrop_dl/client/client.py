@@ -64,6 +64,13 @@ class ScrapeSession:
                     content = json.loads(await response.content.read())
                     return content
 
+    async def get_json_with_params(self, url: URL, params: dict):
+        async with self.client.simultaneous_session_limit:
+            async with self.rate_limiter:
+                async with self.client_session.get(url, ssl=self.client.ssl_context, params=params) as response:
+                    content = json.loads(await response.content.read())
+                    return content
+
     async def get_text(self, url: URL):
         async with self.client.simultaneous_session_limit:
             async with self.rate_limiter:

@@ -2,7 +2,8 @@ from pathlib import Path
 
 from yarl import URL
 
-from ..base_functions.base_functions import log, logger, make_title_safe, check_direct, get_filename_and_ext
+from ..base_functions.base_functions import log, logger, make_title_safe, check_direct, get_filename_and_ext, \
+    get_db_path
 from ..base_functions.data_classes import AlbumItem, MediaItem
 from ..base_functions.error_classes import NoExtensionFailure
 from ..base_functions.sql_helper import SQLHelper
@@ -20,7 +21,8 @@ class CyberdropCrawler:
 
         await log(f"[green]Starting: {str(url)}[/green]", quiet=self.quiet)
         if await check_direct(url):
-            complete = await self.SQL_Helper.check_complete_singular("cyberdrop", url.path)
+            url_path = await get_db_path(url)
+            complete = await self.SQL_Helper.check_complete_singular("cyberdrop", url_path)
             filename, ext = await get_filename_and_ext(url.name)
             media = MediaItem(url, url, complete, filename, ext)
             await album_obj.add_media(media)
@@ -29,7 +31,8 @@ class CyberdropCrawler:
             return album_obj
 
         try:
-            existing = await self.SQL_Helper.get_existing_album("bunkr", url.path)
+            url_path = await get_db_path(url)
+            existing = await self.SQL_Helper.get_existing_album("cyerdrop", url_path)
             existing_files = []
             if existing:
                 title = Path(existing[0][-4]).name
@@ -76,6 +79,7 @@ class CyberdropCrawler:
             logger.debug(e)
             return album_obj
 
-        await self.SQL_Helper.insert_album("cyberdrop", url.path, album_obj)
+        url_path = await get_db_path(url)
+        await self.SQL_Helper.insert_album("cyberdrop", url_path, album_obj)
         await log(f"[green]Finished: {str(url)}[/green]", quiet=self.quiet)
         return album_obj

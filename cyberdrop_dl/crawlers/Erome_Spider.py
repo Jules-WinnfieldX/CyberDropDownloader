@@ -1,6 +1,6 @@
 from yarl import URL
 
-from ..base_functions.base_functions import log, logger, make_title_safe, get_filename_and_ext
+from ..base_functions.base_functions import log, logger, make_title_safe, get_filename_and_ext, get_db_path
 from ..base_functions.data_classes import DomainItem, MediaItem
 from ..base_functions.sql_helper import SQLHelper
 from ..client.client import ScrapeSession
@@ -40,7 +40,8 @@ class EromeCrawler:
             for link in soup.select('img[class="img-front lasyload"]'):
                 link = URL(link['data-src'])
                 filename, ext = await get_filename_and_ext(link.name)
-                complete = await self.SQL_Helper.check_complete_singular("erome", link.path)
+                link_path = await get_db_path(link)
+                complete = await self.SQL_Helper.check_complete_singular("erome", link_path)
                 media = MediaItem(link, url, complete, filename, ext)
                 await domain_obj.add_media(title, media)
 
@@ -48,11 +49,13 @@ class EromeCrawler:
             for link in soup.select('div[class=media-group] div[class=video-lg] video source'):
                 link = URL(link['src'])
                 filename, ext = await get_filename_and_ext(link.name)
-                complete = await self.SQL_Helper.check_complete_singular("erome", link.path)
+                link_path = await get_db_path(link)
+                complete = await self.SQL_Helper.check_complete_singular("erome", link_path)
                 media = MediaItem(link, url, complete, filename, ext)
                 await domain_obj.add_media(title, media)
 
-            await self.SQL_Helper.insert_domain("erome", url.path, domain_obj)
+            url_path = await get_db_path(url)
+            await self.SQL_Helper.insert_domain("erome", url_path, domain_obj)
             return domain_obj
 
         except Exception as e:

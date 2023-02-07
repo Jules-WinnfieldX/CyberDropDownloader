@@ -1,6 +1,6 @@
 from yarl import URL
 
-from ..base_functions.base_functions import log, logger, make_title_safe, get_filename_and_ext
+from ..base_functions.base_functions import log, logger, make_title_safe, get_filename_and_ext, get_db_path
 from ..base_functions.data_classes import DomainItem, AlbumItem, MediaItem
 from ..base_functions.sql_helper import SQLHelper
 from ..client.client import ScrapeSession
@@ -68,14 +68,16 @@ class FapelloCrawler:
             for image in images:
                 download_link = URL(image.get('src'))
                 filename, ext = await get_filename_and_ext(download_link.name)
-                complete = await self.SQL_Helper.check_complete_singular("fapello", download_link.path)
+                url_path = await get_db_path(download_link)
+                complete = await self.SQL_Helper.check_complete_singular("fapello", url_path)
                 results.append(MediaItem(download_link, url, complete, filename, ext))
 
             videos = content_section.select("source")
             for video in videos:
                 download_link = URL(video.get('src'))
                 filename, ext = await get_filename_and_ext(download_link.name)
-                complete = await self.SQL_Helper.check_complete_singular("fapello", download_link.path)
+                url_path = await get_db_path(download_link)
+                complete = await self.SQL_Helper.check_complete_singular("fapello", url_path)
                 results.append(MediaItem(download_link, url, complete, filename, ext))
 
             return results
