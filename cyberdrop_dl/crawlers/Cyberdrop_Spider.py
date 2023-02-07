@@ -32,7 +32,7 @@ class CyberdropCrawler:
 
         try:
             url_path = await get_db_path(url)
-            existing = await self.SQL_Helper.get_existing_album("cyerdrop", url_path)
+            existing = await self.SQL_Helper.get_existing_album("cyberdrop", url_path)
             existing_files = []
             if existing:
                 title = Path(existing[0][-4]).name

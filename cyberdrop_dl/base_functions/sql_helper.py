@@ -132,26 +132,16 @@ class SQLHelper:
         sql_check = self.curs.fetchone()[0]
         return sql_check == 1
 
-    async def check_existing(self, domain, url_path):
-        if self.ignore_cache:
-            return False
-        self.curs.execute("""SELECT completed FROM media WHERE domain = ? and url_path = ?""", (domain, url_path,))
-        sql_file_check = self.curs.fetchone()
-        if not sql_file_check:
-            return False
-        return True
-
-    async def get_existing(self, domain, url_path):
-        self.curs.execute("""SELECT * FROM media WHERE domain = ? and url_path = ?""", (domain, url_path,))
-        rows = self.curs.fetchall()
-        return rows
-
     async def get_existing_album(self, domain, album_path):
+        if self.ignore_history:
+            return None
         self.curs.execute("""SELECT * FROM media WHERE domain = ? and album_path = ?""", (domain, album_path,))
         rows = self.curs.fetchall()
         return rows
 
     async def check_complete_singular(self, domain, url_path):
+        if self.ignore_history:
+            return False
         self.curs.execute("""SELECT completed FROM media WHERE domain = ? and url_path = ?""", (domain, url_path,))
         sql_file_check = self.curs.fetchone()
         if not sql_file_check:
