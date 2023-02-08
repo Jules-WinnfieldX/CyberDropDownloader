@@ -12,7 +12,7 @@ class HGameCGCrawler:
         self.SQL_Helper = SQL_Helper
 
     async def fetch(self, session: ScrapeSession, url: URL):
-        album_obj = AlbumItem("hgamecg", [])
+        album_obj = AlbumItem("Loose HGamesCG Files", [])
 
         await log(f"[green]Starting: {str(url)}[/green]", quiet=self.quiet)
         await self.get_album(session, url, album_obj)

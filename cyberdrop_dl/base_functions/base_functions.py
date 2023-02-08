@@ -146,5 +146,5 @@ async def get_filename_and_ext(filename):
     if len(filename_parts) == 1:
         raise NoExtensionFailure()
     ext = "." + filename_parts[-1].lower()
-    filename = filename_parts[0] + ext
+    filename = await sanitize(filename_parts[0] + ext)
     return filename, ext

@@ -35,7 +35,7 @@ class CyberFileCrawler:
         else:
             Content_ID = await self.get_single_contentId(session, url)
             if Content_ID:
-                download_links = await self.get_download_links(session, url, [("Loose Cyberfile Files", Content_ID)])
+                download_links = await self.get_download_links(session, url, [("Loose CyberFile Files", Content_ID)])
 
         for title, media_item in download_links:
             await domain_obj.add_media(title, media_item)

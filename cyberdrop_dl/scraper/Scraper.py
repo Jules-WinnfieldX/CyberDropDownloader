@@ -20,6 +20,7 @@ from cyberdrop_dl.crawlers.Gfycat_Spider import GfycatCrawler
 from cyberdrop_dl.crawlers.GoFile_Spider import GoFileCrawler
 from cyberdrop_dl.crawlers.HGameCG_Spider import HGameCGCrawler
 from cyberdrop_dl.crawlers.ImgBox_Spider import ImgBoxCrawler
+from cyberdrop_dl.crawlers.PixelDrain_Spider import PixelDrainCrawler
 from cyberdrop_dl.crawlers.Xenforo_Spider import XenforoCrawler
 from cyberdrop_dl.scraper.JDownloader_Integration import JDownloader
 
@@ -66,6 +67,7 @@ class ScrapeMapper:
         self.mapping = {"anonfiles": self.Anonfiles, "bunkr": self.Bunkr, "cyberdrop": self.Cyberdrop,
                         "cyberfile": self.CyberFile, "erome": self.Erome, "fapello": self.Fapello,
                         "gfycat": self.Gfycat, "gofile": self.GoFile, "hgamecg": self.HGameCG, "imgbox": self.ImgBox,
+                        "pixeldrain": self.PixelDrain,
                         "simpcity": self.Xenforo, "socialmediagirls": self.Xenforo, "xbunker": self.Xenforo}
 
     async def handle_additions(self, domain: str, album_obj: Optional[AlbumItem], domain_obj: Optional[DomainItem], title=None):
@@ -160,6 +162,14 @@ class ScrapeMapper:
         album_obj = await self.imgbox_crawler.fetch(imgbox_session, url)
         await self.handle_additions("imgbox", album_obj, None, title)
         await imgbox_session.exit_handler()
+
+    async def PixelDrain(self, url, title=None):
+        pixeldrain_session = ScrapeSession(self.client)
+        if not self.hgamecg_crawler:
+            self.pixeldrain_crawler = PixelDrainCrawler(quiet=self.quiet, SQL_Helper=self.SQL_Helper)
+        album_obj = await self.pixeldrain_crawler.fetch(pixeldrain_session, url)
+        await self.handle_additions("pixeldrain", album_obj, None, title)
+        await pixeldrain_session.exit_handler()
 
     """Archive Sites"""
 

@@ -148,6 +148,7 @@ async def director(args: dict, links: list) -> None:
 
     await SQL_Helper.sql_initialize()
     Cascade, Forums = await scrape_links(Scraper, links)
+    await asyncio.sleep(5)
     await clear()
     if not await Cascade.is_empty():
         await download_cascade(args, Cascade, SQL_Helper, client, Scraper)

@@ -17,7 +17,7 @@ class BunkrCrawler:
         self.SQL_Helper = SQL_Helper
 
     async def fetch(self, session: ScrapeSession, url: URL):
-        album_obj = AlbumItem("Bunkr Loose Items", [])
+        album_obj = AlbumItem("Loose Bunkr Items", [])
         await log(f"[green]Starting: {str(url)}[/green]", quiet=self.quiet)
 
         if "v" in url.parts or "d" in url.parts:

@@ -17,7 +17,7 @@ class CyberdropCrawler:
         self.quiet = quiet
 
     async def fetch(self, session: ScrapeSession, url: URL):
-        album_obj = AlbumItem("Cyberdrop Loose Files", [])
+        album_obj = AlbumItem("Loose Cyberdrop Files", [])
 
         await log(f"[green]Starting: {str(url)}[/green]", quiet=self.quiet)
         if await check_direct(url):
