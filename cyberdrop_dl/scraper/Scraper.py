@@ -173,14 +173,6 @@ class ScrapeMapper:
         await self.handle_additions("imgbox", album_obj, None, title)
         await imgbox_session.exit_handler()
 
-    async def NSFW_XXX(self, url, title=None):
-        nsfwxxx_session = ScrapeSession(self.client)
-        if not self.nsfwxxx_crawler:
-            self.nsfwxxx_crawler = NSFWXXXCrawler(separate_posts=self.separate_posts, quiet=self.quiet, SQL_Helper=self.SQL_Helper)
-        domain_obj = await self.nsfwxxx_crawler.fetch(nsfwxxx_session, url)
-        await self.handle_additions("nsfw.xxx", None, domain_obj, title)
-        await nsfwxxx_session.exit_handler()
-
     async def PixelDrain(self, url, title=None):
         pixeldrain_session = ScrapeSession(self.client)
         if not self.pixeldrain_crawler:
@@ -230,6 +222,14 @@ class ScrapeMapper:
         album_obj = await self.fapello_crawler.fetch(fapello_session, url)
         await self.handle_additions("fapello", album_obj, None, title)
         await fapello_session.exit_handler()
+
+    async def NSFW_XXX(self, url, title=None):
+        nsfwxxx_session = ScrapeSession(self.client)
+        if not self.nsfwxxx_crawler:
+            self.nsfwxxx_crawler = NSFWXXXCrawler(separate_posts=self.separate_posts, quiet=self.quiet, SQL_Helper=self.SQL_Helper)
+        domain_obj = await self.nsfwxxx_crawler.fetch(nsfwxxx_session, url)
+        await self.handle_additions("nsfw.xxx", None, domain_obj, title)
+        await nsfwxxx_session.exit_handler()
 
     """Forum handling"""
 
