@@ -2,6 +2,7 @@ from yarl import URL
 
 from ..base_functions.base_functions import log, logger, get_filename_and_ext, get_db_path
 from ..base_functions.data_classes import AlbumItem, MediaItem
+from ..base_functions.error_classes import NoExtensionFailure
 from ..base_functions.sql_helper import SQLHelper
 from ..client.client import ScrapeSession
 
@@ -18,6 +19,7 @@ class PixelDrainCrawler:
 
         identifier = str(url).split('/')[-1]
         if url.parts[1] == 'l':
+            await album_obj.set_new_title(url.name)
             media_items = await self.get_listings(session, identifier, url)
             if media_items:
                 for media_item in media_items:
@@ -40,9 +42,13 @@ class PixelDrainCrawler:
             content = await session.get_json((self.api / "list" / identifier))
             for file in content['files']:
                 link = await self.create_download_link(file['id'])
+                try:
+                    filename, ext = await get_filename_and_ext(file['name'])
+                except NoExtensionFailure:
+                    logger.debug("Couldn't get extension for %s", str(link))
+                    continue
                 url_path = await get_db_path(link)
-                complete = await self.SQL_Helper.check_complete_singular("anonfiles", url_path)
-                filename, ext = await get_filename_and_ext(file['name'])
+                complete = await self.SQL_Helper.check_complete_singular("pixeldrain", url_path)
                 media_item = MediaItem(link, url, complete, filename, ext)
                 media_items.append(media_item)
             return media_items

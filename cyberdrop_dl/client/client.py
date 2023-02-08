@@ -138,3 +138,11 @@ class DownloadSession:
                     await asyncio.sleep(0)
                     await f.write(chunk)
                     progress.advance(file_task, len(chunk))
+
+    async def get_filesize(self, url: URL, referer: str, current_throttle: int):
+        headers = {'Referer': referer, 'user-agent': self.client.user_agent}
+        await throttle(self, current_throttle, url.host)
+        async with self.client_session.get(url, headers=headers, ssl=self.client.ssl_context,
+                                           raise_for_status=True) as resp:
+            total_size = int(resp.headers.get('Content-Length', str(0)))
+            return total_size

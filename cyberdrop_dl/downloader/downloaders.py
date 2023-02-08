@@ -109,6 +109,49 @@ class Downloader:
         async with self._semaphore:
             await self.download_file(progress, album_task, album, media)
 
+    async def check_file_exists(self, complete_file, partial_file, media, album, url_path, original_filename,
+                                current_throttle):
+        expected_size = None
+        proceed = True
+        while True:
+            if complete_file.exists() or partial_file.exists():
+                if not expected_size:
+                    expected_size = await self.download_session.get_filesize(media.url, str(media.referrer),
+                                                                             current_throttle)
+                if complete_file.stat().st_size == expected_size:
+                    proceed = False
+                    break
+                downloaded_filename = await self.SQL_Helper.get_downloaded_filename(url_path, original_filename)
+                if downloaded_filename:
+                    if media.filename == downloaded_filename:
+                        if complete_file.exists():
+                            proceed = False
+                            break
+                        else:
+                            break
+                    else:
+                        media.filename = downloaded_filename
+                        complete_file = (self.download_dir / album / media.filename)
+                        partial_file = complete_file.with_suffix(complete_file.suffix + '.part')
+                        continue
+                else:
+
+                    iterations = 1
+                    while True:
+                        filename = f"{complete_file.stem} ({iterations}){media.ext}"
+                        iterations += 1
+                        temp_complete_file = (self.download_dir / album / filename)
+                        if not temp_complete_file.exists():
+                            if not await self.SQL_Helper.check_filename(filename):
+                                media.filename = filename
+                                complete_file = (self.download_dir / album / media.filename)
+                                partial_file = complete_file.with_suffix(complete_file.suffix + '.part')
+                                break
+                    break
+            else:
+                break
+        return complete_file, partial_file, proceed
+
     @retry
     async def download_file(self, progress: CascadeProgress, album_task: TaskID, album: str, media: MediaItem):
         if media.complete:
@@ -116,6 +159,14 @@ class Downloader:
             self.files.skipped_files += 1
             progress.advance(album_task, 1)
             return
+        else:
+            url_path = await get_db_path(URL(media.url))
+            complete = await self.SQL_Helper.check_complete_singular(self.domain, url_path)
+            if complete:
+                await log(f"Previously Downloaded: {media.filename}", quiet=True)
+                self.files.skipped_files += 1
+                progress.advance(album_task, 1)
+                return
 
         if not await check_free_space(self.required_free_space, self.download_dir):
             await log("We've run out of free space.", quiet=True)
@@ -137,45 +188,22 @@ class Downloader:
             self.current_attempt[media.url.parts[-1]] = 0
 
         current_throttle = self.client.throttle
-        url_path = await get_db_path(URL(media.url))
 
         original_filename = media.filename
         complete_file = (self.download_dir / album / media.filename)
         partial_file = complete_file.with_suffix(complete_file.suffix + '.part')
 
-        while True:
-            if complete_file.exists() or partial_file.exists():
-                downloaded_filename = await self.SQL_Helper.get_downloaded_filename(url_path, original_filename)
-                if downloaded_filename:
-                    if media.filename == downloaded_filename:
-                        if complete_file.exists():
-                            await log(f"Previously Downloaded: {media.filename}", quiet=True)
-                            self.files.skipped_files += 1
-                            await self.SQL_Helper.mark_complete(url_path, original_filename)
-                            progress.advance(album_task, 1)
-                            return
-                        else:
-                            break
-                    else:
-                        media.filename = downloaded_filename
-                        complete_file = (self.download_dir / album / media.filename)
-                        partial_file = complete_file.with_suffix(complete_file.suffix + '.part')
-                        continue
-                else:
-                    iterations = 1
-                    while True:
-                        filename = f"{complete_file.stem} ({iterations}){media.ext}"
-                        iterations += 1
-                        temp_complete_file = (self.download_dir / album / filename)
-                        if not temp_complete_file.exists():
-                            if not await self.SQL_Helper.check_filename(filename):
-                                media.filename = filename
-                                complete_file = (self.download_dir / album / media.filename)
-                                partial_file = complete_file.with_suffix(complete_file.suffix + '.part')
-                                break
-                    break
-            else:
-                break
+        complete_file, partial_file, proceed = await self.check_file_exists(complete_file, partial_file, media,
+                                                                            album, url_path, original_filename,
+                                                                            current_throttle)
+        if not proceed:
+            await self.SQL_Helper.update_pre_download(complete_file, media.filename, url_path,
+                                                      original_filename)
+            await log(f"Previously Downloaded: {media.filename}", quiet=True)
+            self.files.skipped_files += 1
+            await self.SQL_Helper.mark_complete(url_path, original_filename)
+            progress.advance(album_task, 1)
+            return
 
         await self.SQL_Helper.update_pre_download(complete_file, media.filename, url_path, original_filename)
 

@@ -2,6 +2,7 @@ from yarl import URL
 
 from ..base_functions.base_functions import log, logger, make_title_safe, get_db_path, get_filename_and_ext
 from ..base_functions.data_classes import AlbumItem, MediaItem
+from ..base_functions.error_classes import NoExtensionFailure
 from ..base_functions.sql_helper import SQLHelper
 from ..client.client import ScrapeSession
 
@@ -30,9 +31,13 @@ class XBunkrCrawler:
                 await album_obj.set_new_title(title)
                 for link in links:
                     link = URL(link.get('href'))
+                    try:
+                        filename, ext = await get_filename_and_ext(link.name)
+                    except NoExtensionFailure:
+                        logger.debug("Couldn't get extension for %s", str(link))
+                        continue
                     url_path = await get_db_path(link)
                     complete = await self.SQL_Helper.check_complete_singular("anonfiles", url_path)
-                    filename, ext = await get_filename_and_ext(link.name)
                     media_item = MediaItem(link, url, complete, filename, ext)
                     await album_obj.add_media(media_item)
 

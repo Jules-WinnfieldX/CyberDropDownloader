@@ -3,7 +3,8 @@ from pathlib import Path
 
 from yarl import URL
 
-from ..base_functions.base_functions import log, logger, make_title_safe, FILE_FORMATS, get_filename_and_ext
+from ..base_functions.base_functions import log, logger, make_title_safe, FILE_FORMATS, get_filename_and_ext, \
+    get_db_path
 from ..base_functions.data_classes import AlbumItem, MediaItem
 from ..base_functions.error_classes import NoExtensionFailure
 from ..base_functions.sql_helper import SQLHelper
@@ -92,16 +93,7 @@ class BunkrCrawler:
 
     async def get_album(self, session: ScrapeSession, url: URL):
         try:
-            existing = await self.SQL_Helper.get_existing_album("bunkr", url.path)
-            completed_files = []
             album = AlbumItem(url.name, [])
-            if existing:
-                title = Path(existing[0][-4]).name
-                await album.set_new_title(title)
-                for file in existing:
-                    if file[-1] == 1:
-                        completed_files.append(file[-2])
-
             soup = await session.get_BS4(url)
             title = soup.select_one('h1[class="text-[24px] font-bold text-dark dark:text-white"]')
             for elem in title.find_all("span"):
@@ -120,6 +112,7 @@ class BunkrCrawler:
                 try:
                     filename, ext = await get_filename_and_ext(link.name)
                 except NoExtensionFailure:
+                    logger.debug("Couldn't get extension for %s", str(link))
                     continue
 
                 referrer = link
@@ -128,10 +121,9 @@ class BunkrCrawler:
                 else:
                     link = URL(f"https://media-files{media_loc}.bunkr.ru" + temp_partial_link[2:])
 
-                completed = False
-                if filename in completed_files:
-                    completed = True
-                media = MediaItem(link, referrer, completed, filename, ext)
+                url_path = await get_db_path(link)
+                complete = await self.SQL_Helper.check_complete_singular("bunkr", url_path)
+                media = MediaItem(link, referrer, complete, filename, ext)
                 await album.add_media(media)
 
         except Exception as e:

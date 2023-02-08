@@ -2,6 +2,7 @@ from yarl import URL
 
 from ..base_functions.base_functions import log, logger, get_db_path, get_filename_and_ext
 from ..base_functions.data_classes import AlbumItem, MediaItem
+from ..base_functions.error_classes import NoExtensionFailure
 from ..base_functions.sql_helper import SQLHelper
 from ..client.client import ScrapeSession
 
@@ -48,7 +49,11 @@ class PostImgCrawler:
                 referrer = URL("https://postimg.cc/" + item[0])
                 img = URL(item[4].replace(item[0], item[1]))
 
-                filename, ext = await get_filename_and_ext(img.name)
+                try:
+                    filename, ext = await get_filename_and_ext(img.name)
+                except NoExtensionFailure:
+                    logger.debug("Couldn't get extension for %s", str(img))
+                    continue
                 url_path = await get_db_path(img)
                 complete = await self.SQL_Helper.check_complete_singular("postimg", url_path)
                 media_item = MediaItem(img, referrer, complete, filename, ext)

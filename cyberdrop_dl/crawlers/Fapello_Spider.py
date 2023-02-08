@@ -2,6 +2,7 @@ from yarl import URL
 
 from ..base_functions.base_functions import log, logger, make_title_safe, get_filename_and_ext, get_db_path
 from ..base_functions.data_classes import AlbumItem, MediaItem
+from ..base_functions.error_classes import NoExtensionFailure
 from ..base_functions.sql_helper import SQLHelper
 from ..client.client import ScrapeSession
 
@@ -67,7 +68,11 @@ class FapelloCrawler:
             images = content_section.select("img")
             for image in images:
                 download_link = URL(image.get('src'))
-                filename, ext = await get_filename_and_ext(download_link.name)
+                try:
+                    filename, ext = await get_filename_and_ext(download_link.name)
+                except NoExtensionFailure:
+                    logger.debug("Couldn't get extension for %s", str(download_link))
+                    continue
                 url_path = await get_db_path(download_link)
                 complete = await self.SQL_Helper.check_complete_singular("fapello", url_path)
                 results.append(MediaItem(download_link, url, complete, filename, ext))
@@ -75,7 +80,11 @@ class FapelloCrawler:
             videos = content_section.select("source")
             for video in videos:
                 download_link = URL(video.get('src'))
-                filename, ext = await get_filename_and_ext(download_link.name)
+                try:
+                    filename, ext = await get_filename_and_ext(download_link.name)
+                except NoExtensionFailure:
+                    logger.debug("Couldn't get extension for %s", str(download_link))
+                    continue
                 url_path = await get_db_path(download_link)
                 complete = await self.SQL_Helper.check_complete_singular("fapello", url_path)
                 results.append(MediaItem(download_link, url, complete, filename, ext))

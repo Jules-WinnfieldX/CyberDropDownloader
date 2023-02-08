@@ -32,22 +32,6 @@ class CyberdropCrawler:
 
         try:
             url_path = await get_db_path(url)
-            existing = await self.SQL_Helper.get_existing_album("cyberdrop", url_path)
-            existing_files = []
-            if existing:
-                title = Path(existing[0][-4]).name
-                await album_obj.set_new_title(title)
-                all_complete = True
-                for file in existing:
-                    if file[-1] == 1:
-                        existing_files.append(file[-2])
-                        media = MediaItem(url, url, True, file[-2], "." + file[-2].rsplit('.')[-1])
-                        await album_obj.add_media(media)
-                    else:
-                        all_complete = False
-                if all_complete:
-                    return album_obj
-
             soup = await session.get_BS4(url)
 
             title = soup.select_one("h1[id=title]").get_text()
@@ -66,11 +50,12 @@ class CyberdropCrawler:
                 try:
                     filename, ext = await get_filename_and_ext(link.name)
                 except NoExtensionFailure:
+                    logger.debug("Couldn't get extension for %s", str(link))
                     continue
 
-                if filename in existing_files:
-                    continue
-                media = MediaItem(link, url, False, filename, ext)
+                url_path = await get_db_path(link)
+                complete = await self.SQL_Helper.check_complete_singular("cyberdrop", url_path)
+                media = MediaItem(link, url, complete, filename, ext)
                 await album_obj.add_media(media)
 
         except Exception as e:

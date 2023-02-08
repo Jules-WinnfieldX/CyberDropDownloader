@@ -21,6 +21,7 @@ from cyberdrop_dl.crawlers.GoFile_Spider import GoFileCrawler
 from cyberdrop_dl.crawlers.HGameCG_Spider import HGameCGCrawler
 from cyberdrop_dl.crawlers.ImgBox_Spider import ImgBoxCrawler
 from cyberdrop_dl.crawlers.NSFWXXXCrawler import NSFWXXXCrawler
+from cyberdrop_dl.crawlers.PimpAndHost_Spider import PimpAndHostCrawler
 from cyberdrop_dl.crawlers.PixelDrain_Spider import PixelDrainCrawler
 from cyberdrop_dl.crawlers.PostImg_Spider import PostImgCrawler
 from cyberdrop_dl.crawlers.Saint_Spider import SaintCrawler
@@ -51,6 +52,7 @@ class ScrapeMapper:
         self.hgamecg_crawler = None
         self.imgbox_crawler = None
         self.nsfwxxx_crawler = None
+        self.pimpandhost_crawler = None
         self.pixeldrain_crawler = None
         self.postimg_crawler = None
         self.redgifs_crawler = None
@@ -77,7 +79,7 @@ class ScrapeMapper:
                         "hgamecg": self.HGameCG, "imgbox": self.ImgBox, "pixeldrain": self.PixelDrain,
                         "postimg": self.PostImg, "saint": self.Saint, "img.kiwi": self.ShareX,
                         "jpg.church": self.ShareX, "jpg.fish": self.ShareX, "pixl.li": self.ShareX,
-                        "nsfw.xxx": self.NSFW_XXX,
+                        "nsfw.xxx": self.NSFW_XXX, "pimpandhost": self.PimpAndHost,
                         "simpcity": self.Xenforo, "socialmediagirls": self.Xenforo, "xbunker": self.Xenforo}
 
     async def handle_additions(self, domain: str, album_obj: Optional[AlbumItem], domain_obj: Optional[DomainItem], title=None):
@@ -172,6 +174,14 @@ class ScrapeMapper:
         album_obj = await self.imgbox_crawler.fetch(imgbox_session, url)
         await self.handle_additions("imgbox", album_obj, None, title)
         await imgbox_session.exit_handler()
+
+    async def PimpAndHost(self, url, title=None):
+        pimpandhost_session = ScrapeSession(self.client)
+        if not self.pimpandhost_crawler:
+            self.pimpandhost_crawler = PimpAndHostCrawler(quiet=self.quiet, SQL_Helper=self.SQL_Helper)
+        album_obj = await self.pimpandhost_crawler.fetch(pimpandhost_session, url)
+        await self.handle_additions("pimpandhost", album_obj, None, title)
+        await pimpandhost_session.exit_handler()
 
     async def PixelDrain(self, url, title=None):
         pixeldrain_session = ScrapeSession(self.client)
@@ -271,5 +281,5 @@ class ScrapeMapper:
 
         else:
             await log(f"[yellow]Not Supported: {str(url_to_map)}[/yellow]", quiet=self.quiet)
-            async with aiofiles.open(self.args["Files"]["unsupported_urls_file"], mode='a') as f:
+            async with aiofiles.open(self.args["Files"]["unsupported_urls_file"], mode='w') as f:
                 await f.write(str(url_to_map)+"\n")

@@ -5,6 +5,7 @@ from yarl import URL
 from ..base_functions.base_functions import log, logger, make_title_safe, check_direct, get_db_path, \
     get_filename_and_ext
 from ..base_functions.data_classes import DomainItem, MediaItem
+from ..base_functions.error_classes import NoExtensionFailure
 from ..base_functions.sql_helper import SQLHelper
 from ..client.client import ScrapeSession
 
@@ -123,9 +124,13 @@ class ShareXCrawler:
                 link = URL(link.get('src'))
                 link = link.with_name(link.name.replace('.md.', '.').replace('.th.', '.'))
 
+                try:
+                    filename, ext = await get_filename_and_ext(link.name)
+                except NoExtensionFailure:
+                    logger.debug("Couldn't get extension for %s", str(link))
+                    continue
                 url_path = await get_db_path(link)
                 complete = await self.SQL_Helper.check_complete_singular("anonfiles", url_path)
-                filename, ext = await get_filename_and_ext(link.name)
                 media_item = MediaItem(link, url, complete, filename, ext)
                 await domain_obj.add_media(title, media_item)
 

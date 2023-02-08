@@ -3,6 +3,7 @@ from yarl import URL
 from ..base_functions.base_functions import log, logger, check_direct, get_filename_and_ext, get_db_path, \
     make_title_safe
 from ..base_functions.data_classes import AlbumItem, MediaItem
+from ..base_functions.error_classes import NoExtensionFailure
 from ..base_functions.sql_helper import SQLHelper
 from ..client.client import ScrapeSession
 
@@ -31,7 +32,11 @@ class ImgBoxCrawler:
                 title = await make_title_safe(title)
                 await album_obj.set_new_title(title)
                 for img in images:
-                    filename, ext = await get_filename_and_ext(img.name)
+                    try:
+                        filename, ext = await get_filename_and_ext(img.name)
+                    except NoExtensionFailure:
+                        logger.debug("Couldn't get extension for %s", str(img))
+                        continue
                     url_path = await get_db_path(img)
                     complete = await self.SQL_Helper.check_complete_singular("imgbox", url_path)
                     media_item = MediaItem(img, url, complete, filename, ext)

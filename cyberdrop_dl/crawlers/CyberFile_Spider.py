@@ -3,6 +3,7 @@ from yarl import URL
 
 from ..base_functions.base_functions import log, logger, get_filename_and_ext, make_title_safe, get_db_path
 from ..base_functions.data_classes import DomainItem, MediaItem
+from ..base_functions.error_classes import NoExtensionFailure
 from ..base_functions.sql_helper import SQLHelper
 from ..client.client import ScrapeSession
 
@@ -213,7 +214,11 @@ class CyberFileCrawler:
                     link = URL(html_download_text.replace("openUrl('", "").replace("'); return false;", ""))
                 link_path = await get_db_path(link)
                 complete = await self.SQL_Helper.check_complete_singular("cyberfile", link_path)
-                filename, ext = await get_filename_and_ext(link.name)
+                try:
+                    filename, ext = await get_filename_and_ext(link.name)
+                except NoExtensionFailure:
+                    logger.debug("Couldn't get extension for %s", str(link))
+                    continue
                 media = MediaItem(link, url, complete, filename, ext)
 
                 download_links.append((title, media))

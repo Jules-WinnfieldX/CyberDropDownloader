@@ -132,13 +132,6 @@ class SQLHelper:
         sql_check = self.curs.fetchone()[0]
         return sql_check == 1
 
-    async def get_existing_album(self, domain, album_path):
-        if self.ignore_history:
-            return None
-        self.curs.execute("""SELECT * FROM media WHERE domain = ? and album_path = ?""", (domain, album_path,))
-        rows = self.curs.fetchall()
-        return rows
-
     async def check_complete_singular(self, domain, url_path):
         if self.ignore_history:
             return False
