@@ -23,6 +23,7 @@ from cyberdrop_dl.crawlers.ImgBox_Spider import ImgBoxCrawler
 from cyberdrop_dl.crawlers.PixelDrain_Spider import PixelDrainCrawler
 from cyberdrop_dl.crawlers.PostImg_Spider import PostImgCrawler
 from cyberdrop_dl.crawlers.Saint_Spider import SaintCrawler
+from cyberdrop_dl.crawlers.ShareX_Spider import ShareXCrawler
 from cyberdrop_dl.crawlers.Xenforo_Spider import XenforoCrawler
 from cyberdrop_dl.scraper.JDownloader_Integration import JDownloader
 
@@ -70,6 +71,8 @@ class ScrapeMapper:
                         "cyberfile": self.CyberFile, "erome": self.Erome, "fapello": self.Fapello,
                         "gfycat": self.Gfycat, "gofile": self.GoFile, "hgamecg": self.HGameCG, "imgbox": self.ImgBox,
                         "pixeldrain": self.PixelDrain, "postimg": self.PostImg, "saint": self.Saint,
+                        "img.kiwi": self.ShareX, "jpg.church": self.ShareX, "jpg.fish": self.ShareX,
+                        "pixl.li": self.ShareX,
                         "simpcity": self.Xenforo, "socialmediagirls": self.Xenforo, "xbunker": self.Xenforo}
 
     async def handle_additions(self, domain: str, album_obj: Optional[AlbumItem], domain_obj: Optional[DomainItem], title=None):
@@ -188,6 +191,14 @@ class ScrapeMapper:
         album_obj = await self.saint_crawler.fetch(saint_session, url)
         await self.handle_additions("saint", album_obj, None, title)
         await saint_session.exit_handler()
+
+    async def ShareX(self, url, title=None):
+        sharex_session = ScrapeSession(self.client)
+        if not self.sharex_crawler:
+            self.sharex_crawler = ShareXCrawler(include_id=self.include_id, quiet=self.quiet, SQL_Helper=self.SQL_Helper)
+        domain_obj = await self.sharex_crawler.fetch(sharex_session, url)
+        await self.handle_additions("sharex", None, domain_obj, title)
+        await sharex_session.exit_handler()
 
     """Archive Sites"""
 
