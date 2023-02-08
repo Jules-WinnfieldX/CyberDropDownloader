@@ -95,7 +95,7 @@ class ScrapeMapper:
 
         self.mapping = {"anonfiles.com": self.Anonfiles, "xbunkr": self.XBunkr,
                         "bunkr": self.Bunkr, "coomer.party": self.Coomer, "cyberdrop": self.Cyberdrop,
-                        "cyberfile.is": self.Cyberfile, "cyberfile.su": self.Cyberfile, "erome.com": self.Erome,
+                        "cyberfile": self.Cyberfile, "cyberfile.su": self.Cyberfile, "erome.com": self.Erome,
                         "fapello": self.Fapello, "gfycat.com": self.Gfycat, "gofile.io": self.GoFile,
                         "hgamecg.com": self.HGameCG, "imgbox.com": self.ImgBox, "img.kiwi": self.ShareX,
                         "jpg.church": self.ShareX, "jpg.fish": self.ShareX, "pixeldrain.com": self.Pixeldrain,
