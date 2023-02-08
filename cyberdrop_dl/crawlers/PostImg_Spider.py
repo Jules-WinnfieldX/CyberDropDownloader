@@ -1,7 +1,7 @@
 from yarl import URL
 
 from ..base_functions.base_functions import log, logger, get_db_path, get_filename_and_ext
-from ..base_functions.data_classes import DomainItem, AlbumItem, MediaItem
+from ..base_functions.data_classes import AlbumItem, MediaItem
 from ..base_functions.sql_helper import SQLHelper
 from ..client.client import ScrapeSession
 

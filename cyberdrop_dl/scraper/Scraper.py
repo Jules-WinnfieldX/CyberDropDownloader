@@ -20,6 +20,7 @@ from cyberdrop_dl.crawlers.Gfycat_Spider import GfycatCrawler
 from cyberdrop_dl.crawlers.GoFile_Spider import GoFileCrawler
 from cyberdrop_dl.crawlers.HGameCG_Spider import HGameCGCrawler
 from cyberdrop_dl.crawlers.ImgBox_Spider import ImgBoxCrawler
+from cyberdrop_dl.crawlers.NSFWXXXCrawler import NSFWXXXCrawler
 from cyberdrop_dl.crawlers.PixelDrain_Spider import PixelDrainCrawler
 from cyberdrop_dl.crawlers.PostImg_Spider import PostImgCrawler
 from cyberdrop_dl.crawlers.Saint_Spider import SaintCrawler
@@ -49,6 +50,7 @@ class ScrapeMapper:
         self.gofile_crawler = None
         self.hgamecg_crawler = None
         self.imgbox_crawler = None
+        self.nsfwxxx_crawler = None
         self.pixeldrain_crawler = None
         self.postimg_crawler = None
         self.redgifs_crawler = None
@@ -59,6 +61,7 @@ class ScrapeMapper:
         self.xenforo_crawler = None
 
         self.include_id = args['Runtime']['include_id']
+        self.separate_posts = args["Forum_Options"]["separate_posts"]
         self.quiet = quiet
         self.jdownloader = JDownloader(args['JDownloader'], quiet)
 
@@ -74,6 +77,7 @@ class ScrapeMapper:
                         "hgamecg": self.HGameCG, "imgbox": self.ImgBox, "pixeldrain": self.PixelDrain,
                         "postimg": self.PostImg, "saint": self.Saint, "img.kiwi": self.ShareX,
                         "jpg.church": self.ShareX, "jpg.fish": self.ShareX, "pixl.li": self.ShareX,
+                        "nsfw.xxx": self.NSFW_XXX,
                         "simpcity": self.Xenforo, "socialmediagirls": self.Xenforo, "xbunker": self.Xenforo}
 
     async def handle_additions(self, domain: str, album_obj: Optional[AlbumItem], domain_obj: Optional[DomainItem], title=None):
@@ -168,6 +172,14 @@ class ScrapeMapper:
         album_obj = await self.imgbox_crawler.fetch(imgbox_session, url)
         await self.handle_additions("imgbox", album_obj, None, title)
         await imgbox_session.exit_handler()
+
+    async def NSFW_XXX(self, url, title=None):
+        nsfwxxx_session = ScrapeSession(self.client)
+        if not self.nsfwxxx_crawler:
+            self.nsfwxxx_crawler = NSFWXXXCrawler(separate_posts=self.separate_posts, quiet=self.quiet, SQL_Helper=self.SQL_Helper)
+        domain_obj = await self.nsfwxxx_crawler.fetch(nsfwxxx_session, url)
+        await self.handle_additions("nsfw.xxx", None, domain_obj, title)
+        await nsfwxxx_session.exit_handler()
 
     async def PixelDrain(self, url, title=None):
         pixeldrain_session = ScrapeSession(self.client)
