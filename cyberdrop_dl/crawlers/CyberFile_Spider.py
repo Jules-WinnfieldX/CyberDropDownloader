@@ -13,8 +13,8 @@ class CyberFileCrawler:
     def __init__(self, quiet: bool, SQL_Helper: SQLHelper):
         self.quiet = quiet
         self.SQL_Helper = SQL_Helper
-        self.load_files = URL('https://cyberfile.su/account/ajax/load_files')
-        self.file_details = URL('https://cyberfile.su/account/ajax/file_details')
+        self.load_files = URL('https://cyberfile.me/account/ajax/load_files')
+        self.file_details = URL('https://cyberfile.me/account/ajax/file_details')
 
     async def fetch(self, session: ScrapeSession, url: URL):
         await log(f"[green]Starting: {str(url)}[/green]", quiet=self.quiet)
