@@ -22,6 +22,7 @@ from cyberdrop_dl.crawlers.HGameCG_Spider import HGameCGCrawler
 from cyberdrop_dl.crawlers.ImgBox_Spider import ImgBoxCrawler
 from cyberdrop_dl.crawlers.PixelDrain_Spider import PixelDrainCrawler
 from cyberdrop_dl.crawlers.PostImg_Spider import PostImgCrawler
+from cyberdrop_dl.crawlers.Saint_Spider import SaintCrawler
 from cyberdrop_dl.crawlers.Xenforo_Spider import XenforoCrawler
 from cyberdrop_dl.scraper.JDownloader_Integration import JDownloader
 
@@ -68,7 +69,7 @@ class ScrapeMapper:
         self.mapping = {"anonfiles": self.Anonfiles, "bunkr": self.Bunkr, "cyberdrop": self.Cyberdrop,
                         "cyberfile": self.CyberFile, "erome": self.Erome, "fapello": self.Fapello,
                         "gfycat": self.Gfycat, "gofile": self.GoFile, "hgamecg": self.HGameCG, "imgbox": self.ImgBox,
-                        "pixeldrain": self.PixelDrain, "postimg": self.PostImg,
+                        "pixeldrain": self.PixelDrain, "postimg": self.PostImg, "saint": self.Saint,
                         "simpcity": self.Xenforo, "socialmediagirls": self.Xenforo, "xbunker": self.Xenforo}
 
     async def handle_additions(self, domain: str, album_obj: Optional[AlbumItem], domain_obj: Optional[DomainItem], title=None):
@@ -158,7 +159,7 @@ class ScrapeMapper:
 
     async def ImgBox(self, url, title=None):
         imgbox_session = ScrapeSession(self.client)
-        if not self.hgamecg_crawler:
+        if not self.imgbox_crawler:
             self.imgbox_crawler = ImgBoxCrawler(quiet=self.quiet, SQL_Helper=self.SQL_Helper)
         album_obj = await self.imgbox_crawler.fetch(imgbox_session, url)
         await self.handle_additions("imgbox", album_obj, None, title)
@@ -166,7 +167,7 @@ class ScrapeMapper:
 
     async def PixelDrain(self, url, title=None):
         pixeldrain_session = ScrapeSession(self.client)
-        if not self.hgamecg_crawler:
+        if not self.pixeldrain_crawler:
             self.pixeldrain_crawler = PixelDrainCrawler(quiet=self.quiet, SQL_Helper=self.SQL_Helper)
         album_obj = await self.pixeldrain_crawler.fetch(pixeldrain_session, url)
         await self.handle_additions("pixeldrain", album_obj, None, title)
@@ -174,11 +175,19 @@ class ScrapeMapper:
 
     async def PostImg(self, url, title=None):
         postimg_session = ScrapeSession(self.client)
-        if not self.hgamecg_crawler:
+        if not self.postimg_crawler:
             self.postimg_crawler = PostImgCrawler(quiet=self.quiet, SQL_Helper=self.SQL_Helper)
         album_obj = await self.postimg_crawler.fetch(postimg_session, url)
         await self.handle_additions("postimg", album_obj, None, title)
         await postimg_session.exit_handler()
+
+    async def Saint(self, url, title=None):
+        saint_session = ScrapeSession(self.client)
+        if not self.saint_crawler:
+            self.saint_crawler = SaintCrawler(quiet=self.quiet, SQL_Helper=self.SQL_Helper)
+        album_obj = await self.saint_crawler.fetch(saint_session, url)
+        await self.handle_additions("saint", album_obj, None, title)
+        await saint_session.exit_handler()
 
     """Archive Sites"""
 
