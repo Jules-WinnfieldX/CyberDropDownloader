@@ -50,12 +50,10 @@ class BunkrCrawler:
             media_item = MediaItem(url, url, check_complete, filename, ext)
             await album_obj.add_media(media_item)
         else:
-            referrer = url
             if ext in FILE_FORMATS['Videos']:
                 referrer = URL(re.sub(cdn_possibilities, "bunkr.su/v", str(url)))
             else:
                 referrer = URL(re.sub(cdn_possibilities, "bunkr.su/d", str(url)))
-            filename, ext = await get_filename_and_ext(url.name)
             media_item = await self.get_file(session, referrer)
             await album_obj.add_media(media_item)
 
@@ -136,10 +134,10 @@ class BunkrCrawler:
                     completed = True
                 media = MediaItem(link, referrer, completed, filename, ext)
                 await album.add_media(media)
-            return album
 
         except Exception as e:
             logger.debug("Error encountered while handling %s", str(url), exc_info=True)
             await log(f"[red]Error: {str(url)}[/red]", quiet=self.quiet)
             logger.debug(e)
-            return album
+
+        return album

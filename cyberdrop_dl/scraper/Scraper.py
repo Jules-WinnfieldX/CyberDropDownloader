@@ -24,6 +24,7 @@ from cyberdrop_dl.crawlers.PixelDrain_Spider import PixelDrainCrawler
 from cyberdrop_dl.crawlers.PostImg_Spider import PostImgCrawler
 from cyberdrop_dl.crawlers.Saint_Spider import SaintCrawler
 from cyberdrop_dl.crawlers.ShareX_Spider import ShareXCrawler
+from cyberdrop_dl.crawlers.XBunkr_Spider import XBunkrCrawler
 from cyberdrop_dl.crawlers.Xenforo_Spider import XenforoCrawler
 from cyberdrop_dl.scraper.JDownloader_Integration import JDownloader
 
@@ -72,7 +73,7 @@ class ScrapeMapper:
                         "gfycat": self.Gfycat, "gofile": self.GoFile, "hgamecg": self.HGameCG, "imgbox": self.ImgBox,
                         "pixeldrain": self.PixelDrain, "postimg": self.PostImg, "saint": self.Saint,
                         "img.kiwi": self.ShareX, "jpg.church": self.ShareX, "jpg.fish": self.ShareX,
-                        "pixl.li": self.ShareX,
+                        "pixl.li": self.ShareX, "xbunkr": self.XBunkr,
                         "simpcity": self.Xenforo, "socialmediagirls": self.Xenforo, "xbunker": self.Xenforo}
 
     async def handle_additions(self, domain: str, album_obj: Optional[AlbumItem], domain_obj: Optional[DomainItem], title=None):
@@ -199,6 +200,14 @@ class ScrapeMapper:
         domain_obj = await self.sharex_crawler.fetch(sharex_session, url)
         await self.handle_additions("sharex", None, domain_obj, title)
         await sharex_session.exit_handler()
+
+    async def XBunkr(self, url, title=None):
+        xbunkr_session = ScrapeSession(self.client)
+        if not self.xbunkr_crawler:
+            self.xbunkr_crawler = XBunkrCrawler(quiet=self.quiet, SQL_Helper=self.SQL_Helper)
+        album_obj = await self.xbunkr_crawler.fetch(xbunkr_session, url)
+        await self.handle_additions("xbunkr", album_obj, None, title)
+        await xbunkr_session.exit_handler()
 
     """Archive Sites"""
 
