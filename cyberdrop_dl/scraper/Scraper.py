@@ -21,6 +21,7 @@ from cyberdrop_dl.crawlers.GoFile_Spider import GoFileCrawler
 from cyberdrop_dl.crawlers.HGameCG_Spider import HGameCGCrawler
 from cyberdrop_dl.crawlers.ImgBox_Spider import ImgBoxCrawler
 from cyberdrop_dl.crawlers.PixelDrain_Spider import PixelDrainCrawler
+from cyberdrop_dl.crawlers.PostImg_Spider import PostImgCrawler
 from cyberdrop_dl.crawlers.Xenforo_Spider import XenforoCrawler
 from cyberdrop_dl.scraper.JDownloader_Integration import JDownloader
 
@@ -170,6 +171,14 @@ class ScrapeMapper:
         album_obj = await self.pixeldrain_crawler.fetch(pixeldrain_session, url)
         await self.handle_additions("pixeldrain", album_obj, None, title)
         await pixeldrain_session.exit_handler()
+
+    async def PostImg(self, url, title=None):
+        postimg_session = ScrapeSession(self.client)
+        if not self.hgamecg_crawler:
+            self.postimg_crawler = PostImgCrawler(quiet=self.quiet, SQL_Helper=self.SQL_Helper)
+        album_obj = await self.postimg_crawler.fetch(postimg_session, url)
+        await self.handle_additions("postimg", album_obj, None, title)
+        await postimg_session.exit_handler()
 
     """Archive Sites"""
 
