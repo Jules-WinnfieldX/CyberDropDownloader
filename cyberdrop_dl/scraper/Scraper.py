@@ -68,7 +68,7 @@ class ScrapeMapper:
         self.mapping = {"anonfiles": self.Anonfiles, "bunkr": self.Bunkr, "cyberdrop": self.Cyberdrop,
                         "cyberfile": self.CyberFile, "erome": self.Erome, "fapello": self.Fapello,
                         "gfycat": self.Gfycat, "gofile": self.GoFile, "hgamecg": self.HGameCG, "imgbox": self.ImgBox,
-                        "pixeldrain": self.PixelDrain,
+                        "pixeldrain": self.PixelDrain, "postimg": self.PostImg,
                         "simpcity": self.Xenforo, "socialmediagirls": self.Xenforo, "xbunker": self.Xenforo}
 
     async def handle_additions(self, domain: str, album_obj: Optional[AlbumItem], domain_obj: Optional[DomainItem], title=None):
