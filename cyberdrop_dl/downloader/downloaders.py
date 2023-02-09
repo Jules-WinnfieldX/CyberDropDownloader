@@ -40,12 +40,11 @@ def retry(f):
                                 await file.write(f"{args[3].url},{args[3].referer},{e.message}")
                         logger.debug('Skipping %s...', args[3].url, exc_info=True)
                         self.files.failed_files += 1
-                        break
+                        return
                 logger.debug(e.message)
                 logger.debug(f'Retrying ({self.current_attempt[args[3].url.parts[-1]]}) {args[3].url}...')
                 self.current_attempt[args[3].filename] += 1
 
-                await asyncio.sleep(2)
     return wrapper
 
 
@@ -76,7 +75,7 @@ class Downloader:
         self.current_attempt = {}
         self.max_workers = max_workers
         self._semaphore = semaphore
-        self.delay = {'cyberfile': 1, 'anonfiles': 1, "coomer": 0.1, "kemono": 0.1}
+        self.delay = {'cyberfile': 1, 'anonfiles': 1, "coomer": 0.2, "kemono": 0.2}
 
         self.pixeldrain_api_key = args["Authentication"]["pixeldrain_api_key"]
 
@@ -213,6 +212,7 @@ class Downloader:
                                                           original_filename)
                 await log(f"Previously Downloaded: {media.filename}", quiet=True)
                 self.files.skipped_files += 1
+                await self.File_Lock.remove_lock(original_filename)
                 await self.SQL_Helper.mark_complete(url_path, original_filename)
                 progress.advance(album_task, 1)
                 return
@@ -256,6 +256,7 @@ class Downloader:
             progress.update(file_task, visible=False)
             await log(f"Completed Download: {media.filename}", quiet=True)
             await self.File_Lock.remove_lock(original_filename)
+            return
 
         except (aiohttp.client_exceptions.ClientPayloadError, aiohttp.client_exceptions.ClientOSError,
                 aiohttp.client_exceptions.ServerDisconnectedError, asyncio.TimeoutError,
@@ -279,7 +280,6 @@ class Downloader:
                     logger.debug("We ran into a 400 level error: %s", str(e.code))
                     await log(f"Failed Download: {media.filename}", quiet=True)
                     self.files.failed_files += 1
-                    progress.advance(album_task, 1)
                     if media.url.parts[-1] in self.current_attempt.keys():
                         self.current_attempt.pop(media.url.parts[-1])
                     return
