@@ -216,8 +216,9 @@ class FileLock:
 @dataclass
 class SkipData:
     """The allows optoins for domains to skip when scraping"""
-    supported_hosts: ClassVar[Tuple[str]] = (
-        "anonfiles", "bunkr", "coomer.party", "cyberdrop", "cyberfile", "erome", "fapello", "gfycat",
-        "gofile", "hgamecg", "imgbox", "img.kiwi", "jpg.church", "jpg.fish", "lovefap", "pimpandhost", "pixeldrain",
-        "pixl.li", "postimg", "saint", "socialmediagirls", "simpcity", "xbunker", "xbunkr")
+    supported_hosts: ClassVar[Tuple[str]] = ("anonfiles", "bunkr", "coomer.party", "cyberdrop",
+                                             "cyberfile", "e-hentai", "erome", "fapello", "gfycat", "gofile",
+                                             "hgamecg", "img.kiwi", "imgbox", "jpg.church", "jpg.fish", "kemono.party",
+                                             "lovefap", "nsfw.xxx", "pimpandhost", "pixeldrain", "pixl.li", "postimg",
+                                             "saint", "simpcity", "socialmediagirls", "xbunker", "xbunkr")
     sites: List[str]
