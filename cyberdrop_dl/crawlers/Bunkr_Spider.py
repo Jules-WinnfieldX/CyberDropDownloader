@@ -104,8 +104,8 @@ class BunkrCrawler:
             return MediaItem(url, url, False, "", "")
 
     async def get_album(self, session: ScrapeSession, url: URL):
+        album = AlbumItem(url.name, [])
         try:
-            album = AlbumItem(url.name, [])
             soup = await session.get_BS4(url)
             title = soup.select_one('h1[class="text-[24px] font-bold text-dark dark:text-white"]')
             for elem in title.find_all("span"):
