@@ -281,5 +281,6 @@ class ScrapeMapper:
 
         else:
             await log(f"[yellow]Not Supported: {str(url_to_map)}[/yellow]", quiet=self.quiet)
-            async with aiofiles.open(self.args["Files"]["unsupported_urls_file"], mode='a') as f:
-                await f.write(f"{str(url_to_map)},{str(referer)},{title}")
+            if self.args['Runtime']['output_unsupported_urls']:
+                async with aiofiles.open(self.args["Files"]["unsupported_urls_file"], mode='a') as f:
+                    await f.write(f"{str(url_to_map)},{str(referer)},{title}")

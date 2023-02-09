@@ -4,6 +4,7 @@ config_default = [
             "Apply_Config": False,
             "Files": {
                 "db_file": "download_history.sqlite",
+                "errored_urls_file": "Errored_URLs.csv",
                 "input_file": "URLs.txt",
                 "log_file": "downloader.log",
                 "output_folder": "Downloads",
@@ -51,6 +52,8 @@ config_default = [
                 "disable_attempt_limit": False,
                 "include_id": False,
                 "mark_downloaded": False,
+                "output_errored_urls": False,
+                "output_unsupported_urls": False,
                 "proxy": "",
             }
         }
@@ -62,7 +65,8 @@ authentication_args = ["pixeldrain_api_key",
                        "socialmediagirls_username", "socialmediagirls_password",
                        "xbunker_username", "xbunker_password"]
 
-files_args = ["db_file", "input_file", "log_file", "output_folder", "output_last_forum_post_file", "unsupported_urls_file"]
+files_args = ["db_file", "input_file", "log_file", "output_folder", "output_last_forum_post_file",
+              "unsupported_urls_file", "errored_urls_file"]
 
 forum_args = ["output_last_forum_post", "separate_posts"]
 
@@ -74,4 +78,5 @@ jdownloader_args = ["apply_jdownloader", "jdownloader_username", "jdownloader_pa
 ratelimiting_args = ["connection_timeout", "ratelimit", "throttle"]
 
 runtime_args = ["simultaneous_downloads", "allow_insecure_connections", "attempts", "disable_attempt_limit",
-                "include_id",  "mark_downloaded", "proxy", "required_free_space"]
+                "include_id",  "mark_downloaded", "proxy", "required_free_space", "output_errored_urls",
+                "output_unsupported_urls"]

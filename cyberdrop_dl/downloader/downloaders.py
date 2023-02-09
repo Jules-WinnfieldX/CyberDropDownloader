@@ -7,6 +7,7 @@ from base64 import b64encode
 from functools import wraps
 from random import gauss
 
+import aiofiles
 import aiohttp.client_exceptions
 from rich.progress import TaskID
 from yarl import URL
@@ -34,6 +35,9 @@ def retry(f):
             except DownloadFailure as e:
                 if not self.disable_attempt_limit:
                     if self.current_attempt[args[3].url.parts[-1]] >= self.allowed_attempts - 1:
+                        if self.output_errored:
+                            async with aiofiles.open(self.output_errored_file, mode='a') as file:
+                                await file.write(f"{args[3].url},{args[3].referer},{e.message}")
                         logger.debug('Skipping %s...', args[3].url, exc_info=True)
                         self.files.failed_files += 1
                         break
@@ -63,6 +67,9 @@ class Downloader:
 
         self.domain = domain
         self.domain_obj = domain_obj
+
+        self.output_errored = args['Runtime']['output_unsupported_urls']
+        self.output_errored_file = args['Files']['errored_urls_file']
 
         self.files = files
 

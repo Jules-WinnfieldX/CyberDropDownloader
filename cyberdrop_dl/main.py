@@ -92,12 +92,21 @@ async def file_management(args: dict, links: list) -> None:
             output_url_file.unlink()
             output_url_file.touch()
 
-    unsupported_urls = args['Forum_Options']['unsupported_urls_file']
-    if unsupported_urls.exists():
-        unsupported_urls.unlink()
-        unsupported_urls.touch()
-        async with aiofiles.open(unsupported_urls, mode='w') as f:
-            await f.write("URL,REFERER,TITLE")
+    if args['Runtime']['output_unsupported_urls']:
+        unsupported_urls = args['Forum_Options']['unsupported_urls_file']
+        if unsupported_urls.exists():
+            unsupported_urls.unlink()
+            unsupported_urls.touch()
+            async with aiofiles.open(unsupported_urls, mode='w') as f:
+                await f.write("URL,REFERER,TITLE")
+
+    if args['Runtime']['output_errored_urls']:
+        errored_urls = args['Forum_Options']['errored_urls_file']
+        if errored_urls.exists():
+            errored_urls.unlink()
+            errored_urls.touch()
+            async with aiofiles.open(errored_urls, mode='w') as f:
+                await f.write("URL,REFERER,REASON")
 
 
 async def consolidate_links(args: dict, links: list) -> list:
