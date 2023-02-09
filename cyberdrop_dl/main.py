@@ -3,6 +3,7 @@ import asyncio
 import logging
 from pathlib import Path
 
+import aiofiles
 from yarl import URL
 
 from cyberdrop_dl.base_functions.base_functions import log, clear, regex_links, check_free_space, purge_dir
@@ -90,6 +91,13 @@ async def file_management(args: dict, links: list) -> None:
         if output_url_file.exists():
             output_url_file.unlink()
             output_url_file.touch()
+
+    unsupported_urls = args['Forum_Options']['unsupported_urls_file']
+    if unsupported_urls.exists():
+        unsupported_urls.unlink()
+        unsupported_urls.touch()
+        async with aiofiles.open(unsupported_urls, mode='w') as f:
+            await f.write("URL,REFERER,TITLE")
 
 
 async def consolidate_links(args: dict, links: list) -> list:
