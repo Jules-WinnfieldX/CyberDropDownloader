@@ -15,6 +15,7 @@ from cyberdrop_dl.crawlers.Bunkr_Spider import BunkrCrawler
 from cyberdrop_dl.crawlers.Coomeno_Spider import CoomenoCrawler
 from cyberdrop_dl.crawlers.CyberFile_Spider import CyberFileCrawler
 from cyberdrop_dl.crawlers.Cyberdrop_Spider import CyberdropCrawler
+from cyberdrop_dl.crawlers.EHentai_Spider import EHentaiCrawler
 from cyberdrop_dl.crawlers.Erome_Spider import EromeCrawler
 from cyberdrop_dl.crawlers.Fapello_Spider import FapelloCrawler
 from cyberdrop_dl.crawlers.Gfycat_Spider import GfycatCrawler
@@ -47,6 +48,7 @@ class ScrapeMapper:
         self.cyberdrop_crawler = None
         self.coomeno_crawler = None
         self.cyberfile_crawler = None
+        self.ehentai_crawler = None
         self.erome_crawler = None
         self.fapello_crawler = None
         self.gfycat_crawler = None
@@ -85,6 +87,7 @@ class ScrapeMapper:
                         "postimg": self.PostImg, "saint": self.Saint, "img.kiwi": self.ShareX,
                         "jpg.church": self.ShareX, "jpg.fish": self.ShareX, "pixl.li": self.ShareX,
                         "nsfw.xxx": self.NSFW_XXX, "pimpandhost": self.PimpAndHost, "lovefap": self.LoveFap,
+                        "e-hentai": self.EHentai,
                         "coomer.party": self.Coomeno, "kemono.party": self.Coomeno,
                         "simpcity": self.Xenforo, "socialmediagirls": self.Xenforo, "xbunker": self.Xenforo}
 
@@ -140,6 +143,14 @@ class ScrapeMapper:
         domain_obj = await self.cyberfile_crawler.fetch(cyberfile_session, url)
         await self.handle_additions("cyberfile", None, domain_obj, title)
         await cyberfile_session.exit_handler()
+
+    async def EHentai(self, url, title=None):
+        ehentai_session = ScrapeSession(self.client)
+        if not self.ehentai_crawler:
+            self.ehentai_crawler = EHentaiCrawler(quiet=self.quiet, SQL_Helper=self.SQL_Helper)
+        album_obj = await self.ehentai_crawler.fetch(ehentai_session, url)
+        await self.handle_additions("e-hentai", album_obj, None, title)
+        await ehentai_session.exit_handler()
 
     async def Erome(self, url, title=None):
         erome_session = ScrapeSession(self.client)
