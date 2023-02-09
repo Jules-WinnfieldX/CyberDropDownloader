@@ -44,7 +44,7 @@ class XenforoCrawler:
         cascade = CascadeItem({})
 
         scrape_url, post_num = await self.get_thread_url_and_post_num(url)
-
+        title = None
         try:
             if "simpcity" in url.host:
                 await self.simpcity_login(session, url)

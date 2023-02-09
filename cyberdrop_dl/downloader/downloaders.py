@@ -76,7 +76,7 @@ class Downloader:
         self.current_attempt = {}
         self.max_workers = max_workers
         self._semaphore = semaphore
-        self.delay = {'cyberfile.is': 1, 'anonfiles.com': 1}
+        self.delay = {'cyberfile': 1, 'anonfiles': 1, "coomer": 0.1, "kemono": 0.1}
 
         self.pixeldrain_api_key = args["Authentication"]["pixeldrain_api_key"]
 
@@ -191,53 +191,53 @@ class Downloader:
         if not self.allow_sub_folders:
             album = album.split('/')[0]
 
-        while await self.File_Lock.check_lock(media.filename):
-            await asyncio.sleep(gauss(1, 1.5))
-        await self.File_Lock.add_lock(media.filename)
-
-        if media.url.parts[-1] not in self.current_attempt:
-            self.current_attempt[media.url.parts[-1]] = 0
-
-        current_throttle = self.client.throttle
-
-        original_filename = media.filename
-        complete_file = (self.download_dir / album / media.filename)
-        partial_file = complete_file.with_suffix(complete_file.suffix + '.part')
-
-        complete_file, partial_file, proceed = await self.check_file_exists(complete_file, partial_file, media,
-                                                                            album, url_path, original_filename,
-                                                                            current_throttle)
-        if not proceed:
-            await self.SQL_Helper.update_pre_download(complete_file, media.filename, url_path,
-                                                      original_filename)
-            await log(f"Previously Downloaded: {media.filename}", quiet=True)
-            self.files.skipped_files += 1
-            await self.SQL_Helper.mark_complete(url_path, original_filename)
-            progress.advance(album_task, 1)
-            return
-
-        await self.SQL_Helper.update_pre_download(complete_file, media.filename, url_path, original_filename)
-
-        if self.mark_downloaded:
-            await self.SQL_Helper.mark_complete(url_path, original_filename)
-
-        resume_point = 0
-        await self.SQL_Helper.sql_insert_temp(str(partial_file))
-        range_num = None
-        if partial_file.exists():
-            resume_point = partial_file.stat().st_size
-            range_num = f'bytes={resume_point}-'
-
-        for key, value in self.delay.items():
-            if key in media.url.host:
-                current_throttle = value
-
-        headers = {"Authorization": await basic_auth("Cyberdrop-DL", self.pixeldrain_api_key)} \
-            if (self.pixeldrain_api_key and "pixeldrain" in media.url.host) else {}
-        if range_num:
-            headers['Range'] = range_num
-
         try:
+            while await self.File_Lock.check_lock(media.filename):
+                await asyncio.sleep(gauss(1, 1.5))
+            await self.File_Lock.add_lock(media.filename)
+
+            if media.url.parts[-1] not in self.current_attempt:
+                self.current_attempt[media.url.parts[-1]] = 0
+
+            current_throttle = self.client.throttle
+
+            original_filename = media.filename
+            complete_file = (self.download_dir / album / media.filename)
+            partial_file = complete_file.with_suffix(complete_file.suffix + '.part')
+
+            complete_file, partial_file, proceed = await self.check_file_exists(complete_file, partial_file, media,
+                                                                                album, url_path, original_filename,
+                                                                                current_throttle)
+            if not proceed:
+                await self.SQL_Helper.update_pre_download(complete_file, media.filename, url_path,
+                                                          original_filename)
+                await log(f"Previously Downloaded: {media.filename}", quiet=True)
+                self.files.skipped_files += 1
+                await self.SQL_Helper.mark_complete(url_path, original_filename)
+                progress.advance(album_task, 1)
+                return
+
+            await self.SQL_Helper.update_pre_download(complete_file, media.filename, url_path, original_filename)
+
+            if self.mark_downloaded:
+                await self.SQL_Helper.mark_complete(url_path, original_filename)
+
+            resume_point = 0
+            await self.SQL_Helper.sql_insert_temp(str(partial_file))
+            range_num = None
+            if partial_file.exists():
+                resume_point = partial_file.stat().st_size
+                range_num = f'bytes={resume_point}-'
+
+            for key, value in self.delay.items():
+                if key in media.url.host:
+                    current_throttle = value
+
+            headers = {"Authorization": await basic_auth("Cyberdrop-DL", self.pixeldrain_api_key)} \
+                if (self.pixeldrain_api_key and "pixeldrain" in media.url.host) else {}
+            if range_num:
+                headers['Range'] = range_num
+
             task_description = media.filename
             if len(task_description) >= 40:
                 task_description = task_description[:37] + "..."

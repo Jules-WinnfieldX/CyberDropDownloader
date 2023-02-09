@@ -12,6 +12,7 @@ from cyberdrop_dl.client.client import Client, ScrapeSession
 from cyberdrop_dl.client.rate_limiting import AsyncRateLimiter
 from cyberdrop_dl.crawlers.Anonfiles_Spider import AnonfilesCrawler
 from cyberdrop_dl.crawlers.Bunkr_Spider import BunkrCrawler
+from cyberdrop_dl.crawlers.Coomeno_Spider import CoomenoCrawler
 from cyberdrop_dl.crawlers.CyberFile_Spider import CyberFileCrawler
 from cyberdrop_dl.crawlers.Cyberdrop_Spider import CyberdropCrawler
 from cyberdrop_dl.crawlers.Erome_Spider import EromeCrawler
@@ -43,7 +44,7 @@ class ScrapeMapper:
         self.anonfiles_crawler = None
         self.bunkr_crawler = None
         self.cyberdrop_crawler = None
-        self.coomer_crawler = None
+        self.coomeno_crawler = None
         self.cyberfile_crawler = None
         self.erome_crawler = None
         self.fapello_crawler = None
@@ -67,10 +68,11 @@ class ScrapeMapper:
         self.quiet = quiet
         self.jdownloader = JDownloader(args['JDownloader'], quiet)
 
-        self.jpgchurch_limiter = AsyncRateLimiter(15)
-        self.jpgchurch_semaphore = asyncio.Semaphore(5)
+        self.jpgfish_limiter = AsyncRateLimiter(15)
+        self.jpgfish_semaphore = asyncio.Semaphore(5)
         self.bunkr_limiter = AsyncRateLimiter(15)
-        self.forum_limiter = asyncio.Semaphore(4)
+        self.forum_semaphore = asyncio.Semaphore(4)
+        self.coomeno_limiter = AsyncRateLimiter(8)
         self.semaphore = asyncio.Semaphore(1)
 
         self.mapping = {"anonfiles": self.Anonfiles, "xbunkr": self.XBunkr, "bunkr": self.Bunkr,
@@ -79,7 +81,8 @@ class ScrapeMapper:
                         "hgamecg": self.HGameCG, "imgbox": self.ImgBox, "pixeldrain": self.PixelDrain,
                         "postimg": self.PostImg, "saint": self.Saint, "img.kiwi": self.ShareX,
                         "jpg.church": self.ShareX, "jpg.fish": self.ShareX, "pixl.li": self.ShareX,
-                        "nsfw.xxx": self.NSFW_XXX, "pimpandhost": self.PimpAndHost,
+                        "nsfw.xxx": self.NSFW_XXX, "pimpandhost": self.PimpAndHost, "coomer.party": self.Coomeno,
+                        "kemono.party": self.Coomeno,
                         "simpcity": self.Xenforo, "socialmediagirls": self.Xenforo, "xbunker": self.Xenforo}
 
     async def handle_additions(self, domain: str, album_obj: Optional[AlbumItem], domain_obj: Optional[DomainItem], title=None):
@@ -93,7 +96,7 @@ class ScrapeMapper:
             if title:
                 await domain_obj.append_title(title)
                 for title, album in domain_obj.albums.items():
-                    await self.Cascade.add_album(domain, album.title, album)
+                    await self.Forums.add_album_to_thread(domain, album.title, album)
             else:
                 for title, album in domain_obj.albums.items():
                     await self.Cascade.add_album(domain, album.title, album)
@@ -211,7 +214,10 @@ class ScrapeMapper:
         sharex_session = ScrapeSession(self.client)
         if not self.sharex_crawler:
             self.sharex_crawler = ShareXCrawler(include_id=self.include_id, quiet=self.quiet, SQL_Helper=self.SQL_Helper)
-        domain_obj = await self.sharex_crawler.fetch(sharex_session, url)
+        if "jpg.fish" in url.host and sharex_session.client.ratelimit > 19:
+            async with self.jpgfish_semaphore:
+                async with self.jpgfish_limiter:
+                    domain_obj = await self.sharex_crawler.fetch(sharex_session, url)
         await self.handle_additions("sharex", None, domain_obj, title)
         await sharex_session.exit_handler()
 
@@ -241,6 +247,23 @@ class ScrapeMapper:
         await self.handle_additions("nsfw.xxx", None, domain_obj, title)
         await nsfwxxx_session.exit_handler()
 
+    async def Coomeno(self, url: URL, title=None):
+        coomeno_session = ScrapeSession(self.client)
+        if not self.coomeno_crawler:
+            self.coomeno_crawler = CoomenoCrawler(include_id=self.include_id, scraping_mapper=self,
+                                                  separate_posts=self.separate_posts, SQL_Helper=self.SQL_Helper,
+                                                  quiet=self.quiet)
+        async with self.forum_semaphore:
+            cascade, new_title = await self.coomeno_crawler.fetch(coomeno_session, url)
+        if not new_title or await cascade.is_empty():
+            await coomeno_session.exit_handler()
+            return
+        if title:
+            await self.Forums.extend_thread(title, cascade)
+        else:
+            await self.Forums.add_thread(new_title, cascade)
+        await coomeno_session.exit_handler()
+
     """Forum handling"""
 
     async def Xenforo(self, url: URL, title=None):
@@ -248,7 +271,7 @@ class ScrapeMapper:
         if not self.xenforo_crawler:
             self.xenforo_crawler = XenforoCrawler(scraping_mapper=self, args=self.args, SQL_Helper=self.SQL_Helper,
                                                   quiet=self.quiet)
-        async with self.forum_limiter:
+        async with self.forum_semaphore:
             cascade, title = await self.xenforo_crawler.fetch(xenforo_session, url)
         if not title or await cascade.is_empty():
             await xenforo_session.exit_handler()

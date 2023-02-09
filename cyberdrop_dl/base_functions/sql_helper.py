@@ -25,7 +25,7 @@ class SQLHelper:
 
         await self.pre_allocate()
         await self.create_media_history()
-        await self.create_coomer_history()
+        await self.create_coomeno_history()
 
     async def create_media_history(self):
         """We create the download history tables here"""
@@ -52,8 +52,8 @@ class SQLHelper:
         self.curs.execute(temp_truncate_query)
         self.conn.commit()
 
-    async def create_coomer_history(self):
-        create_table_query = """CREATE TABLE IF NOT EXISTS coomer (
+    async def create_coomeno_history(self):
+        create_table_query = """CREATE TABLE IF NOT EXISTS coomeno (
                                                             url_path TEXT,
                                                             post_data BLOB,
                                                             PRIMARY KEY (url_path)
@@ -78,11 +78,34 @@ class SQLHelper:
             self.curs.execute(drop_pre)
             self.conn.commit()
 
+    """Temp Table Operations"""
+
     async def get_temp_names(self):
         self.curs.execute("SELECT downloaded_filename FROM downloads_temp;")
         filenames = self.curs.fetchall()
         filenames = list(sum(filenames, ()))
         return filenames
+
+    async def sql_insert_temp(self, downloaded_filename):
+        self.curs.execute("""INSERT OR IGNORE INTO downloads_temp VALUES (?)""", (downloaded_filename,))
+        self.conn.commit()
+
+    """Coomeno Table Operations"""
+
+    async def insert_blob(self, blob: str, url_path: str):
+        self.curs.execute("""INSERT OR IGNORE INTO coomeno VALUES (?, ?)""", (url_path, blob,))
+        self.conn.commit()
+
+    async def get_blob(self, url_path: str):
+        if self.ignore_cache:
+            return None
+        self.curs.execute("""SELECT post_data FROM coomeno WHERE url_path = ?""", (url_path,))
+        sql_file_check = self.curs.fetchone()
+        if sql_file_check:
+            return sql_file_check[0]
+        return None
+
+    """Download Table Operations"""
 
     async def insert_media(self, domain: str, url_path: str, album_path: str, referer: str, download_path: str,
                            download_filename: str, original_filename: str, completed: int):
@@ -127,11 +150,6 @@ class SQLHelper:
             return sql_file_check[0]
         return None
 
-    async def check_filename(self, filename):
-        self.curs.execute("""SELECT EXISTS(SELECT 1 FROM media WHERE download_filename = ?)""", (filename, ))
-        sql_check = self.curs.fetchone()[0]
-        return sql_check == 1
-
     async def check_complete_singular(self, domain, url_path):
         if self.ignore_history:
             return False
@@ -144,16 +162,19 @@ class SQLHelper:
         else:
             return True
 
+    """Downloader Operations"""
+
+    async def check_filename(self, filename):
+        self.curs.execute("""SELECT EXISTS(SELECT 1 FROM media WHERE download_filename = ?)""", (filename, ))
+        sql_check = self.curs.fetchone()[0]
+        return sql_check == 1
+
     async def update_pre_download(self, path: Path, filename: str, url_path: str, original_filename: str):
         self.curs.execute("""UPDATE media SET download_path = ?, download_filename = ? WHERE url_path = ? AND original_filename = ?""", (str(path), filename, url_path, original_filename,))
         self.conn.commit()
 
     async def mark_complete(self, url_path: str, original_filename: str):
         self.curs.execute("""UPDATE media SET completed = 1 WHERE url_path = ? AND original_filename = ?""", (url_path, original_filename,))
-        self.conn.commit()
-
-    async def sql_insert_temp(self, downloaded_filename):
-        self.curs.execute("""INSERT OR IGNORE INTO downloads_temp VALUES (?)""", (downloaded_filename,))
         self.conn.commit()
 
     def exit_handler(self):

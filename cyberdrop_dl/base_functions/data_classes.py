@@ -75,6 +75,9 @@ class DomainItem:
         else:
             self.albums[title] = album
 
+    async def set_new_domain(self, domain: str):
+        self.domain = domain
+
     async def extend(self, domain):
         for title, album in domain.albums.items():
             await self.add_album(title, album)
@@ -187,6 +190,12 @@ class ForumItem:
                         check.append(media_item.url)
                         allowed.append(media_item)
                     album.media = allowed
+
+    async def extend_thread(self, title: str, cascade: CascadeItem):
+        if title in self.threads.keys():
+            await self.threads[title].extend(cascade)
+        else:
+            self.threads[title] = cascade
 
 @dataclass
 class FileLock:
