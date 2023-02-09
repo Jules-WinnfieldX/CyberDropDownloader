@@ -66,6 +66,7 @@ class ScrapeMapper:
         self.xenforo_crawler = None
 
         self.include_id = args['Runtime']['include_id']
+        self.remove_bunkr_id = args['Runtime']['remove_bunkr_identifier']
         self.separate_posts = args["Forum_Options"]["separate_posts"]
         self.quiet = quiet
         self.jdownloader = JDownloader(args['JDownloader'], quiet)
@@ -116,7 +117,8 @@ class ScrapeMapper:
     async def Bunkr(self, url: URL, title=None):
         bunkr_session = ScrapeSession(self.client)
         if not self.bunkr_crawler:
-            self.bunkr_crawler = BunkrCrawler(quiet=self.quiet, SQL_Helper=self.SQL_Helper)
+            self.bunkr_crawler = BunkrCrawler(quiet=self.quiet, SQL_Helper=self.SQL_Helper,
+                                              remove_bunkr_id=self.remove_bunkr_id)
         async with self.bunkr_limiter:
             album_obj = await self.bunkr_crawler.fetch(bunkr_session, url)
         if not await album_obj.is_empty():

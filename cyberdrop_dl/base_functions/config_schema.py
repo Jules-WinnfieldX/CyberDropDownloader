@@ -53,6 +53,7 @@ config_default = [
                 "include_id": False,
                 "mark_downloaded": False,
                 "allow_sub_folders": True,
+                "remove_bunkr_identifier": True,
                 "output_errored_urls": False,
                 "output_unsupported_urls": False,
                 "proxy": "",

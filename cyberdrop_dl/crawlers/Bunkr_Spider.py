@@ -12,9 +12,10 @@ from ..client.client import ScrapeSession
 
 
 class BunkrCrawler:
-    def __init__(self, quiet: bool, SQL_Helper: SQLHelper):
+    def __init__(self, quiet: bool, SQL_Helper: SQLHelper, remove_bunkr_id: bool):
         self.quiet = quiet
         self.SQL_Helper = SQL_Helper
+        self.remove_bunkr_id = remove_bunkr_id
 
     async def fetch(self, session: ScrapeSession, url: URL):
         album_obj = AlbumItem("Loose Bunkr Items", [])
@@ -47,6 +48,9 @@ class BunkrCrawler:
             url = URL(str(url).replace("https://cdn", "https://i"))
 
             filename, ext = await get_filename_and_ext(url.name)
+            if self.remove_bunkr_id:
+                filename = await self.remove_id(filename, ext)
+
             media_item = MediaItem(url, url, check_complete, filename, ext)
             await album_obj.add_media(media_item)
         else:
@@ -60,6 +64,12 @@ class BunkrCrawler:
         await self.SQL_Helper.insert_album("bunkr", url.path, album_obj)
         await log(f"[green]Finished: {str(url)}[/green]", quiet=self.quiet)
         return album_obj
+
+    async def remove_id(self, filename: str, ext: str):
+        filename = filename.rsplit(ext, 1)[0]
+        filename = filename.rsplit("-")[0]
+        filename = filename + ext
+        return filename
 
     async def get_file(self, session: ScrapeSession, url: URL):
         try:
@@ -77,6 +87,8 @@ class BunkrCrawler:
                 raise
             link = URL(link)
             filename, ext = await get_filename_and_ext(link.name)
+            if self.remove_bunkr_id:
+                filename = await self.remove_id(filename, ext)
 
             complete = await self.SQL_Helper.check_complete_singular("bunkr", link.path)
             if complete:
@@ -114,6 +126,9 @@ class BunkrCrawler:
                 except NoExtensionFailure:
                     logger.debug("Couldn't get extension for %s", str(link))
                     continue
+
+                if self.remove_bunkr_id:
+                    filename = await self.remove_id(filename, ext)
 
                 referer = link
                 if "cdn" in link.host:
