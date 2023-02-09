@@ -21,6 +21,7 @@ from cyberdrop_dl.crawlers.Gfycat_Spider import GfycatCrawler
 from cyberdrop_dl.crawlers.GoFile_Spider import GoFileCrawler
 from cyberdrop_dl.crawlers.HGameCG_Spider import HGameCGCrawler
 from cyberdrop_dl.crawlers.ImgBox_Spider import ImgBoxCrawler
+from cyberdrop_dl.crawlers.LoveFap_Spider import LoveFapCrawler
 from cyberdrop_dl.crawlers.NSFWXXXCrawler import NSFWXXXCrawler
 from cyberdrop_dl.crawlers.PimpAndHost_Spider import PimpAndHostCrawler
 from cyberdrop_dl.crawlers.PixelDrain_Spider import PixelDrainCrawler
@@ -52,6 +53,7 @@ class ScrapeMapper:
         self.gofile_crawler = None
         self.hgamecg_crawler = None
         self.imgbox_crawler = None
+        self.lovefap_crawler = None
         self.nsfwxxx_crawler = None
         self.pimpandhost_crawler = None
         self.pixeldrain_crawler = None
@@ -81,8 +83,8 @@ class ScrapeMapper:
                         "hgamecg": self.HGameCG, "imgbox": self.ImgBox, "pixeldrain": self.PixelDrain,
                         "postimg": self.PostImg, "saint": self.Saint, "img.kiwi": self.ShareX,
                         "jpg.church": self.ShareX, "jpg.fish": self.ShareX, "pixl.li": self.ShareX,
-                        "nsfw.xxx": self.NSFW_XXX, "pimpandhost": self.PimpAndHost, "coomer.party": self.Coomeno,
-                        "kemono.party": self.Coomeno,
+                        "nsfw.xxx": self.NSFW_XXX, "pimpandhost": self.PimpAndHost, "lovefap": self.LoveFap,
+                        "coomer.party": self.Coomeno, "kemono.party": self.Coomeno,
                         "simpcity": self.Xenforo, "socialmediagirls": self.Xenforo, "xbunker": self.Xenforo}
 
     async def handle_additions(self, domain: str, album_obj: Optional[AlbumItem], domain_obj: Optional[DomainItem], title=None):
@@ -177,6 +179,14 @@ class ScrapeMapper:
         album_obj = await self.imgbox_crawler.fetch(imgbox_session, url)
         await self.handle_additions("imgbox", album_obj, None, title)
         await imgbox_session.exit_handler()
+
+    async def LoveFap(self, url: URL, title=None):
+        lovefap_session = ScrapeSession(self.client)
+        if not self.lovefap_crawler:
+            self.lovefap_crawler = LoveFapCrawler(quiet=self.quiet, SQL_Helper=self.SQL_Helper)
+        album_obj = await self.lovefap_crawler.fetch(lovefap_session, url)
+        await self.handle_additions("lovefap", album_obj, None, title)
+        await lovefap_session.exit_handler()
 
     async def PimpAndHost(self, url, title=None):
         pimpandhost_session = ScrapeSession(self.client)

@@ -218,6 +218,6 @@ class SkipData:
     """The allows optoins for domains to skip when scraping"""
     supported_hosts: ClassVar[Tuple[str]] = (
         "anonfiles", "bunkr", "coomer.party", "cyberdrop", "cyberfile", "erome", "fapello", "gfycat",
-        "gofile", "hgamecg", "imgbox", "img.kiwi", "jpg.church", "jpg.fish", "pimpandhost", "pixeldrain",
+        "gofile", "hgamecg", "imgbox", "img.kiwi", "jpg.church", "jpg.fish", "lovefap", "pimpandhost", "pixeldrain",
         "pixl.li", "postimg", "saint", "socialmediagirls", "simpcity", "xbunker", "xbunkr")
     sites: List[str]
