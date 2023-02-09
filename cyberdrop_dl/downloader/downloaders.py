@@ -86,6 +86,7 @@ class Downloader:
         self.exclude_videos = args["Ignore"]["exclude_videos"]
         self.exclude_other = args["Ignore"]["exclude_other"]
 
+        self.allow_sub_folders = args['Runtime']['allow_sub_folders']
         self.allowed_attempts = args["Runtime"]["attempts"]
         self.allow_insecure_connections = args["Runtime"]["allow_insecure_connections"]
         self.disable_attempt_limit = args["Runtime"]["disable_attempt_limit"]
@@ -186,6 +187,9 @@ class Downloader:
             self.files.skipped_files += 1
             progress.advance(album_task, 1)
             return
+
+        if not self.allow_sub_folders:
+            album = album.split('/')[0]
 
         while await self.File_Lock.check_lock(media.filename):
             await asyncio.sleep(gauss(1, 1.5))

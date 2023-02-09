@@ -52,6 +52,7 @@ config_default = [
                 "disable_attempt_limit": False,
                 "include_id": False,
                 "mark_downloaded": False,
+                "allow_sub_folders": True,
                 "output_errored_urls": False,
                 "output_unsupported_urls": False,
                 "proxy": "",
