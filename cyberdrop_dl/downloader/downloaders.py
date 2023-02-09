@@ -34,8 +34,7 @@ def retry(f):
             except DownloadFailure as e:
                 if not self.disable_attempt_limit:
                     if self.current_attempt[args[3].url.parts[-1]] >= self.allowed_attempts - 1:
-                        logger.debug(e, exc_info=True)
-                        logger.debug('Skipping %s...', args[3].url)
+                        logger.debug('Skipping %s...', args[3].url, exc_info=True)
                         self.files.failed_files += 1
                         break
                 logger.debug(e.message)
@@ -118,9 +117,10 @@ class Downloader:
                 if not expected_size:
                     expected_size = await self.download_session.get_filesize(media.url, str(media.referrer),
                                                                              current_throttle)
-                if complete_file.stat().st_size == expected_size:
-                    proceed = False
-                    break
+                if complete_file.exists():
+                    if complete_file.stat().st_size == expected_size:
+                        proceed = False
+                        break
                 downloaded_filename = await self.SQL_Helper.get_downloaded_filename(url_path, original_filename)
                 if downloaded_filename:
                     if media.filename == downloaded_filename:
@@ -248,7 +248,8 @@ class Downloader:
 
         except (aiohttp.client_exceptions.ClientPayloadError, aiohttp.client_exceptions.ClientOSError,
                 aiohttp.client_exceptions.ServerDisconnectedError, asyncio.TimeoutError,
-                aiohttp.client_exceptions.ClientResponseError, DownloadFailure) as e:
+                aiohttp.client_exceptions.ClientResponseError, aiohttp.client_exceptions.ServerTimeoutError,
+                DownloadFailure) as e:
             if await self.File_Lock.check_lock(original_filename):
                 await self.File_Lock.remove_lock(original_filename)
 

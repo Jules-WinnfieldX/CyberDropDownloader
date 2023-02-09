@@ -27,8 +27,8 @@ class Client:
         self.throttle = throttle
         self.simultaneous_session_limit = asyncio.Semaphore(50)
         self.user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/109.0'
-        self.ssl_context = ssl.create_default_context(cafile=certifi.where())
         self.verify_ssl = secure
+        self.ssl_context = ssl.create_default_context(cafile=certifi.where()) if secure else False
         self.cookies = aiohttp.CookieJar(quote_cookie=False)
 
 
