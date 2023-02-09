@@ -115,7 +115,7 @@ class Downloader:
         while True:
             if complete_file.exists() or partial_file.exists():
                 if not expected_size:
-                    expected_size = await self.download_session.get_filesize(media.url, str(media.referrer),
+                    expected_size = await self.download_session.get_filesize(media.url, str(media.referer),
                                                                              current_throttle)
                 if complete_file.exists():
                     if complete_file.stat().st_size == expected_size:

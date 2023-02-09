@@ -46,7 +46,7 @@ class PostImgCrawler:
             if data_out['status_code'] != 200 or not data_out['images']:
                 break
             for item in data_out['images']:
-                referrer = URL("https://postimg.cc/" + item[0])
+                referer = URL("https://postimg.cc/" + item[0])
                 img = URL(item[4].replace(item[0], item[1]))
 
                 try:
@@ -56,7 +56,7 @@ class PostImgCrawler:
                     continue
                 url_path = await get_db_path(img)
                 complete = await self.SQL_Helper.check_complete_singular("postimg", url_path)
-                media_item = MediaItem(img, referrer, complete, filename, ext)
+                media_item = MediaItem(img, referer, complete, filename, ext)
 
                 content.append(media_item)
             i += 1

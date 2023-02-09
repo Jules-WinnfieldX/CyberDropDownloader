@@ -33,7 +33,7 @@ class SQLHelper:
                                                     domain TEXT,
                                                     url_path TEXT,
                                                     album_path TEXT,
-                                                    referrer TEXT,
+                                                    referer TEXT,
                                                     download_path TEXT,
                                                     download_filename TEXT,
                                                     original_filename TEXT,
@@ -84,10 +84,10 @@ class SQLHelper:
         filenames = list(sum(filenames, ()))
         return filenames
 
-    async def insert_media(self, domain: str, url_path: str, album_path: str, referrer: str, download_path: str,
+    async def insert_media(self, domain: str, url_path: str, album_path: str, referer: str, download_path: str,
                            download_filename: str, original_filename: str, completed: int):
         self.curs.execute("""INSERT OR IGNORE INTO media VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
-                          (domain, url_path, album_path, referrer, download_path, download_filename, original_filename, completed,))
+                          (domain, url_path, album_path, referer, download_path, download_filename, original_filename, completed,))
         self.conn.commit()
 
     async def insert_album(self, domain: str, album_path: str, album: AlbumItem):
@@ -95,7 +95,7 @@ class SQLHelper:
             for media in album.media:
                 url_path = await get_db_path(media.url)
                 self.curs.execute("""INSERT OR IGNORE INTO media VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
-                                  (domain, url_path, album_path, str(media.referrer), "", "", media.filename, 0,))
+                                  (domain, url_path, album_path, str(media.referer), "", "", media.filename, 0,))
         self.conn.commit()
 
     async def insert_domain(self, domain_name: str, album_path: str, domain: DomainItem):
@@ -104,7 +104,7 @@ class SQLHelper:
                 for media in album.media:
                     url_path = await get_db_path(media.url)
                     self.curs.execute("""INSERT OR IGNORE INTO media VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
-                                      (domain_name, url_path, album_path, str(media.referrer), "", "",
+                                      (domain_name, url_path, album_path, str(media.referer), "", "",
                                        media.filename, 0,))
         self.conn.commit()
 
@@ -115,7 +115,7 @@ class SQLHelper:
                     for media in album_obj.media:
                         url_path = media.url.path
                         self.curs.execute("""INSERT OR IGNORE INTO media VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
-                                          (domain, url_path, media.referrer.path, str(media.referrer), "",
+                                          (domain, url_path, media.referer.path, str(media.referer), "",
                                            "", media.filename, 0,))
         self.conn.commit()
 

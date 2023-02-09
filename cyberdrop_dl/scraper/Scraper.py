@@ -258,7 +258,7 @@ class ScrapeMapper:
 
     """URL to Function Mapper"""
 
-    async def map_url(self, url_to_map: URL, title=None, referrer=None):
+    async def map_url(self, url_to_map: URL, title=None, referer=None):
         if not url_to_map:
             return
         elif not url_to_map.host:
@@ -282,4 +282,4 @@ class ScrapeMapper:
         else:
             await log(f"[yellow]Not Supported: {str(url_to_map)}[/yellow]", quiet=self.quiet)
             async with aiofiles.open(self.args["Files"]["unsupported_urls_file"], mode='a') as f:
-                await f.write(f"{str(url_to_map)},{str(referrer)},{title}")
+                await f.write(f"{str(url_to_map)},{str(referer)},{title}")

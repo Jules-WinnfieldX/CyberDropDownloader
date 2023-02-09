@@ -9,7 +9,7 @@ from yarl import URL
 @dataclass
 class MediaItem:
     url: URL
-    referrer: URL
+    referer: URL
     complete: bool
     filename: str
     ext: str

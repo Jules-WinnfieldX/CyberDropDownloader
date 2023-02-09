@@ -226,12 +226,12 @@ class XenforoCrawler:
                 await cascade.add_to_album(domain, in_prog_title, media)
         return content_links
 
-    async def handle_external_links(self, content_links: list):
+    async def handle_external_links(self, content_links: list, referer: URL):
         tasks = []
         for link_title_bundle in content_links:
             link = link_title_bundle[0]
             temp_title = link_title_bundle[1]
-            tasks.append(self.scraping_mapper.map_url(link, temp_title))
+            tasks.append(self.scraping_mapper.map_url(link, temp_title, referer))
         await asyncio.gather(*tasks)
 
     async def parse_simpcity(self, session: ScrapeSession, url: URL, cascade: CascadeItem, title: str,
@@ -295,7 +295,7 @@ class XenforoCrawler:
 
         # Handle links
         content_links = await self.filter_content_links(cascade, content_links, url, "simpcity")
-        await self.handle_external_links(content_links)
+        await self.handle_external_links(content_links, url)
 
         next_page = soup.select_one('a[class="pageNav-jump pageNav-jump--next"]')
         if next_page is not None:
@@ -374,7 +374,7 @@ class XenforoCrawler:
 
         # Handle links
         content_links = await self.filter_content_links(cascade, content_links, url, "socialmediagirls")
-        await self.handle_external_links(content_links)
+        await self.handle_external_links(content_links, url)
 
         next_page = soup.select_one('a[class="pageNav-jump pageNav-jump--next"]')
         if next_page is not None:
@@ -453,7 +453,7 @@ class XenforoCrawler:
 
         # Handle links
         content_links = await self.filter_content_links(cascade, content_links, url, "xbunker")
-        await self.handle_external_links(content_links)
+        await self.handle_external_links(content_links, url)
 
         next_page = soup.select_one('a[class="pageNav-jump pageNav-jump--next"]')
         if next_page is not None:

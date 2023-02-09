@@ -51,10 +51,10 @@ class BunkrCrawler:
             await album_obj.add_media(media_item)
         else:
             if ext in FILE_FORMATS['Videos']:
-                referrer = URL(re.sub(cdn_possibilities, "bunkr.su/v", str(url)))
+                referer = URL(re.sub(cdn_possibilities, "bunkr.su/v", str(url)))
             else:
-                referrer = URL(re.sub(cdn_possibilities, "bunkr.su/d", str(url)))
-            media_item = await self.get_file(session, referrer)
+                referer = URL(re.sub(cdn_possibilities, "bunkr.su/d", str(url)))
+            media_item = await self.get_file(session, referer)
             await album_obj.add_media(media_item)
 
         await self.SQL_Helper.insert_album("bunkr", url.path, album_obj)
@@ -115,7 +115,7 @@ class BunkrCrawler:
                     logger.debug("Couldn't get extension for %s", str(link))
                     continue
 
-                referrer = link
+                referer = link
                 if "cdn" in link.host:
                     link = URL(str(link).replace("https://cdn", "https://i"))
                 else:
@@ -123,7 +123,7 @@ class BunkrCrawler:
 
                 url_path = await get_db_path(link)
                 complete = await self.SQL_Helper.check_complete_singular("bunkr", url_path)
-                media = MediaItem(link, referrer, complete, filename, ext)
+                media = MediaItem(link, referer, complete, filename, ext)
                 await album.add_media(media)
 
         except Exception as e:

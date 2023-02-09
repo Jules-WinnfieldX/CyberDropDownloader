@@ -116,7 +116,7 @@ class DownloadSession:
     async def download_file(self, media: MediaItem, file: Path, current_throttle: int, resume_point: int,
                             File_Lock: FileLock, proxy: str, headers: dict, original_filename: str,
                             progress: CascadeProgress, file_task: TaskID):
-        headers['Referer'] = str(media.referrer)
+        headers['Referer'] = str(media.referer)
         headers['user-agent'] = self.client.user_agent
         await throttle(self, current_throttle, media.url.host)
         async with self.client_session.get(media.url, headers=headers, ssl=self.client.ssl_context,
