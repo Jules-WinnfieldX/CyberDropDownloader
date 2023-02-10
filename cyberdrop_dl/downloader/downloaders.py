@@ -13,7 +13,8 @@ from rich.live import Live
 from rich.progress import TaskID
 from yarl import URL
 
-from .progress_definitions import get_forum_table, cascade_progress, domain_progress, album_progress, file_progress
+from .progress_definitions import get_forum_table, cascade_progress, domain_progress, album_progress, file_progress, \
+    forum_progress, get_cascade_table
 from cyberdrop_dl.base_functions.base_functions import log, logger, check_free_space, allowed_filetype, get_db_path
 from cyberdrop_dl.base_functions.error_classes import DownloadFailure
 from cyberdrop_dl.base_functions.sql_helper import SQLHelper
@@ -305,7 +306,7 @@ async def download_cascade(args: dict, Cascade: CascadeItem, SQL_Helper: SQLHelp
     user_threads = args["Runtime"]["simultaneous_downloads"]
     files = Files()
 
-    progress_table = await get_forum_table()
+    progress_table = await get_cascade_table()
 
     with Live(progress_table, refresh_per_second=30):
         cascade_task = cascade_progress.add_task("[light_salmon3]Domains", progress_type="cascade", total=len(Cascade.domains))
@@ -334,6 +335,7 @@ async def download_forums(args: dict, Forums: ForumItem, SQL_Helper: SQLHelper, 
     progress_table = await get_forum_table()
 
     with Live(progress_table, refresh_per_second=30):
+        forum_task = forum_progress.add_task("[orange3]FORUM THREADS", progress_type="forum", total=len(Forums.threads))
         for title, Cascade in Forums.threads.items():
             cascade_task = cascade_progress.add_task("[light_salmon3]" + title.upper(), progress_type="cascade",
                                                      total=len(Cascade.domains))
@@ -350,5 +352,6 @@ async def download_forums(args: dict, Forums: ForumItem, SQL_Helper: SQLHelper, 
             for downloader in downloaders:
                 tasks.append(downloader.start_domain(cascade_task))
             await asyncio.gather(*tasks)
+            forum_progress.advance(forum_task, 1)
     await log("")
     await log(f"| [green]Files Complete: {files.completed_files}[/green] - [yellow]Files Skipped: {files.skipped_files}[/yellow] - [red]Files Failed: {files.failed_files}[/red] |")

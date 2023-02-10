@@ -101,8 +101,8 @@ class ScrapeMapper:
         if domain_obj:
             if title:
                 await domain_obj.append_title(title)
-                for title, album in domain_obj.albums.items():
-                    await self.Forums.add_album_to_thread(domain, album.title, album)
+                for album_title, album in domain_obj.albums.items():
+                    await self.Forums.add_album_to_thread(title, domain, album)
             else:
                 for title, album in domain_obj.albums.items():
                     await self.Cascade.add_album(domain, album.title, album)
@@ -241,6 +241,8 @@ class ScrapeMapper:
             async with self.jpgfish_semaphore:
                 async with self.jpgfish_limiter:
                     domain_obj = await self.sharex_crawler.fetch(sharex_session, url)
+        else:
+            domain_obj = await self.sharex_crawler.fetch(sharex_session, url)
         await self.handle_additions("sharex", None, domain_obj, title)
         await sharex_session.exit_handler()
 
