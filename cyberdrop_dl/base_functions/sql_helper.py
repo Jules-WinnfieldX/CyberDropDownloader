@@ -15,6 +15,8 @@ class SQLHelper:
         self.download_history = download_history
         self.conn = None
         self.curs = None
+
+        self.old_history = False
         # Close the sql connection when the program exits
         atexit.register(self.exit_handler)
 
@@ -23,9 +25,17 @@ class SQLHelper:
         self.conn = sqlite3.connect(self.download_history)
         self.curs = self.conn.cursor()
 
+        await self.check_old_history()
+
         await self.pre_allocate()
         await self.create_media_history()
         await self.create_coomeno_history()
+
+    async def check_old_history(self):
+        self.curs.execute("""SELECT name FROM sqlite_schema WHERE type='table' AND name='downloads'""")
+        sql_file_check = self.curs.fetchone()
+        if sql_file_check:
+            self.old_history = True
 
     async def create_media_history(self):
         """We create the download history tables here"""
@@ -149,6 +159,13 @@ class SQLHelper:
         if sql_file_check:
             return sql_file_check[0]
         return None
+
+    async def sql_check_old_existing(self, url_path):
+        if self.ignore_history:
+            return False
+        self.curs.execute("""SELECT completed FROM downloads WHERE path = ?""", (url_path,))
+        sql_file_check = self.curs.fetchone()
+        return sql_file_check and sql_file_check[0] == 1
 
     async def check_complete_singular(self, domain, url_path):
         if self.ignore_history:

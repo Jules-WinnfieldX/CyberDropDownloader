@@ -248,16 +248,21 @@ class Downloader:
             else:
                 task_description = task_description.ljust(40)
             file_task = progress.add_task("[plum3]"+task_description, progress_type="file")
-            await self.download_session.download_file(media, partial_file, current_throttle, resume_point,
-                                                      self.File_Lock, self.proxy, headers, original_filename,
-                                                      progress, file_task)
-            partial_file.rename(complete_file)
+            fake_download = False
+            if not await self.SQL_Helper.sql_check_old_existing(url_path):
+                await self.download_session.download_file(media, partial_file, current_throttle, resume_point,
+                                                          self.File_Lock, self.proxy, headers, original_filename,
+                                                          progress, file_task)
+                partial_file.rename(complete_file)
+
             await self.SQL_Helper.mark_complete(url_path, original_filename)
             if media.url.parts[-1] in self.current_attempt.keys():
                 self.current_attempt.pop(media.url.parts[-1])
+
             self.files.completed_files += 1
             progress.advance(album_task, 1)
             progress.update(file_task, visible=False)
+
             await log(f"Completed Download: {media.filename}", quiet=True)
             await self.File_Lock.remove_lock(original_filename)
             return
