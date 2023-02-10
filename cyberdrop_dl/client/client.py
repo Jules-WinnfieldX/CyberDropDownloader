@@ -13,7 +13,7 @@ from yarl import URL
 import aiohttp
 import certifi
 
-from cyberdrop_dl.downloader.progress_definitions import CascadeProgress
+from cyberdrop_dl.downloader.progress_definitions import file_progress
 from .rate_limiting import AsyncRateLimiter, throttle
 from ..base_functions.base_functions import logger
 from ..base_functions.data_classes import FileLock, MediaItem
@@ -115,7 +115,7 @@ class DownloadSession:
 
     async def download_file(self, media: MediaItem, file: Path, current_throttle: int, resume_point: int,
                             File_Lock: FileLock, proxy: str, headers: dict, original_filename: str,
-                            progress: CascadeProgress, file_task: TaskID):
+                            file_task: TaskID):
         headers['Referer'] = str(media.referer)
         headers['user-agent'] = self.client.user_agent
         await throttle(self, current_throttle, media.url.host)
@@ -130,14 +130,14 @@ class DownloadSession:
             total = int(resp.headers.get('Content-Length', str(0))) + resume_point
             file.parent.mkdir(parents=True, exist_ok=True)
 
-            progress.update(file_task, total=total)
-            progress.advance(file_task, resume_point)
+            file_progress.update(file_task, total=total)
+            file_progress.advance(file_task, resume_point)
 
             async with aiofiles.open(file, mode='ab') as f:
                 async for chunk, _ in resp.content.iter_chunks():
                     await asyncio.sleep(0)
                     await f.write(chunk)
-                    progress.advance(file_task, len(chunk))
+                    file_progress.advance(file_task, len(chunk))
 
     async def get_filesize(self, url: URL, referer: str, current_throttle: int):
         headers = {'Referer': referer, 'user-agent': self.client.user_agent}

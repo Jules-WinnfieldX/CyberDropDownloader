@@ -68,7 +68,8 @@ class BunkrCrawler:
     async def remove_id(self, filename: str, ext: str):
         filename = filename.rsplit(ext, 1)[0]
         filename = filename.rsplit("-")[0]
-        filename = filename + ext
+        if not ext in filename:
+            filename = filename + ext
         return filename
 
     async def get_file(self, session: ScrapeSession, url: URL):

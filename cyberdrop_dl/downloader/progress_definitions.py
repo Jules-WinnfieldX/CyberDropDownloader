@@ -1,101 +1,42 @@
-from rich.progress import Progress, BarColumn, TimeRemainingColumn, TextColumn, SpinnerColumn, TransferSpeedColumn, \
-    FileSizeColumn, TotalFileSizeColumn, DownloadColumn
+from rich.panel import Panel
+from rich.progress import Progress, BarColumn, SpinnerColumn, TransferSpeedColumn, DownloadColumn, TimeRemainingColumn
+from rich.table import Table
+
+forum_progess = Progress("[progress.description]{task.description}",
+                         BarColumn(bar_width=None),
+                         "[progress.percentage]{task.percentage:>3.2f}%",
+                         "{task.completed} of {task.total} Threads Completed")
+
+cascade_progress = Progress("[progress.description]{task.description}",
+                            BarColumn(bar_width=None),
+                            "[progress.percentage]{task.percentage:>3.2f}%",
+                            "{task.completed} of {task.total} Domains Completed")
+
+domain_progress = Progress("[progress.description]{task.description}",
+                           BarColumn(bar_width=None),
+                           "[progress.percentage]{task.percentage:>3.2f}%",
+                           "{task.completed} of {task.total} Albums Completed")
+
+album_progress = Progress("[progress.description]{task.description}",
+                          BarColumn(bar_width=None),
+                          "[progress.percentage]{task.percentage:>3.2f}%",
+                          "{task.completed} of {task.total} Files Completed")
+
+file_progress = Progress(SpinnerColumn(),
+                         "[progress.description]{task.description}",
+                         BarColumn(bar_width=None),
+                         "[progress.percentage]{task.percentage:>3.2f}%",
+                         "•",
+                         DownloadColumn(),
+                         "•",
+                         TransferSpeedColumn(),
+                         TimeRemainingColumn())
 
 
-class CascadeProgress(Progress):
-    def get_renderables(self):
-        for task in self.tasks:
-            if task.fields.get("progress_type") == "cascade":
-                self.columns = (
-                    "{task.completed} of {task.total} Domains Completed",
-                    BarColumn(),
-                    "[progress.percentage]{task.percentage:>3.2f}%"
-                )
-            if task.fields.get("progress_type") == "domain":
-                self.columns = (
-                    "├─",
-                    "[progress.description]{task.description}",
-                    BarColumn(),
-                    "[progress.percentage]{task.percentage:>3.2f}%",
-                    "{task.completed} of {task.total} Albums Completed"
-                )
-            if task.fields.get("progress_type") == "domain_summary":
-                self.columns = (
-                    "├─",
-                    "[progress.description]{task.description}",
-                    "{task.completed} of {task.total} Albums Completed"
-                )
-            if task.fields.get("progress_type") == "album":
-                self.columns = (
-                    "├──",
-                    "[progress.description]{task.description}",
-                    BarColumn(),
-                    "[progress.percentage]{task.percentage:>3.2f}%",
-                    "{task.completed} of {task.total} Files Completed"
-                )
-            if task.fields.get("progress_type") == "file":
-                self.columns = (
-                    "├───", SpinnerColumn(),
-                    "[progress.description]{task.description}",
-                    BarColumn(),
-                    "[progress.percentage]{task.percentage:>3.2f}%",
-                    "•",
-                    DownloadColumn(),
-                    "•",
-                    TransferSpeedColumn()
-                )
-            yield self.make_tasks_table([task])
-
-
-class ForumsProgress(Progress):
-    def get_renderables(self):
-        for task in self.tasks:
-            if task.fields.get("progress_type") == "forum":
-                self.columns = (
-                    "[progress.description]{task.description}",
-                    BarColumn(bar_width=None),
-                    "[progress.percentage]{task.percentage:>3.2f}%",
-                    "{task.completed} of {task.total} Threads Completed",
-                )
-            if task.fields.get("progress_type") == "cascade":
-                self.columns = (
-                    "├─",
-                    "[progress.description]{task.description}",
-                    BarColumn(bar_width=None),
-                    "[progress.percentage]{task.percentage:>3.2f}%",
-                    "{task.completed} of {task.total} Domains Completed",
-                )
-            if task.fields.get("progress_type") == "domain":
-                self.columns = (
-                    "├──",
-                    "[progress.description]{task.description}",
-                    BarColumn(bar_width=None),
-                    "[progress.percentage]{task.percentage:>3.2f}%",
-                    "{task.completed} of {task.total} Albums Completed",
-                )
-            if task.fields.get("domain_updated"):
-                self.columns = (
-                    "├──",
-                    "[progress.description]{task.description}",
-                    "{task.completed} of {task.total} Albums Completed",
-                )
-            if task.fields.get("progress_type") == "album":
-                self.columns = (
-                    "├───",
-                    "[progress.description]{task.description}",
-                    BarColumn(bar_width=None),
-                    "[progress.percentage]{task.percentage:>3.2f}%",
-                    "{task.completed} of {task.total} Files Completed",
-                )
-            if task.fields.get("progress_type") == "file":
-                self.columns = (
-                    "├────", SpinnerColumn(),
-                    "[progress.description]{task.description}",
-                    BarColumn(bar_width=None),
-                    "[progress.percentage]{task.percentage:>3.2f}%",
-                    "•",
-                    DownloadColumn(),
-                    "•",
-                    TransferSpeedColumn()
-                )
-            yield self.make_tasks_table([task])
+async def get_forum_table():
+    progress_table = Table.grid(expand=True)
+    progress_table.add_row(Panel.fit(cascade_progress, title="Current Thread", border_style="green", padding=(1, 1)))
+    progress_table.add_row(Panel.fit(domain_progress, title="Domains Being Downloaded", border_style="green", padding=(1, 1)))
+    progress_table.add_row(Panel.fit(album_progress, title="Albums Being Downloaded", border_style="green", padding=(1, 1)))
+    progress_table.add_row(Panel.fit(file_progress, title="[b]Files Being Downloaded", border_style="green", padding=(1, 1)))
+    return progress_table
