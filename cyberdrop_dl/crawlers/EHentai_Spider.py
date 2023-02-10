@@ -33,6 +33,7 @@ class EHentaiCrawler:
             images = soup.select("div[class=gdtm] div a")
             for image in images:
                 image = image.get('href')
+                image = URL(image)
                 await self.get_image(session, image, album_obj)
 
             next_page_opts = soup.select('td[onclick="document.location=this.firstChild.href"]')
@@ -57,7 +58,7 @@ class EHentaiCrawler:
             image = soup.select_one("img[id=img]")
             link = URL(image.get('src'))
 
-            url_path = await get_db_path(link)
+            url_path = await get_db_path(link, 'e-hentai')
             complete = await self.SQL_Helper.check_complete_singular("e-hentai", url_path)
 
             filename, ext = await get_filename_and_ext(link.name)

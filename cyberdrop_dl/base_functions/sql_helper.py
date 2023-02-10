@@ -116,7 +116,7 @@ class SQLHelper:
     async def insert_album(self, domain: str, album_path: str, album: AlbumItem):
         if album.media:
             for media in album.media:
-                url_path = await get_db_path(media.url)
+                url_path = await get_db_path(media.url, domain)
                 self.curs.execute("""INSERT OR IGNORE INTO media VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
                                   (domain, url_path, album_path, str(media.referer), "", "", media.filename, 0,))
         self.conn.commit()
@@ -125,7 +125,7 @@ class SQLHelper:
         if domain.albums:
             for title, album in domain.albums.items():
                 for media in album.media:
-                    url_path = await get_db_path(media.url)
+                    url_path = await get_db_path(media.url, domain_name)
                     self.curs.execute("""INSERT OR IGNORE INTO media VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
                                       (domain_name, url_path, album_path, str(media.referer), "", "",
                                        media.filename, 0,))
@@ -136,7 +136,7 @@ class SQLHelper:
             for domain, domain_obj in cascade.domains.items():
                 for title, album_obj in domain_obj.albums.items():
                     for media in album_obj.media:
-                        url_path = media.url.path
+                        url_path = await get_db_path(media.url, domain)
                         self.curs.execute("""INSERT OR IGNORE INTO media VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
                                           (domain, url_path, media.referer.path, str(media.referer), "",
                                            "", media.filename, 0,))

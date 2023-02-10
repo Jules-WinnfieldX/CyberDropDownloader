@@ -57,6 +57,14 @@ config_default = [
                 "output_errored_urls": False,
                 "output_unsupported_urls": False,
                 "proxy": "",
+            },
+            "Sorting": {
+                "sort_downloads": False,
+                "sort_directory": "Sorted Downloads",
+                "sorted_audio": "{sort_dir}/{base_dir}/Audio",
+                "sorted_images": "{sort_dir}/{base_dir}/Images",
+                "sorted_others": "{sort_dir}/{base_dir}/Other",
+                "sorted_videos": "{sort_dir}/{base_dir}/Videos"
             }
         }
     }
@@ -80,5 +88,7 @@ jdownloader_args = ["apply_jdownloader", "jdownloader_username", "jdownloader_pa
 ratelimiting_args = ["connection_timeout", "ratelimit", "throttle"]
 
 runtime_args = ["simultaneous_downloads", "allow_insecure_connections", "attempts", "disable_attempt_limit",
-                "include_id",  "mark_downloaded", "proxy", "required_free_space", "output_errored_urls",
+                "include_id", "mark_downloaded", "proxy", "required_free_space", "output_errored_urls",
                 "output_unsupported_urls"]
+
+sorting_args = ["sort_downloads", "sort_directory", "sorted_audio", "sorted_images", "sorted_others", "sorted_videos"]

@@ -6,7 +6,7 @@ import yaml
 
 from cyberdrop_dl.base_functions.base_functions import log
 from cyberdrop_dl.base_functions.config_schema import config_default, authentication_args, files_args, \
-    jdownloader_args, runtime_args, forum_args, ignore_args, ratelimiting_args
+    jdownloader_args, runtime_args, forum_args, ignore_args, ratelimiting_args, sorting_args
 
 
 def create_config(config: Path, passed_args=None, remake=None):
@@ -57,13 +57,15 @@ def validate_config(config: Path):
             recreate = 1
         if not set(runtime_args).issubset(set(data['Runtime'].keys())):
             recreate = 1
+        if not set(sorting_args).issubset(set(data['Sorting'].keys())):
+            recreate = 1
 
         if recreate:
             config.unlink()
 
             args = {}
             args_list = [data['Authentication'], data['Files'], data['Forum_Options'], data['Ignore'],
-                         data['JDownloader'], data['Ratelimiting'], data['Runtime']]
+                         data['JDownloader'], data['Ratelimiting'], data['Runtime'], data['Sorting']]
             for dic in args_list:
                 args.update(dic)
             create_config(config, args, True)
@@ -83,6 +85,7 @@ def run_args(config: Path, cmd_arg: dict):
     if data['Apply_Config']:
         for file, path in data['Files'].items():
             data['Files'][file] = Path(path)
+        data['Sorting']['sort_directory'] = Path(data['Sorting']['sort_directory'])
         return data
 
     config_data = config_default[0]["Configuration"]
@@ -107,6 +110,9 @@ def run_args(config: Path, cmd_arg: dict):
     for arg in runtime_args:
         if arg in cmd_arg.keys():
             config_data["Runtime"][arg] = cmd_arg[arg]
+    for arg in sorting_args:
+        if arg in cmd_arg.keys():
+            config_data["Sorting"][arg] = cmd_arg[arg]
     return config_data
 
 
@@ -127,3 +133,4 @@ async def document_args(args: dict):
     await log(f"Using jdownloader arguments: {print_args['JDownloader']}", quiet=True)
     await log(f"Using ratelimiting arguments: {print_args['Ratelimiting']}", quiet=True)
     await log(f"Using runtime arguments: {print_args['Runtime']}", quiet=True)
+    await log(f"Using sorting arguments: {print_args['Sorting']}", quiet=True)

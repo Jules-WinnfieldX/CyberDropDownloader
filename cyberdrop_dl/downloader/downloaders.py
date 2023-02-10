@@ -114,6 +114,20 @@ class Downloader:
         progress.advance(domain_task, 1)
 
     async def start_file(self, progress: CascadeProgress, album_task: TaskID, album: str, media: MediaItem):
+        if media.complete:
+            await log(f"Previously Downloaded: {media.filename}", quiet=True)
+            self.files.skipped_files += 1
+            progress.advance(album_task, 1)
+            return
+        else:
+            url_path = await get_db_path(URL(media.url), self.domain)
+            complete = await self.SQL_Helper.check_complete_singular(self.domain, url_path)
+            if complete:
+                await log(f"Previously Downloaded: {media.filename}", quiet=True)
+                self.files.skipped_files += 1
+                progress.advance(album_task, 1)
+                return
+
         async with self._semaphore:
             await self.download_file(progress, album_task, album, media)
 
@@ -163,20 +177,6 @@ class Downloader:
 
     @retry
     async def download_file(self, progress: CascadeProgress, album_task: TaskID, album: str, media: MediaItem):
-        if media.complete:
-            await log(f"Previously Downloaded: {media.filename}", quiet=True)
-            self.files.skipped_files += 1
-            progress.advance(album_task, 1)
-            return
-        else:
-            url_path = await get_db_path(URL(media.url))
-            complete = await self.SQL_Helper.check_complete_singular(self.domain, url_path)
-            if complete:
-                await log(f"Previously Downloaded: {media.filename}", quiet=True)
-                self.files.skipped_files += 1
-                progress.advance(album_task, 1)
-                return
-
         if not await check_free_space(self.required_free_space, self.download_dir):
             await log("We've run out of free space.", quiet=True)
             self.files.skipped_files += 1
@@ -188,6 +188,8 @@ class Downloader:
             self.files.skipped_files += 1
             progress.advance(album_task, 1)
             return
+
+        url_path = await get_db_path(URL(media.url), self.domain)
 
         if not self.allow_sub_folders:
             album = album.split('/')[0]

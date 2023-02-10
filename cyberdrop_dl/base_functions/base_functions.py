@@ -110,7 +110,7 @@ async def write_last_post_file(file: Path, url: str):
     return
 
 
-async def get_db_path(url: URL):
+async def get_db_path(url: URL, referer=None):
     url_path = url.path
     if 'anonfiles' in url.host or 'bayfiles' in url.host:
         url_path = url.path
@@ -119,6 +119,11 @@ async def get_db_path(url: URL):
         if len(url_path) > 1:
             url_path.pop(1)
         url_path = '/' + '/'.join(url_path)
+    if referer:
+        if "e-hentai" in referer:
+            url_path = url.path
+            url_path = url_path.split('keystamp')[0][:-1]
+
     return url_path
 
 

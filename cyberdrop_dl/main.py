@@ -8,6 +8,7 @@ from yarl import URL
 
 from cyberdrop_dl.base_functions.base_functions import log, clear, regex_links, check_free_space, purge_dir
 from cyberdrop_dl.base_functions.config_manager import run_args, document_args
+from cyberdrop_dl.base_functions.sorting_functions import Sorter
 from cyberdrop_dl.base_functions.sql_helper import SQLHelper
 from cyberdrop_dl.client.client import Client
 from cyberdrop_dl.downloader.downloaders import download_cascade, download_forums
@@ -85,6 +86,8 @@ async def file_management(args: dict, links: list) -> None:
     input_file = args['Files']['input_file']
     if not input_file.is_file() and not links:
         input_file.touch()
+
+    Path(args['Files']['output_folder']).mkdir(parents=True, exist_ok=True)
 
     if args['Forum_Options']['output_last_forum_post']:
         output_url_file = args['Files']['output_last_forum_post_file']
@@ -172,7 +175,13 @@ async def director(args: dict, links: list) -> None:
     if not await Forums.is_empty():
         await download_forums(args, Forums, SQL_Helper, client, Scraper)
 
-    # Do optional sort
+    if args['Sorting']['sort_downloads']:
+        await log("")
+        await log("Sorting Downloads")
+        sorter = Sorter(args['Files']['output_folder'], args['Sorting']['sort_directory'],
+                        args['Sorting']['sorted_audio'], args['Sorting']['sorted_images'],
+                        args['Sorting']['sorted_videos'], args['Sorting']['sorted_others'],)
+        await sorter.sort()
 
     await log("")
     await log("Checking for incomplete downloads")
