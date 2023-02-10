@@ -161,6 +161,8 @@ class SQLHelper:
         return None
 
     async def sql_check_old_existing(self, url_path):
+        if not self.old_history:
+            return False
         if self.ignore_history:
             return False
         self.curs.execute("""SELECT completed FROM downloads WHERE path = ?""", (url_path,))

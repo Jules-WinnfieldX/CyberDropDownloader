@@ -313,7 +313,8 @@ async def download_cascade(args: dict, Cascade: CascadeItem, SQL_Helper: SQLHelp
             if 'bunkr' in domain or 'pixeldrain' in domain or 'anonfiles' in domain:
                 threads = 2 if (threads > 2) else threads
             download_semaphore = asyncio.Semaphore(threads)
-            downloaders.append(Downloader(args, client, SQL_Helper, scraper, threads, domain, domain_obj, download_semaphore, files))
+            downloaders.append(Downloader(args, client, SQL_Helper, scraper, threads, domain, domain_obj,
+                                          download_semaphore, files))
         for downloader in downloaders:
             tasks.append(downloader.start_domain(progress, cascade_task))
         await asyncio.gather(*tasks)
@@ -329,7 +330,8 @@ async def download_forums(args: dict, Forums: ForumItem, SQL_Helper: SQLHelper, 
     with ForumsProgress() as progress:
         forum_task = progress.add_task("[orange3]FORUM THREADS", progress_type="forum", total=len(Forums.threads))
         for title, Cascade in Forums.threads.items():
-            cascade_task = progress.add_task("[light_salmon3]"+title.upper(), progress_type="cascade", total=len(Cascade.domains))
+            cascade_task = progress.add_task("[light_salmon3]"+title.upper(), progress_type="cascade",
+                                             total=len(Cascade.domains))
 
             downloaders = []
             tasks = []
@@ -338,7 +340,8 @@ async def download_forums(args: dict, Forums: ForumItem, SQL_Helper: SQLHelper, 
                 if 'bunkr' in domain or 'pixeldrain' in domain or 'anonfiles' in domain:
                     threads = 2 if (threads > 2) else threads
                 download_semaphore = asyncio.Semaphore(threads)
-                downloaders.append(Downloader(args, client, SQL_Helper, scraper, threads, domain, domain_obj, download_semaphore, files))
+                downloaders.append(Downloader(args, client, SQL_Helper, scraper, threads, domain, domain_obj,
+                                              download_semaphore, files))
             for downloader in downloaders:
                 tasks.append(downloader.start_domain(progress, cascade_task))
             await asyncio.gather(*tasks)
