@@ -12,6 +12,7 @@ class HGameCGCrawler:
         self.SQL_Helper = SQL_Helper
 
     async def fetch(self, session: ScrapeSession, url: URL):
+        """Basic director for HGameCG"""
         album_obj = AlbumItem("Loose HGamesCG Files", [])
 
         await log(f"[green]Starting: {str(url)}[/green]", quiet=self.quiet)
@@ -22,10 +23,11 @@ class HGameCGCrawler:
         return album_obj
 
     async def get_album(self, session: ScrapeSession, url: URL, album_obj: AlbumItem):
+        """Handles album scraping, adds media items to the album_obj"""
         try:
             soup = await session.get_BS4(url)
             title = await make_title_safe(soup.select_one("div[class=navbar] h1").get_text())
-            title = await album_obj.set_new_title(title)
+            await album_obj.set_new_title(title)
 
             images = soup.select("div[class=image] a")
             for image in images:
@@ -53,6 +55,7 @@ class HGameCGCrawler:
             logger.debug(e)
 
     async def get_image(self, session: ScrapeSession, url: URL):
+        """Gets image link from the given url."""
         try:
             soup = await session.get_BS4(url)
             image = soup.select_one("div[class=hgamecgimage] img")

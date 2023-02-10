@@ -19,6 +19,7 @@ class GoFileCrawler:
         self.token = None
 
     async def get_token(self, session: ScrapeSession):
+        """Creates an anon gofile account to use."""
         if self.token:
             return
 
@@ -35,6 +36,7 @@ class GoFileCrawler:
             logger.debug(e)
 
     async def set_cookie(self, session: ScrapeSession):
+        """Sets the given token as a cookie into the session (and client)"""
         client_token = self.token
         morsel = http.cookies.Morsel()
         morsel['domain'] = 'gofile.io'
@@ -42,6 +44,7 @@ class GoFileCrawler:
         session.client_session.cookie_jar.update_cookies({'gofile.io': morsel})
 
     async def fetch(self, session: ScrapeSession, url: URL):
+        """Basic director for actual scraping"""
         try:
             await log(f"[green]Starting: {str(url)}[/green]", quiet=self.quiet)
             domain_obj = DomainItem("gofile", {})
@@ -61,6 +64,7 @@ class GoFileCrawler:
             logger.debug(e)
 
     async def get_links(self, session: ScrapeSession, url: URL, content_id: str, title=None):
+        """Gets links from the given url, creates media_items"""
         results = []
         params = {
             "token": self.token,

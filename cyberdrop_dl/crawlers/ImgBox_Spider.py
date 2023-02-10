@@ -14,6 +14,7 @@ class ImgBoxCrawler:
         self.SQL_Helper = SQL_Helper
 
     async def fetch(self, session: ScrapeSession, url: URL):
+        """Director func for ImgBox scraping"""
         album_obj = AlbumItem("Loose ImgBox Files", [])
         await log(f"[green]Starting: {str(url)}[/green]", quiet=self.quiet)
 
@@ -59,6 +60,7 @@ class ImgBoxCrawler:
         return album_obj
 
     async def folder(self, session: ScrapeSession, url: URL):
+        """Gets links from a folder"""
         soup = await session.get_BS4(url)
         output = []
         title = soup.select_one("div[id=gallery-view] h1").get_text()
@@ -72,6 +74,7 @@ class ImgBoxCrawler:
         return title, output
 
     async def singular(self, session: ScrapeSession, url: URL):
+        """Gets individual links"""
         soup = await session.get_BS4(url)
         link = URL(soup.select_one("img[id=img]").get('src'))
         return link

@@ -18,6 +18,7 @@ class CoomenoCrawler:
         self.SQL_Helper = SQL_Helper
 
     async def fetch(self, session: ScrapeSession, url: URL):
+        """Director for Coomer/Kemono scraping"""
         await log(f"[green]Starting: {str(url)}[/green]", quiet=self.quiet)
         cascade = CascadeItem({})
         title = None
@@ -36,6 +37,7 @@ class CoomenoCrawler:
         return cascade, title
 
     async def handle_coomer(self, session: ScrapeSession, url: URL, cascade: CascadeItem):
+        """Coomer director function"""
         post_selectors = ['h2[class=post-card__heading] a']
         next_page_selector = 'a[title="Next page"]'
         images_selector = 'a[class="fileThumb"]'
@@ -71,6 +73,7 @@ class CoomenoCrawler:
         return title
 
     async def handle_kemono(self, session: ScrapeSession, url: URL, cascade: CascadeItem):
+        """Kemono director function"""
         post_selectors = ['article[class="post-card post-card--preview"] a', 'article[class="post-card"] a']
         next_page_selector = 'a[class=next]'
         images_selector = 'a[class="fileThumb"]'
@@ -106,6 +109,7 @@ class CoomenoCrawler:
         return title
 
     async def map_links(self, text_content: list, title: str, referer: URL):
+        """Maps external links to other scrapers"""
         tasks = []
         for content in text_content:
             link = URL(content.get('href'))
@@ -115,6 +119,7 @@ class CoomenoCrawler:
     async def parse_profile(self, session: ScrapeSession, url: URL, domain: str, cascade: CascadeItem,
                             posts_selectors: list, next_page_selector: str, images_selector: str,
                             downloads_selector: str, text_selector: str):
+        """Parses profiles with supplied selectors"""
         title = None
         try:
             soup = await session.get_BS4(url)
@@ -148,6 +153,7 @@ class CoomenoCrawler:
 
     async def parse_post(self, session: ScrapeSession, url: URL, domain: str, cascade: CascadeItem,
                          images_selector: str, downloads_selector: str, text_selector: str, title=None):
+        """Parses posts with supplied selectors"""
         try:
             url_path = await get_db_path(url)
             text = await self.SQL_Helper.get_blob(url_path)

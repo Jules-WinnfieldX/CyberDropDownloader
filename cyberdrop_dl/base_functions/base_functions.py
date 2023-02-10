@@ -74,6 +74,7 @@ async def check_free_space(required_space: int, download_directory: Path) -> boo
 
 
 async def allowed_filetype(media: MediaItem, block_images: bool, block_video: bool, block_audio: bool, block_other: bool):
+    """Checks whether the enclosed file is allowed to be downloaded"""
     ext = media.ext
     if block_images:
         if ext in FILE_FORMATS["Images"]:
@@ -111,6 +112,7 @@ async def write_last_post_file(file: Path, url: str):
 
 
 async def get_db_path(url: URL, referer=None):
+    """Gets the URL path to be put into the DB and checked from the DB"""
     url_path = url.path
     if 'anonfiles' in url.host or 'bayfiles' in url.host:
         url_path = url.path
@@ -140,6 +142,7 @@ async def make_title_safe(title: str) -> str:
 
 
 async def check_direct(url: URL):
+    """Checks whether the given url is a direct link to a content item"""
     mapping_direct = [r'i.pixl.li', r'i..pixl.li', r'img-...cyberdrop...', r'f.cyberdrop...',
                       r'fs-...cyberdrop...', r'jpg.church/images/...', r'simp..jpg.church', r's..putmega.com',
                       r's..putme.ga', r'images..imgbox.com', 's..lovefap...']
@@ -147,6 +150,7 @@ async def check_direct(url: URL):
 
 
 async def get_filename_and_ext(filename):
+    """Returns the filename and extension of a given file, throws NoExtensionFailure if there is no extension"""
     filename_parts = filename.rsplit('.', 1)
     if len(filename_parts) == 1:
         raise NoExtensionFailure()

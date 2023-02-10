@@ -8,6 +8,7 @@ from cyberdrop_dl.base_functions.error_classes import JDownloaderFailure
 
 
 class JDownloader:
+    """Class that handles connecting and passing links to JDownloader"""
     def __init__(self, jdownloader_args: dict, quiet: bool):
         self.jdownloader_device = jdownloader_args['jdownloader_device']
         self.jdownloader_username = jdownloader_args['jdownloader_username']
@@ -18,6 +19,7 @@ class JDownloader:
         self.quiet = quiet
 
     async def jdownloader_setup(self):
+        """Setup function for JDownloader"""
         try:
             if not self.jdownloader_username or not self.jdownloader_password or not self.jdownloader_device:
                 raise JDownloaderFailure("jdownloader credentials were not provided.")
@@ -30,6 +32,7 @@ class JDownloader:
             self.jdownloader_enable = False
 
     async def direct_unsupported_to_jdownloader(self, url: URL, title: str):
+        """Sends links to JDownloader"""
         if self.jdownloader_enable:
             if not self.jdownloader_agent:
                 await self.jdownloader_setup()

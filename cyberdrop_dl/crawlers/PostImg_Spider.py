@@ -13,6 +13,7 @@ class PostImgCrawler:
         self.SQL_Helper = SQL_Helper
 
     async def fetch(self, session: ScrapeSession, url: URL):
+        """Director for PostImg scraping"""
         album_obj = AlbumItem("Loose PostImg Files", [])
         await log(f"[green]Starting: {str(url)}[/green]", quiet=self.quiet)
 
@@ -35,6 +36,7 @@ class PostImgCrawler:
         return album_obj
 
     async def get_folder(self, session: ScrapeSession, url: URL):
+        """Handles folder scraping"""
         album = url.raw_name
         data = {"action": "list", "album": album}
         content = []
@@ -63,6 +65,7 @@ class PostImgCrawler:
         return content
 
     async def get_singular(self, session: ScrapeSession, url: URL):
+        """Handles singular folder scraping"""
         soup = await session.get_BS4(url)
         link = URL(soup.select_one("a[id=download]").get('href').replace("?dl=1", ""))
 

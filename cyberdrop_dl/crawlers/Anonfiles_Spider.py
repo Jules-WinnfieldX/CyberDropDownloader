@@ -13,6 +13,7 @@ class AnonfilesCrawler:
         self.api_link = URL("https://api.anonfiles.com/v2/file")
 
     async def fetch(self, session: ScrapeSession, url: URL):
+        """Scraper for Anonfiles"""
         if 'cdn' in url.host:
             url = URL("https://anonfiles.com") / url.parts[1]
 

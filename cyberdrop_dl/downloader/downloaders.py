@@ -15,7 +15,8 @@ from yarl import URL
 
 from .progress_definitions import get_forum_table, cascade_progress, domain_progress, album_progress, file_progress, \
     forum_progress, get_cascade_table
-from cyberdrop_dl.base_functions.base_functions import log, logger, check_free_space, allowed_filetype, get_db_path
+from cyberdrop_dl.base_functions.base_functions import log, logger, check_free_space, allowed_filetype, get_db_path, \
+    clear
 from cyberdrop_dl.base_functions.error_classes import DownloadFailure
 from cyberdrop_dl.base_functions.sql_helper import SQLHelper
 from cyberdrop_dl.base_functions.data_classes import AlbumItem, CascadeItem, FileLock, ForumItem, DomainItem, MediaItem
@@ -29,6 +30,7 @@ async def basic_auth(username, password):
 
 
 def retry(f):
+    """This function is a wrapper that handles retrying for failed downloads"""
     @wraps(f)
     async def wrapper(self, *args, **kwargs):
         while True:
@@ -51,6 +53,7 @@ def retry(f):
 
 
 class Files:
+    """Class that keeps that of completed, skipped and failed files"""
     def __init__(self):
         self.completed_files = 0
         self.skipped_files = 0
@@ -58,6 +61,7 @@ class Files:
 
 
 class Downloader:
+    """Downloader class, directs downloading for domain objects"""
     def __init__(self, args: dict, client: Client, SQL_Helper: SQLHelper, scraper: ScrapeMapper, max_workers: int,
                  domain: str, domain_obj: DomainItem, semaphore: asyncio.Semaphore, files: Files):
         self.backup_scraper = scraper
@@ -97,6 +101,7 @@ class Downloader:
         self.required_free_space = args["Runtime"]["required_free_space"]
 
     async def start_domain(self, cascade_task: TaskID):
+        """Handler for domains and the progress bars for it"""
         domain_task = domain_progress.add_task("[light_pink3]" + self.domain.upper(), progress_type="domain",
                                                total=len(self.domain_obj.albums))
         for album, album_obj in self.domain_obj.albums.items():
@@ -105,6 +110,7 @@ class Downloader:
         domain_progress.update(domain_task, visible=False)
 
     async def start_album(self, domain_task: TaskID, album: str, album_obj: AlbumItem):
+        """Handler for albums and the progress bars for it"""
         if await album_obj.is_empty():
             return
         album_task = album_progress.add_task("[pink3]" + album.upper(), progress_type="album", total=len(album_obj.media))
@@ -116,6 +122,7 @@ class Downloader:
         domain_progress.advance(domain_task, 1)
 
     async def start_file(self, album_task: TaskID, album: str, media: MediaItem):
+        """Handler for files and the progress bars for it"""
         if media.complete:
             await log(f"Previously Downloaded: {media.filename}", quiet=True)
             self.files.skipped_files += 1
@@ -135,6 +142,7 @@ class Downloader:
 
     async def check_file_exists(self, complete_file, partial_file, media, album, url_path, original_filename,
                                 current_throttle):
+        """Complicated checker for if a file already exists, and was already downloaded"""
         expected_size = None
         proceed = True
         while True:
@@ -179,6 +187,7 @@ class Downloader:
 
     @retry
     async def download_file(self, album_task: TaskID, album: str, media: MediaItem):
+        """File downloader"""
         if not await check_free_space(self.required_free_space, self.download_dir):
             await log("We've run out of free space.", quiet=True)
             self.files.skipped_files += 1
@@ -303,6 +312,7 @@ class Downloader:
 
 async def download_cascade(args: dict, Cascade: CascadeItem, SQL_Helper: SQLHelper, client: Client,
                            scraper: ScrapeMapper) -> None:
+    """Handler for cascades and the progress bars for it"""
     user_threads = args["Runtime"]["simultaneous_downloads"]
     files = Files()
 
@@ -324,11 +334,13 @@ async def download_cascade(args: dict, Cascade: CascadeItem, SQL_Helper: SQLHelp
             tasks.append(downloader.start_domain(cascade_task))
         await asyncio.gather(*tasks)
 
+    await clear()
     await log(f"| [green]Files Complete: {files.completed_files}[/green] - [yellow]Files Skipped: {files.skipped_files}[/yellow] - [red]Files Failed: {files.failed_files}[/red] |")
 
 
 async def download_forums(args: dict, Forums: ForumItem, SQL_Helper: SQLHelper, client: Client,
                           scraper: ScrapeMapper) -> None:
+    """Handler for forum threads and the progress bars for it"""
     user_threads = args["Runtime"]["simultaneous_downloads"]
     files = Files()
 
@@ -352,6 +364,8 @@ async def download_forums(args: dict, Forums: ForumItem, SQL_Helper: SQLHelper, 
             for downloader in downloaders:
                 tasks.append(downloader.start_domain(cascade_task))
             await asyncio.gather(*tasks)
+            cascade_progress.update(cascade_task, visible=False)
             forum_progress.advance(forum_task, 1)
-    await log("")
+
+    await clear()
     await log(f"| [green]Files Complete: {files.completed_files}[/green] - [yellow]Files Skipped: {files.skipped_files}[/yellow] - [red]Files Failed: {files.failed_files}[/red] |")

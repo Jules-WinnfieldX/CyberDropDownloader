@@ -17,6 +17,7 @@ class ShareXCrawler:
         self.SQL_Helper = SQL_Helper
 
     async def fetch(self, session: ScrapeSession, url: URL):
+        """Director for ShareX scraper"""
         domain_obj = DomainItem(url.host.lower(), {})
 
         await log(f"[green]Starting: {str(url)}[/green]", quiet=self.quiet)
@@ -38,11 +39,12 @@ class ShareXCrawler:
             await self.parse_profile(session, url, domain_obj)
 
         url_path = await get_db_path(url)
-        await self.SQL_Helper.insert_domain("gofile", url_path, domain_obj)
+        await self.SQL_Helper.insert_domain("sharex", url_path, domain_obj)
         await log(f"[green]Finished: {str(url)}[/green]", quiet=self.quiet)
         return domain_obj
 
     async def get_albums(self, session: ScrapeSession, url: URL, domain_obj: DomainItem):
+        """Handles scraping for Albums"""
         try:
             soup = await session.get_BS4(url)
             albums = soup.select("a[class='image-container --media']")
@@ -65,6 +67,7 @@ class ShareXCrawler:
             logger.debug(e)
 
     async def get_singular(self, session: ScrapeSession, url: URL, domain_obj: DomainItem):
+        """Handles scraping for singular files"""
         await asyncio.sleep(1)
         try:
             soup = await session.get_BS4(url)
@@ -72,7 +75,7 @@ class ShareXCrawler:
             link = link.with_name(link.name.replace('.md.', '.').replace('.th.', '.'))
 
             url_path = await get_db_path(link)
-            complete = await self.SQL_Helper.check_complete_singular("anonfiles", url_path)
+            complete = await self.SQL_Helper.check_complete_singular("sharex", url_path)
             filename, ext = await get_filename_and_ext(link.name)
             media_item = MediaItem(link, url, complete, filename, ext)
             await domain_obj.add_media("Loose ShareX Files", media_item)
@@ -96,7 +99,7 @@ class ShareXCrawler:
             logger.debug(e)
 
     async def parse_profile(self, session: ScrapeSession, url: URL, domain_obj: DomainItem):
-
+        """Handles scraping for profiles"""
         try:
             soup = await session.get_BS4(url)
             title = soup.select_one("div[class=header] h1 strong").get_text()
@@ -114,6 +117,7 @@ class ShareXCrawler:
             logger.debug(e)
 
     async def get_list_links(self, session: ScrapeSession, url: URL, title: str, domain_obj: DomainItem):
+        """Gets final links and adds to domain_obj"""
         try:
             soup = await session.get_BS4(url)
             if url.host == 'jpg.fish' or url.host == 'jpg.church':
@@ -130,7 +134,7 @@ class ShareXCrawler:
                     logger.debug("Couldn't get extension for %s", str(link))
                     continue
                 url_path = await get_db_path(link)
-                complete = await self.SQL_Helper.check_complete_singular("anonfiles", url_path)
+                complete = await self.SQL_Helper.check_complete_singular("sharex", url_path)
                 media_item = MediaItem(link, url, complete, filename, ext)
                 await domain_obj.add_media(title, media_item)
 

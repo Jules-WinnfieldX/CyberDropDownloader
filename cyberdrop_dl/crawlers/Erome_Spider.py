@@ -14,7 +14,7 @@ class EromeCrawler:
         self.SQL_Helper = SQL_Helper
 
     async def fetch(self, session: ScrapeSession, url: URL):
-
+        """Director function for Erome scraping"""
         await log(f"[green]Starting: {str(url)}[/green]", quiet=self.quiet)
 
         if 'a' in url.parts:
@@ -27,6 +27,7 @@ class EromeCrawler:
         return domain_obj
 
     async def handle_album(self, session: ScrapeSession, url: URL):
+        """Handler function for erome albums, adds media items to the domain item"""
         try:
             domain_obj = DomainItem("erome", {})
             soup = await session.get_BS4(url)
@@ -74,6 +75,7 @@ class EromeCrawler:
             return domain_obj
 
     async def handle_profile(self, session: ScrapeSession, url: URL):
+        """Handler for erome profiles, sends albums to handle_album"""
         try:
             domain_obj = DomainItem("erome", {})
             soup = await session.get_BS4(url)

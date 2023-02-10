@@ -126,6 +126,7 @@ async def consolidate_links(args: dict, links: list) -> list:
 
 
 async def scrape_links(scraper: ScrapeMapper, links: list, quiet=False) -> CascadeItem:
+    """Maps links from URLs.txt or command to the scraper class"""
     await log("[green]Starting Scrape[/green]", quiet=quiet)
     tasks = []
 
@@ -140,14 +141,6 @@ async def scrape_links(scraper: ScrapeMapper, links: list, quiet=False) -> Casca
 
     await log("[green]Finished Scrape[/green]", quiet=quiet)
     return Cascade, Forums
-
-
-async def download(Cascade: CascadeItem, Forums: ForumItem):
-    if not Cascade.is_empty():
-        await log("[green]Downloading Loose Links[/green]")
-
-    if not Forums.is_empty():
-        await log("[green]Downloading Forum Threads[/green]")
 
 
 async def director(args: dict, links: list) -> None:
@@ -170,6 +163,7 @@ async def director(args: dict, links: list) -> None:
     Cascade, Forums = await scrape_links(Scraper, links)
     await asyncio.sleep(5)
     await clear()
+
     if not await Cascade.is_empty():
         await download_cascade(args, Cascade, SQL_Helper, client, Scraper)
     if not await Forums.is_empty():

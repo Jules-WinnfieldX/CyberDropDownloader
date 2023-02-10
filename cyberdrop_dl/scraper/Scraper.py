@@ -1,5 +1,4 @@
 import asyncio
-import logging
 from typing import Dict, Optional
 
 import aiofiles
@@ -35,6 +34,7 @@ from cyberdrop_dl.scraper.JDownloader_Integration import JDownloader
 
 
 class ScrapeMapper:
+    """This class maps links to their respective handlers, or JDownloader if they are unsupported"""
     def __init__(self, args: Dict, client: Client, SQL_Helper: SQLHelper, quiet: bool):
         self.args = args
         self.client = client

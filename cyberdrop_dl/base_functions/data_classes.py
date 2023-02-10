@@ -1,7 +1,8 @@
+from __future__ import annotations
+
 import asyncio
 from dataclasses import dataclass
-from pathlib import Path
-from typing import ClassVar, Dict, List, Optional, Tuple
+from typing import ClassVar, List, Tuple
 
 from yarl import URL
 
@@ -50,7 +51,7 @@ class AlbumItem:
 class DomainItem:
     """Class for keeping track of albums for each scraper type"""
     domain: str
-    albums: Dict[str, AlbumItem]
+    albums: dict
 
     async def add_to_album(self, title: str, media: MediaItem):
         if title in self.albums.keys():
@@ -96,7 +97,7 @@ class DomainItem:
 @dataclass
 class CascadeItem:
     """Class for keeping track of domains for each scraper type"""
-    domains: Dict[str, DomainItem]
+    domains: dict
 
     async def add_albums(self, domain_item: DomainItem):
         domain = domain_item.domain
@@ -156,7 +157,8 @@ class CascadeItem:
 
 @dataclass
 class ForumItem:
-    threads: Dict[str, CascadeItem]
+    """Class for keeping track of forum threads"""
+    threads: dict
 
     async def add_album_to_thread(self, title: str, domain: str, album: AlbumItem):
         if title not in self.threads.keys():

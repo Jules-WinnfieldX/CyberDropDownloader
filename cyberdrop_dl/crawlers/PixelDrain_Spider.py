@@ -14,6 +14,7 @@ class PixelDrainCrawler:
         self.api = URL('https://pixeldrain.com/api/')
 
     async def fetch(self, session: ScrapeSession, url: URL):
+        """Director for pixeldrain scraping"""
         await log(f"[green]Starting: {str(url)}[/green]", quiet=self.quiet)
         album_obj = AlbumItem("Loose Pixeldrain Files", [])
 
@@ -37,6 +38,7 @@ class PixelDrainCrawler:
         return album_obj
 
     async def get_listings(self, session: ScrapeSession, identifier: str, url: URL):
+        """Handles album scraping"""
         media_items = []
         try:
             content = await session.get_json((self.api / "list" / identifier))
@@ -59,10 +61,12 @@ class PixelDrainCrawler:
             logger.debug(e)
 
     async def get_file_name(self, session: ScrapeSession, identifier: str):
+        """Gets filename for the given file identifier"""
         content = await session.get_json((self.api / 'file' / identifier / 'info'))
         filename = content['name']
         return filename
 
     async def create_download_link(self, file: str):
+        """Gets download links for the file given"""
         final_url = (self.api / 'file' / file).with_query('download')
         return final_url

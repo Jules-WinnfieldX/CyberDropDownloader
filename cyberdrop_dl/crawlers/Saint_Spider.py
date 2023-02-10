@@ -12,6 +12,7 @@ class SaintCrawler:
         self.SQL_Helper = SQL_Helper
 
     async def fetch(self, session: ScrapeSession, url: URL):
+        """Basic director for saint scraping"""
         album_obj = AlbumItem("Loose Saint Files", [])
         await log(f"[green]Starting: {str(url)}[/green]", quiet=self.quiet)
 

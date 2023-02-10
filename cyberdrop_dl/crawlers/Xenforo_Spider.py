@@ -40,6 +40,7 @@ class XenforoCrawler:
         self.SQL_Helper = SQL_Helper
 
     async def fetch(self, session: ScrapeSession, url: URL):
+        """Xenforo forum director"""
         await log(f"[green]Starting: {str(url)}[/green]", quiet=self.quiet)
         cascade = CascadeItem({})
 
@@ -67,6 +68,7 @@ class XenforoCrawler:
         return cascade, title
 
     async def simpcity_login(self, session: ScrapeSession, url: URL):
+        """Handles logging in for simpcity"""
         if self.simpcity_username and self.simpcity_username:
             if not self.simpcity_lock:
                 while True:
@@ -99,6 +101,7 @@ class XenforoCrawler:
             raise FailedLoginFailure()
 
     async def socialmediagirls_login(self, session: ScrapeSession, url: URL):
+        """Handles logging in for SMG"""
         if self.socialmediagirls_username and self.socialmediagirls_username:
             if self.socialmediagirls_lock:
                 while True:
@@ -131,6 +134,7 @@ class XenforoCrawler:
             raise FailedLoginFailure()
 
     async def xbunker_login(self, session: ScrapeSession, url: URL):
+        """Handles logging in for XBunker"""
         if self.xbunker_username and self.xbunker_password:
             if self.xbunker_lock:
                 while True:
@@ -163,6 +167,7 @@ class XenforoCrawler:
             raise FailedLoginFailure()
 
     async def get_thread_url_and_post_num(self, url: URL):
+        """Splits the thread url and returns the url and post number if provided"""
         post_number = 0
         if "post-" in str(url):
             post_number_parts = str(url).rsplit("post-", 1)
@@ -171,6 +176,7 @@ class XenforoCrawler:
         return url, post_number
 
     async def get_links(self, post_content, selector, attribute, domain, temp_title):
+        """Grabs links from the post content based on the given selector and attribute"""
         found_links = []
         links = post_content.select(selector)
         for link in links:
@@ -185,6 +191,7 @@ class XenforoCrawler:
         return found_links
 
     async def get_embedded(self, post_content, selector, attribute, domain, temp_title):
+        """Gets embedded media from post content based on selector and attribute provided"""
         found_links = []
         links = post_content.select(selector)
         for link in links:
@@ -208,6 +215,8 @@ class XenforoCrawler:
         return found_links
 
     async def filter_content_links(self, cascade: CascadeItem, content_links: list, url: URL, domain: str):
+        """Splits given links into direct links and external links,
+        returns external links, adds internal to the cascade"""
         forum_direct_urls = [x for x in content_links if x[0].host.replace(".st", ".su") in url.host]
         content_links = [x for x in content_links if x not in forum_direct_urls]
         for link_title_bundle in forum_direct_urls:
@@ -227,6 +236,7 @@ class XenforoCrawler:
         return content_links
 
     async def handle_external_links(self, content_links: list, referer: URL):
+        """Maps external links to the scraper class"""
         tasks = []
         for link_title_bundle in content_links:
             link = link_title_bundle[0]
@@ -236,6 +246,7 @@ class XenforoCrawler:
 
     async def parse_simpcity(self, session: ScrapeSession, url: URL, cascade: CascadeItem, title: str,
                              post_number: int):
+        """Parses simpcity threads"""
         soup = await session.get_BS4(url)
 
         domain = URL("https://" + url.host)
@@ -318,6 +329,7 @@ class XenforoCrawler:
 
     async def parse_socialmediagirls(self, session: ScrapeSession, url: URL, cascade: CascadeItem, title: str,
                                      post_number: int):
+        """Parses SMG threads"""
         soup = await session.get_BS4(url)
 
         domain = URL("https://" + url.host)
@@ -397,6 +409,7 @@ class XenforoCrawler:
 
     async def parse_xbunker(self, session: ScrapeSession, url: URL, cascade: CascadeItem, title: str,
                             post_number: int):
+        """Parses XBunker threads"""
         soup = await session.get_BS4(url)
 
         domain = URL("https://" + url.host)

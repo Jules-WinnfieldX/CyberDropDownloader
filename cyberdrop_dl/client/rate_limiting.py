@@ -6,8 +6,6 @@ from datetime import datetime
 from types import TracebackType
 from typing import Optional, Callable, Awaitable, Any, Type
 
-from ..base_functions.base_functions import logger
-
 
 class AsyncRateLimiter:
     """Provides rate limiting for an operation with a configurable number of requests for a time period."""

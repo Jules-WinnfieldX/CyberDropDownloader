@@ -1,5 +1,3 @@
-from pathlib import Path
-
 from yarl import URL
 
 from ..base_functions.base_functions import log, logger, make_title_safe, check_direct, get_filename_and_ext, \
@@ -17,6 +15,7 @@ class CyberdropCrawler:
         self.quiet = quiet
 
     async def fetch(self, session: ScrapeSession, url: URL):
+        """Cyberdrop scraper"""
         album_obj = AlbumItem("Loose Cyberdrop Files", [])
 
         await log(f"[green]Starting: {str(url)}[/green]", quiet=self.quiet)

@@ -2,7 +2,6 @@ from yarl import URL
 
 from ..base_functions.base_functions import log, logger, get_filename_and_ext, get_db_path, make_title_safe
 from ..base_functions.data_classes import AlbumItem, MediaItem
-from ..base_functions.error_classes import NoExtensionFailure
 from ..base_functions.sql_helper import SQLHelper
 from ..client.client import ScrapeSession
 
@@ -11,9 +10,9 @@ class PimpAndHostCrawler:
     def __init__(self, quiet: bool, SQL_Helper: SQLHelper):
         self.quiet = quiet
         self.SQL_Helper = SQL_Helper
-        self.api = URL('https://pixeldrain.com/api/')
 
     async def fetch(self, session: ScrapeSession, url: URL):
+        """Director for pimpandhost scraping"""
         await log(f"[green]Starting: {str(url)}[/green]", quiet=self.quiet)
         album_obj = AlbumItem("Loose Pixeldrain Files", [])
 
@@ -32,6 +31,7 @@ class PimpAndHostCrawler:
         return album_obj
 
     async def get_listings(self, session: ScrapeSession, url: URL):
+        """Handles album media"""
         media_items = []
         try:
             soup = await session.get_BS4(url)
@@ -51,6 +51,7 @@ class PimpAndHostCrawler:
             logger.debug(e)
 
     async def get_singular(self, session: ScrapeSession, url: URL):
+        """Handles singular files"""
         try:
             soup = await session.get_BS4(url)
             img = soup.select_one("a img")

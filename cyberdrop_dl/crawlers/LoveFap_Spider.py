@@ -1,5 +1,3 @@
-from pathlib import Path
-
 from yarl import URL
 
 from ..base_functions.base_functions import log, logger, make_title_safe, check_direct, get_filename_and_ext, \
@@ -16,6 +14,7 @@ class LoveFapCrawler:
         self.quiet = quiet
 
     async def fetch(self, session: ScrapeSession, url: URL):
+        """Director for lovefap scraping"""
         album_obj = AlbumItem("Loose LoveFap Files", [])
 
         await log(f"[green]Starting: {str(url)}[/green]", quiet=self.quiet)
@@ -47,6 +46,7 @@ class LoveFapCrawler:
         return album_obj
 
     async def fetch_album(self, session: ScrapeSession, url: URL, album_obj: AlbumItem):
+        """Gets media_items for albums, and adds them to the Album_obj"""
         url_path = await get_db_path(url)
         soup = await session.get_BS4(url)
 
@@ -78,6 +78,7 @@ class LoveFapCrawler:
                 await album_obj.add_media(media)
 
     async def fetch_video(self, session: ScrapeSession, url: URL, album_obj: AlbumItem):
+        """Gets media_items for video links"""
         soup = await session.get_BS4(url)
         video = soup.select_one("video[id=main-video] source")
         if video:

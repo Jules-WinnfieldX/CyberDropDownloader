@@ -13,12 +13,14 @@ class NoExtensionFailure(Exception):
 
 
 class FailedLoginFailure(Exception):
+    """This error will be thrown when the login fails for a site"""
     def __init__(self, *, message="Failed login."):
         self.message = message
         super().__init__(self.message)
 
 
 class DownloadFailure(Exception):
+    """This error will be thrown when a download fails"""
     def __init__(self, code, message="Something went wrong"):
         self.code = code
         self.message = message

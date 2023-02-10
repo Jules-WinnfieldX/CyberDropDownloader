@@ -16,6 +16,7 @@ class CyberFileCrawler:
         self.file_details = URL('https://cyberfile.me/account/ajax/file_details')
 
     async def fetch(self, session: ScrapeSession, url: URL):
+        """Director for cyberfile scraping"""
         await log(f"[green]Starting: {str(url)}[/green]", quiet=self.quiet)
         domain_obj = DomainItem("cyberfile", {})
         download_links = []
@@ -44,6 +45,7 @@ class CyberFileCrawler:
         return domain_obj
 
     async def get_folder_id(self, session: ScrapeSession, url: URL):
+        """Gets the internal ID for a folder"""
         try:
             soup = await session.get_BS4(url)
             script_func = soup.select_one('div[class="page-container horizontal-menu with-sidebar fit-logo-with-sidebar logged-out clear-adblock"] script').text
@@ -59,6 +61,7 @@ class CyberFileCrawler:
             return 0
 
     async def get_folder_content(self, session, url: URL, nodeId, page, title=None):
+        """Gets the content id's encased in a folder"""
         data = {"pageType": "folder", "nodeId": nodeId, "pageStart": page, "perPage": 0, "filterOrderBy": ""}
         nodes = []
         contents = []
@@ -98,6 +101,7 @@ class CyberFileCrawler:
             return []
 
     async def get_single_contentId(self, session: ScrapeSession, url: URL):
+        """Gets an individual content id"""
         try:
             soup = await session.get_BS4(url)
             script_funcs = soup.select('script')
@@ -119,6 +123,7 @@ class CyberFileCrawler:
             return 0
 
     async def get_shared_ids_and_content(self, session: ScrapeSession, url: URL, page):
+        """Gets folder id's and content id's from shared links"""
         try:
             # Initial page load to tell server, this is what we want.
             await session.get_no_resp(url, {'referer': str(url), "user-agent": session.client.user_agent})
@@ -158,6 +163,7 @@ class CyberFileCrawler:
             return []
 
     async def get_shared_content(self, session, url: URL, nodeId, page, title=None):
+        """Gets content from shared folders"""
         try:
             nodes = []
             contents = []
@@ -196,6 +202,7 @@ class CyberFileCrawler:
             return []
 
     async def get_download_links(self, session, url, contentIds):
+        """Obtains download links from content ids"""
         download_links = []
         try:
             for title, contentId in contentIds:

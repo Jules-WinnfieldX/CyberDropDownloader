@@ -15,6 +15,7 @@ class NSFWXXXCrawler:
         self.SQL_Helper = SQL_Helper
 
     async def fetch(self, session: ScrapeSession, url: URL):
+        """Director for NSFW.XXX scraping"""
         domain_obj = DomainItem("nsfw.xxx", {})
 
         await log(f"[green]Starting: {str(url)}[/green]", quiet=self.quiet)
@@ -27,6 +28,7 @@ class NSFWXXXCrawler:
         return domain_obj
 
     async def get_user(self, session: ScrapeSession, url: URL, domain_obj: DomainItem):
+        """Gets posts for a user profile"""
         try:
             page = 1
             while True:
@@ -51,6 +53,7 @@ class NSFWXXXCrawler:
             logger.debug(e)
 
     async def get_post_hrefs(self, posts):
+        """Gets links from post objects"""
         posts_links = []
         for post in posts:
             url = URL(post.get("href"))
@@ -59,6 +62,7 @@ class NSFWXXXCrawler:
         return posts_links
 
     async def get_post(self, session: ScrapeSession, url: URL, domain_obj: DomainItem):
+        """Gets content for a given post url"""
         try:
             soup = await session.get_BS4(url)
             model = await make_title_safe(soup.select_one("a[class=sh-section__name]").get_text()) + " (NSFW.XXX)"

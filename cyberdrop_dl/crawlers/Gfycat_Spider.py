@@ -12,6 +12,7 @@ class GfycatCrawler:
         self.SQL_Helper = SQL_Helper
 
     async def fetch(self, session: ScrapeSession, url: URL):
+        """Basic scraper for gfycat"""
         try:
             album_obj = AlbumItem("Gfycat", [])
             await log(f"[green]Starting: {str(url)}[/green]", quiet=self.quiet)
@@ -34,6 +35,7 @@ class GfycatCrawler:
             filename, ext = await get_filename_and_ext(video_link.name)
             media_item = MediaItem(video_link, url, complete, filename, ext)
             await album_obj.add_media(media_item)
+            await self.SQL_Helper.insert_album("gfycat", url_path, album_obj)
             await log(f"[green]Finished: {str(url)}[/green]", quiet=self.quiet)
             return album_obj
 

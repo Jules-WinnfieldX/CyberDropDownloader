@@ -13,6 +13,7 @@ class FapelloCrawler:
         self.SQL_Helper = SQL_Helper
 
     async def fetch(self, session: ScrapeSession, url: URL):
+        """Basic director for fapello"""
         await log(f"[green]Starting: {str(url)}[/green]", quiet=self.quiet)
 
         album_obj = await self.parse_profile(session, url)
@@ -23,6 +24,7 @@ class FapelloCrawler:
         return album_obj
 
     async def parse_profile(self, session: ScrapeSession, url: URL):
+        """Profile parser, passes posts to parse_post"""
         try:
             soup, returned_url = await session.get_BS4_and_url(url)
             title = soup.select_one('h2[class="font-semibold lg:text-2xl text-lg mb-2 mt-4"]').get_text()
@@ -59,6 +61,7 @@ class FapelloCrawler:
             return
 
     async def parse_post(self, session: ScrapeSession, url: URL):
+        """Parses posts, returns list of media_items"""
         try:
             soup = await session.get_BS4(url)
             results = []

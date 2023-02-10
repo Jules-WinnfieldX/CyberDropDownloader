@@ -12,6 +12,7 @@ class EHentaiCrawler:
         self.SQL_Helper = SQL_Helper
 
     async def fetch(self, session: ScrapeSession, url: URL):
+        """Director for E-Hentai"""
         album_obj = AlbumItem("Loose EHentai Files", [])
 
         await log(f"[green]Starting: {str(url)}[/green]", quiet=self.quiet)
@@ -25,6 +26,7 @@ class EHentaiCrawler:
         return album_obj
 
     async def get_album(self, session: ScrapeSession, url: URL, album_obj: AlbumItem):
+        """Gets links from an album"""
         try:
             soup = await session.get_BS4(url)
             title = await make_title_safe(soup.select_one("h1[id=gn]").get_text())
@@ -53,6 +55,7 @@ class EHentaiCrawler:
             logger.debug(e)
 
     async def get_image(self, session: ScrapeSession, url: URL, album_obj: AlbumItem):
+        """Gets media items from image links"""
         try:
             soup = await session.get_BS4(url)
             image = soup.select_one("img[id=img]")

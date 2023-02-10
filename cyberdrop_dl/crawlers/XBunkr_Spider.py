@@ -13,12 +13,13 @@ class XBunkrCrawler:
         self.SQL_Helper = SQL_Helper
 
     async def fetch(self, session: ScrapeSession, url: URL):
+        """Director for XBunkr scraping"""
         album_obj = AlbumItem("Loose XBunkr Files", [])
 
         try:
             if "media" in url.host:
                 url_path = await get_db_path(url)
-                complete = await self.SQL_Helper.check_complete_singular("cyberdrop", url_path)
+                complete = await self.SQL_Helper.check_complete_singular("xbunkr", url_path)
                 filename, ext = await get_filename_and_ext(url.name)
                 media_item = MediaItem(url, url, complete, filename, ext)
                 await album_obj.add_media(media_item)
@@ -37,7 +38,7 @@ class XBunkrCrawler:
                         logger.debug("Couldn't get extension for %s", str(link))
                         continue
                     url_path = await get_db_path(link)
-                    complete = await self.SQL_Helper.check_complete_singular("anonfiles", url_path)
+                    complete = await self.SQL_Helper.check_complete_singular("xbunkr", url_path)
                     media_item = MediaItem(link, url, complete, filename, ext)
                     await album_obj.add_media(media_item)
 

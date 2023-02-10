@@ -1,5 +1,4 @@
 import re
-from pathlib import Path
 
 from yarl import URL
 
@@ -18,6 +17,7 @@ class BunkrCrawler:
         self.remove_bunkr_id = remove_bunkr_id
 
     async def fetch(self, session: ScrapeSession, url: URL):
+        """Scraper for Bunkr"""
         album_obj = AlbumItem("Loose Bunkr Items", [])
         await log(f"[green]Starting: {str(url)}[/green]", quiet=self.quiet)
 
@@ -66,6 +66,7 @@ class BunkrCrawler:
         return album_obj
 
     async def remove_id(self, filename: str, ext: str):
+        """Removes the additional string bunkr adds to the end of every filename"""
         filename = filename.rsplit(ext, 1)[0]
         filename = filename.rsplit("-")[0]
         if not ext in filename:
@@ -73,6 +74,7 @@ class BunkrCrawler:
         return filename
 
     async def get_file(self, session: ScrapeSession, url: URL):
+        """Gets the media item from the supplied url"""
         try:
             soup = await session.get_BS4(url)
             head = soup.select_one("head")
@@ -105,6 +107,7 @@ class BunkrCrawler:
             return MediaItem(url, url, False, "", "")
 
     async def get_album(self, session: ScrapeSession, url: URL):
+        """Iterates through an album and creates the media items"""
         album = AlbumItem(url.name, [])
         try:
             soup = await session.get_BS4(url)
