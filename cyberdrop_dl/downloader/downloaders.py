@@ -168,6 +168,8 @@ class Downloader:
                                 proceed = False
                                 partial_file.rename(complete_file)
                                 break
+                            else:
+                                break
                         else:
                             break
                     else:
