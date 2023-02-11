@@ -31,7 +31,7 @@ class BunkrCrawler:
             await domain_obj.add_to_album(link=url, referral=url, title="Bunkr Loose Files")
             return domain_obj
 
-        if "v" in url.parts or "d" in url.host:
+        if "v" in url.parts or "d" in url.parts:
             link = await self.stream(session, url)
             await domain_obj.add_to_album(link=link, referral=url, title="Bunkr Loose Files")
             await log("Finished scrape of " + str(url), quiet=self.quiet)
