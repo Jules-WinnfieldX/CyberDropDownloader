@@ -14,7 +14,7 @@ from cyberdrop_dl.client.client import Client
 from cyberdrop_dl.downloader.downloaders import download_cascade, download_forums
 from cyberdrop_dl.scraper.Scraper import ScrapeMapper
 from . import __version__ as VERSION
-from .base_functions.data_classes import SkipData, CascadeItem, ForumItem
+from .base_functions.data_classes import SkipData, CascadeItem
 
 
 def parse_args() -> argparse.Namespace:
@@ -114,7 +114,7 @@ async def file_management(args: dict, links: list) -> None:
             unsupported_urls.unlink()
             unsupported_urls.touch()
             async with aiofiles.open(unsupported_urls, mode='w') as f:
-                await f.write("URL,REFERER,TITLE")
+                await f.write("URL,REFERER,TITLE\n")
 
     if args['Runtime']['output_errored_urls']:
         errored_urls = args['Files']['errored_urls_file']
@@ -122,7 +122,7 @@ async def file_management(args: dict, links: list) -> None:
             errored_urls.unlink()
             errored_urls.touch()
             async with aiofiles.open(errored_urls, mode='w') as f:
-                await f.write("URL,REFERER,REASON")
+                await f.write("URL,REFERER,REASON\n")
 
 
 async def consolidate_links(args: dict, links: list) -> list:

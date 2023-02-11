@@ -313,6 +313,8 @@ class Downloader:
                     self.files.failed_files += 1
                     if media.url.parts[-1] in self.current_attempt.keys():
                         self.current_attempt.pop(media.url.parts[-1])
+                    async with aiofiles.open(self.output_errored_file, mode='a') as file:
+                        await file.write(f"{media.url},{media.referer},{e.message}\n")
                     return
                 logger.debug("Error status code: " + str(e.code))
                 new_error.code = e.code

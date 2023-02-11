@@ -288,6 +288,7 @@ class ScrapeMapper:
             await coomeno_session.exit_handler()
             return
         if title:
+            await cascade.append_title(title)
             await self.Forums.extend_thread(title, cascade)
         else:
             await self.Forums.add_thread(new_title, cascade)
