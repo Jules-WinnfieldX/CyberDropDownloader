@@ -242,7 +242,8 @@ class XenforoCrawler:
             link = link_title_bundle[0]
             temp_title = link_title_bundle[1]
             tasks.append(self.scraping_mapper.map_url(link, temp_title, referer))
-        await asyncio.wait(tasks)
+        if tasks:
+            await asyncio.wait(tasks)
 
     async def parse_simpcity(self, session: ScrapeSession, url: URL, cascade: CascadeItem, title: str,
                              post_number: int):
@@ -282,27 +283,20 @@ class XenforoCrawler:
             content_links.extend(await self.get_links(post_content, "a", "href", domain, temp_title))
 
             # Get Images
-            content_links.extend(
-                await self.get_links(post_content, "div[class='bbImageWrapper js-lbImage']", "data-src", domain,
-                                     temp_title))
-            content_links.extend(
-                await self.get_links(post_content, "div[class='bbImageWrapper lazyload js-lbImage']", "data-src",
-                                     domain, temp_title))
+            content_links.extend(await self.get_links(post_content, "div[class='bbImageWrapper js-lbImage']", "data-src", domain, temp_title))
+            content_links.extend(await self.get_links(post_content, "div[class='bbImageWrapper lazyload js-lbImage']", "data-src", domain, temp_title))
 
             # Get Videos:
             content_links.extend(await self.get_links(post_content, "video source", "src", domain, temp_title))
-            content_links.extend(
-                await self.get_links(post_content, "iframe[class=saint-iframe]", "src", domain, temp_title))
+            content_links.extend(await self.get_links(post_content, "iframe[class=saint-iframe]", "src", domain, temp_title))
 
             # Get Other Embedded Content
-            content_links.extend(
-                await self.get_embedded(post_content, "span[data-s9e-mediaembed-iframe]", "data-s9e-mediaembed-iframe",
-                                        domain, temp_title))
+            content_links.extend(await self.get_embedded(post_content, "span[data-s9e-mediaembed-iframe]", "data-s9e-mediaembed-iframe",
+                                 domain, temp_title))
 
             # Get Attachments
             attachments_block = post.select_one("section[class=message-attachments]")
-            content_links.extend(await self.get_links(post_content, "a[class='file-preview js-lbImage']", "href",
-                                                      domain, temp_title))
+            content_links.extend(await self.get_links(post_content, "a[class='file-preview js-lbImage']", "href", domain, temp_title))
 
         # Handle links
         content_links = await self.filter_content_links(cascade, content_links, url, "simpcity")
@@ -365,24 +359,19 @@ class XenforoCrawler:
             content_links.extend(await self.get_links(post_content, "a", "href", domain, temp_title))
 
             # Get Images
-            content_links.extend(await self.get_links(post_content, "div[class='bbImageWrapper js-lbImage']",
-                                                      "data-src", domain, temp_title))
-            content_links.extend(await self.get_links(post_content, "div[class='bbImageWrapper lazyload js-lbImage']",
-                                                      "data-src", domain, temp_title))
+            content_links.extend(await self.get_links(post_content, "div[class='bbImageWrapper js-lbImage']", "data-src", domain, temp_title))
+            content_links.extend(await self.get_links(post_content, "div[class='bbImageWrapper lazyload js-lbImage']", "data-src", domain, temp_title))
 
             # Get Videos:
             content_links.extend(await self.get_links(post_content, "video source", "src", domain, temp_title))
-            content_links.extend(await self.get_links(post_content, "iframe[class=saint-iframe]", "src", domain,
-                                                      temp_title))
+            content_links.extend(await self.get_links(post_content, "iframe[class=saint-iframe]", "src", domain, temp_title))
 
             # Get Other Embedded Content
-            content_links.extend(await self.get_embedded(post_content, "span[data-s9e-mediaembed-iframe]",
-                                                         "data-s9e-mediaembed-iframe", domain, temp_title))
+            content_links.extend(await self.get_embedded(post_content, "span[data-s9e-mediaembed-iframe]", "data-s9e-mediaembed-iframe", domain, temp_title))
 
             # Get Attachments
             attachments_block = post.select_one("section[class=message-attachments]")
-            content_links.extend(await self.get_links(post_content, "a[class='file-preview js-lbImage']", "href",
-                                                      domain, temp_title))
+            content_links.extend(await self.get_links(post_content, "a[class='file-preview js-lbImage']", "href", domain, temp_title))
 
         # Handle links
         content_links = await self.filter_content_links(cascade, content_links, url, "socialmediagirls")
@@ -445,24 +434,19 @@ class XenforoCrawler:
             content_links.extend(await self.get_links(post_content, "a", "href", domain, temp_title))
 
             # Get Images
-            content_links.extend(await self.get_links(post_content, "div[class='bbImageWrapper js-lbImage']",
-                                                      "data-src", domain, temp_title))
-            content_links.extend(await self.get_links(post_content, "div[class='bbImageWrapper lazyload js-lbImage']",
-                                                      "data-src", domain, temp_title))
+            content_links.extend(await self.get_links(post_content, "div[class='bbImageWrapper js-lbImage']", "data-src", domain, temp_title))
+            content_links.extend(await self.get_links(post_content, "div[class='bbImageWrapper lazyload js-lbImage']", "data-src", domain, temp_title))
 
             # Get Videos:
             content_links.extend(await self.get_links(post_content, "video source", "src", domain, temp_title))
-            content_links.extend(await self.get_links(post_content, "iframe[class=saint-iframe]", "src", domain,
-                                                      temp_title))
+            content_links.extend(await self.get_links(post_content, "iframe[class=saint-iframe]", "src", domain, temp_title))
 
             # Get Other Embedded Content
-            content_links.extend(await self.get_embedded(post_content, "span[data-s9e-mediaembed-iframe]",
-                                                         "data-s9e-mediaembed-iframe", domain, temp_title))
+            content_links.extend(await self.get_embedded(post_content, "span[data-s9e-mediaembed-iframe]", "data-s9e-mediaembed-iframe", domain, temp_title))
 
             # Get Attachments
             attachments_block = post.select_one("section[class=message-attachments]")
-            content_links.extend(await self.get_links(post_content, "a[class='file-preview js-lbImage']", "href",
-                                                      domain, temp_title))
+            content_links.extend(await self.get_links(post_content, "a[class='file-preview js-lbImage']", "href", domain, temp_title))
 
         # Handle links
         content_links = await self.filter_content_links(cascade, content_links, url, "xbunker")

@@ -282,7 +282,7 @@ class ScrapeMapper:
             self.coomeno_crawler = CoomenoCrawler(include_id=self.include_id, scraping_mapper=self,
                                                   separate_posts=self.separate_posts, SQL_Helper=self.SQL_Helper,
                                                   quiet=self.quiet)
-        async with self.forum_semaphore:
+        async with self.coomeno_limiter:
             cascade, new_title = await self.coomeno_crawler.fetch(coomeno_session, url)
         if not new_title or await cascade.is_empty():
             await coomeno_session.exit_handler()

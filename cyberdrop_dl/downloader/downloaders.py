@@ -31,6 +31,7 @@ async def basic_auth(username, password):
 
 def retry(f):
     """This function is a wrapper that handles retrying for failed downloads"""
+
     @wraps(f)
     async def wrapper(self, *args, **kwargs):
         while True:
@@ -54,6 +55,7 @@ def retry(f):
 
 class Files:
     """Class that keeps that of completed, skipped and failed files"""
+
     def __init__(self):
         self.completed_files = 0
         self.skipped_files = 0
@@ -62,6 +64,7 @@ class Files:
 
 class Downloader:
     """Downloader class, directs downloading for domain objects"""
+
     def __init__(self, args: dict, client: Client, SQL_Helper: SQLHelper, scraper: ScrapeMapper, max_workers: int,
                  domain: str, domain_obj: DomainItem, semaphore: asyncio.Semaphore, bunkr_semaphore: asyncio.Semaphore,
                  pixeldrain_semaphore: asyncio.Semaphore, anonfiles_semaphore: asyncio.Semaphore, files: Files):
@@ -117,7 +120,8 @@ class Downloader:
         """Handler for albums and the progress bars for it"""
         if await album_obj.is_empty():
             return
-        album_task = album_progress.add_task("[pink3]" + album.upper(), progress_type="album", total=len(album_obj.media))
+        album_task = album_progress.add_task("[pink3]" + album.upper(), progress_type="album",
+                                             total=len(album_obj.media))
         download_tasks = []
         for media in album_obj.media:
             download_tasks.append(self.start_file(album_task, album, media))
@@ -333,23 +337,28 @@ async def download_cascade(args: dict, Cascade: CascadeItem, SQL_Helper: SQLHelp
     progress_table = await get_cascade_table()
 
     with Live(progress_table, refresh_per_second=30):
-        cascade_task = cascade_progress.add_task("[light_salmon3]Domains", progress_type="cascade", total=len(Cascade.domains))
+        cascade_task = cascade_progress.add_task("[light_salmon3]Domains", progress_type="cascade",
+                                                 total=len(Cascade.domains))
 
         downloaders = []
         tasks = []
         threads = user_threads if user_threads != 0 else multiprocessing.cpu_count()
         download_semaphore = asyncio.Semaphore(threads)
-        dual_semaphore = asyncio.Semaphore(2 if threads > 2 else threads)
+        bunkr_semaphore = asyncio.Semaphore(2 if threads > 2 else threads)
+        pixeldrain_semaphore = asyncio.Semaphore(2 if threads > 2 else threads)
+        anonfiles_semaphore = asyncio.Semaphore(2 if threads > 2 else threads)
 
         for domain, domain_obj in Cascade.domains.items():
             downloaders.append(Downloader(args, client, SQL_Helper, scraper, threads, domain, domain_obj,
-                                          download_semaphore, dual_semaphore, files))
+                                          download_semaphore, bunkr_semaphore, pixeldrain_semaphore,
+                                          anonfiles_semaphore, files))
         for downloader in downloaders:
             tasks.append(downloader.start_domain(cascade_task))
         await asyncio.gather(*tasks)
 
     await clear()
-    await log(f"| [green]Files Complete: {files.completed_files}[/green] - [yellow]Files Skipped: {files.skipped_files}[/yellow] - [red]Files Failed: {files.failed_files}[/red] |")
+    await log(
+        f"| [green]Files Complete: {files.completed_files}[/green] - [yellow]Files Skipped: {files.skipped_files}[/yellow] - [red]Files Failed: {files.failed_files}[/red] |")
 
 
 async def download_forums(args: dict, Forums: ForumItem, SQL_Helper: SQLHelper, client: Client,
@@ -385,4 +394,5 @@ async def download_forums(args: dict, Forums: ForumItem, SQL_Helper: SQLHelper, 
             forum_progress.advance(forum_task, 1)
 
     await clear()
-    await log(f"| [green]Files Complete: {files.completed_files}[/green] - [yellow]Files Skipped: {files.skipped_files}[/yellow] - [red]Files Failed: {files.failed_files}[/red] |")
+    await log(
+        f"| [green]Files Complete: {files.completed_files}[/green] - [yellow]Files Skipped: {files.skipped_files}[/yellow] - [red]Files Failed: {files.failed_files}[/red] |")
