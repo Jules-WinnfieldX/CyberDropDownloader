@@ -28,9 +28,10 @@ def parse_args() -> argparse.Namespace:
 
     parser.add_argument("--config-file", type=Path, help="config file to read arguments from", default="config.yaml")
     parser.add_argument("--db-file", type=Path, help="history database file to write to", default="download_history.sqlite")
-    parser.add_argument("--output-last-forum-file", type=Path, help="the text file to output last scraped post from a forum thread for re-feeding into CDL", default="URLs_Last_Post.txt")
-    parser.add_argument("--unsupported-urls-file", type=Path, help="the csv file to output unsupported links into", default="Unsupported_URLs.csv")
+    parser.add_argument("--errored-urls-file", type=Path, help="csv file to write failed download information to", default="Errored_URLs.csv")
     parser.add_argument("--log-file", type=Path, help="log file to write to", default="downloader.log")
+    parser.add_argument("--output-last-forum-post-file", type=Path, help="the text file to output last scraped post from a forum thread for re-feeding into CDL", default="URLs_Last_Post.txt")
+    parser.add_argument("--unsupported-urls-file", type=Path, help="the csv file to output unsupported links into", default="Unsupported_URLs.csv")
 
     # Ignore
     parser.add_argument("--exclude-audio", help="skip downloading of audio files", action="store_true")
@@ -44,12 +45,24 @@ def parse_args() -> argparse.Namespace:
     # Runtime arguments
     parser.add_argument("--allow-insecure-connections", help="Allows insecure connections from content hosts", action="store_true")
     parser.add_argument("--attempts", type=int, help="number of attempts to download each file", default=10)
+    parser.add_argument("--block-sub-folders", help="Block sub folders from being created", action="store_true")
     parser.add_argument("--disable-attempt-limit", help="disables the attempt limitation", action="store_true")
     parser.add_argument("--include-id", help="include the ID in the download folder name", action="store_true")
     parser.add_argument("--mark-downloaded", help="sets the scraped files as downloaded without downloading", action="store_true")
+    parser.add_argument("--output-errored-urls", help="sets the failed urls to be output to the errored urls file", action="store_true")
+    parser.add_argument("--output-unsupported-urls", help="sets the unsupported urls to be output to the unsupported urls file", action="store_true")
     parser.add_argument("--proxy", help="HTTP/HTTPS proxy used for downloading, format [protocal]://[ip]:[port]", default=None)
+    parser.add_argument("--remove-bunker-identifier", help="Removes the bunkr added identifier from output filenames", action="store_true")
     parser.add_argument("--required-free-space", type=int, help="required free space (in gigabytes) for the program to run", default=5)
     parser.add_argument("--simultaneous-downloads", type=int, help="number of threads to use (0 = max)", default=0)
+
+    # Sorting
+    parser.add_argument("--sort-downloads", help="sorts downloaded files after downloads have finished", action="store_true")
+    parser.add_argument("--sort-directory", type=Path, help="folder to download files to", default="Sorted Downloads")
+    parser.add_argument("--sorted-audio", type=str, help="schema to sort audio", default="{sort_dir}/{base_dir}/Audio")
+    parser.add_argument("--sorted-images", type=str, help="schema to sort images", default="{sort_dir}/{base_dir}/Images")
+    parser.add_argument("--sorted-others", type=str, help="schema to sort other", default="{sort_dir}/{base_dir}/Other")
+    parser.add_argument("--sorted-videos", type=str, help="schema to sort videos", default="{sort_dir}/{base_dir}/Videos")
 
     # Ratelimiting
     parser.add_argument("--connection-timeout", type=int, help="number of seconds to wait attempting to connect to a URL during the downloading phase", default=15)
@@ -70,7 +83,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--xbunker-username", type=str, help="username to login to xbunker", default=None)
 
     # JDownloader details
-    parser.add_argument("--apply_jdownloader", help="enables sending unsupported URLs to a running jdownloader2 instance to download", action="store_true")
+    parser.add_argument("--apply-jdownloader", help="enables sending unsupported URLs to a running jdownloader2 instance to download", action="store_true")
     parser.add_argument("--jdownloader-username", type=str, help="username to login to jdownloader", default=None)
     parser.add_argument("--jdownloader-password", type=str, help="password to login to jdownloader", default=None)
     parser.add_argument("--jdownloader-device", type=str, help="device name to login to for jdownloader", default=None)

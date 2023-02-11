@@ -93,7 +93,7 @@ class Downloader:
         self.exclude_videos = args["Ignore"]["exclude_videos"]
         self.exclude_other = args["Ignore"]["exclude_other"]
 
-        self.allow_sub_folders = args['Runtime']['allow_sub_folders']
+        self.block_sub_folders = args['Runtime']['block_sub_folders']
         self.allowed_attempts = args["Runtime"]["attempts"]
         self.allow_insecure_connections = args["Runtime"]["allow_insecure_connections"]
         self.disable_attempt_limit = args["Runtime"]["disable_attempt_limit"]
@@ -209,7 +209,7 @@ class Downloader:
 
         url_path = await get_db_path(URL(media.url), self.domain)
 
-        if not self.allow_sub_folders:
+        if self.block_sub_folders:
             album = album.split('/')[0]
 
         try:
@@ -281,7 +281,7 @@ class Downloader:
             album_progress.advance(album_task, 1)
             file_progress.update(file_task, visible=False)
 
-            await log(f"Completed Download: {media.filename}", quiet=True)
+            await log(f"Completed Download: {media.filename} from {media.referer}", quiet=True)
             await self.File_Lock.remove_lock(original_filename)
             return
 
