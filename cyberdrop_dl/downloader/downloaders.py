@@ -42,7 +42,7 @@ def retry(f):
                     if self.current_attempt[args[2].url.parts[-1]] >= self.allowed_attempts - 1:
                         if self.output_errored:
                             async with aiofiles.open(self.output_errored_file, mode='a') as file:
-                                await file.write(f"{args[2].url},{args[3].referer},{e.message}")
+                                await file.write(f"{args[2].url},{args[2].referer},{e.message}\n")
                         logger.debug('Skipping %s...', args[2].url, exc_info=True)
                         self.files.failed_files += 1
                         return
@@ -76,7 +76,7 @@ class Downloader:
         self.domain = domain
         self.domain_obj = domain_obj
 
-        self.output_errored = args['Runtime']['output_unsupported_urls']
+        self.output_errored = args['Runtime']['output_errored_urls']
         self.output_errored_file = args['Files']['errored_urls_file']
 
         self.files = files
@@ -163,6 +163,11 @@ class Downloader:
                         if complete_file.exists():
                             proceed = False
                             break
+                        elif partial_file.exists():
+                            if partial_file.stat().st_size == expected_size:
+                                proceed = False
+                                partial_file.rename(complete_file)
+                                break
                         else:
                             break
                     else:

@@ -120,22 +120,21 @@ class BunkrCrawler:
                 link = file.get("href")
                 media_loc = file.select_one("img").get("src").split("//i")[-1].split(".bunkr.")[0]
 
-                temp_partial_link = link
                 if link.startswith("/"):
                     link = URL("https://" + url.host + link)
                 link = URL(link)
-
-                referer = link
-                if "cdn" in link.host:
-                    link = URL(str(link).replace("https://cdn", "https://i"))
-                else:
-                    link = URL(f"https://media-files{media_loc}.bunkr.ru" + temp_partial_link[2:])
 
                 try:
                     filename, ext = await get_filename_and_ext(link.name)
                 except NoExtensionFailure:
                     logger.debug("Couldn't get extension for %s", str(link))
                     continue
+
+                referer = link
+                if ext in FILE_FORMATS["Images"]:
+                    link = URL(str(link).replace("https://cdn", "https://i"))
+                else:
+                    link = URL(f"https://media-files{media_loc}.bunkr.ru" + link.path)
 
                 if self.remove_bunkr_id:
                     filename = await self.remove_id(filename, ext)

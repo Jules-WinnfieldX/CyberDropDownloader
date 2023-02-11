@@ -154,6 +154,8 @@ async def get_filename_and_ext(filename):
     filename_parts = filename.rsplit('.', 1)
     if len(filename_parts) == 1:
         raise NoExtensionFailure()
+    if filename_parts[-1].isnumeric():
+        filename_parts = filename_parts[0].rsplit('-', 1)
     ext = "." + filename_parts[-1].lower()
     filename = await sanitize(filename_parts[0] + ext)
     return filename, ext
