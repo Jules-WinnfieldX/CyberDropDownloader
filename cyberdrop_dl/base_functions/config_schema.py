@@ -56,7 +56,7 @@ config_default = [
                 "proxy": "",
                 "remove_bunkr_identifier": False,
                 "required_free_space": 5,
-                "simultaneous_downloads": 0,
+                "simultaneous_downloads_per_domain": 4,
             },
             "Sorting": {
                 "sort_downloads": False,
@@ -87,7 +87,7 @@ jdownloader_args = ["apply_jdownloader", "jdownloader_username", "jdownloader_pa
 
 ratelimiting_args = ["connection_timeout", "ratelimit", "throttle"]
 
-runtime_args = ["simultaneous_downloads", "allow_insecure_connections", "attempts", "disable_attempt_limit",
+runtime_args = ["simultaneous_downloads_per_domain", "allow_insecure_connections", "attempts", "disable_attempt_limit",
                 "include_id", "mark_downloaded", "proxy", "required_free_space", "output_errored_urls",
                 "output_unsupported_urls", "block_sub_folders"]
 

@@ -54,7 +54,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--proxy", help="HTTP/HTTPS proxy used for downloading, format [protocal]://[ip]:[port]", default=None)
     parser.add_argument("--remove-bunker-identifier", help="Removes the bunkr added identifier from output filenames", action="store_true")
     parser.add_argument("--required-free-space", type=int, help="required free space (in gigabytes) for the program to run", default=5)
-    parser.add_argument("--simultaneous-downloads", type=int, help="number of threads to use (0 = max)", default=0)
+    parser.add_argument("--simultaneous-downloads-per-domain", type=int, help="Number of simultaneous downloads to use per domain", default=4)
 
     # Sorting
     parser.add_argument("--sort-downloads", help="sorts downloaded files after downloads have finished", action="store_true")
@@ -109,7 +109,7 @@ async def file_management(args: dict, links: list) -> None:
             output_url_file.touch()
 
     if args['Runtime']['output_unsupported_urls']:
-        unsupported_urls = args['Forum_Options']['unsupported_urls_file']
+        unsupported_urls = args['Files']['unsupported_urls_file']
         if unsupported_urls.exists():
             unsupported_urls.unlink()
             unsupported_urls.touch()
@@ -117,7 +117,7 @@ async def file_management(args: dict, links: list) -> None:
                 await f.write("URL,REFERER,TITLE")
 
     if args['Runtime']['output_errored_urls']:
-        errored_urls = args['Forum_Options']['errored_urls_file']
+        errored_urls = args['Files']['errored_urls_file']
         if errored_urls.exists():
             errored_urls.unlink()
             errored_urls.touch()
