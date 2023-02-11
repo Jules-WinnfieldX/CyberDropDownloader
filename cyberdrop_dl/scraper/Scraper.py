@@ -73,12 +73,15 @@ class ScrapeMapper:
         self.quiet = quiet
         self.jdownloader = JDownloader(args['JDownloader'], quiet)
 
-        self.jpgfish_limiter = AsyncRateLimiter(15)
-        self.jpgfish_semaphore = asyncio.Semaphore(5)
+        self.jpgfish_limiter = AsyncRateLimiter(10)
         self.bunkr_limiter = AsyncRateLimiter(15)
-        self.forum_semaphore = asyncio.Semaphore(4)
         self.coomeno_limiter = AsyncRateLimiter(8)
-        self.semaphore = asyncio.Semaphore(1)
+
+        self.gofile_semaphore = asyncio.Semaphore(1)
+        self.jpgfish_semaphore = asyncio.Semaphore(5)
+        self.simpcity_semaphore = asyncio.Semaphore(1)
+        self.socialmediagirls_semaphore = asyncio.Semaphore(1)
+        self.xbunker_semaphore = asyncio.Semaphore(1)
 
         self.mapping = {"anonfiles": self.Anonfiles, "xbunkr": self.XBunkr, "bunkr": self.Bunkr,
                         "cyberdrop": self.Cyberdrop, "cyberfile": self.CyberFile, "erome": self.Erome,
@@ -172,7 +175,8 @@ class ScrapeMapper:
         gofile_session = ScrapeSession(self.client)
         if not self.gofile_crawler:
             self.gofile_crawler = GoFileCrawler(quiet=self.quiet, SQL_Helper=self.SQL_Helper)
-        await self.gofile_crawler.get_token(session=gofile_session)
+        async with self.gofile_semaphore:
+            await self.gofile_crawler.get_token(session=gofile_session)
         domain_obj = await self.gofile_crawler.fetch(gofile_session, url)
         await self.handle_additions("gofile", None, domain_obj, title)
         await gofile_session.exit_handler()
@@ -237,7 +241,7 @@ class ScrapeMapper:
         sharex_session = ScrapeSession(self.client)
         if not self.sharex_crawler:
             self.sharex_crawler = ShareXCrawler(include_id=self.include_id, quiet=self.quiet, SQL_Helper=self.SQL_Helper)
-        if "jpg.fish" in url.host and sharex_session.client.ratelimit > 19:
+        if ("jpg.fish" in url.host or "jpg.church" in url.host) and sharex_session.client.ratelimit > 19:
             async with self.jpgfish_semaphore:
                 async with self.jpgfish_limiter:
                     domain_obj = await self.sharex_crawler.fetch(sharex_session, url)
@@ -296,8 +300,18 @@ class ScrapeMapper:
         if not self.xenforo_crawler:
             self.xenforo_crawler = XenforoCrawler(scraping_mapper=self, args=self.args, SQL_Helper=self.SQL_Helper,
                                                   quiet=self.quiet)
-        async with self.forum_semaphore:
-            cascade, title = await self.xenforo_crawler.fetch(xenforo_session, url)
+        title = None
+        cascade = None
+
+        if "simpcity" in url.host:
+            async with self.simpcity_semaphore:
+                cascade, title = await self.xenforo_crawler.fetch(xenforo_session, url)
+        if "socialmediagirls" in url.host:
+            async with self.socialmediagirls_semaphore:
+                cascade, title = await self.xenforo_crawler.fetch(xenforo_session, url)
+        if "xbunker" in url.host:
+            async with self.xbunker_semaphore:
+                cascade, title = await self.xenforo_crawler.fetch(xenforo_session, url)
         if not title or await cascade.is_empty():
             await xenforo_session.exit_handler()
             return

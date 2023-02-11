@@ -114,7 +114,7 @@ class CoomenoCrawler:
         for content in text_content:
             link = URL(content.get('href'))
             tasks.append(self.scraping_mapper.map_url(link, title, referer))
-        await asyncio.gather(*tasks)
+        await asyncio.wait(tasks)
 
     async def parse_profile(self, session: ScrapeSession, url: URL, domain: str, cascade: CascadeItem,
                             posts_selectors: list, next_page_selector: str, images_selector: str,

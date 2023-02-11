@@ -242,7 +242,7 @@ class XenforoCrawler:
             link = link_title_bundle[0]
             temp_title = link_title_bundle[1]
             tasks.append(self.scraping_mapper.map_url(link, temp_title, referer))
-        await asyncio.gather(*tasks)
+        await asyncio.wait(tasks)
 
     async def parse_simpcity(self, session: ScrapeSession, url: URL, cascade: CascadeItem, title: str,
                              post_number: int):

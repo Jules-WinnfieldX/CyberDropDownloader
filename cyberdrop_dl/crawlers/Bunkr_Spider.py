@@ -125,6 +125,12 @@ class BunkrCrawler:
                     link = URL("https://" + url.host + link)
                 link = URL(link)
 
+                referer = link
+                if "cdn" in link.host:
+                    link = URL(str(link).replace("https://cdn", "https://i"))
+                else:
+                    link = URL(f"https://media-files{media_loc}.bunkr.ru" + temp_partial_link[2:])
+
                 try:
                     filename, ext = await get_filename_and_ext(link.name)
                 except NoExtensionFailure:
@@ -133,12 +139,6 @@ class BunkrCrawler:
 
                 if self.remove_bunkr_id:
                     filename = await self.remove_id(filename, ext)
-
-                referer = link
-                if "cdn" in link.host:
-                    link = URL(str(link).replace("https://cdn", "https://i"))
-                else:
-                    link = URL(f"https://media-files{media_loc}.bunkr.ru" + temp_partial_link[2:])
 
                 url_path = await get_db_path(link)
                 complete = await self.SQL_Helper.check_complete_singular("bunkr", url_path)
