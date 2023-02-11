@@ -68,7 +68,7 @@ class BunkrCrawler:
     async def remove_id(self, filename: str, ext: str):
         """Removes the additional string bunkr adds to the end of every filename"""
         filename = filename.rsplit(ext, 1)[0]
-        filename = filename.rsplit("-")[0]
+        filename = filename.rsplit("-", 1)[0]
         if not ext in filename:
             filename = filename + ext
         return filename
