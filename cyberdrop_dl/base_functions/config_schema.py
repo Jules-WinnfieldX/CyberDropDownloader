@@ -89,6 +89,6 @@ ratelimiting_args = ["connection_timeout", "ratelimit", "throttle"]
 
 runtime_args = ["simultaneous_downloads", "allow_insecure_connections", "attempts", "disable_attempt_limit",
                 "include_id", "mark_downloaded", "proxy", "required_free_space", "output_errored_urls",
-                "output_unsupported_urls"]
+                "output_unsupported_urls", "block_sub_folders"]
 
 sorting_args = ["sort_downloads", "sort_directory", "sorted_audio", "sorted_images", "sorted_others", "sorted_videos"]
