@@ -96,6 +96,7 @@ class BunkrCrawler:
             if not link:
                 raise
             link = URL(link)
+            link = link.with_name(url.name)
             link = await self.check_for_la(link)
             filename, ext = await get_filename_and_ext(link.name)
             if self.remove_bunkr_id:
@@ -141,6 +142,9 @@ class BunkrCrawler:
                 referer = link
                 if ext in FILE_FORMATS["Images"]:
                     link = URL(str(link).replace("https://cdn", "https://i"))
+                elif "v" in link.parts or "d" in link.parts:
+                    media = await self.get_file(session, link)
+                    link = media.url
                 else:
                     link = URL(f"https://media-files{media_loc}.bunkr.ru" + link.path)
 

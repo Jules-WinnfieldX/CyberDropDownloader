@@ -19,6 +19,11 @@ class FailedLoginFailure(Exception):
         super().__init__(self.message)
 
 
+class InvalidContentTypeFailure(Exception):
+    def __init__(self, *, message="Failed login."):
+        self.message = message
+        super().__init__(self.message)
+
 class DownloadFailure(Exception):
     """This error will be thrown when a download fails"""
     def __init__(self, code, message="Something went wrong"):

@@ -18,7 +18,7 @@ from cyberdrop_dl.downloader.progress_definitions import file_progress
 from .rate_limiting import AsyncRateLimiter, throttle
 from ..base_functions.base_functions import logger
 from ..base_functions.data_classes import FileLock, MediaItem
-from ..base_functions.error_classes import DownloadFailure
+from ..base_functions.error_classes import DownloadFailure, InvalidContentTypeFailure
 
 
 class Client:
@@ -46,9 +46,13 @@ class ScrapeSession:
         async with self.client.simultaneous_session_limit:
             async with self.rate_limiter:
                 async with self.client_session.get(url, ssl=self.client.ssl_context) as response:
-                    text = await response.text()
-                    soup = BeautifulSoup(text, 'html.parser')
-                    return soup
+                    content_type = response.headers.get('Content-Type')
+                    if 'text' in content_type.lower() or 'html' in content_type.lower():
+                        text = await response.text()
+                        soup = BeautifulSoup(text, 'html.parser')
+                        return soup
+                    else:
+                        raise InvalidContentTypeFailure(message=f"Received {content_type}, was expecting text")
 
     async def get_BS4_and_url(self, url: URL):
         async with self.client.simultaneous_session_limit:
