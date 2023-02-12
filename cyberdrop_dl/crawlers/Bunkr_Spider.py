@@ -1,5 +1,6 @@
-import json
+import html
 import re
+
 
 from yarl import URL
 
@@ -55,9 +56,6 @@ class BunkrCrawler:
             for file in files:
                 link = file.get("href")
 
-                media_loc = file.select_one("img").get("src").split("//i")[-1].split(".bunkr.")[0]
-
-                temp_partial_link = link
                 if link.startswith("/"):
                     link = URL("https://" + url.host + link)
                 link = URL(link)
@@ -65,13 +63,20 @@ class BunkrCrawler:
                 ext = ext.lower()
 
                 referrer = link
-                if "cdn" in link.host:
-                    link = URL(str(link).replace("https://cdn", "https://i"))
+
+                if "v" in link.parts or "d" in link.parts:
+                    link = await self.stream(session, link)
+
                 else:
-                    if media_loc != '12':
-                        link = URL(f"https://media-files{media_loc}.bunkr.ru" + temp_partial_link[2:])
+                    media_loc = file.select_one("img").get("src").split("//i")[-1].split(".bunkr.")[0]
+                    referrer = link
+                    if ext in FILE_FORMATS['Images']:
+                        link = URL(str(link).replace("https://cdn", "https://i"))
                     else:
-                        link = URL(f"https://media-files{media_loc}.bunkr.la" + temp_partial_link[2:])
+                        if media_loc != '12':
+                            link = URL(f"https://media-files{media_loc}.bunkr.ru/" + link.name)
+                        else:
+                            link = URL(f"https://media-files{media_loc}.bunkr.la/" + link.name)
 
                 await domain_obj.add_to_album(title, link, referrer)
 
@@ -84,17 +89,17 @@ class BunkrCrawler:
         try:
             soup = await session.get_BS4(url)
             head = soup.select_one("head")
-            scripts = soup.select('script[type="text/javascript"]')
+            scripts = head.select('script[type="text/javascript"]')
             link = None
 
             for script in scripts:
                 if script.text:
                     if "link.href" in script.text:
-                        link = script.text.split('link.href = "')[-1].split('";')[0]
+                        link = html.unescape(script.text.split('link.href = "')[-1].split('";')[0])
                         break
             if not link:
                 raise
-            link = URL(link)
+            link = URL(link, encoded=True)
             return link
 
         except Exception as e:
