@@ -140,11 +140,11 @@ class BunkrCrawler:
                     continue
 
                 referer = link
-                if ext in FILE_FORMATS["Images"]:
-                    link = URL(str(link).replace("https://cdn", "https://i"))
-                elif "v" in link.parts or "d" in link.parts:
+                if "v" in link.parts or "d" in link.parts:
                     media = await self.get_file(session, link)
                     link = media.url
+                elif ext in FILE_FORMATS["Images"]:
+                    link = URL(str(link).replace("https://cdn", "https://i"))
                 else:
                     link = URL(f"https://media-files{media_loc}.bunkr.ru" + link.path)
 
