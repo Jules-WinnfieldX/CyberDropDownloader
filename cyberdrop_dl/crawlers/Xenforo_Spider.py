@@ -103,7 +103,7 @@ class XenforoCrawler:
     async def socialmediagirls_login(self, session: ScrapeSession, url: URL):
         """Handles logging in for SMG"""
         if self.socialmediagirls_username and self.socialmediagirls_username:
-            if self.socialmediagirls_lock:
+            if not self.socialmediagirls_lock:
                 while True:
                     if self.socialmediagirls_logged_in:
                         return
@@ -136,7 +136,7 @@ class XenforoCrawler:
     async def xbunker_login(self, session: ScrapeSession, url: URL):
         """Handles logging in for XBunker"""
         if self.xbunker_username and self.xbunker_password:
-            if self.xbunker_lock:
+            if not self.xbunker_lock:
                 while True:
                     if self.xbunker_logged_in:
                         return
@@ -218,6 +218,7 @@ class XenforoCrawler:
         """Splits given links into direct links and external links,
         returns external links, adds internal to the cascade"""
         forum_direct_urls = [x for x in content_links if x[0].host.replace(".st", ".su") in url.host]
+        forum_direct_urls.extend([x for x in content_links if url.host in x[0].host.replace(".st", ".su")])
         content_links = [x for x in content_links if x not in forum_direct_urls]
         for link_title_bundle in forum_direct_urls:
             link = link_title_bundle[0]

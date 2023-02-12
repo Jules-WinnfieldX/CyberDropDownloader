@@ -48,7 +48,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--block-sub-folders", help="Block sub folders from being created", action="store_true")
     parser.add_argument("--disable-attempt-limit", help="disables the attempt limitation", action="store_true")
     parser.add_argument("--include-id", help="include the ID in the download folder name", action="store_true")
-    parser.add_argument("--mark-downloaded", help="sets the scraped files as downloaded without downloading", action="store_true")
+    parser.add_argument("--skip-download-mark-completed", help="sets the scraped files as downloaded without downloading", action="store_true")
     parser.add_argument("--output-errored-urls", help="sets the failed urls to be output to the errored urls file", action="store_true")
     parser.add_argument("--output-unsupported-urls", help="sets the unsupported urls to be output to the unsupported urls file", action="store_true")
     parser.add_argument("--proxy", help="HTTP/HTTPS proxy used for downloading, format [protocal]://[ip]:[port]", default=None)

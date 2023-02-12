@@ -50,7 +50,7 @@ config_default = [
                 "block_sub_folders": True,
                 "disable_attempt_limit": False,
                 "include_id": False,
-                "mark_downloaded": False,
+                "skip_download_mark_completed": False,
                 "output_errored_urls": False,
                 "output_unsupported_urls": False,
                 "proxy": "",
@@ -88,7 +88,7 @@ jdownloader_args = ["apply_jdownloader", "jdownloader_username", "jdownloader_pa
 ratelimiting_args = ["connection_timeout", "ratelimit", "throttle"]
 
 runtime_args = ["simultaneous_downloads_per_domain", "allow_insecure_connections", "attempts", "disable_attempt_limit",
-                "include_id", "mark_downloaded", "proxy", "required_free_space", "output_errored_urls",
+                "include_id", "skip_download_mark_completed", "proxy", "required_free_space", "output_errored_urls",
                 "output_unsupported_urls", "block_sub_folders"]
 
 sorting_args = ["sort_downloads", "sort_directory", "sorted_audio", "sorted_images", "sorted_others", "sorted_videos"]
