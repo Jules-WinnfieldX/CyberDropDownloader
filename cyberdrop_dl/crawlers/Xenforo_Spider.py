@@ -229,7 +229,7 @@ class XenforoCrawler:
             if 'attachments' in link.parts or 'content' in link.parts or 'data' in link.parts:
                 completed = await self.SQL_Helper.check_complete_singular(domain, link.path)
                 try:
-                    filename, ext = await get_filename_and_ext(link.name)
+                    filename, ext = await get_filename_and_ext(link.name, True)
                 except NoExtensionFailure:
                     continue
                 media = MediaItem(link, url, completed, filename, ext)

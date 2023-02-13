@@ -217,7 +217,7 @@ class Downloader:
             else:
                 task_description = task_description.ljust(40)
             file_task = file_progress.add_task("[plum3]" + task_description, progress_type="file")
-            fake_download = False
+
             if not await self.SQL_Helper.sql_check_old_existing(url_path):
                 await self.download_session.download_file(media, partial_file, current_throttle, resume_point,
                                                           self.File_Lock, self.proxy, headers, original_filename,
@@ -358,8 +358,8 @@ async def download_cascade(args: dict, Cascade: CascadeItem, SQL_Helper: SQLHelp
         await asyncio.gather(*tasks)
 
     await clear()
-    await log(
-        f"| [green]Files Complete: {files.completed_files}[/green] - [yellow]Files Skipped: {files.skipped_files}[/yellow] - [red]Files Failed: {files.failed_files}[/red] |")
+    await log(f"| [green]Files Complete: {files.completed_files}[/green] - [yellow]Files Skipped: "
+              f"{files.skipped_files}[/yellow] - [red]Files Failed: {files.failed_files}[/red] |")
 
 
 async def download_forums(args: dict, Forums: ForumItem, SQL_Helper: SQLHelper, client: Client,
@@ -393,5 +393,5 @@ async def download_forums(args: dict, Forums: ForumItem, SQL_Helper: SQLHelper, 
             forum_progress.advance(forum_task, 1)
 
     await clear()
-    await log(
-        f"| [green]Files Complete: {files.completed_files}[/green] - [yellow]Files Skipped: {files.skipped_files}[/yellow] - [red]Files Failed: {files.failed_files}[/red] |")
+    await log(f"| [green]Files Complete: {files.completed_files}[/green] - [yellow]Files Skipped: "
+              f"{files.skipped_files}[/yellow] - [red]Files Failed: {files.failed_files}[/red] |")

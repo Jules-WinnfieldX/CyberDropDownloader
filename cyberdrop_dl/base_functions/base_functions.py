@@ -149,12 +149,12 @@ async def check_direct(url: URL):
     return any(re.search(domain, url.host) for domain in mapping_direct)
 
 
-async def get_filename_and_ext(filename):
+async def get_filename_and_ext(filename, forum=False):
     """Returns the filename and extension of a given file, throws NoExtensionFailure if there is no extension"""
     filename_parts = filename.rsplit('.', 1)
     if len(filename_parts) == 1:
         raise NoExtensionFailure()
-    if filename_parts[-1].isnumeric():
+    if filename_parts[-1].isnumeric() and forum:
         filename_parts = filename_parts[0].rsplit('-', 1)
     ext = "." + filename_parts[-1].lower()
     filename = await sanitize(filename_parts[0] + ext)
