@@ -39,14 +39,14 @@ def retry(f):
                 return await f(self, *args, **kwargs)
             except DownloadFailure as e:
                 if not self.disable_attempt_limit:
-                    if self.current_attempt[args[2].url.parts[-1]] >= self.allowed_attempts - 1:
+                    if self.current_attempt[args[3]] >= self.allowed_attempts - 1:
                         await self.output_failed(args[2], e)
                         logger.debug('Skipping %s...', args[2].url, exc_info=True)
                         self.files.failed_files += 1
                         return
                 logger.debug(e.message)
-                logger.debug(f'Retrying ({self.current_attempt[args[2].url.parts[-1]]}) {args[2].url}...')
-                self.current_attempt[args[2].url.parts[-1]] += 1
+                logger.debug(f'Retrying ({self.current_attempt[args[3]]}) {args[2].url}...')
+                self.current_attempt[args[3]] += 1
 
     return wrapper
 
@@ -139,10 +139,11 @@ class Downloader:
                 album_progress.advance(album_task, 1)
                 return
         async with self._semaphore:
-            await self.download_file(album_task, album, media)
+            url_path = await get_db_path(URL(media.url), self.domain)
+            await self.download_file(album_task, album, media, url_path)
 
     @retry
-    async def download_file(self, album_task: TaskID, album: str, media: MediaItem):
+    async def download_file(self, album_task: TaskID, album: str, media: MediaItem, url_path: str):
         """File downloader"""
         if not await check_free_space(self.required_free_space, self.download_dir):
             await log("We've run out of free space.", quiet=True)
@@ -157,8 +158,6 @@ class Downloader:
             album_progress.advance(album_task, 1)
             return
 
-        url_path = await get_db_path(URL(media.url), self.domain)
-
         if self.block_sub_folders:
             album = album.split('/')[0]
 
@@ -167,8 +166,8 @@ class Downloader:
                 await asyncio.sleep(gauss(1, 1.5))
             await self.File_Lock.add_lock(media.filename)
 
-            if media.url.parts[-1] not in self.current_attempt:
-                self.current_attempt[media.url.parts[-1]] = 0
+            if url_path not in self.current_attempt:
+                self.current_attempt[url_path] = 0
 
             current_throttle = self.client.throttle
 
@@ -186,6 +185,8 @@ class Downloader:
                 self.files.skipped_files += 1
                 await self.File_Lock.remove_lock(original_filename)
                 await self.SQL_Helper.mark_complete(url_path, original_filename)
+                if url_path in self.current_attempt.keys():
+                    self.current_attempt.pop(url_path)
                 album_progress.advance(album_task, 1)
                 return
 
@@ -258,8 +259,8 @@ class Downloader:
                     logger.debug("We ran into a 400 level error: %s", str(e.code))
                     await log(f"Failed Download: {media.filename}", quiet=True)
                     self.files.failed_files += 1
-                    if media.url.parts[-1] in self.current_attempt.keys():
-                        self.current_attempt.pop(media.url.parts[-1])
+                    if url_path in self.current_attempt.keys():
+                        self.current_attempt.pop(url_path)
                     await self.output_failed(media, e)
                     return
                 logger.debug("Error status code: " + str(e.code))
