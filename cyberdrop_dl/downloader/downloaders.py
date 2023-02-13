@@ -76,7 +76,6 @@ class Downloader:
 
         self.errored_output = args['Runtime']['output_errored_urls']
         self.errored_file = args['Files']['errored_urls_file']
-        self.errored_lock = False
 
         self.files = files
 
@@ -192,8 +191,9 @@ class Downloader:
 
             await self.SQL_Helper.update_pre_download(complete_file, media.filename, url_path, original_filename)
 
+            fake_download = False
             if self.mark_downloaded:
-                await self.SQL_Helper.mark_complete(url_path, original_filename)
+                fake_download = True
 
             resume_point = 0
             await self.SQL_Helper.sql_insert_temp(str(partial_file))
@@ -218,7 +218,7 @@ class Downloader:
                 task_description = task_description.ljust(40)
             file_task = file_progress.add_task("[plum3]" + task_description, progress_type="file")
 
-            if not await self.SQL_Helper.sql_check_old_existing(url_path):
+            if not await self.SQL_Helper.sql_check_old_existing(url_path) and not fake_download:
                 await self.download_session.download_file(media, partial_file, current_throttle, resume_point,
                                                           self.File_Lock, self.proxy, headers, original_filename,
                                                           file_task)
@@ -269,14 +269,8 @@ class Downloader:
 
     async def output_failed(self, media, e):
         if self.errored_output:
-            while True:
-                if not self.errored_lock:
-                    break
-                await asyncio.sleep(0.5)
-            self.errored_lock = True
             async with aiofiles.open(self.errored_file, mode='a') as file:
                 await file.write(f"{media.url},{media.referer},{e.message}\n")
-            self.errored_lock = False
 
     async def check_file_exists(self, complete_file, partial_file, media, album, url_path, original_filename,
                                 current_throttle):

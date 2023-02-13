@@ -45,7 +45,6 @@ class ScrapeMapper:
 
         self.unsupported_file = args["Files"]["unsupported_urls_file"]
         self.unsupported_output = args['Runtime']['output_unsupported_urls']
-        self.unsupported_lock = False
 
         self.anonfiles_crawler = None
         self.bunkr_crawler = None
@@ -349,11 +348,5 @@ class ScrapeMapper:
         else:
             await log(f"[yellow]Not Supported: {str(url_to_map)}[/yellow]", quiet=self.quiet)
             if self.unsupported_output:
-                while True:
-                    if not self.unsupported_lock:
-                        break
-                    await asyncio.sleep(0.5)
-                self.unsupported_lock = True
                 async with aiofiles.open(self.unsupported_file, mode='a') as f:
                     await f.write(f"{str(url_to_map)},{str(referer)},{title}\n")
-                self.unsupported_lock = False
