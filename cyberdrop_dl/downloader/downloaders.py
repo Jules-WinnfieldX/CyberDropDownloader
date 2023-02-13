@@ -114,7 +114,12 @@ class Downloader:
         """Handler for albums and the progress bars for it"""
         if await album_obj.is_empty():
             return
-        album_task = album_progress.add_task("[pink3]" + album.upper(), progress_type="album",
+        task_description = album.split('/')[-1]
+        if len(task_description) >= 40:
+            task_description = task_description[:37] + "..."
+        else:
+            task_description = task_description.ljust(40)
+        album_task = album_progress.add_task("[pink3]" + task_description.upper(), progress_type="album",
                                              total=len(album_obj.media))
         download_tasks = []
         for media in album_obj.media:

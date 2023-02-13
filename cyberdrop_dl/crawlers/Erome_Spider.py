@@ -22,7 +22,7 @@ class EromeCrawler:
         else:
             domain_obj = await self.handle_profile(session, url)
 
-        await log("Finished scrape of " + str(url), quiet=self.quiet)
+        await log(f"[green]Finished: {str(url)}[/green]", quiet=self.quiet)
 
         return domain_obj
 
