@@ -14,7 +14,7 @@ from rich.progress import TaskID
 from yarl import URL
 
 from .progress_definitions import get_forum_table, cascade_progress, domain_progress, album_progress, file_progress, \
-    forum_progress, get_cascade_table
+    forum_progress, get_cascade_table, overall_file_progress
 from cyberdrop_dl.base_functions.base_functions import log, logger, check_free_space, allowed_filetype, get_db_path, \
     clear
 from cyberdrop_dl.base_functions.error_classes import DownloadFailure
@@ -42,6 +42,7 @@ def retry(f):
                     if self.current_attempt[args[3]] >= self.allowed_attempts - 1:
                         await self.output_failed(args[2], e)
                         logger.debug('Skipping %s...', args[2].url, exc_info=True)
+                        overall_file_progress.advance(self.files.failed_files_task_id, 1)
                         self.files.failed_files += 1
                         return
                 logger.debug(e.message)
@@ -52,11 +53,14 @@ def retry(f):
 
 
 class Files:
-    """Class that keeps that of completed, skipped and failed files"""
+    """Class that keeps track of completed, skipped and failed files"""
 
-    def __init__(self):
+    def __init__(self, completed, skipped, failed):
+        self.completed_files_task_id = completed
         self.completed_files = 0
+        self.skipped_files_task_id = skipped
         self.skipped_files = 0
+        self.failed_files_task_id = failed
         self.failed_files = 0
 
 
@@ -103,8 +107,7 @@ class Downloader:
 
     async def start_domain(self, cascade_task: TaskID):
         """Handler for domains and the progress bars for it"""
-        domain_task = domain_progress.add_task("[light_pink3]" + self.domain.upper(), progress_type="domain",
-                                               total=len(self.domain_obj.albums))
+        domain_task = domain_progress.add_task("[light_pink3]" + self.domain.upper(), total=len(self.domain_obj.albums))
         for album, album_obj in self.domain_obj.albums.items():
             await self.start_album(domain_task, album, album_obj)
         cascade_progress.advance(cascade_task, 1)
@@ -119,8 +122,7 @@ class Downloader:
             task_description = task_description[:37] + "..."
         else:
             task_description = task_description.ljust(40)
-        album_task = album_progress.add_task("[pink3]" + task_description.upper(), progress_type="album",
-                                             total=len(album_obj.media))
+        album_task = album_progress.add_task("[pink3]" + task_description.upper(), total=len(album_obj.media))
         download_tasks = []
         for media in album_obj.media:
             download_tasks.append(self.start_file(album_task, album, media))
@@ -132,6 +134,7 @@ class Downloader:
         """Handler for files and the progress bars for it"""
         if media.complete:
             await log(f"Previously Downloaded: {media.filename}", quiet=True)
+            overall_file_progress.advance(self.files.skipped_files_task_id, 1)
             self.files.skipped_files += 1
             album_progress.advance(album_task, 1)
             return
@@ -140,6 +143,7 @@ class Downloader:
             complete = await self.SQL_Helper.check_complete_singular(self.domain, url_path)
             if complete:
                 await log(f"Previously Downloaded: {media.filename}", quiet=True)
+                overall_file_progress.advance(self.files.skipped_files_task_id, 1)
                 self.files.skipped_files += 1
                 album_progress.advance(album_task, 1)
                 return
@@ -152,6 +156,7 @@ class Downloader:
         """File downloader"""
         if not await check_free_space(self.required_free_space, self.download_dir):
             await log("We've run out of free space.", quiet=True)
+            overall_file_progress.advance(self.files.skipped_files_task_id, 1)
             self.files.skipped_files += 1
             album_progress.advance(album_task, 1)
             return
@@ -159,6 +164,7 @@ class Downloader:
         if not await allowed_filetype(media, self.exclude_images, self.exclude_videos, self.exclude_audio,
                                       self.exclude_other):
             await log(f"Blocked by file extension: {media.filename}", quiet=True)
+            overall_file_progress.advance(self.files.skipped_files_task_id, 1)
             self.files.skipped_files += 1
             album_progress.advance(album_task, 1)
             return
@@ -180,26 +186,17 @@ class Downloader:
             complete_file = (self.download_dir / album / media.filename)
             partial_file = complete_file.with_suffix(complete_file.suffix + '.part')
 
+            fake_download = False
+            if self.mark_downloaded:
+                fake_download = True
+
             complete_file, partial_file, proceed = await self.check_file_exists(complete_file, partial_file, media,
                                                                                 album, url_path, original_filename,
                                                                                 current_throttle)
             if not proceed:
-                await self.SQL_Helper.update_pre_download(complete_file, media.filename, url_path,
-                                                          original_filename)
-                await log(f"Previously Downloaded: {media.filename}", quiet=True)
-                self.files.skipped_files += 1
-                await self.File_Lock.remove_lock(original_filename)
-                await self.SQL_Helper.mark_complete(url_path, original_filename)
-                if url_path in self.current_attempt.keys():
-                    self.current_attempt.pop(url_path)
-                album_progress.advance(album_task, 1)
-                return
+                fake_download = True
 
             await self.SQL_Helper.update_pre_download(complete_file, media.filename, url_path, original_filename)
-
-            fake_download = False
-            if self.mark_downloaded:
-                fake_download = True
 
             resume_point = 0
             await self.SQL_Helper.sql_insert_temp(str(partial_file))
@@ -234,7 +231,12 @@ class Downloader:
             if media.url.parts[-1] in self.current_attempt.keys():
                 self.current_attempt.pop(media.url.parts[-1])
 
-            self.files.completed_files += 1
+            if fake_download:
+                overall_file_progress.advance(self.files.skipped_files_task_id, 1)
+                self.files.skipped_files += 1
+            else:
+                overall_file_progress.advance(self.files.completed_files_task_id, 1)
+                self.files.completed_files += 1
             album_progress.advance(album_task, 1)
             file_progress.update(file_task, visible=False)
 
@@ -263,6 +265,7 @@ class Downloader:
                 if 400 <= e.code < 500 and e.code != 429:
                     logger.debug("We ran into a 400 level error: %s", str(e.code))
                     await log(f"Failed Download: {media.filename}", quiet=True)
+                    overall_file_progress.advance(self.files.failed_files_task_id, 1)
                     self.files.failed_files += 1
                     if url_path in self.current_attempt.keys():
                         self.current_attempt.pop(url_path)
@@ -335,10 +338,12 @@ async def download_cascade(args: dict, Cascade: CascadeItem, SQL_Helper: SQLHelp
                            scraper: ScrapeMapper) -> None:
     """Handler for cascades and the progress bars for it"""
     user_threads = args["Runtime"]["simultaneous_downloads_per_domain"]
-    files = Files()
 
-    progress_table = await get_cascade_table()
-
+    progress_table = await get_cascade_table(args["Progress_Options"])
+    total_files = await Cascade.get_total()
+    files = Files(overall_file_progress.add_task("[green]Completed", total=total_files),
+                  overall_file_progress.add_task("[yellow]Skipped", total=total_files),
+                  overall_file_progress.add_task("[red]Failed", total=total_files))
     with Live(progress_table, refresh_per_second=30):
         cascade_task = cascade_progress.add_task("[light_salmon3]Domains", progress_type="cascade",
                                                  total=len(Cascade.domains))
@@ -366,15 +371,16 @@ async def download_forums(args: dict, Forums: ForumItem, SQL_Helper: SQLHelper, 
                           scraper: ScrapeMapper) -> None:
     """Handler for forum threads and the progress bars for it"""
     user_threads = args["Runtime"]["simultaneous_downloads_per_domain"]
-    files = Files()
 
-    progress_table = await get_forum_table()
-
+    progress_table = await get_forum_table(args["Progress_Options"])
+    total_files = await Forums.get_total()
+    files = Files(overall_file_progress.add_task("[green]Completed", total=total_files),
+                  overall_file_progress.add_task("[yellow]Skipped", total=total_files),
+                  overall_file_progress.add_task("[red]Failed", total=total_files))
     with Live(progress_table, refresh_per_second=30):
-        forum_task = forum_progress.add_task("[orange3]FORUM THREADS", progress_type="forum", total=len(Forums.threads))
+        forum_task = forum_progress.add_task("[orange3]FORUM THREADS", total=len(Forums.threads))
         for title, Cascade in Forums.threads.items():
-            cascade_task = cascade_progress.add_task("[light_salmon3]" + title.upper(), progress_type="cascade",
-                                                     total=len(Cascade.domains))
+            cascade_task = cascade_progress.add_task("[light_salmon3]" + title.upper(), total=len(Cascade.domains))
 
             downloaders = []
             tasks = []

@@ -88,6 +88,14 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--jdownloader-password", type=str, help="password to login to jdownloader", default=None)
     parser.add_argument("--jdownloader-device", type=str, help="device name to login to for jdownloader", default=None)
 
+    # Progress Options
+    parser.add_argument("--dont-show-overall-progress", help="Removes overall progress section while downloading", action="store_true")
+    parser.add_argument("--dont-show-forum-progress", help="Removes forum progress section while downloading", action="store_true")
+    parser.add_argument("--dont-show-thread-progress", help="Removes thread progress section while downloading", action="store_true")
+    parser.add_argument("--dont-show-domain-progress", help="Removes domain progress section while downloading", action="store_true")
+    parser.add_argument("--dont-show-album-progress", help="Removes album progress section while downloading", action="store_true")
+    parser.add_argument("--dont-show-file-progress", help="Removes file progress section while downloading", action="store_true")
+
     # Links
     parser.add_argument("links", metavar="link", nargs="*", help="link to content to download (passing multiple links is supported)", default=[])
     args = parser.parse_args()

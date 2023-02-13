@@ -7,7 +7,7 @@ import yaml
 
 from cyberdrop_dl.base_functions.base_functions import log
 from cyberdrop_dl.base_functions.config_schema import config_default, authentication_args, files_args, \
-    jdownloader_args, runtime_args, forum_args, ignore_args, ratelimiting_args, sorting_args
+    jdownloader_args, runtime_args, forum_args, ignore_args, ratelimiting_args, sorting_args, progress_args
 
 
 def create_config(config: Path, passed_args=None, remake=None):
@@ -24,12 +24,24 @@ def create_config(config: Path, passed_args=None, remake=None):
         for arg in files_args:
             if arg in passed_args.keys():
                 config_data[0]["Configuration"]["Files"][arg] = str(passed_args[arg])
+        for arg in forum_args:
+            if arg in passed_args.keys():
+                config_data[0]["Configuration"]["Forum_Options"][arg] = passed_args[arg]
         for arg in jdownloader_args:
             if arg in passed_args.keys():
                 config_data[0]["Configuration"]["JDownloader"][arg] = passed_args[arg]
+        for arg in progress_args:
+            if arg in passed_args.keys():
+                config_data[0]["Configuration"]["Progress_Options"][arg] = passed_args[arg]
+        for arg in ratelimiting_args:
+            if arg in passed_args.keys():
+                config_data[0]["Configuration"]["Ratelimiting"][arg] = passed_args[arg]
         for arg in runtime_args:
             if arg in passed_args.keys():
                 config_data[0]["Configuration"]["Runtime"][arg] = passed_args[arg]
+        for arg in sorting_args:
+            if arg in passed_args.keys():
+                config_data[0]["Configuration"]["Sorting"][arg] = passed_args[arg]
 
     with open(config, 'w') as yamlfile:
         yaml.dump(config_data, yamlfile)
@@ -54,6 +66,8 @@ def validate_config(config: Path):
             recreate = 1
         if not set(jdownloader_args).issubset(set(data['JDownloader'].keys())):
             recreate = 1
+        if not set(progress_args).issubset(set(data['Progress_Options'].keys())):
+            recreate = 1
         if not set(ratelimiting_args).issubset(set(data['Ratelimiting'].keys())):
             recreate = 1
         if not set(runtime_args).issubset(set(data['Runtime'].keys())):
@@ -66,7 +80,8 @@ def validate_config(config: Path):
 
             args = {}
             args_list = [data['Authentication'], data['Files'], data['Forum_Options'], data['Ignore'],
-                         data['JDownloader'], data['Ratelimiting'], data['Runtime'], data['Sorting']]
+                         data['JDownloader'], data['Progress_Options'], data['Ratelimiting'], data['Runtime'],
+                         data['Sorting']]
             for dic in args_list:
                 args.update(dic)
             create_config(config, args, True)
@@ -105,6 +120,9 @@ def run_args(config: Path, cmd_arg: dict):
     for arg in jdownloader_args:
         if arg in cmd_arg.keys():
             config_data["JDownloader"][arg] = cmd_arg[arg]
+    for arg in progress_args:
+        if arg in cmd_arg.keys():
+            config_data["Progress_Options"][arg] = cmd_arg[arg]
     for arg in ratelimiting_args:
         if arg in cmd_arg.keys():
             config_data["Ratelimiting"][arg] = cmd_arg[arg]
@@ -132,6 +150,7 @@ async def document_args(args: dict):
     await log(f"Using forum option arguments: {print_args['Forum_Options']}", quiet=True)
     await log(f"Using ignore arguments: {print_args['Ignore']}", quiet=True)
     await log(f"Using jdownloader arguments: {print_args['JDownloader']}", quiet=True)
+    await log(f"Using progress option arguments: {print_args['Progress_Options']}", quiet=True)
     await log(f"Using ratelimiting arguments: {print_args['Ratelimiting']}", quiet=True)
     await log(f"Using runtime arguments: {print_args['Runtime']}", quiet=True)
     await log(f"Using sorting arguments: {print_args['Sorting']}", quiet=True)

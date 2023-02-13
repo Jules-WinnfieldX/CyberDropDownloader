@@ -124,6 +124,13 @@ class CascadeItem:
                     return False
         return True
 
+    async def get_total(self):
+        total = 0
+        for _, domain in self.domains.items():
+            for _, album in domain.albums.items():
+                total += len(album.media)
+        return total
+
     async def append_title(self, title: str):
         if not title:
             return
@@ -179,6 +186,14 @@ class ForumItem:
                     if album.media:
                         return False
         return True
+
+    async def get_total(self):
+        total = 0
+        for _, Cascade in self.threads.items():
+            for _, domain in Cascade.domains.items():
+                for _, album in domain.albums.items():
+                    total += len(album.media)
+        return total
 
     async def dedupe(self):
         for _, Cascade in self.threads.items():
