@@ -55,7 +55,7 @@ config_default = [
             "Runtime": {
                 "allow_insecure_connections": False,
                 "attempts": 10,
-                "block_sub_folders": True,
+                "block_sub_folders": False,
                 "disable_attempt_limit": False,
                 "include_id": False,
                 "skip_download_mark_completed": False,
