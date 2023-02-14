@@ -165,4 +165,5 @@ optional arguments:
 --dont-show-file-progress 	removes file progress section while downloading
 
 ```
+
 --skip-hosts can use: `"anonfiles", "bayfiles", "bunkr", "coomer.party", "cyberdrop", "cyberfile", "e-hentai", "erome", "fapello", "gfycat", "gofile", "hgamecg", "img.kiwi", "imgbox", "jpg.church", "jpg.fish", "kemono.party", "lovefap", "nsfw.xxx", "pimpandhost", "pixeldrain", "pixl.li", "postimg", "saint", "simpcity", "socialmediagirls", "xbunker", "xbunkr"`
