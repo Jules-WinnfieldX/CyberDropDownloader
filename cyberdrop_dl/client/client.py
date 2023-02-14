@@ -128,6 +128,8 @@ class DownloadSession:
         async with self.client_session.get(media.url, headers=headers, ssl=self.client.ssl_context,
                                            raise_for_status=True, proxy=proxy) as resp:
             content_type = resp.headers.get('Content-Type')
+            if resp.url == URL("https://bnkr.b-cdn.net/maintenance.mp4"):
+                raise DownloadFailure(code=resp.status, message="Bunkr under maintenance")
             if 'text' in content_type.lower() or 'html' in content_type.lower():
                 logger.debug("Server for %s is experiencing issues, you are being ratelimited, or cookies have expired", str(media.url))
                 await File_Lock.remove_lock(original_filename)
