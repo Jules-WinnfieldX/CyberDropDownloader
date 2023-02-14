@@ -112,6 +112,7 @@ class Downloader:
             await self.start_album(domain_task, album, album_obj)
         cascade_progress.advance(cascade_task, 1)
         domain_progress.update(domain_task, visible=False)
+        await self.download_session.exit_handler()
 
     async def start_album(self, domain_task: TaskID, album: str, album_obj: AlbumItem):
         """Handler for albums and the progress bars for it"""

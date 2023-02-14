@@ -154,3 +154,9 @@ class DownloadSession:
                                            raise_for_status=True) as resp:
             total_size = int(resp.headers.get('Content-Length', str(0)))
             return total_size
+
+    async def exit_handler(self):
+        try:
+            await self.client_session.close()
+        except Exception as e:
+            logging.debug(f"Failed to close session.")
