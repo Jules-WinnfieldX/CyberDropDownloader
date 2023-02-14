@@ -33,8 +33,12 @@ class SQLHelper:
 
     async def check_old_history(self):
         """Checks whether V3 history exists"""
-        self.curs.execute("""SELECT name FROM sqlite_schema WHERE type='table' AND name='downloads'""")
-        sql_file_check = self.curs.fetchone()
+        try:
+            self.curs.execute("""SELECT name FROM sqlite_schema WHERE type='table' AND name='downloads'""")
+            sql_file_check = self.curs.fetchone()
+        except Exception as e:
+            self.curs.execute("""SELECT name FROM sqlite_master WHERE type='table' AND name='downloads'""")
+            sql_file_check = self.curs.fetchone()
         if sql_file_check:
             self.old_history = True
 
