@@ -41,7 +41,10 @@ def create_config(config: Path, passed_args=None, remake=None):
                 config_data[0]["Configuration"]["Runtime"][arg] = passed_args[arg]
         for arg in sorting_args:
             if arg in passed_args.keys():
-                config_data[0]["Configuration"]["Sorting"][arg] = passed_args[arg]
+                if arg == "sort_directory":
+                    config_data[0]["Configuration"]["Sorting"][arg] = str(passed_args[arg])
+                else:
+                    config_data[0]["Configuration"]["Sorting"][arg] = passed_args[arg]
 
     with open(config, 'w') as yamlfile:
         yaml.dump(config_data, yamlfile)
