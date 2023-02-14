@@ -38,21 +38,21 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--exclude-images", help="skip downloading of image files", action="store_true")
     parser.add_argument("--exclude-other", help="skip downloading of images", action="store_true")
     parser.add_argument("--exclude-videos", help="skip downloading of video files", action="store_true")
-    parser.add_argument("--ignore-cache", help="this ignores previous runs cached scrape history", action="store_true")
-    parser.add_argument("--ignore-history", help="this ignores previous download history", action="store_true")
-    parser.add_argument("--skip", dest="skip_hosts", choices=SkipData.supported_hosts, help="This removes host links from downloads", action="append", default=[])
+    parser.add_argument("--ignore-cache", help="ignores previous runs cached scrape history", action="store_true")
+    parser.add_argument("--ignore-history", help="ignores previous download history", action="store_true")
+    parser.add_argument("--skip-hosts", choices=SkipData.supported_hosts, help="removes host links from downloads", action="append", default=[])
 
     # Runtime arguments
-    parser.add_argument("--allow-insecure-connections", help="Allows insecure connections from content hosts", action="store_true")
+    parser.add_argument("--allow-insecure-connections", help="allows insecure connections from content hosts", action="store_true")
     parser.add_argument("--attempts", type=int, help="number of attempts to download each file", default=10)
-    parser.add_argument("--block-sub-folders", help="Block sub folders from being created", action="store_true")
+    parser.add_argument("--block-sub-folders", help="block sub folders from being created", action="store_true")
     parser.add_argument("--disable-attempt-limit", help="disables the attempt limitation", action="store_true")
     parser.add_argument("--include-id", help="include the ID in the download folder name", action="store_true")
     parser.add_argument("--skip-download-mark-completed", help="sets the scraped files as downloaded without downloading", action="store_true")
     parser.add_argument("--output-errored-urls", help="sets the failed urls to be output to the errored urls file", action="store_true")
     parser.add_argument("--output-unsupported-urls", help="sets the unsupported urls to be output to the unsupported urls file", action="store_true")
     parser.add_argument("--proxy", help="HTTP/HTTPS proxy used for downloading, format [protocal]://[ip]:[port]", default=None)
-    parser.add_argument("--remove-bunker-identifier", help="Removes the bunkr added identifier from output filenames", action="store_true")
+    parser.add_argument("--remove-bunker-identifier", help="removes the bunkr added identifier from output filenames", action="store_true")
     parser.add_argument("--required-free-space", type=int, help="required free space (in gigabytes) for the program to run", default=5)
     parser.add_argument("--simultaneous-downloads-per-domain", type=int, help="Number of simultaneous downloads to use per domain", default=4)
 
@@ -89,12 +89,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--jdownloader-device", type=str, help="device name to login to for jdownloader", default=None)
 
     # Progress Options
-    parser.add_argument("--dont-show-overall-progress", help="Removes overall progress section while downloading", action="store_true")
-    parser.add_argument("--dont-show-forum-progress", help="Removes forum progress section while downloading", action="store_true")
-    parser.add_argument("--dont-show-thread-progress", help="Removes thread progress section while downloading", action="store_true")
-    parser.add_argument("--dont-show-domain-progress", help="Removes domain progress section while downloading", action="store_true")
-    parser.add_argument("--dont-show-album-progress", help="Removes album progress section while downloading", action="store_true")
-    parser.add_argument("--dont-show-file-progress", help="Removes file progress section while downloading", action="store_true")
+    parser.add_argument("--dont-show-overall-progress", help="removes overall progress section while downloading", action="store_true")
+    parser.add_argument("--dont-show-forum-progress", help="removes forum progress section while downloading", action="store_true")
+    parser.add_argument("--dont-show-thread-progress", help="removes thread progress section while downloading", action="store_true")
+    parser.add_argument("--dont-show-domain-progress", help="removes domain progress section while downloading", action="store_true")
+    parser.add_argument("--dont-show-album-progress", help="removes album progress section while downloading", action="store_true")
+    parser.add_argument("--dont-show-file-progress", help="removes file progress section while downloading", action="store_true")
 
     # Links
     parser.add_argument("links", metavar="link", nargs="*", help="link to content to download (passing multiple links is supported)", default=[])
