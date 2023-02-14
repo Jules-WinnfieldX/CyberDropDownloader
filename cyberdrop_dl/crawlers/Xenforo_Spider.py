@@ -242,7 +242,7 @@ class XenforoCrawler:
         for link_title_bundle in content_links:
             link = link_title_bundle[0]
             temp_title = link_title_bundle[1]
-            tasks.append(self.scraping_mapper.map_url(link, temp_title, referer))
+            tasks.append(asyncio.create_task(self.scraping_mapper.map_url(link, temp_title, referer)))
         if tasks:
             await asyncio.wait(tasks)
 

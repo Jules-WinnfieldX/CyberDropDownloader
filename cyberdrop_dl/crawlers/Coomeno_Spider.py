@@ -113,7 +113,7 @@ class CoomenoCrawler:
         tasks = []
         for content in text_content:
             link = URL(content.get('href'))
-            tasks.append(self.scraping_mapper.map_url(link, title, referer))
+            tasks.append(asyncio.create_task(self.scraping_mapper.map_url(link, title, referer)))
         if tasks:
             await asyncio.wait(tasks)
 
