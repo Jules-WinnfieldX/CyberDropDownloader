@@ -33,11 +33,11 @@ file_progress = Progress(SpinnerColumn(),
                          "[progress.description]{task.description}",
                          BarColumn(bar_width=None),
                          "[progress.percentage]{task.percentage:>3.2f}%",
-                         "~",
+                         "━",
                          DownloadColumn(),
-                         "~",
+                         "━",
                          TransferSpeedColumn(),
-                         "~",
+                         "━",
                          TimeRemainingColumn())
 
 
