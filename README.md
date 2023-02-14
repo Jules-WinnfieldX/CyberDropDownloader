@@ -5,7 +5,7 @@ The latest version of the program is 4.0.1
 
 <a href="https://www.buymeacoffee.com/juleswinnft" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
 
-If you want to support me and my effort you can buy me a coffee or send me some crypto:
+If you want to support me and my effort you can buy me a coffee or send me some crypto if you are so inclined:
 
 BTC: bc1qzw7l9d8ju2qnag3skfarrd0t5mkn0zyapnrcsn
 
