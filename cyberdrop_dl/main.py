@@ -152,7 +152,7 @@ async def scrape_links(scraper: ScrapeMapper, links: list, quiet=False) -> Casca
     tasks = []
 
     for link in links:
-        tasks.append(scraper.map_url(link))
+        tasks.append(asyncio.create_task(scraper.map_url(link)))
     await asyncio.wait(tasks)
 
     Cascade = scraper.Cascade
