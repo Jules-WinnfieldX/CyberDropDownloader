@@ -75,7 +75,6 @@ class Sorter:
             temp_stem = stem
             ext = file.suffix
             i = 1
-            delete = False
             while (dest / f"{temp_stem}{ext}").is_file() and file.is_file():
                 if file.stat().st_size == (dest / file.name).stat().st_size:
                     file.unlink()

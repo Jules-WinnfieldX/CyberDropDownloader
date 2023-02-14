@@ -71,7 +71,7 @@ class Downloader:
                  domain: str, domain_obj: DomainItem, semaphore: asyncio.Semaphore, files: Files):
         self.backup_scraper = scraper
         self.client = client
-        self.download_session = DownloadSession(client, args["Ratelimiting"]["connection_timeout"])
+        self.download_session = DownloadSession(client)
         self.File_Lock = FileLock()
         self.SQL_Helper = SQL_Helper
 

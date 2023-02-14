@@ -86,9 +86,9 @@ class ScrapeMapper:
         self.socialmediagirls_semaphore = asyncio.Semaphore(1)
         self.xbunker_semaphore = asyncio.Semaphore(1)
 
-        self.mapping = {"anonfiles": self.Anonfiles, "xbunkr": self.XBunkr, "bunkr": self.Bunkr,
-                        "cyberdrop": self.Cyberdrop, "cyberfile": self.CyberFile, "erome": self.Erome,
-                        "fapello": self.Fapello, "gfycat": self.Gfycat, "gofile": self.GoFile,
+        self.mapping = {"anonfiles": self.Anonfiles, "bayfiles": self.Anonfiles,"xbunkr": self.XBunkr,
+                        "bunkr": self.Bunkr, "cyberdrop": self.Cyberdrop, "cyberfile": self.CyberFile,
+                        "erome": self.Erome, "fapello": self.Fapello, "gfycat": self.Gfycat, "gofile": self.GoFile,
                         "hgamecg": self.HGameCG, "imgbox": self.ImgBox, "pixeldrain": self.PixelDrain,
                         "postimg": self.PostImg, "saint": self.Saint, "img.kiwi": self.ShareX,
                         "jpg.church": self.ShareX, "jpg.fish": self.ShareX, "pixl.li": self.ShareX,

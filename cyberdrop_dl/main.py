@@ -66,7 +66,7 @@ def parse_args() -> argparse.Namespace:
 
     # Ratelimiting
     parser.add_argument("--connection-timeout", type=int, help="number of seconds to wait attempting to connect to a URL during the downloading phase", default=15)
-    parser.add_argument("--ratelimit", type=int, help="this will add a ratelimiter to requests made in the program during scraping, the number you provide is in requests/seconds", default=50)
+    parser.add_argument("--ratelimit", type=int, help="this applies to requests made in the program during scraping, the number you provide is in requests/seconds", default=50)
     parser.add_argument("--throttle", type=int, help="this is a throttle between requests during the downloading phase, the number is in seconds", default=0.5)
 
     # Forum Options
@@ -176,7 +176,8 @@ async def director(args: dict, links: list) -> None:
         exit(1)
 
     links = await consolidate_links(args, links)
-    client = Client(args['Ratelimiting']['ratelimit'], args['Ratelimiting']['throttle'], args['Runtime']['allow_insecure_connections'])
+    client = Client(args['Ratelimiting']['ratelimit'], args['Ratelimiting']['throttle'],
+                    args['Runtime']['allow_insecure_connections'], args["Ratelimiting"]["connection_timeout"])
     SQL_Helper = SQLHelper(args['Ignore']['ignore_history'], args['Ignore']['ignore_cache'], args['Files']['db_file'])
     Scraper = ScrapeMapper(args, client, SQL_Helper, False)
 

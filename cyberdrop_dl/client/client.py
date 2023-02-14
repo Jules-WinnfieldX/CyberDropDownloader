@@ -23,7 +23,8 @@ from ..base_functions.error_classes import DownloadFailure, InvalidContentTypeFa
 
 class Client:
     """Creates a 'client' that can be referenced by scraping or download sessions"""
-    def __init__(self, ratelimit: int, throttle: int, secure: bool):
+    def __init__(self, ratelimit: int, throttle: int, secure: bool, connect_timeout: int):
+        self.connect_timeout = connect_timeout
         self.ratelimit = ratelimit
         self.throttle = throttle
         self.simultaneous_session_limit = asyncio.Semaphore(50)
@@ -39,7 +40,7 @@ class ScrapeSession:
         self.client = client
         self.rate_limiter = AsyncRateLimiter(self.client.ratelimit)
         self.headers = {"user-agent": client.user_agent}
-        self.timeouts = aiohttp.ClientTimeout(5 * 60, 30)
+        self.timeouts = aiohttp.ClientTimeout(total=5 * 60, connect=self.client.connect_timeout)
         self.client_session = aiohttp.ClientSession(headers=self.headers, raise_for_status=True, cookie_jar=self.client.cookies, timeout=self.timeouts)
 
     async def get_BS4(self, url: URL):
@@ -111,10 +112,10 @@ class ScrapeSession:
 
 class DownloadSession:
     """AIOHTTP operations for downloading"""
-    def __init__(self, client: Client, conn_timeout: int):
+    def __init__(self, client: Client):
         self.client = client
         self.headers = {"user-agent": client.user_agent}
-        self.timeouts = aiohttp.ClientTimeout(5*60, conn_timeout)
+        self.timeouts = aiohttp.ClientTimeout(total=5 * 60, connect=self.client.connect_timeout)
         self.client_session = aiohttp.ClientSession(headers=self.headers, raise_for_status=True, cookie_jar=self.client.cookies, timeout=self.timeouts)
         self.throttle_times = {}
 
