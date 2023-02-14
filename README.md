@@ -3,6 +3,9 @@
 
 The latest version of the program is 4.0.1
 
+Brand new and improved! Cyberdrop-DL now has an updated paint job, fantastic new look. On top of this it also downloads from different domains simultaneously.
+
+# Support Cyberdrop-DL Development
 
 <a href="https://www.buymeacoffee.com/juleswinnft" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
 
