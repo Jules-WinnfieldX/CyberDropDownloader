@@ -119,6 +119,7 @@ class Downloader:
         if await album_obj.is_empty():
             return
         task_description = album.split('/')[-1]
+        task_description = task_description.encode("ascii", "ignore").decode().strip()
         if len(task_description) >= 40:
             task_description = task_description[:37] + "..."
         else:
@@ -216,6 +217,7 @@ class Downloader:
                 headers['Range'] = range_num
 
             task_description = media.filename
+            task_description = task_description.encode("ascii", "ignore").decode().strip()
             if len(task_description) >= 40:
                 task_description = task_description[:37] + "..."
             else:
