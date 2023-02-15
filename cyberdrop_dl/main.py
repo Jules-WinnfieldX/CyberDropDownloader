@@ -138,8 +138,9 @@ async def file_management(args: dict, links: list) -> None:
 async def consolidate_links(args: dict, links: list) -> list:
     """We consolidate links from command line and from URLs.txt into a singular list"""
     links = list(map(URL, links))
-    with open(args["Files"]["input_file"], "r", encoding="utf8") as f:
-        links += await regex_links([line.rstrip() for line in f])
+    if args["Files"]["input_file"].is_file():
+        with open(args["Files"]["input_file"], "r", encoding="utf8") as f:
+            links += await regex_links([line.rstrip() for line in f])
     links = list(filter(None, links))
 
     if not links:
