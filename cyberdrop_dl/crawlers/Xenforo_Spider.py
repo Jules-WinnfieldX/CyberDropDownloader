@@ -13,6 +13,48 @@ from ..base_functions.sql_helper import SQLHelper
 from ..client.client import ScrapeSession
 
 
+class ForumLogin:
+    def __init__(self, name: str, username: str, password: str):
+        self.name = name
+        self.logged_in = False
+        self.lock = False
+        self.username = username
+        self.password = password
+
+    async def login(self, session: ScrapeSession, url: URL, quiet: bool):
+        """Handles forum logging in"""
+        if self.username and self.password:
+            if not self.lock:
+                while True:
+                    if self.logged_in:
+                        return
+                    self.lock = True
+                    domain = URL("https://" + url.host) / "login"
+                    text = await session.get_text(domain)
+                    soup = BeautifulSoup(text, 'html.parser')
+
+                    inputs = soup.select('form input')
+                    data = {
+                        elem['name']: elem['value']
+                        for elem in inputs
+                        if elem.get('name') and elem.get('value')
+                    }
+                    data.update({"login": self.username, "password": self.password,
+                                 "_xfRedirect": str(domain)})
+                    await session.post_data_no_resp(domain / "login", data=data)
+                    text = await session.get_text(domain)
+                    if "You are already logged in" in text:
+                        self.logged_in = True
+                        self.lock = False
+                        return
+                    else:
+                        self.lock = False
+                        raise FailedLoginFailure()
+        else:
+            await log(f"[red]Login wasn't provided for {self.name}[/red]", quiet=quiet)
+            raise FailedLoginFailure()
+
+
 class XenforoCrawler:
     def __init__(self, *, scraping_mapper, args: dict, SQL_Helper: SQLHelper, quiet: bool):
         self.include_id = args["Runtime"]["include_id"]
@@ -21,20 +63,17 @@ class XenforoCrawler:
         self.output_last = args["Forum_Options"]["output_last_forum_post"]
         self.output_last_file = args["Files"]["output_last_forum_post_file"]
 
-        self.simpcity_logged_in = False
-        self.simpcity_lock = False
-        self.simpcity_username = args["Authentication"]["simpcity_username"]
-        self.simpcity_password = args["Authentication"]["simpcity_password"]
+        self.simpcity = ForumLogin("SimpCity",
+                                   args["Authentication"]["simpcity_username"],
+                                   args["Authentication"]["simpcity_password"])
 
-        self.socialmediagirls_logged_in = False
-        self.socialmediagirls_lock = False
-        self.socialmediagirls_username = args["Authentication"]["socialmediagirls_username"]
-        self.socialmediagirls_password = args["Authentication"]["socialmediagirls_password"]
+        self.socialmediagirls = ForumLogin("SocialMediaGirls",
+                                           args["Authentication"]["socialmediagirls_username"],
+                                           args["Authentication"]["socialmediagirls_password"])
 
-        self.xbunker_logged_in = False
-        self.xbunker_lock = False
-        self.xbunker_username = args["Authentication"]["xbunker_username"]
-        self.xbunker_password = args["Authentication"]["xbunker_password"]
+        self.xbunker = ForumLogin("XBunker",
+                                  args["Authentication"]["xbunker_username"],
+                                  args["Authentication"]["xbunker_password"])
 
         self.scraping_mapper = scraping_mapper
         self.SQL_Helper = SQL_Helper
@@ -48,14 +87,14 @@ class XenforoCrawler:
         title = None
         try:
             if "simpcity" in url.host:
-                await self.simpcity_login(session, url)
-                title = await self.parse_simpcity(session, scrape_url, cascade, "", post_num)
+                await self.simpcity.login(session, url, self.quiet)
+                title = await self.parse_forum(session, scrape_url, cascade, "", post_num, "simpcity")
             elif "socialmediagirls" in url.host:
-                await self.socialmediagirls_login(session, url)
-                title = await self.parse_socialmediagirls(session, scrape_url, cascade, "", post_num)
+                await self.socialmediagirls.login(session, url, self.quiet)
+                title = await self.parse_forum(session, scrape_url, cascade, "", post_num, "socialmediagirls")
             elif "xbunker" in url.host:
-                await self.xbunker_login(session, url)
-                title = await self.parse_xbunker(session, scrape_url, cascade, "", post_num)
+                await self.xbunker.login(session, url, self.quiet)
+                title = await self.parse_forum(session, scrape_url, cascade, "", post_num, "xbunker")
 
         except Exception as e:
             logger.debug("Error encountered while handling %s", str(url), exc_info=True)
@@ -66,105 +105,6 @@ class XenforoCrawler:
         await self.SQL_Helper.insert_cascade(cascade)
         await log(f"[green]Finished: {str(url)}[/green]", quiet=self.quiet)
         return cascade, title
-
-    async def simpcity_login(self, session: ScrapeSession, url: URL):
-        """Handles logging in for simpcity"""
-        if self.simpcity_username and self.simpcity_username:
-            if not self.simpcity_lock:
-                while True:
-                    if self.simpcity_logged_in:
-                        return
-                    self.simpcity_lock = True
-                    domain = URL("https://" + url.host) / "login"
-                    text = await session.get_text(domain)
-                    soup = BeautifulSoup(text, 'html.parser')
-
-                    inputs = soup.select('form input')
-                    data = {
-                        elem['name']: elem['value']
-                        for elem in inputs
-                        if elem.get('name') and elem.get('value')
-                    }
-                    data.update({"login": self.simpcity_username, "password": self.simpcity_password,
-                                 "_xfRedirect": str(domain)})
-                    await session.post_data_no_resp(domain / "login", data=data)
-                    text = await session.get_text(domain)
-                    if "You are already logged in" in text:
-                        self.simpcity_logged_in = True
-                        self.simpcity_lock = False
-                        return
-                    else:
-                        self.simpcity_lock = False
-                        raise FailedLoginFailure()
-        else:
-            await log("[red]Login wasn't provided for SimpCity[/red]", quiet=self.quiet)
-            raise FailedLoginFailure()
-
-    async def socialmediagirls_login(self, session: ScrapeSession, url: URL):
-        """Handles logging in for SMG"""
-        if self.socialmediagirls_username and self.socialmediagirls_username:
-            if not self.socialmediagirls_lock:
-                while True:
-                    if self.socialmediagirls_logged_in:
-                        return
-                    self.socialmediagirls_lock = True
-                    domain = URL("https://" + url.host) / "login"
-                    text = await session.get_text(domain)
-                    soup = BeautifulSoup(text, 'html.parser')
-
-                    inputs = soup.select('form input')
-                    data = {
-                        elem['name']: elem['value']
-                        for elem in inputs
-                        if elem.get('name') and elem.get('value')
-                    }
-                    data.update({"login": self.socialmediagirls_username, "password": self.socialmediagirls_password,
-                                 "_xfRedirect": str(domain)})
-                    await session.post_data_no_resp(domain / "login", data=data)
-                    text = await session.get_text(domain)
-                    if "You are already logged in" in text:
-                        self.socialmediagirls_logged_in = True
-                        self.socialmediagirls_lock = False
-                        return
-                    else:
-                        self.socialmediagirls_lock = False
-                        raise FailedLoginFailure()
-        else:
-            await log("[red]Login wasn't provided for SocialMediaGirls[/red]", quiet=self.quiet)
-            raise FailedLoginFailure()
-
-    async def xbunker_login(self, session: ScrapeSession, url: URL):
-        """Handles logging in for XBunker"""
-        if self.xbunker_username and self.xbunker_password:
-            if not self.xbunker_lock:
-                while True:
-                    if self.xbunker_logged_in:
-                        return
-                    self.xbunker_lock = True
-                    domain = URL("https://" + url.host) / "login"
-                    text = await session.get_text(domain)
-                    soup = BeautifulSoup(text, 'html.parser')
-
-                    inputs = soup.select('form input')
-                    data = {
-                        elem['name']: elem['value']
-                        for elem in inputs
-                        if elem.get('name') and elem.get('value')
-                    }
-                    data.update({"login": self.xbunker_username, "password": self.xbunker_password,
-                                 "_xfRedirect": str(domain)})
-                    await session.post_data_no_resp(domain / "login", data=data)
-                    text = await session.get_text(domain)
-                    if "You are already logged in" in text:
-                        self.xbunker_logged_in = True
-                        self.xbunker_lock = False
-                        return
-                    else:
-                        self.xbunker_lock = False
-                        raise FailedLoginFailure()
-        else:
-            await log("[red]Login wasn't provided for SocialMediaGirls[/red]", quiet=self.quiet)
-            raise FailedLoginFailure()
 
     async def get_thread_url_and_post_num(self, url: URL):
         """Splits the thread url and returns the url and post number if provided"""
@@ -246,85 +186,9 @@ class XenforoCrawler:
         if tasks:
             await asyncio.wait(tasks)
 
-    async def parse_simpcity(self, session: ScrapeSession, url: URL, cascade: CascadeItem, title: str,
-                             post_number: int):
-        """Parses simpcity threads"""
-        soup = await session.get_BS4(url)
-
-        domain = URL("https://" + url.host)
-        post_num_str = None
-        content_links = []
-
-        title_block = soup.select_one("h1[class=p-title-value]")
-        for elem in title_block.find_all("a"):
-            elem.decompose()
-
-        if title:
-            pass
-        else:
-            title = title_block.text
-            title = await make_title_safe(title.replace("\n", "").strip())
-
-        posts = soup.select("div[class='message-main uix_messageContent js-quickEditTarget']")
-
-        for post in posts:
-            post_num_str = post.select_one("li[class=u-concealed] a").get('href').split('/')[-1]
-            post_num_int = int(post_num_str.split('post-')[-1])
-            if post_number:
-                if post_number > post_num_int:
-                    continue
-
-            temp_title = title + "/" + post_num_str if self.separate_posts else title
-
-            for elem in post.find_all('blockquote'):
-                elem.decompose()
-            post_content = post.select_one("div[class=bbWrapper]")
-
-            # Get Links
-            content_links.extend(await self.get_links(post_content, "a", "href", domain, temp_title))
-
-            # Get Images
-            content_links.extend(await self.get_links(post_content, "div[class='bbImageWrapper js-lbImage']", "data-src", domain, temp_title))
-            content_links.extend(await self.get_links(post_content, "div[class='bbImageWrapper lazyload js-lbImage']", "data-src", domain, temp_title))
-
-            # Get Videos:
-            content_links.extend(await self.get_links(post_content, "video source", "src", domain, temp_title))
-            content_links.extend(await self.get_links(post_content, "iframe[class=saint-iframe]", "src", domain, temp_title))
-
-            # Get Other Embedded Content
-            content_links.extend(await self.get_embedded(post_content, "span[data-s9e-mediaembed-iframe]", "data-s9e-mediaembed-iframe",
-                                 domain, temp_title))
-
-            # Get Attachments
-            attachments_block = post.select_one("section[class=message-attachments]")
-            content_links.extend(await self.get_links(attachments_block, "a[class='file-preview js-lbImage']", "href", domain, temp_title))
-
-        # Handle links
-        content_links = await self.filter_content_links(cascade, content_links, url, "simpcity")
-        await self.handle_external_links(content_links, url)
-
-        next_page = soup.select_one('a[class="pageNav-jump pageNav-jump--next"]')
-        if next_page is not None:
-            next_page = next_page.get('href')
-            if next_page is not None:
-                if next_page.startswith('/'):
-                    next_page = domain / next_page[1:]
-                next_page = URL(next_page)
-                await self.parse_simpcity(session, next_page, cascade, title, post_number)
-        else:
-            if self.output_last:
-                if 'page-' in url.raw_name:
-                    last_post_url = url.parent / post_num_str
-                elif 'post-' in url.raw_name:
-                    last_post_url = url.parent / post_num_str
-                else:
-                    last_post_url = url / post_num_str
-                await write_last_post_file(self.output_last_file, str(last_post_url))
-        return title
-
-    async def parse_socialmediagirls(self, session: ScrapeSession, url: URL, cascade: CascadeItem, title: str,
-                                     post_number: int):
-        """Parses SMG threads"""
+    async def parse_forum(self, session: ScrapeSession, url: URL, cascade: CascadeItem, title: str,
+                          post_number: int, host: str):
+        """Parses forum threads"""
         soup = await session.get_BS4(url)
 
         domain = URL("https://" + url.host)
@@ -375,7 +239,7 @@ class XenforoCrawler:
             content_links.extend(await self.get_links(attachments_block, "a[class='file-preview js-lbImage']", "href", domain, temp_title))
 
         # Handle links
-        content_links = await self.filter_content_links(cascade, content_links, url, "socialmediagirls")
+        content_links = await self.filter_content_links(cascade, content_links, url, host)
         await self.handle_external_links(content_links, url)
 
         next_page = soup.select_one('a[class="pageNav-jump pageNav-jump--next"]')
@@ -385,82 +249,7 @@ class XenforoCrawler:
                 if next_page.startswith('/'):
                     next_page = domain / next_page[1:]
                 next_page = URL(next_page)
-                await self.parse_socialmediagirls(session, next_page, cascade, title, post_number)
-        else:
-            if self.output_last:
-                if 'page-' in url.raw_name:
-                    last_post_url = url.parent / post_num_str
-                elif 'post-' in url.raw_name:
-                    last_post_url = url.parent / post_num_str
-                else:
-                    last_post_url = url / post_num_str
-                await write_last_post_file(self.output_last_file, str(last_post_url))
-        return title
-
-    async def parse_xbunker(self, session: ScrapeSession, url: URL, cascade: CascadeItem, title: str,
-                            post_number: int):
-        """Parses XBunker threads"""
-        soup = await session.get_BS4(url)
-
-        domain = URL("https://" + url.host)
-        post_num_str = None
-        content_links = []
-
-        title_block = soup.select_one("h1[class=p-title-value]")
-        for elem in title_block.find_all("a"):
-            elem.decompose()
-
-        if title:
-            pass
-        else:
-            title = title_block.text
-            title = await make_title_safe(title.replace("\n", "").strip())
-
-        posts = soup.select("div[class='message-main uix_messageContent js-quickEditTarget']")
-
-        for post in posts:
-            post_num_str = post.select_one("li[class=u-concealed] a").get('href').split('/')[-1]
-            post_num_int = int(post_num_str.split('post-')[-1])
-            if post_number:
-                if post_number > post_num_int:
-                    continue
-
-            temp_title = title + "/" + post_num_str if self.separate_posts else title
-
-            for elem in post.find_all('blockquote'):
-                elem.decompose()
-            post_content = post.select_one("div[class=bbWrapper]")
-
-            # Get Links
-            content_links.extend(await self.get_links(post_content, "a", "href", domain, temp_title))
-
-            # Get Images
-            content_links.extend(await self.get_links(post_content, "div[class='bbImageWrapper js-lbImage']", "data-src", domain, temp_title))
-            content_links.extend(await self.get_links(post_content, "div[class='bbImageWrapper lazyload js-lbImage']", "data-src", domain, temp_title))
-
-            # Get Videos:
-            content_links.extend(await self.get_links(post_content, "video source", "src", domain, temp_title))
-            content_links.extend(await self.get_links(post_content, "iframe[class=saint-iframe]", "src", domain, temp_title))
-
-            # Get Other Embedded Content
-            content_links.extend(await self.get_embedded(post_content, "span[data-s9e-mediaembed-iframe]", "data-s9e-mediaembed-iframe", domain, temp_title))
-
-            # Get Attachments
-            attachments_block = post.select_one("section[class=message-attachments]")
-            content_links.extend(await self.get_links(attachments_block, "a[class='file-preview js-lbImage']", "href", domain, temp_title))
-
-        # Handle links
-        content_links = await self.filter_content_links(cascade, content_links, url, "xbunker")
-        await self.handle_external_links(content_links, url)
-
-        next_page = soup.select_one('a[class="pageNav-jump pageNav-jump--next"]')
-        if next_page is not None:
-            next_page = next_page.get('href')
-            if next_page is not None:
-                if next_page.startswith('/'):
-                    next_page = domain / next_page[1:]
-                next_page = URL(next_page)
-                await self.parse_xbunker(session, next_page, cascade, title, post_number)
+                await self.parse_forum(session, next_page, cascade, title, post_number, host)
         else:
             if self.output_last:
                 if 'page-' in url.raw_name:
