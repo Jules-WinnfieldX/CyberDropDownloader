@@ -8,6 +8,7 @@ from pathlib import Path
 
 import aiofiles
 from bs4 import BeautifulSoup
+from tqdm import tqdm
 from rich.progress import TaskID
 from yarl import URL
 
@@ -146,6 +147,38 @@ class DownloadSession:
                     await asyncio.sleep(0)
                     await f.write(chunk)
                     file_progress.advance(file_task, len(chunk))
+
+    async def old_download_file(self, media: MediaItem, file: Path, current_throttle: int, resume_point: int,
+                            File_Lock: FileLock, proxy: str, headers: dict, original_filename: str):
+        headers['Referer'] = str(media.referer)
+        headers['user-agent'] = self.client.user_agent
+        await throttle(self, current_throttle, media.url.host)
+        async with self.client_session.get(media.url, headers=headers, ssl=self.client.ssl_context,
+                                           raise_for_status=True, proxy=proxy) as resp:
+            content_type = resp.headers.get('Content-Type')
+            if resp.url == URL("https://bnkr.b-cdn.net/maintenance.mp4"):
+                raise DownloadFailure(code=resp.status, message="Bunkr under maintenance")
+            if 'text' in content_type.lower() or 'html' in content_type.lower():
+                logger.debug("Server for %s is experiencing issues, you are being ratelimited, or cookies have expired", str(media.url))
+                await File_Lock.remove_lock(original_filename)
+                raise DownloadFailure(code=resp.status, message="Unexpectedly got text as response")
+
+            total = int(resp.headers.get('Content-Length', str(0))) + resume_point
+            file.parent.mkdir(parents=True, exist_ok=True)
+
+            task_description = media.url.host + ": " + media.filename
+            if len(task_description) >= 40:
+                task_description = task_description[:37] + "..."
+            else:
+                task_description = task_description.ljust(40)
+
+            with tqdm(total=total, unit_scale=True, unit='B', leave=False, initial=resume_point,
+                      desc=task_description) as progress:
+                async with aiofiles.open(file, mode='ab') as f:
+                    async for chunk, _ in resp.content.iter_chunks():
+                        await asyncio.sleep(0)
+                        await f.write(chunk)
+                        progress.update(len(chunk))
 
     async def get_filesize(self, url: URL, referer: str, current_throttle: int):
         headers = {'Referer': referer, 'user-agent': self.client.user_agent}

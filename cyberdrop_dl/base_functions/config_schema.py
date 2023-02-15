@@ -40,6 +40,7 @@ config_default = [
                 "skip_hosts": [],
             },
             "Progress_Options": {
+                "hide_new_progress": False,
                 "dont_show_overall_progress": False,
                 "dont_show_forum_progress": False,
                 "dont_show_thread_progress": False,
@@ -93,8 +94,9 @@ ignore_args = ["exclude_videos", "exclude_images", "exclude_audio", "exclude_oth
 
 jdownloader_args = ["apply_jdownloader", "jdownloader_username", "jdownloader_password", "jdownloader_device"]
 
-progress_args = ["dont_show_overall_progress", "dont_show_forum_progress", "dont_show_thread_progress",
-                 "dont_show_domain_progress", "dont_show_album_progress", "dont_show_file_progress"]
+progress_args = ["hide_new_progress", "dont_show_overall_progress", "dont_show_forum_progress",
+                 "dont_show_thread_progress", "dont_show_domain_progress", "dont_show_album_progress",
+                 "dont_show_file_progress"]
 
 ratelimiting_args = ["connection_timeout", "ratelimit", "throttle"]
 

@@ -1,7 +1,7 @@
 # `cyberdrop-dl`
 **Bulk downloader for multiple file hosts** 
 
-The latest version of the program is 4.0.11
+The latest version of the program is 4.0.12
 
 Brand new and improved! Cyberdrop-DL now has an updated paint job, fantastic new look. On top of this it also downloads from different domains simultaneously.
 
@@ -161,6 +161,7 @@ optional arguments:
 --jdownloader-password 	password to login to jdownloader
 --jdownloader-device 	device name to login to for jdownloader
 
+--hide-new-progress             disables the new rich progress entirely and uses older methods
 --dont-show-overall-progress 	removes overall progress section while downloading
 --dont-show-forum-progress 	removes forum progress section while downloading
 --dont-show-thread-progress 	removes thread progress section while downloading

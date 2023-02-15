@@ -12,6 +12,7 @@ from cyberdrop_dl.base_functions.sorting_functions import Sorter
 from cyberdrop_dl.base_functions.sql_helper import SQLHelper
 from cyberdrop_dl.client.client import Client
 from cyberdrop_dl.downloader.downloaders import download_cascade, download_forums
+from cyberdrop_dl.downloader.old_downloaders import old_download_cascade, old_download_forums
 from cyberdrop_dl.scraper.Scraper import ScrapeMapper
 from . import __version__ as VERSION
 from .base_functions.data_classes import SkipData, CascadeItem
@@ -89,6 +90,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--jdownloader-device", type=str, help="device name to login to for jdownloader", default=None)
 
     # Progress Options
+    parser.add_argument("--hide-new-progress", help="disables the new rich progress entirely and uses older methods", action="store_true")
     parser.add_argument("--dont-show-overall-progress", help="removes overall progress section while downloading", action="store_true")
     parser.add_argument("--dont-show-forum-progress", help="removes forum progress section while downloading", action="store_true")
     parser.add_argument("--dont-show-thread-progress", help="removes thread progress section while downloading", action="store_true")
@@ -186,10 +188,16 @@ async def director(args: dict, links: list) -> None:
     await asyncio.sleep(5)
     await clear()
 
-    if not await Cascade.is_empty():
-        await download_cascade(args, Cascade, SQL_Helper, client, Scraper)
-    if not await Forums.is_empty():
-        await download_forums(args, Forums, SQL_Helper, client, Scraper)
+    if args['Progress_Options']['hide_new_progress']:
+        if not await Cascade.is_empty():
+            await old_download_cascade(args, Cascade, SQL_Helper, client, Scraper)
+        if not await Forums.is_empty():
+            await old_download_forums(args, Forums, SQL_Helper, client, Scraper)
+    else:
+        if not await Cascade.is_empty():
+            await download_cascade(args, Cascade, SQL_Helper, client, Scraper)
+        if not await Forums.is_empty():
+            await download_forums(args, Forums, SQL_Helper, client, Scraper)
 
     if args['Sorting']['sort_downloads']:
         await log("")
