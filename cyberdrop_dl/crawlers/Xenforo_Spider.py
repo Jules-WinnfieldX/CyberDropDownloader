@@ -178,6 +178,8 @@ class XenforoCrawler:
     async def get_links(self, post_content, selector, attribute, domain, temp_title):
         """Grabs links from the post content based on the given selector and attribute"""
         found_links = []
+        if not post_content:
+            return found_links
         links = post_content.select(selector)
         for link in links:
             link = link.get(attribute)
@@ -219,6 +221,7 @@ class XenforoCrawler:
         returns external links, adds internal to the cascade"""
         forum_direct_urls = [x for x in content_links if x[0].host.replace(".st", ".su") in url.host]
         forum_direct_urls.extend([x for x in content_links if url.host in x[0].host.replace(".st", ".su")])
+        forum_direct_urls.extend([x for x in content_links if "smgmedia" in x[0].host])
         content_links = [x for x in content_links if x not in forum_direct_urls]
         for link_title_bundle in forum_direct_urls:
             link = link_title_bundle[0]
