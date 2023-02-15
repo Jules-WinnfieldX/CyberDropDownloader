@@ -65,7 +65,7 @@ class EHentaiCrawler:
             complete = await self.SQL_Helper.check_complete_singular("e-hentai", url_path)
 
             filename, ext = await get_filename_and_ext(link.name)
-            media_item = MediaItem(link, image, complete, filename, ext)
+            media_item = MediaItem(link, url, complete, filename, ext)
             await album_obj.add_media(media_item)
         except Exception as e:
             logger.debug("Error encountered while handling %s", str(url), exc_info=True)
