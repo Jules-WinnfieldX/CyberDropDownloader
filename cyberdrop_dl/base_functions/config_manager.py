@@ -147,7 +147,7 @@ async def document_args(args: dict):
     print_args['Authentication']['pixeldrain_api_key'] = '!REDACTED!' if args['Authentication']['pixeldrain_api_key'] is not None else None
     print_args['JDownloader']['jdownloader_password'] = '!REDACTED!' if args['JDownloader']['jdownloader_password'] is not None else None
 
-    await log(f"Starting Cyberdrop-DL")
+    await log("Starting Cyberdrop-DL")
     await log(f"Using authentication arguments: {print_args['Authentication']}", quiet=True)
     await log(f"Using file arguments: {print_args['Files']}", quiet=True)
     await log(f"Using forum option arguments: {print_args['Forum_Options']}", quiet=True)

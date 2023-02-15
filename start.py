@@ -1,6 +1,5 @@
 from cyberdrop_dl.main import main as main_dl
 from cyberdrop_dl.main import parse_args
-import sys
 
 
 if __name__ == '__main__':

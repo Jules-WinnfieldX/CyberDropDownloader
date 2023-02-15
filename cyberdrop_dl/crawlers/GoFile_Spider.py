@@ -32,7 +32,7 @@ class GoFileCrawler:
                 raise
         except Exception as e:
             logger.debug("Error encountered while getting GoFile token", exc_info=True)
-            await log(f"[red]Error: Couldn't generate GoFile token[/red]", quiet=self.quiet)
+            await log("[red]Error: Couldn't generate GoFile token[/red]", quiet=self.quiet)
             logger.debug(e)
 
     async def set_cookie(self, session: ScrapeSession):

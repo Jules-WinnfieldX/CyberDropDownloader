@@ -257,7 +257,7 @@ class Downloader:
             new_error = DownloadFailure(code=1)
             try:
                 file_progress.update(file_task, visible=False)
-            except:
+            except Exception:
                 pass
 
             if hasattr(e, "message"):
