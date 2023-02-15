@@ -296,8 +296,8 @@ class XenforoCrawler:
                                  domain, temp_title))
 
             # Get Attachments
-            post.select_one("section[class=message-attachments]")
-            content_links.extend(await self.get_links(post_content, "a[class='file-preview js-lbImage']", "href", domain, temp_title))
+            attachments_block = post.select_one("section[class=message-attachments]")
+            content_links.extend(await self.get_links(attachments_block, "a[class='file-preview js-lbImage']", "href", domain, temp_title))
 
         # Handle links
         content_links = await self.filter_content_links(cascade, content_links, url, "simpcity")
@@ -371,8 +371,8 @@ class XenforoCrawler:
             content_links.extend(await self.get_embedded(post_content, "span[data-s9e-mediaembed-iframe]", "data-s9e-mediaembed-iframe", domain, temp_title))
 
             # Get Attachments
-            post.select_one("section[class=message-attachments]")
-            content_links.extend(await self.get_links(post_content, "a[class='file-preview js-lbImage']", "href", domain, temp_title))
+            attachments_block = post.select_one("section[class=message-attachments]")
+            content_links.extend(await self.get_links(attachments_block, "a[class='file-preview js-lbImage']", "href", domain, temp_title))
 
         # Handle links
         content_links = await self.filter_content_links(cascade, content_links, url, "socialmediagirls")
@@ -446,8 +446,8 @@ class XenforoCrawler:
             content_links.extend(await self.get_embedded(post_content, "span[data-s9e-mediaembed-iframe]", "data-s9e-mediaembed-iframe", domain, temp_title))
 
             # Get Attachments
-            post.select_one("section[class=message-attachments]")
-            content_links.extend(await self.get_links(post_content, "a[class='file-preview js-lbImage']", "href", domain, temp_title))
+            attachments_block = post.select_one("section[class=message-attachments]")
+            content_links.extend(await self.get_links(attachments_block, "a[class='file-preview js-lbImage']", "href", domain, temp_title))
 
         # Handle links
         content_links = await self.filter_content_links(cascade, content_links, url, "xbunker")
