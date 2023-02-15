@@ -61,5 +61,5 @@ class HGameCGCrawler:
             image = soup.select_one("div[class=hgamecgimage] img")
             image = URL(image.get('src'))
             return image
-        except Exception as e:
+        except Exception:
             await log(f"[red]Error: {str(url)}[/red]", quiet=self.quiet)

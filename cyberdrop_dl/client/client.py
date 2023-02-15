@@ -107,8 +107,8 @@ class ScrapeSession:
     async def exit_handler(self):
         try:
             await self.client_session.close()
-        except Exception as e:
-            logging.debug(f"Failed to close session.")
+        except Exception:
+            logging.debug("Failed to close session.")
 
 
 class DownloadSession:
@@ -191,5 +191,5 @@ class DownloadSession:
     async def exit_handler(self):
         try:
             await self.client_session.close()
-        except Exception as e:
-            logging.debug(f"Failed to close session.")
+        except Exception:
+            logging.debug("Failed to close session.")

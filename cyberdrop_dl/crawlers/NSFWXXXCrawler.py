@@ -57,7 +57,7 @@ class NSFWXXXCrawler:
         posts_links = []
         for post in posts:
             url = URL(post.get("href"))
-            if not url in posts_links:
+            if url not in posts_links:
                 posts_links.append(url)
         return posts_links
 

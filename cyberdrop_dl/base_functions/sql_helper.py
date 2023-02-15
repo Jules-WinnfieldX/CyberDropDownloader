@@ -36,7 +36,7 @@ class SQLHelper:
         try:
             self.curs.execute("""SELECT name FROM sqlite_schema WHERE type='table' AND name='downloads'""")
             sql_file_check = self.curs.fetchone()
-        except Exception as e:
+        except Exception:
             self.curs.execute("""SELECT name FROM sqlite_master WHERE type='table' AND name='downloads'""")
             sql_file_check = self.curs.fetchone()
         if sql_file_check:

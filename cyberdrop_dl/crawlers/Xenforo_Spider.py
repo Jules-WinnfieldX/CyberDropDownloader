@@ -296,7 +296,7 @@ class XenforoCrawler:
                                  domain, temp_title))
 
             # Get Attachments
-            attachments_block = post.select_one("section[class=message-attachments]")
+            post.select_one("section[class=message-attachments]")
             content_links.extend(await self.get_links(post_content, "a[class='file-preview js-lbImage']", "href", domain, temp_title))
 
         # Handle links
@@ -371,7 +371,7 @@ class XenforoCrawler:
             content_links.extend(await self.get_embedded(post_content, "span[data-s9e-mediaembed-iframe]", "data-s9e-mediaembed-iframe", domain, temp_title))
 
             # Get Attachments
-            attachments_block = post.select_one("section[class=message-attachments]")
+            post.select_one("section[class=message-attachments]")
             content_links.extend(await self.get_links(post_content, "a[class='file-preview js-lbImage']", "href", domain, temp_title))
 
         # Handle links
@@ -446,7 +446,7 @@ class XenforoCrawler:
             content_links.extend(await self.get_embedded(post_content, "span[data-s9e-mediaembed-iframe]", "data-s9e-mediaembed-iframe", domain, temp_title))
 
             # Get Attachments
-            attachments_block = post.select_one("section[class=message-attachments]")
+            post.select_one("section[class=message-attachments]")
             content_links.extend(await self.get_links(post_content, "a[class='file-preview js-lbImage']", "href", domain, temp_title))
 
         # Handle links
