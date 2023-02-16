@@ -174,17 +174,18 @@ class Downloader:
         if self.block_sub_folders:
             album = album.split('/')[0]
 
+        original_filename = media.filename
+
         try:
-            while await self.File_Lock.check_lock(media.filename):
+            while await self.File_Lock.check_lock(original_filename):
                 await asyncio.sleep(gauss(1, 1.5))
-            await self.File_Lock.add_lock(media.filename)
+            await self.File_Lock.add_lock(original_filename)
 
             if url_path not in self.current_attempt:
                 self.current_attempt[url_path] = 0
 
             current_throttle = self.client.throttle
 
-            original_filename = media.filename
             complete_file = (self.download_dir / album / media.filename)
             partial_file = complete_file.with_suffix(complete_file.suffix + '.part')
 

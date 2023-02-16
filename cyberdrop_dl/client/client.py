@@ -133,7 +133,6 @@ class DownloadSession:
                 raise DownloadFailure(code=503, message="Bunkr under maintenance")
             if 'text' in content_type.lower() or 'html' in content_type.lower():
                 logger.debug("Server for %s is experiencing issues, you are being ratelimited, or cookies have expired", str(media.url))
-                await File_Lock.remove_lock(original_filename)
                 raise DownloadFailure(code=resp.status, message="Unexpectedly got text as response")
 
             total = int(resp.headers.get('Content-Length', str(0))) + resume_point
@@ -160,7 +159,6 @@ class DownloadSession:
                 raise DownloadFailure(code=503, message="Bunkr under maintenance")
             if 'text' in content_type.lower() or 'html' in content_type.lower():
                 logger.debug("Server for %s is experiencing issues, you are being ratelimited, or cookies have expired", str(media.url))
-                await File_Lock.remove_lock(original_filename)
                 raise DownloadFailure(code=resp.status, message="Unexpectedly got text as response")
 
             total = int(resp.headers.get('Content-Length', str(0))) + resume_point
