@@ -88,13 +88,13 @@ class XenforoCrawler:
         try:
             if "simpcity" in url.host:
                 await self.simpcity.login(session, url, self.quiet)
-                title = await self.parse_forum(session, scrape_url, cascade, "", post_num, "simpcity")
+                title = await self.parse_simpcity(session, scrape_url, cascade, "", post_num)
             elif "socialmediagirls" in url.host:
                 await self.socialmediagirls.login(session, url, self.quiet)
-                title = await self.parse_forum(session, scrape_url, cascade, "", post_num, "socialmediagirls")
+                title = await self.parse_socialmediagirls(session, scrape_url, cascade, "", post_num)
             elif "xbunker" in url.host:
                 await self.xbunker.login(session, url, self.quiet)
-                title = await self.parse_forum(session, scrape_url, cascade, "", post_num, "xbunker")
+                title = await self.parse_xbunker(session, scrape_url, cascade, "", post_num)
 
         except Exception as e:
             logger.debug("Error encountered while handling %s", str(url), exc_info=True)
@@ -189,9 +189,160 @@ class XenforoCrawler:
         if tasks:
             await asyncio.wait(tasks)
 
-    async def parse_forum(self, session: ScrapeSession, url: URL, cascade: CascadeItem, title: str,
-                          post_number: int, host: str):
-        """Parses forum threads"""
+    async def parse_simpcity(self, session: ScrapeSession, url: URL, cascade: CascadeItem, title: str,
+                             post_number: int):
+        """Parses simpcity threads"""
+        soup = await session.get_BS4(url)
+
+        domain = URL("https://" + url.host)
+        post_num_str = None
+        content_links = []
+
+        title_block = soup.select_one("h1[class=p-title-value]")
+        for elem in title_block.find_all("a"):
+            elem.decompose()
+
+        if title:
+            pass
+        else:
+            title = title_block.text
+            title = await make_title_safe(title.replace("\n", "").strip())
+
+        posts = soup.select("div[class='message-main uix_messageContent js-quickEditTarget']")
+
+        for post in posts:
+            post_num_str = post.select_one("li[class=u-concealed] a").get('href').split('/')[-1]
+            post_num_int = int(post_num_str.split('post-')[-1])
+            if post_number:
+                if post_number > post_num_int:
+                    continue
+
+            temp_title = title + "/" + post_num_str if self.separate_posts else title
+
+            for elem in post.find_all('blockquote'):
+                elem.decompose()
+            post_content = post.select_one("div[class=bbWrapper]")
+
+            # Get Links
+            content_links.extend(await self.get_links(post_content, "a", "href", domain, temp_title))
+
+            # Get Images
+            content_links.extend(await self.get_links(post_content, "div[class='bbImageWrapper js-lbImage']", "data-src", domain, temp_title))
+            content_links.extend(await self.get_links(post_content, "div[class='bbImageWrapper lazyload js-lbImage']", "data-src", domain, temp_title))
+
+            # Get Videos:
+            content_links.extend(await self.get_links(post_content, "video source", "src", domain, temp_title))
+            content_links.extend(await self.get_links(post_content, "iframe[class=saint-iframe]", "src", domain, temp_title))
+
+            # Get Other Embedded Content
+            content_links.extend(await self.get_embedded(post_content, "span[data-s9e-mediaembed-iframe]", "data-s9e-mediaembed-iframe",
+                                 domain, temp_title))
+
+            # Get Attachments
+            attachments_block = post.select_one("section[class=message-attachments]")
+            content_links.extend(await self.get_links(attachments_block, "a[class='file-preview js-lbImage']", "href", domain, temp_title))
+
+        # Handle links
+        content_links = await self.filter_content_links(cascade, content_links, url, "simpcity")
+        await self.handle_external_links(content_links, url)
+
+        next_page = soup.select_one('a[class="pageNav-jump pageNav-jump--next"]')
+        if next_page is not None:
+            next_page = next_page.get('href')
+            if next_page is not None:
+                if next_page.startswith('/'):
+                    next_page = domain / next_page[1:]
+                next_page = URL(next_page)
+                await self.parse_simpcity(session, next_page, cascade, title, post_number)
+        else:
+            if self.output_last:
+                if 'page-' in url.raw_name:
+                    last_post_url = url.parent / post_num_str
+                elif 'post-' in url.raw_name:
+                    last_post_url = url.parent / post_num_str
+                else:
+                    last_post_url = url / post_num_str
+                await write_last_post_file(self.output_last_file, str(last_post_url))
+        return title
+
+    async def parse_socialmediagirls(self, session: ScrapeSession, url: URL, cascade: CascadeItem, title: str,
+                                     post_number: int):
+        """Parses SMG threads"""
+        soup = await session.get_BS4(url)
+
+        domain = URL("https://" + url.host)
+        post_num_str = None
+        content_links = []
+
+        title_block = soup.select_one("h1[class=p-title-value]")
+        for elem in title_block.find_all("span"):
+            elem.decompose()
+
+        if title:
+            pass
+        else:
+            title = title_block.text
+            title = await make_title_safe(title.replace("\n", "").strip())
+
+        posts = soup.select("div[class='message-main uix_messageContent js-quickEditTarget']")
+
+        for post in posts:
+            post_num_str = post.select_one("li[class=u-concealed] a").get('href').split('/')[-1]
+            post_num_int = int(post_num_str.split('post-')[-1])
+            if post_number:
+                if post_number > post_num_int:
+                    continue
+
+            temp_title = title + "/" + post_num_str if self.separate_posts else title
+
+            for elem in post.find_all('blockquote'):
+                elem.decompose()
+            post_content = post.select_one("div[class=bbWrapper]")
+
+            # Get Links
+            content_links.extend(await self.get_links(post_content, "a", "href", domain, temp_title))
+
+            # Get Images
+            content_links.extend(await self.get_links(post_content, "div[class='bbImageWrapper js-lbImage']", "data-src", domain, temp_title))
+            content_links.extend(await self.get_links(post_content, "div[class='bbImageWrapper lazyload js-lbImage']", "data-src", domain, temp_title))
+
+            # Get Videos:
+            content_links.extend(await self.get_links(post_content, "video source", "src", domain, temp_title))
+            content_links.extend(await self.get_links(post_content, "iframe[class=saint-iframe]", "src", domain, temp_title))
+
+            # Get Other Embedded Content
+            content_links.extend(await self.get_embedded(post_content, "span[data-s9e-mediaembed-iframe]", "data-s9e-mediaembed-iframe", domain, temp_title))
+
+            # Get Attachments
+            attachments_block = post.select_one("section[class=message-attachments]")
+            content_links.extend(await self.get_links(attachments_block, "a[class='file-preview js-lbImage']", "href", domain, temp_title))
+
+        # Handle links
+        content_links = await self.filter_content_links(cascade, content_links, url, "socialmediagirls")
+        await self.handle_external_links(content_links, url)
+
+        next_page = soup.select_one('a[class="pageNav-jump pageNav-jump--next"]')
+        if next_page is not None:
+            next_page = next_page.get('href')
+            if next_page is not None:
+                if next_page.startswith('/'):
+                    next_page = domain / next_page[1:]
+                next_page = URL(next_page)
+                await self.parse_socialmediagirls(session, next_page, cascade, title, post_number)
+        else:
+            if self.output_last:
+                if 'page-' in url.raw_name:
+                    last_post_url = url.parent / post_num_str
+                elif 'post-' in url.raw_name:
+                    last_post_url = url.parent / post_num_str
+                else:
+                    last_post_url = url / post_num_str
+                await write_last_post_file(self.output_last_file, str(last_post_url))
+        return title
+
+    async def parse_xbunker(self, session: ScrapeSession, url: URL, cascade: CascadeItem, title: str,
+                            post_number: int):
+        """Parses XBunker threads"""
         soup = await session.get_BS4(url)
 
         domain = URL("https://" + url.host)
@@ -242,7 +393,7 @@ class XenforoCrawler:
             content_links.extend(await self.get_links(attachments_block, "a[class='file-preview js-lbImage']", "href", domain, temp_title))
 
         # Handle links
-        content_links = await self.filter_content_links(cascade, content_links, url, host)
+        content_links = await self.filter_content_links(cascade, content_links, url, "xbunker")
         await self.handle_external_links(content_links, url)
 
         next_page = soup.select_one('a[class="pageNav-jump pageNav-jump--next"]')
@@ -252,7 +403,7 @@ class XenforoCrawler:
                 if next_page.startswith('/'):
                     next_page = domain / next_page[1:]
                 next_page = URL(next_page)
-                await self.parse_forum(session, next_page, cascade, title, post_number, host)
+                await self.parse_xbunker(session, next_page, cascade, title, post_number)
         else:
             if self.output_last:
                 if 'page-' in url.raw_name:
