@@ -79,6 +79,7 @@ class ScrapeMapper:
         self.jpgfish_limiter = AsyncRateLimiter(10)
         self.bunkr_limiter = AsyncRateLimiter(15)
         self.coomeno_limiter = AsyncRateLimiter(8)
+        self.gofile_limiter = AsyncRateLimiter(8)
 
         self.gofile_semaphore = asyncio.Semaphore(1)
         self.jpgfish_semaphore = asyncio.Semaphore(5)
@@ -180,7 +181,8 @@ class ScrapeMapper:
             self.gofile_crawler = GoFileCrawler(quiet=self.quiet, SQL_Helper=self.SQL_Helper)
         async with self.gofile_semaphore:
             await self.gofile_crawler.get_token(session=gofile_session)
-        domain_obj = await self.gofile_crawler.fetch(gofile_session, url)
+        async with self.gofile_limiter:
+            domain_obj = await self.gofile_crawler.fetch(gofile_session, url)
         await self.handle_additions("gofile", None, domain_obj, title)
         await gofile_session.exit_handler()
 
