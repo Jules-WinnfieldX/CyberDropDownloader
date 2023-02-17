@@ -46,7 +46,6 @@ class BunkrCrawler:
         if ext in FILE_FORMATS['Images']:
             check_complete = await self.SQL_Helper.check_complete_singular("bunkr", url.path)
             url = URL(str(url).replace("https://cdn", "https://i"))
-            url = await self.check_for_la(url)
 
             filename, ext = await get_filename_and_ext(url.name)
             if self.remove_bunkr_id:
@@ -97,8 +96,9 @@ class BunkrCrawler:
                 raise
             link = URL(link)
             link = link.with_name(url.name)
-            link = await self.check_for_la(link)
             filename, ext = await get_filename_and_ext(link.name)
+            if ext not in FILE_FORMATS['Images']:
+                link = await self.check_for_la(link)
             if self.remove_bunkr_id:
                 filename = await self.remove_id(filename, ext)
 
@@ -148,7 +148,8 @@ class BunkrCrawler:
                 else:
                     link = URL(f"https://media-files{media_loc}.bunkr.ru" + link.path)
 
-                link = await self.check_for_la(link)
+                if ext not in FILE_FORMATS['Images']:
+                    link = await self.check_for_la(link)
 
                 if self.remove_bunkr_id:
                     filename = await self.remove_id(filename, ext)
