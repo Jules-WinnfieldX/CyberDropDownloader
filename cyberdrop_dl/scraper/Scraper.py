@@ -83,6 +83,7 @@ class ScrapeMapper:
 
         self.gofile_semaphore = asyncio.Semaphore(1)
         self.jpgfish_semaphore = asyncio.Semaphore(5)
+        self.cyberfile_semaphore = asyncio.Semaphore(1)
         self.simpcity_semaphore = asyncio.Semaphore(1)
         self.socialmediagirls_semaphore = asyncio.Semaphore(1)
         self.xbunker_semaphore = asyncio.Semaphore(1)
@@ -147,7 +148,8 @@ class ScrapeMapper:
         cyberfile_session = ScrapeSession(self.client)
         if not self.cyberfile_crawler:
             self.cyberfile_crawler = CyberFileCrawler(quiet=self.quiet, SQL_Helper=self.SQL_Helper)
-        domain_obj = await self.cyberfile_crawler.fetch(cyberfile_session, url)
+        async with self.cyberfile_semaphore:
+            domain_obj = await self.cyberfile_crawler.fetch(cyberfile_session, url)
         await self.handle_additions("cyberfile", None, domain_obj, title)
         await cyberfile_session.exit_handler()
 
