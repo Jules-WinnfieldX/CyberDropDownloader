@@ -222,6 +222,9 @@ async def director(args: dict, links: list) -> None:
     if temp_downloads_check:
         await log('[yellow]There are partial downloads from this run, please re-run the program.[/yellow]')
 
+    await log('')
+    await log("[green]If you enjoy using this program, please consider buying the developer a coffee :)\nhttps://www.buymeacoffee.com/juleswinnft")
+
 
 def main(args=None):
     if not args:
