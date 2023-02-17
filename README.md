@@ -6,6 +6,9 @@
 [![Downloads](https://static.pepy.tech/badge/cyberdrop-dl/month)](https://pepy.tech/project/cyberdrop-dl)
 [![Downloads](https://static.pepy.tech/badge/cyberdrop-dl/week)](https://pepy.tech/project/cyberdrop-dl)
 
+![Discord Banner 3](https://discordapp.com/api/guilds/1070206871564197908/widget.png?style=banner3)
+
+
 Brand new and improved! Cyberdrop-DL now has an updated paint job, fantastic new look. On top of this it also downloads from different domains simultaneously.
 
 # Support Cyberdrop-DL Development
