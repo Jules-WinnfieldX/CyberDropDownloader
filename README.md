@@ -1,7 +1,7 @@
 # `cyberdrop-dl`
 **Bulk downloader for multiple file hosts** 
 
-[![PyPI version fury.io](https://badge.fury.io/py/ansicolortags.svg)](https://pypi.python.org/pypi/cyberdrop-dl/)
+[![PyPI version cyberdrop-dl](https://badge.fury.io/py/ansicolortags.svg)](https://pypi.python.org/pypi/cyberdrop-dl/)
 [![Downloads](https://static.pepy.tech/badge/cyberdrop-dl)](https://pepy.tech/project/cyberdrop-dl)
 [![Downloads](https://static.pepy.tech/badge/cyberdrop-dl/month)](https://pepy.tech/project/cyberdrop-dl)
 [![Downloads](https://static.pepy.tech/badge/cyberdrop-dl/week)](https://pepy.tech/project/cyberdrop-dl)
