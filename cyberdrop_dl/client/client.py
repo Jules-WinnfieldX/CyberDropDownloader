@@ -29,7 +29,7 @@ class Client:
         self.ratelimit = ratelimit
         self.throttle = throttle
         self.simultaneous_session_limit = asyncio.Semaphore(50)
-        self.user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/109.0'
+        self.user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/110.0'
         self.verify_ssl = secure
         self.ssl_context = ssl.create_default_context(cafile=certifi.where()) if secure else False
         self.cookies = aiohttp.CookieJar(quote_cookie=False)
@@ -121,8 +121,7 @@ class DownloadSession:
         self.throttle_times = {}
 
     async def download_file(self, media: MediaItem, file: Path, current_throttle: int, resume_point: int,
-                            File_Lock: FileLock, proxy: str, headers: dict, original_filename: str,
-                            file_task: TaskID):
+                            proxy: str, headers: dict, file_task: TaskID):
         headers['Referer'] = str(media.referer)
         headers['user-agent'] = self.client.user_agent
         await throttle(self, current_throttle, media.url.host)
@@ -148,7 +147,7 @@ class DownloadSession:
                     file_progress.advance(file_task, len(chunk))
 
     async def old_download_file(self, media: MediaItem, file: Path, current_throttle: int, resume_point: int,
-                            File_Lock: FileLock, proxy: str, headers: dict, original_filename: str):
+                                proxy: str, headers: dict):
         headers['Referer'] = str(media.referer)
         headers['user-agent'] = self.client.user_agent
         await throttle(self, current_throttle, media.url.host)

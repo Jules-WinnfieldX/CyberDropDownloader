@@ -227,8 +227,7 @@ class Downloader:
 
             if not await self.SQL_Helper.sql_check_old_existing(url_path) and not fake_download:
                 await self.download_session.download_file(media, partial_file, current_throttle, resume_point,
-                                                          self.File_Lock, self.proxy, headers, original_filename,
-                                                          file_task)
+                                                          self.proxy, headers, file_task)
                 partial_file.rename(complete_file)
 
             await self.SQL_Helper.mark_complete(url_path, original_filename)
