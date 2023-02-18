@@ -22,36 +22,36 @@ class ForumLogin:
 
     async def login(self, session: ScrapeSession, url: URL, quiet: bool):
         """Handles forum logging in"""
-        if self.username and self.password:
-            if self.logged_in:
-                return
-            self.lock = True
-            domain = URL("https://" + url.host) / "login"
-            text = await session.get_text(domain)
-            await asyncio.sleep(5)
-            soup = BeautifulSoup(text, 'html.parser')
-
-            inputs = soup.select('form input')
-            data = {
-                elem['name']: elem['value']
-                for elem in inputs
-                if elem.get('name') and elem.get('value')
-            }
-            data.update({"login": self.username, "password": self.password,
-                         "_xfRedirect": str(URL("https://" + url.host))})
-            await session.post_data_no_resp(domain / "login", data=data)
-            await asyncio.sleep(5)
-            text = await session.get_text(domain)
-            if "You are already logged in" in text:
-                self.logged_in = True
-                self.lock = False
-                return
-            else:
-                self.lock = False
-                raise FailedLoginFailure()
-        else:
+        if not self.username or not self.password:
             await log(f"[red]Login wasn't provided for {self.name}[/red]", quiet=quiet)
             raise FailedLoginFailure()
+
+        if self.logged_in:
+            return
+
+        domain = URL("https://" + url.host) / "login"
+        text = await session.get_text(domain)
+        await asyncio.sleep(5)
+        soup = BeautifulSoup(text, 'html.parser')
+
+        inputs = soup.select('form input')
+        data = {
+            elem['name']: elem['value']
+            for elem in inputs
+            if elem.get('name') and elem.get('value')
+        }
+        data.update({
+            "login": self.username,
+            "password": self.password,
+            "_xfRedirect": str(URL("https://" + url.host))
+        })
+        await session.post_data_no_resp(domain / "login", data=data)
+        await asyncio.sleep(5)
+        text = await session.get_text(domain)
+        if "You are already logged in" not in text:
+            raise FailedLoginFailure()
+
+        self.logged_in = True
 
 
 class XenforoCrawler:
