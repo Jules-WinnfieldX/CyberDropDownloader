@@ -17,16 +17,12 @@ class ForumLogin:
     def __init__(self, name: str, username: str, password: str):
         self.name = name
         self.logged_in = False
-        self.lock = False
         self.username = username
         self.password = password
 
     async def login(self, session: ScrapeSession, url: URL, quiet: bool):
         """Handles forum logging in"""
         if self.username and self.password:
-            if self.lock:
-                while True:
-                    await asyncio.sleep(2)
             if self.logged_in:
                 return
             self.lock = True
