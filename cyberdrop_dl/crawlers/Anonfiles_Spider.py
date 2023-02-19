@@ -17,7 +17,7 @@ class AnonfilesCrawler:
         if 'cdn' in url.host:
             url = URL("https://anonfiles.com") / url.parts[1]
 
-        album_obj = AlbumItem("Anon Loose Files", [])
+        album_obj = AlbumItem("Loose Anon Files", [])
 
         await log(f"[green]Starting: {str(url)}[/green]", quiet=self.quiet)
 
