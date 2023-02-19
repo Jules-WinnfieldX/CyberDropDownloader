@@ -18,7 +18,7 @@ class BunkrCrawler:
 
     async def fetch(self, session: ScrapeSession, url: URL):
         """Scraper for Bunkr"""
-        album_obj = AlbumItem("Loose Bunkr Items", [])
+        album_obj = AlbumItem("Loose Bunkr Files", [])
         await log(f"[green]Starting: {str(url)}[/green]", quiet=self.quiet)
 
         if "v" in url.parts or "d" in url.parts:
