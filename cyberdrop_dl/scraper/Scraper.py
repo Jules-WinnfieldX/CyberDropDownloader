@@ -83,7 +83,7 @@ class ScrapeMapper:
 
         self.gofile_semaphore = asyncio.Semaphore(1)
         self.jpgfish_semaphore = asyncio.Semaphore(5)
-        self.cyberfile_semaphore = asyncio.Semaphore(1)
+        self.cyberfile_semaphore = asyncio.Semaphore(2)
         self.simpcity_semaphore = asyncio.Semaphore(1)
         self.socialmediagirls_semaphore = asyncio.Semaphore(1)
         self.xbunker_semaphore = asyncio.Semaphore(1)
