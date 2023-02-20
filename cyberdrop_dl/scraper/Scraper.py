@@ -79,7 +79,7 @@ class ScrapeMapper:
         self.jpgfish_limiter = AsyncRateLimiter(10)
         self.bunkr_limiter = AsyncRateLimiter(15)
         self.coomeno_limiter = AsyncRateLimiter(8)
-        self.gofile_limiter = AsyncRateLimiter(8)
+        self.gofile_limiter = AsyncRateLimiter(1)
 
         self.gofile_semaphore = asyncio.Semaphore(1)
         self.jpgfish_semaphore = asyncio.Semaphore(5)
