@@ -11,6 +11,8 @@
 
 Brand new and improved! Cyberdrop-DL now has an updated paint job, fantastic new look. On top of this it also downloads from different domains simultaneously.
 
+![Screenshot 2023-02-19 183052](https://user-images.githubusercontent.com/61347133/219989561-759bd8b1-34d2-4d61-8fa7-0d0b3680e83f.png)
+
 # Support Cyberdrop-DL Development
 
 <a href="https://www.buymeacoffee.com/juleswinnft" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
