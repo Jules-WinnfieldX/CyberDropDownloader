@@ -128,6 +128,8 @@ class DownloadSession:
         async with self.client_session.get(media.url, headers=headers, ssl=self.client.ssl_context,
                                            raise_for_status=True, proxy=proxy) as resp:
             content_type = resp.headers.get('Content-Type')
+            if not content_type:
+                raise DownloadFailure(code=418, message="No content-type in response header")
             if resp.url == URL("https://bnkr.b-cdn.net/maintenance.mp4"):
                 raise DownloadFailure(code=503, message="Bunkr under maintenance")
             if 'text' in content_type.lower() or 'html' in content_type.lower():
@@ -154,6 +156,8 @@ class DownloadSession:
         async with self.client_session.get(media.url, headers=headers, ssl=self.client.ssl_context,
                                            raise_for_status=True, proxy=proxy) as resp:
             content_type = resp.headers.get('Content-Type')
+            if not content_type:
+                raise DownloadFailure(code=418, message="No content-type in response header")
             if resp.url == URL("https://bnkr.b-cdn.net/maintenance.mp4"):
                 raise DownloadFailure(code=503, message="Bunkr under maintenance")
             if 'text' in content_type.lower() or 'html' in content_type.lower():
