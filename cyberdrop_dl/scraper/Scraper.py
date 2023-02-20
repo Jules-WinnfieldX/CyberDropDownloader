@@ -352,5 +352,7 @@ class ScrapeMapper:
         else:
             await log(f"[yellow]Not Supported: {str(url_to_map)}[/yellow]", quiet=self.quiet)
             if self.unsupported_output:
+                title = title.encode("ascii", "ignore")
+                title = title.decode().strip()
                 async with aiofiles.open(self.unsupported_file, mode='a') as f:
                     await f.write(f"{str(url_to_map)},{str(referer)},{title}\n")
