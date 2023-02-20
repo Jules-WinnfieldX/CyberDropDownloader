@@ -200,27 +200,28 @@ async def director(args: dict, links: list) -> None:
         if not await Forums.is_empty():
             await download_forums(args, Forums, SQL_Helper, client, Scraper)
 
-    if args['Sorting']['sort_downloads']:
+    if args['Files']['output_folder'].is_dir():
+        if args['Sorting']['sort_downloads']:
+            await log("")
+            await log("Sorting Downloads")
+            sorter = Sorter(args['Files']['output_folder'], args['Sorting']['sort_directory'],
+                            args['Sorting']['sorted_audio'], args['Sorting']['sorted_images'],
+                            args['Sorting']['sorted_videos'], args['Sorting']['sorted_others'],)
+            await sorter.sort()
+
         await log("")
-        await log("Sorting Downloads")
-        sorter = Sorter(args['Files']['output_folder'], args['Sorting']['sort_directory'],
-                        args['Sorting']['sorted_audio'], args['Sorting']['sorted_images'],
-                        args['Sorting']['sorted_videos'], args['Sorting']['sorted_others'],)
-        await sorter.sort()
+        await log("Checking for incomplete downloads")
+        partial_downloads = [str(f) for f in args['Files']['output_folder'].rglob("*.part") if f.is_file()]
+        temp_downloads_check = [str(f) for f in await SQL_Helper.get_temp_names() if Path(f).is_file()]
 
-    await log("")
-    await log("Checking for incomplete downloads")
-    partial_downloads = [str(f) for f in args['Files']['output_folder'].rglob("*.part") if f.is_file()]
-    temp_downloads_check = [str(f) for f in await SQL_Helper.get_temp_names() if Path(f).is_file()]
+        await log('Purging empty directories')
+        await purge_dir(args['Files']['output_folder'])
 
-    await log('Purging empty directories')
-    await purge_dir(args['Files']['output_folder'])
-
-    await log('Finished downloading. Enjoy :)')
-    if partial_downloads:
-        await log('[yellow]There are partial downloads in the downloads folder.[/yellow]')
-    if temp_downloads_check:
-        await log('[yellow]There are partial downloads from this run, please re-run the program.[/yellow]')
+        await log('Finished downloading. Enjoy :)')
+        if partial_downloads:
+            await log('[yellow]There are partial downloads in the downloads folder.[/yellow]')
+        if temp_downloads_check:
+            await log('[yellow]There are partial downloads from this run, please re-run the program.[/yellow]')
 
     await log('')
     await log("[green]If you enjoy using this program, please consider buying the developer a coffee :)\nhttps://www.buymeacoffee.com/juleswinnft")
