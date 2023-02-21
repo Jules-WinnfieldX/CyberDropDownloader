@@ -42,7 +42,7 @@ class Sorter:
             files = await self.find_files_in_dir(folder)
             for file in files:
                 ext = file.suffix.lower()
-                if ext == '.part':
+                if ext == '.partial':
                     continue
                 elif ext in FILE_FORMATS['Audio']:
                     audio_destination.mkdir(parents=True, exist_ok=True)
