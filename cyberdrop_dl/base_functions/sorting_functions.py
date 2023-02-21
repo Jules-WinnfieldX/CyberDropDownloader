@@ -78,7 +78,7 @@ class Sorter:
             while (dest / f"{temp_stem}{ext}").is_file() and file.is_file():
                 if file.stat().st_size == (dest / file.name).stat().st_size:
                     file.unlink()
-                temp_stem = f"{stem} ({i}){ext}"
+                temp_stem = f"{stem} ({i})"
                 i += 1
             if file.is_file():
                 file.rename((dest / f"{temp_stem}{ext}"))
