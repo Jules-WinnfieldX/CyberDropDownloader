@@ -250,7 +250,7 @@ class Downloader:
         except (aiohttp.client_exceptions.ClientPayloadError, aiohttp.client_exceptions.ClientOSError,
                 aiohttp.client_exceptions.ServerDisconnectedError, asyncio.TimeoutError,
                 aiohttp.client_exceptions.ClientResponseError, aiohttp.client_exceptions.ServerTimeoutError,
-                DownloadFailure, PermissionError) as e:
+                DownloadFailure, FileNotFoundError, PermissionError) as e:
             if await self.File_Lock.check_lock(original_filename):
                 await self.File_Lock.remove_lock(original_filename)
 
