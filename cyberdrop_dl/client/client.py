@@ -41,7 +41,7 @@ class ScrapeSession:
         self.client = client
         self.rate_limiter = AsyncRateLimiter(self.client.ratelimit)
         self.headers = {"user-agent": client.user_agent}
-        self.timeouts = aiohttp.ClientTimeout(total=5 * 60, connect=self.client.connect_timeout)
+        self.timeouts = aiohttp.ClientTimeout(total=5 * 60, connect=self.client.connect_timeout, sock_read=30)
         self.client_session = aiohttp.ClientSession(headers=self.headers, raise_for_status=True, cookie_jar=self.client.cookies, timeout=self.timeouts)
 
     async def get_BS4(self, url: URL):

@@ -68,9 +68,7 @@ class ScrapeMapper:
         self.saint_crawler = None
         self.sharex_crawler = None
         self.xbunkr_crawler = None
-        self.simp_xenforo_crawler = None
-        self.smg_xenforo_crawler = None
-        self.xbunker_xenforo_crawler = None
+        self.xenforo_crawler = None
 
         self.include_id = args['Runtime']['include_id']
         self.remove_bunkr_id = args['Runtime']['remove_bunkr_identifier']
@@ -99,8 +97,7 @@ class ScrapeMapper:
                         "nsfw.xxx": self.NSFW_XXX, "pimpandhost": self.PimpAndHost, "lovefap": self.LoveFap,
                         "e-hentai": self.EHentai,
                         "coomer.party": self.Coomeno, "kemono.party": self.Coomeno,
-                        "simpcity": self.SIMP_Xenforo, "socialmediagirls": self.SMG_Xenforo,
-                        "xbunker": self.XBUNKER_Xenforo}
+                        "simpcity": self.Xenforo, "socialmediagirls": self.Xenforo, "xbunker": self.Xenforo}
 
     async def handle_additions(self, domain: str, album_obj: Optional[AlbumItem], domain_obj: Optional[DomainItem], title=None):
         if album_obj:
@@ -306,45 +303,23 @@ class ScrapeMapper:
 
     """Forum handling"""
 
-    async def SIMP_Xenforo(self, url: URL, title=None):
+    async def Xenforo(self, url: URL, title=None):
         xenforo_session = ScrapeSession(self.client)
-        if not self.simp_xenforo_crawler:
-            self.simp_xenforo_crawler = XenforoCrawler(scraping_mapper=self, args=self.args, SQL_Helper=self.SQL_Helper,
-                                                       quiet=self.quiet)
+        if not self.xenforo_crawler:
+            self.xenforo_crawler = XenforoCrawler(scraping_mapper=self, args=self.args, SQL_Helper=self.SQL_Helper,
+                                                  quiet=self.quiet)
+        title = None
+        cascade = None
 
-        async with self.simpcity_semaphore:
-            cascade, title = await self.simp_xenforo_crawler.fetch(xenforo_session, url)
-
-        if not title or await cascade.is_empty():
-            await xenforo_session.exit_handler()
-            return
-        await self.Forums.add_thread(title, cascade)
-        await xenforo_session.exit_handler()
-
-    async def SMG_Xenforo(self, url: URL, title=None):
-        xenforo_session = ScrapeSession(self.client)
-        if not self.smg_xenforo_crawler:
-            self.smg_xenforo_crawler = XenforoCrawler(scraping_mapper=self, args=self.args, SQL_Helper=self.SQL_Helper,
-                                                      quiet=self.quiet)
-
-        async with self.socialmediagirls_semaphore:
-            cascade, title = await self.smg_xenforo_crawler.fetch(xenforo_session, url)
-
-        if not title or await cascade.is_empty():
-            await xenforo_session.exit_handler()
-            return
-        await self.Forums.add_thread(title, cascade)
-        await xenforo_session.exit_handler()
-
-    async def XBUNKER_Xenforo(self, url: URL, title=None):
-        xenforo_session = ScrapeSession(self.client)
-        if not self.xbunker_xenforo_crawler:
-            self.xbunker_xenforo_crawler = XenforoCrawler(scraping_mapper=self, args=self.args,
-                                                          SQL_Helper=self.SQL_Helper, quiet=self.quiet)
-
-        async with self.xbunker_semaphore:
-            cascade, title = await self.xbunker_xenforo_crawler.fetch(xenforo_session, url)
-
+        if "simpcity" in url.host:
+            async with self.simpcity_semaphore:
+                cascade, title = await self.xenforo_crawler.fetch(xenforo_session, url)
+        if "socialmediagirls" in url.host:
+            async with self.socialmediagirls_semaphore:
+                cascade, title = await self.xenforo_crawler.fetch(xenforo_session, url)
+        if "xbunker" in url.host:
+            async with self.xbunker_semaphore:
+                cascade, title = await self.xenforo_crawler.fetch(xenforo_session, url)
         if not title or await cascade.is_empty():
             await xenforo_session.exit_handler()
             return
