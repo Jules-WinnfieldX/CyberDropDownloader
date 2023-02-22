@@ -274,6 +274,17 @@ class Downloader:
                         self.current_attempt.pop(url_path)
                     await self.output_failed(media, e)
                     return
+                if e.code == 503:
+                    if hasattr(e, "message"):
+                        logging.debug(f"\n{media.url} ({e.message})")
+                    await log(f"Failed Download: {media.filename}", quiet=True)
+                    overall_file_progress.advance(self.files.failed_files_task_id, 1)
+                    self.files.failed_files += 1
+                    if url_path in self.current_attempt.keys():
+                        self.current_attempt.pop(url_path)
+                    await self.output_failed(media, e)
+                    return
+
                 logger.debug("Error status code: " + str(e.code))
                 new_error.code = e.code
 
