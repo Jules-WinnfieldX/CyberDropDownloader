@@ -138,7 +138,7 @@ optional arguments:
 --output-errored-urls 	                sets the failed urls to be output to the errored urls file
 --output-unsupported-urls 	        sets the unsupported urls to be output to the unsupported urls file
 --proxy 	                        HTTP/HTTPS proxy used for downloading, format [protocal]://[ip]:[port]
---remove-bunker-identifier 	        removes the bunkr added identifier from output filenames
+--remove-bunkr-identifier 	        removes the bunkr added identifier from output filenames
 --required-free-space 	                required free space (in gigabytes) for the program to run
 --simultaneous-downloads-per-domain 	number of simultaneous downloads to use per domain
 
