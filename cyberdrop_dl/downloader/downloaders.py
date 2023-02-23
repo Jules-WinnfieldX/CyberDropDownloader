@@ -63,6 +63,11 @@ class Files:
         self.failed_files_task_id = failed
         self.failed_files = 0
 
+    async def hide(self):
+        overall_file_progress.update(self.completed_files, visible=False)
+        overall_file_progress.update(self.skipped_files, visible=False)
+        overall_file_progress.update(self.failed_files_task_id, visible=False)
+
 
 class Downloader:
     """Downloader class, directs downloading for domain objects"""
@@ -375,6 +380,10 @@ async def download_cascade(args: dict, Cascade: CascadeItem, SQL_Helper: SQLHelp
         for downloader in downloaders:
             tasks.append(downloader.start_domain(cascade_task))
         await asyncio.gather(*tasks)
+
+        cascade_progress.update(cascade_task, visible=False)
+
+    await files.hide()
 
     await clear()
     await log(f"| [green]Files Complete: {files.completed_files}[/green] - [yellow]Files Skipped: "
