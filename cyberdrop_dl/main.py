@@ -53,7 +53,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--output-errored-urls", help="sets the failed urls to be output to the errored urls file", action="store_true")
     parser.add_argument("--output-unsupported-urls", help="sets the unsupported urls to be output to the unsupported urls file", action="store_true")
     parser.add_argument("--proxy", help="HTTP/HTTPS proxy used for downloading, format [protocal]://[ip]:[port]", default=None)
-    parser.add_argument("--remove-bunker-identifier", help="removes the bunkr added identifier from output filenames", action="store_true")
+    parser.add_argument("--remove-bunkr-identifier", help="removes the bunkr added identifier from output filenames", action="store_true")
     parser.add_argument("--required-free-space", type=int, help="required free space (in gigabytes) for the program to run", default=5)
     parser.add_argument("--simultaneous-downloads-per-domain", type=int, help="Number of simultaneous downloads to use per domain", default=4)
 
