@@ -180,7 +180,11 @@ class CoomenoCrawler:
 
             images = soup.select(images_selector)
             for image in images:
-                link = URL("https://" + url.host + image.get('href'))
+                href = image.get('href')
+                if href.startswith("/"):
+                    link = URL("https://" + url.host + href)
+                else:
+                    link = URL(href)
                 url_path = await get_db_path(link)
                 complete = await self.SQL_Helper.check_complete_singular(domain, url_path)
                 filename, ext = await get_filename_and_ext(link.name)
@@ -189,7 +193,11 @@ class CoomenoCrawler:
 
             downloads = soup.select(downloads_selector)
             for download in downloads:
-                link = URL("https://" + url.host + download.get('href'))
+                href = download.get('href')
+                if href.startswith("/"):
+                    link = URL("https://" + url.host + href)
+                else:
+                    link = URL(href)
                 url_path = await get_db_path(link)
                 complete = await self.SQL_Helper.check_complete_singular(domain, url_path)
                 filename, ext = await get_filename_and_ext(link.name)
