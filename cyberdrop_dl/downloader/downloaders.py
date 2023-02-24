@@ -64,8 +64,8 @@ class Files:
         self.failed_files = 0
 
     async def hide(self):
-        overall_file_progress.update(self.completed_files, visible=False)
-        overall_file_progress.update(self.skipped_files, visible=False)
+        overall_file_progress.update(self.completed_files_task_id, visible=False)
+        overall_file_progress.update(self.skipped_files_task_id, visible=False)
         overall_file_progress.update(self.failed_files_task_id, visible=False)
 
 
