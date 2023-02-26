@@ -139,6 +139,8 @@ class Downloader:
 
     async def start_file(self, album_task: TaskID, album: str, media: MediaItem):
         """Handler for files and the progress bars for it"""
+        media.original_filename = media.filename
+
         if media.complete:
             await log(f"Previously Downloaded: {media.filename}", quiet=True)
             overall_file_progress.advance(self.files.skipped_files_task_id, 1)
@@ -179,7 +181,7 @@ class Downloader:
         if self.block_sub_folders:
             album = album.split('/')[0]
 
-        original_filename = media.filename
+        original_filename = media.original_filename
 
         try:
             while await self.File_Lock.check_lock(original_filename):
@@ -317,18 +319,19 @@ class Downloader:
                 downloaded_filename = await self.SQL_Helper.get_downloaded_filename(url_path, original_filename)
                 if downloaded_filename:
                     if media.filename == downloaded_filename:
-                        if complete_file.exists():
-                            if complete_file.stat().st_size == expected_size:
-                                proceed = False
-                                break
-                            else:
-                                break
-                        elif partial_file.exists():
+                        if partial_file.exists():
                             if partial_file.stat().st_size == expected_size:
                                 proceed = False
                                 partial_file.rename(complete_file)
                                 break
                             else:
+                                break
+                        elif complete_file.exists():
+                            if complete_file.stat().st_size == expected_size:
+                                proceed = False
+                                break
+                            else:
+                                complete_file, partial_file = await self.iterate_filename(complete_file, media, album)
                                 break
                         else:
                             break
@@ -338,22 +341,25 @@ class Downloader:
                         partial_file = complete_file.with_suffix(complete_file.suffix + '.part')
                         continue
                 else:
-
-                    iterations = 1
-                    while True:
-                        filename = f"{complete_file.stem} ({iterations}){media.ext}"
-                        iterations += 1
-                        temp_complete_file = (self.download_dir / album / filename)
-                        if not temp_complete_file.exists():
-                            if not await self.SQL_Helper.check_filename(filename):
-                                media.filename = filename
-                                complete_file = (self.download_dir / album / media.filename)
-                                partial_file = complete_file.with_suffix(complete_file.suffix + '.part')
-                                break
+                    complete_file, partial_file = await self.iterate_filename(complete_file, media, album)
                     break
             else:
                 break
         return complete_file, partial_file, proceed
+
+    async def iterate_filename(self, complete_file, media, album):
+        iterations = 1
+        while True:
+            filename = f"{complete_file.stem} ({iterations}){media.ext}"
+            iterations += 1
+            temp_complete_file = (self.download_dir / album / filename)
+            if not temp_complete_file.exists():
+                if not await self.SQL_Helper.check_filename(filename):
+                    media.filename = filename
+                    complete_file = (self.download_dir / album / media.filename)
+                    partial_file = complete_file.with_suffix(complete_file.suffix + '.part')
+                    break
+        return complete_file, partial_file
 
 
 async def download_cascade(args: dict, Cascade: CascadeItem, SQL_Helper: SQLHelper, client: Client,

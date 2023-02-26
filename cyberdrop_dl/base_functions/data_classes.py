@@ -2,18 +2,22 @@ from __future__ import annotations
 
 import asyncio
 from dataclasses import dataclass
-from typing import ClassVar, List, Tuple
+from typing import ClassVar, List, Tuple, Optional
 
 from yarl import URL
 
 
 @dataclass
 class MediaItem:
-    url: URL
-    referer: URL
-    complete: bool
-    filename: str
-    ext: str
+
+    def __init__(self, url: URL, referer: URL, complete: bool, filename: str, ext: str,
+                 original_filename=None):
+        self.url = url
+        self.referer = referer
+        self.complete = complete
+        self.filename = filename
+        self.ext = ext
+        self.original_filename = original_filename
 
     async def is_complete(self):
         return self.complete
