@@ -95,7 +95,7 @@ class ScrapeMapper:
                         "postimg": self.PostImg, "saint": self.Saint, "img.kiwi": self.ShareX,
                         "jpg.church": self.ShareX, "jpg.fish": self.ShareX, "pixl.li": self.ShareX,
                         "nsfw.xxx": self.NSFW_XXX, "pimpandhost": self.PimpAndHost, "lovefap": self.LoveFap,
-                        "e-hentai": self.EHentai,
+                        "e-hentai": self.EHentai, "gallery.deltaporno": self.ShareX,
                         "coomer.party": self.Coomeno, "kemono.party": self.Coomeno,
                         "simpcity": self.Xenforo, "socialmediagirls": self.Xenforo, "xbunker": self.Xenforo}
 
