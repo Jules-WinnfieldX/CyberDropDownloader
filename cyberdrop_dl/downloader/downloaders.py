@@ -243,6 +243,7 @@ class Downloader:
 
             if fake_download:
                 overall_file_progress.advance(self.files.skipped_files_task_id, 1)
+                await log(f"Already Downloaded: {media.filename} from {media.referer}", quiet=True)
                 self.files.skipped_files += 1
             else:
                 overall_file_progress.advance(self.files.completed_files_task_id, 1)
