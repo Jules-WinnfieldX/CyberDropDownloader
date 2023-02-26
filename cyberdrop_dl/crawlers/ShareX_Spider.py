@@ -27,7 +27,7 @@ class ShareXCrawler:
             url_path = await get_db_path(url)
             complete = await self.SQL_Helper.check_complete_singular("anonfiles", url_path)
             filename, ext = await get_filename_and_ext(url.name)
-            media_item = MediaItem(url, url, complete, filename, ext)
+            media_item = MediaItem(url, url, complete, filename, ext, filename)
             await domain_obj.add_media("Loose ShareX Files", media_item)
         elif "album" in url.parts or "a" in url.parts:
             await self.parse(session=session, url=url, domain_obj=domain_obj)
@@ -77,7 +77,7 @@ class ShareXCrawler:
             url_path = await get_db_path(link)
             complete = await self.SQL_Helper.check_complete_singular("sharex", url_path)
             filename, ext = await get_filename_and_ext(link.name)
-            media_item = MediaItem(link, url, complete, filename, ext)
+            media_item = MediaItem(link, url, complete, filename, ext, filename)
             await domain_obj.add_media("Loose ShareX Files", media_item)
         except Exception as e:
             logger.debug("Error encountered while handling %s", str(url), exc_info=True)
@@ -135,7 +135,7 @@ class ShareXCrawler:
                     continue
                 url_path = await get_db_path(link)
                 complete = await self.SQL_Helper.check_complete_singular("sharex", url_path)
-                media_item = MediaItem(link, url, complete, filename, ext)
+                media_item = MediaItem(link, url, complete, filename, ext, filename)
                 await domain_obj.add_media(title, media_item)
 
             next_page = soup.select_one('li.pagination-next a')

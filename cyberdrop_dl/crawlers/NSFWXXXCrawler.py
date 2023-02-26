@@ -83,7 +83,7 @@ class NSFWXXXCrawler:
                 except NoExtensionFailure:
                     logger.debug("Couldn't get extension for %s", str(link))
                     continue
-                media = MediaItem(link, url, complete, filename, ext)
+                media = MediaItem(link, url, complete, filename, ext, filename)
 
                 title = f"{model}/{post_name}" if self.separate_posts else model
                 await domain_obj.add_media(title, media)

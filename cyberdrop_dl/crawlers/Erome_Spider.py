@@ -48,7 +48,7 @@ class EromeCrawler:
                     continue
                 link_path = await get_db_path(link)
                 complete = await self.SQL_Helper.check_complete_singular("erome", link_path)
-                media = MediaItem(link, url, complete, filename, ext)
+                media = MediaItem(link, url, complete, filename, ext, filename)
                 await domain_obj.add_media(title, media)
 
             # Videos
@@ -61,7 +61,7 @@ class EromeCrawler:
                     continue
                 link_path = await get_db_path(link)
                 complete = await self.SQL_Helper.check_complete_singular("erome", link_path)
-                media = MediaItem(link, url, complete, filename, ext)
+                media = MediaItem(link, url, complete, filename, ext, filename)
                 await domain_obj.add_media(title, media)
 
             url_path = await get_db_path(url)

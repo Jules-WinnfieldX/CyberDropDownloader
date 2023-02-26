@@ -39,7 +39,7 @@ class HGameCGCrawler:
                 complete = await self.SQL_Helper.check_complete_singular("hgamecg", url_path)
 
                 filename, ext = await get_filename_and_ext(link.name)
-                media_item = MediaItem(link, image, complete, filename, ext)
+                media_item = MediaItem(link, image, complete, filename, ext, filename)
                 await album_obj.add_media(media_item)
 
             next_page = soup.find("a", text="Next Page")

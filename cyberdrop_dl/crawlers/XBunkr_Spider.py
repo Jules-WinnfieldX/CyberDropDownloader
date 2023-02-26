@@ -21,7 +21,7 @@ class XBunkrCrawler:
                 url_path = await get_db_path(url)
                 complete = await self.SQL_Helper.check_complete_singular("xbunkr", url_path)
                 filename, ext = await get_filename_and_ext(url.name)
-                media_item = MediaItem(url, url, complete, filename, ext)
+                media_item = MediaItem(url, url, complete, filename, ext, filename)
                 await album_obj.add_media(media_item)
 
             else:
@@ -39,7 +39,7 @@ class XBunkrCrawler:
                         continue
                     url_path = await get_db_path(link)
                     complete = await self.SQL_Helper.check_complete_singular("xbunkr", url_path)
-                    media_item = MediaItem(link, url, complete, filename, ext)
+                    media_item = MediaItem(link, url, complete, filename, ext, filename)
                     await album_obj.add_media(media_item)
 
         except Exception as e:

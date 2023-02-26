@@ -97,7 +97,7 @@ class GoFileCrawler:
                     continue
                 link_path = await get_db_path(link)
                 complete = await self.SQL_Helper.check_complete_singular("gofile", link_path)
-                media_item = MediaItem(link, url, complete, filename, ext)
+                media_item = MediaItem(link, url, complete, filename, ext, filename)
                 results.append([title, media_item])
         for sub_folder in sub_folders:
             results.extend(await self.get_links(session, url, sub_folder, title))

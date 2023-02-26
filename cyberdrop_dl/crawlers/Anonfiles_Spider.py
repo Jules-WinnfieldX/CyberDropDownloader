@@ -33,7 +33,7 @@ class AnonfilesCrawler:
                 complete = await self.SQL_Helper.check_complete_singular("anonfiles", url_path)
 
                 filename, ext = await get_filename_and_ext(".".join(json['data']['file']['metadata']['name'].rsplit("_", 1)))
-                media_item = MediaItem(link, url, complete, filename, ext)
+                media_item = MediaItem(link, url, complete, filename, ext, filename)
                 await album_obj.add_media(media_item)
                 if not complete:
                     await self.SQL_Helper.insert_media("anonfiles", url_path, "", str(url), "", "", filename, 0)

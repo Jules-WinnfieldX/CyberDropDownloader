@@ -23,7 +23,7 @@ class CyberdropCrawler:
             url_path = await get_db_path(url)
             complete = await self.SQL_Helper.check_complete_singular("cyberdrop", url_path)
             filename, ext = await get_filename_and_ext(url.name)
-            media = MediaItem(url, url, complete, filename, ext)
+            media = MediaItem(url, url, complete, filename, ext, filename)
             await album_obj.add_media(media)
             await self.SQL_Helper.insert_album("cyberdrop", "", album_obj)
             await log(f"[green]Finished: {str(url)}[/green]", quiet=self.quiet)
@@ -37,7 +37,7 @@ class CyberdropCrawler:
                 url_path = await get_db_path(url)
                 complete = await self.SQL_Helper.check_complete_singular("cyberdrop", url_path)
                 filename, ext = await get_filename_and_ext(url.name)
-                media = MediaItem(url, url, complete, filename, ext)
+                media = MediaItem(url, url, complete, filename, ext, filename)
                 await album_obj.add_media(media)
                 await self.SQL_Helper.insert_album("cyberdrop", "", album_obj)
                 await log(f"[green]Finished: {str(url)}[/green]", quiet=self.quiet)
@@ -64,7 +64,7 @@ class CyberdropCrawler:
 
                 url_path = await get_db_path(link)
                 complete = await self.SQL_Helper.check_complete_singular("cyberdrop", url_path)
-                media = MediaItem(link, url, complete, filename, ext)
+                media = MediaItem(link, url, complete, filename, ext, filename)
                 await album_obj.add_media(media)
 
         except Exception as e:

@@ -9,15 +9,12 @@ from yarl import URL
 
 @dataclass
 class MediaItem:
-
-    def __init__(self, url: URL, referer: URL, complete: bool, filename: str, ext: str,
-                 original_filename=None):
-        self.url = url
-        self.referer = referer
-        self.complete = complete
-        self.filename = filename
-        self.ext = ext
-        self.original_filename = original_filename
+    url: URL
+    referer: URL
+    complete: bool
+    filename: str
+    ext: str
+    original_filename: str
 
     async def is_complete(self):
         return self.complete

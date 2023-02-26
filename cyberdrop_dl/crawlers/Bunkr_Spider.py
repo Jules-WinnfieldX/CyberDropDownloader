@@ -51,7 +51,7 @@ class BunkrCrawler:
             if self.remove_bunkr_id:
                 filename = await self.remove_id(filename, ext)
 
-            media_item = MediaItem(url, url, check_complete, filename, ext)
+            media_item = MediaItem(url, url, check_complete, filename, ext, filename)
             await album_obj.add_media(media_item)
         else:
             if ext in FILE_FORMATS['Videos']:
@@ -104,16 +104,16 @@ class BunkrCrawler:
 
             complete = await self.SQL_Helper.check_complete_singular("bunkr", link.path)
             if complete:
-                media = MediaItem(link, url, True, filename, ext)
+                media = MediaItem(link, url, True, filename, ext, filename)
                 return media
-            media = MediaItem(link, url, False, filename, ext)
+            media = MediaItem(link, url, False, filename, ext, filename)
             return media
 
         except Exception as e:
             logger.debug("Error encountered while handling %s", str(url), exc_info=True)
             await log(f"[red]Error: {str(url)}[/red]", quiet=self.quiet)
             logger.debug(e)
-            return MediaItem(url, url, False, "", "")
+            return MediaItem(url, url, False, "", "", "")
 
     async def get_album(self, session: ScrapeSession, url: URL):
         """Iterates through an album and creates the media items"""
@@ -156,7 +156,7 @@ class BunkrCrawler:
 
                 url_path = await get_db_path(link)
                 complete = await self.SQL_Helper.check_complete_singular("bunkr", url_path)
-                media = MediaItem(link, referer, complete, filename, ext)
+                media = MediaItem(link, referer, complete, filename, ext, filename)
                 await album.add_media(media)
 
         except Exception as e:

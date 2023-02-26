@@ -78,7 +78,7 @@ class FapelloCrawler:
                     continue
                 url_path = await get_db_path(download_link)
                 complete = await self.SQL_Helper.check_complete_singular("fapello", url_path)
-                results.append(MediaItem(download_link, url, complete, filename, ext))
+                results.append(MediaItem(download_link, url, complete, filename, ext, filename))
 
             videos = content_section.select("source")
             for video in videos:
@@ -90,7 +90,7 @@ class FapelloCrawler:
                     continue
                 url_path = await get_db_path(download_link)
                 complete = await self.SQL_Helper.check_complete_singular("fapello", url_path)
-                results.append(MediaItem(download_link, url, complete, filename, ext))
+                results.append(MediaItem(download_link, url, complete, filename, ext, filename))
 
             return results
 

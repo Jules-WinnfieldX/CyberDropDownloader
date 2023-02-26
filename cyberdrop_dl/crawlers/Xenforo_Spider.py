@@ -181,7 +181,7 @@ class XenforoCrawler:
                     filename, ext = await get_filename_and_ext(link.name, True)
                 except NoExtensionFailure:
                     continue
-                media = MediaItem(link, url, completed, filename, ext)
+                media = MediaItem(link, url, completed, filename, ext, filename)
                 await cascade.add_to_album(domain, in_prog_title, media)
         return content_links
 

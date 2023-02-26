@@ -227,7 +227,7 @@ class CyberFileCrawler:
                 except NoExtensionFailure:
                     logger.debug("Couldn't get extension for %s", str(link))
                     continue
-                media = MediaItem(link, url, complete, filename, ext)
+                media = MediaItem(link, url, complete, filename, ext, filename)
 
                 download_links.append((title, media))
             return download_links

@@ -52,14 +52,14 @@ class CoomenoCrawler:
             url_path = await get_db_path(link)
             complete = await self.SQL_Helper.check_complete_singular("coomer", url_path)
             filename, ext = await get_filename_and_ext(link.name)
-            media_item = MediaItem(link, url, complete, filename, ext)
+            media_item = MediaItem(link, url, complete, filename, ext, filename)
             await cascade.add_to_album("coomer", title, media_item)
 
         elif "data" in url.parts:
             url_path = await get_db_path(url)
             complete = await self.SQL_Helper.check_complete_singular("coomer", url_path)
             filename, ext = await get_filename_and_ext(url.name)
-            media_item = MediaItem(url, url, complete, filename, ext)
+            media_item = MediaItem(url, url, complete, filename, ext, filename)
             await cascade.add_to_album("coomer", title, media_item)
 
         elif "post" in url.parts:
@@ -88,14 +88,14 @@ class CoomenoCrawler:
             url_path = await get_db_path(link)
             complete = await self.SQL_Helper.check_complete_singular("kemono", url_path)
             filename, ext = await get_filename_and_ext(link.name)
-            media_item = MediaItem(link, url, complete, filename, ext)
+            media_item = MediaItem(link, url, complete, filename, ext, filename)
             await cascade.add_to_album("kemono", title, media_item)
 
         elif "data" in url.parts:
             url_path = await get_db_path(url)
             complete = await self.SQL_Helper.check_complete_singular("kemono", url_path)
             filename, ext = await get_filename_and_ext(url.name)
-            media_item = MediaItem(url, url, complete, filename, ext)
+            media_item = MediaItem(url, url, complete, filename, ext, filename)
             await cascade.add_to_album("kemono", title, media_item)
 
         elif "post" in url.parts:
@@ -188,7 +188,7 @@ class CoomenoCrawler:
                 url_path = await get_db_path(link)
                 complete = await self.SQL_Helper.check_complete_singular(domain, url_path)
                 filename, ext = await get_filename_and_ext(link.name)
-                media_item = MediaItem(link, url, complete, filename, ext)
+                media_item = MediaItem(link, url, complete, filename, ext, filename)
                 await cascade.add_to_album(domain, title, media_item)
 
             downloads = soup.select(downloads_selector)
@@ -201,7 +201,7 @@ class CoomenoCrawler:
                 url_path = await get_db_path(link)
                 complete = await self.SQL_Helper.check_complete_singular(domain, url_path)
                 filename, ext = await get_filename_and_ext(link.name)
-                media_item = MediaItem(link, url, complete, filename, ext)
+                media_item = MediaItem(link, url, complete, filename, ext, filename)
                 await cascade.add_to_album(domain, title, media_item)
 
             text_content = soup.select(text_selector)

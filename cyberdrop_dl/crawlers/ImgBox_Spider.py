@@ -23,7 +23,7 @@ class ImgBoxCrawler:
                 filename, ext = await get_filename_and_ext(url.name)
                 url_path = await get_db_path(url)
                 complete = await self.SQL_Helper.check_complete_singular("imgbox", url_path)
-                media_item = MediaItem(url, url, complete, filename, ext)
+                media_item = MediaItem(url, url, complete, filename, ext, filename)
                 await album_obj.add_media(media_item)
 
             elif "g" in url.parts:
@@ -40,14 +40,14 @@ class ImgBoxCrawler:
                         continue
                     url_path = await get_db_path(img)
                     complete = await self.SQL_Helper.check_complete_singular("imgbox", url_path)
-                    media_item = MediaItem(img, url, complete, filename, ext)
+                    media_item = MediaItem(img, url, complete, filename, ext, filename)
                     await album_obj.add_media(media_item)
             else:
                 img = await self.singular(session, url)
                 filename, ext = await get_filename_and_ext(img.name)
                 url_path = await get_db_path(img)
                 complete = await self.SQL_Helper.check_complete_singular("imgbox", url_path)
-                media_item = MediaItem(img, url, complete, filename, ext)
+                media_item = MediaItem(img, url, complete, filename, ext, filename)
                 await album_obj.add_media(media_item)
 
         except Exception as e:

@@ -33,7 +33,7 @@ class GfycatCrawler:
             url_path = await get_db_path(video_link)
             complete = await self.SQL_Helper.check_complete_singular("gfycat", url_path)
             filename, ext = await get_filename_and_ext(video_link.name)
-            media_item = MediaItem(video_link, url, complete, filename, ext)
+            media_item = MediaItem(video_link, url, complete, filename, ext, filename)
             await album_obj.add_media(media_item)
             await self.SQL_Helper.insert_album("gfycat", url_path, album_obj)
             await log(f"[green]Finished: {str(url)}[/green]", quiet=self.quiet)

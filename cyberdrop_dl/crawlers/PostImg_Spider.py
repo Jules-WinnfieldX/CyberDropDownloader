@@ -58,7 +58,7 @@ class PostImgCrawler:
                     continue
                 url_path = await get_db_path(img)
                 complete = await self.SQL_Helper.check_complete_singular("postimg", url_path)
-                media_item = MediaItem(img, referer, complete, filename, ext)
+                media_item = MediaItem(img, referer, complete, filename, ext, filename)
 
                 content.append(media_item)
             i += 1
@@ -72,6 +72,6 @@ class PostImgCrawler:
         filename, ext = await get_filename_and_ext(link.name)
         url_path = await get_db_path(link)
         complete = await self.SQL_Helper.check_complete_singular("postimg", url_path)
-        media_item = MediaItem(link, url, complete, filename, ext)
+        media_item = MediaItem(link, url, complete, filename, ext, filename)
 
         return media_item

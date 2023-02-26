@@ -61,7 +61,7 @@ class PimpAndHostCrawler:
             filename, ext = await get_filename_and_ext(img.name)
             url_path = await get_db_path(img)
             complete = await self.SQL_Helper.check_complete_singular("pimpandhost", url_path)
-            media_item = MediaItem(img, url, complete, filename, ext)
+            media_item = MediaItem(img, url, complete, filename, ext, filename)
             return media_item
         except Exception as e:
             logger.debug("Error encountered while handling %s", str(url), exc_info=True)
