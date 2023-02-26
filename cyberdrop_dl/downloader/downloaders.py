@@ -318,8 +318,11 @@ class Downloader:
                 if downloaded_filename:
                     if media.filename == downloaded_filename:
                         if complete_file.exists():
-                            proceed = False
-                            break
+                            if complete_file.stat().st_size == expected_size:
+                                proceed = False
+                                break
+                            else:
+                                break
                         elif partial_file.exists():
                             if partial_file.stat().st_size == expected_size:
                                 proceed = False
