@@ -3,10 +3,10 @@ from __future__ import annotations
 import logging
 import os
 import re
+import shutil
 from pathlib import Path
 
 import aiofiles
-import psutil as psutil
 import rich
 from yarl import URL
 
@@ -63,14 +63,11 @@ async def regex_links(urls: list) -> list:
     return yarl_links
 
 
-async def check_free_space(required_space: int, download_directory: Path) -> bool:
+async def check_free_space(required_space_gb: int, download_directory: Path) -> bool:
     """Checks if there is enough free space on the drive to continue operating"""
-    free_space = psutil.disk_usage(str(download_directory.parent)).free
-    free_space = ((free_space / 1024) / 1024) / 1024
-    if required_space > free_space:
-        return False
-    else:
-        return True
+    free_space = shutil.disk_usage(download_directory.parent).free
+    free_space_gb = free_space / 1024 ** 3
+    return free_space_gb >= required_space_gb
 
 
 async def allowed_filetype(media: MediaItem, block_images: bool, block_video: bool, block_audio: bool, block_other: bool):
