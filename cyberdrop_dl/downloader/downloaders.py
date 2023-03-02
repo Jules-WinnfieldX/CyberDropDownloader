@@ -3,7 +3,6 @@ from __future__ import annotations
 import asyncio
 import logging
 import multiprocessing
-from base64 import b64encode
 from functools import wraps
 from http import HTTPStatus
 from random import gauss
@@ -14,14 +13,9 @@ from rich.live import Live
 from rich.progress import TaskID
 from yarl import URL
 
-from .progress_definitions import get_forum_table, cascade_progress, domain_progress, album_progress, file_progress, \
-    forum_progress, get_cascade_table, overall_file_progress
 from cyberdrop_dl.base_functions.base_functions import (
-    allowed_filetype,
-    check_free_space,
     clear,
     get_db_path,
-    is_4xx_client_error,
     log,
     logger,
 )
@@ -31,10 +25,22 @@ from cyberdrop_dl.base_functions.sql_helper import SQLHelper
 from cyberdrop_dl.client.client import Client, DownloadSession
 from cyberdrop_dl.scraper.Scraper import ScrapeMapper
 
-
-async def basic_auth(username, password):
-    token = b64encode(f"{username}:{password}".encode('utf-8')).decode("ascii")
-    return f'Basic {token}'
+from .downloader_utils import (
+    allowed_filetype,
+    basic_auth,
+    check_free_space,
+    is_4xx_client_error,
+)
+from .progress_definitions import (
+    album_progress,
+    cascade_progress,
+    domain_progress,
+    file_progress,
+    forum_progress,
+    get_cascade_table,
+    get_forum_table,
+    overall_file_progress,
+)
 
 
 def retry(f):

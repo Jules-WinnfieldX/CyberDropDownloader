@@ -6,11 +6,12 @@ from pathlib import Path
 import aiofiles
 from yarl import URL
 
-from cyberdrop_dl.base_functions.base_functions import log, clear, regex_links, check_free_space, purge_dir
+from cyberdrop_dl.base_functions.base_functions import clear, log, purge_dir
 from cyberdrop_dl.base_functions.config_manager import run_args, document_args
 from cyberdrop_dl.base_functions.sorting_functions import Sorter
 from cyberdrop_dl.base_functions.sql_helper import SQLHelper
 from cyberdrop_dl.client.client import Client
+from cyberdrop_dl.downloader.downloader_utils import check_free_space
 from cyberdrop_dl.downloader.downloaders import download_cascade, download_forums
 from cyberdrop_dl.downloader.old_downloaders import old_download_cascade, old_download_forums
 from cyberdrop_dl.scraper.Scraper import ScrapeMapper
@@ -134,6 +135,21 @@ async def file_management(args: dict, links: list) -> None:
             errored_urls.touch()
             async with aiofiles.open(errored_urls, mode='w') as f:
                 await f.write("URL,REFERER,REASON\n")
+
+
+async def regex_links(urls: list) -> list:
+    """Regex grab the links from the URLs.txt file"""
+    """This allows code blocks or full paragraphs to be copy and pasted into the URLs.txt"""
+    yarl_links = []
+    for line in urls:
+        if line.lstrip().startswith('#'):
+            continue
+
+        all_links = [x.group().replace(".md.", ".") for x in re.finditer(
+            r"(?:http.*?)(?=($|\n|\r\n|\r|\s|\"|\[/URL]|]\[|\[/img]))", line)]
+        for link in all_links:
+            yarl_links.append(URL(link))
+    return yarl_links
 
 
 async def consolidate_links(args: dict, links: list) -> list:
