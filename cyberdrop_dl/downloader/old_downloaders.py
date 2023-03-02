@@ -5,6 +5,7 @@ import logging
 import multiprocessing
 from base64 import b64encode
 from functools import wraps
+from http import HTTPStatus
 from random import gauss
 
 import aiofiles
@@ -12,11 +13,18 @@ import aiohttp.client_exceptions
 from tqdm import tqdm
 from yarl import URL
 
-from cyberdrop_dl.base_functions.base_functions import log, logger, check_free_space, allowed_filetype, get_db_path, \
-    clear
+from cyberdrop_dl.base_functions.base_functions import (
+    allowed_filetype,
+    check_free_space,
+    clear,
+    get_db_path,
+    is_4xx_client_error,
+    log,
+    logger,
+)
+from cyberdrop_dl.base_functions.data_classes import AlbumItem, CascadeItem, DomainItem, FileLock, ForumItem, MediaItem
 from cyberdrop_dl.base_functions.error_classes import DownloadFailure
 from cyberdrop_dl.base_functions.sql_helper import SQLHelper
-from cyberdrop_dl.base_functions.data_classes import AlbumItem, CascadeItem, FileLock, ForumItem, DomainItem, MediaItem
 from cyberdrop_dl.client.client import Client, DownloadSession
 from cyberdrop_dl.scraper.Scraper import ScrapeMapper
 
@@ -229,7 +237,7 @@ class Old_Downloader:
             new_error.message = repr(e)
 
             if hasattr(e, "code"):
-                if 400 <= e.code < 500 and e.code != 429:
+                if await is_4xx_client_error(e.code) and e.code != HTTPStatus.TOO_MANY_REQUESTS:
                     logger.debug("We ran into a 400 level error: %s", str(e.code))
                     await log(f"Failed Download: {media.filename}", quiet=True)
                     self.files.failed_files += 1
