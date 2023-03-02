@@ -1,3 +1,5 @@
+from http import HTTPStatus
+
 from yarl import URL
 
 from ..base_functions.base_functions import log, logger, get_db_path, get_filename_and_ext
@@ -45,7 +47,7 @@ class PostImgCrawler:
             data_used = data
             data_used["page"] = i
             data_out = await session.post(URL("https://postimg.cc/json"), data_used)
-            if data_out['status_code'] != 200 or not data_out['images']:
+            if data_out['status_code'] != HTTPStatus.OK or not data_out['images']:
                 break
             for item in data_out['images']:
                 referer = URL("https://postimg.cc/" + item[0])

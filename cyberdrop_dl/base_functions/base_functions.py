@@ -4,6 +4,7 @@ import logging
 import os
 import re
 import shutil
+from http import HTTPStatus
 from pathlib import Path
 
 import aiofiles
@@ -156,3 +157,8 @@ async def get_filename_and_ext(filename, forum=False):
     ext = "." + filename_parts[-1].lower()
     filename = await sanitize(filename_parts[0] + ext)
     return filename, ext
+
+
+async def is_4xx_client_error(status_code: int) -> bool:
+    """Checks whether the HTTP status code is 4xx client error"""
+    return HTTPStatus.BAD_REQUEST <= status_code < HTTPStatus.INTERNAL_SERVER_ERROR
