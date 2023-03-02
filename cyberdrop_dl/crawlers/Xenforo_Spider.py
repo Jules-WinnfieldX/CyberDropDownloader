@@ -2,15 +2,28 @@ from __future__ import annotations
 
 import asyncio
 import re
+from pathlib import Path
 
+import aiofiles
 from bs4 import BeautifulSoup
 from yarl import URL
 
-from ..base_functions.base_functions import log, make_title_safe, write_last_post_file, get_filename_and_ext, logger
+from ..base_functions.base_functions import (
+    get_filename_and_ext,
+    log,
+    logger,
+    make_title_safe,
+)
 from ..base_functions.data_classes import CascadeItem, MediaItem
 from ..base_functions.error_classes import FailedLoginFailure, NoExtensionFailure
 from ..base_functions.sql_helper import SQLHelper
 from ..client.client import ScrapeSession
+
+
+async def write_last_post_file(file: Path, url: str):
+    """Writes the last post url from a thread to the specified file"""
+    async with aiofiles.open(file, mode='a') as f:
+        await f.write(url + '\n')
 
 
 class ForumLogin:

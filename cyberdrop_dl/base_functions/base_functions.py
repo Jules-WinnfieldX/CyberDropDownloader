@@ -3,15 +3,10 @@ from __future__ import annotations
 import logging
 import os
 import re
-import shutil
-from http import HTTPStatus
-from pathlib import Path
 
-import aiofiles
 import rich
 from yarl import URL
 
-from cyberdrop_dl.base_functions.data_classes import MediaItem
 from cyberdrop_dl.base_functions.error_classes import NoExtensionFailure
 
 FILE_FORMATS = {
@@ -49,46 +44,6 @@ async def log(text, quiet=False) -> None:
         rich.print(str(text))
 
 
-async def regex_links(urls: list) -> list:
-    """Regex grab the links from the URLs.txt file"""
-    """This allows code blocks or full paragraphs to be copy and pasted into the URLs.txt"""
-    yarl_links = []
-    for line in urls:
-        if line.lstrip().startswith('#'):
-            continue
-
-        all_links = [x.group().replace(".md.", ".") for x in re.finditer(
-            r"(?:http.*?)(?=($|\n|\r\n|\r|\s|\"|\[/URL]|]\[|\[/img]))", line)]
-        for link in all_links:
-            yarl_links.append(URL(link))
-    return yarl_links
-
-
-async def check_free_space(required_space_gb: int, download_directory: Path) -> bool:
-    """Checks if there is enough free space on the drive to continue operating"""
-    free_space = shutil.disk_usage(download_directory.parent).free
-    free_space_gb = free_space / 1024 ** 3
-    return free_space_gb >= required_space_gb
-
-
-async def allowed_filetype(media: MediaItem, block_images: bool, block_video: bool, block_audio: bool, block_other: bool):
-    """Checks whether the enclosed file is allowed to be downloaded"""
-    ext = media.ext
-    if block_images:
-        if ext in FILE_FORMATS["Images"]:
-            return False
-    if block_video:
-        if ext in FILE_FORMATS["Videos"]:
-            return False
-    if block_audio:
-        if ext in FILE_FORMATS["Audio"]:
-            return False
-    if block_other:
-        if ext not in FILE_FORMATS["Images"] and ext not in FILE_FORMATS["Videos"] and ext not in FILE_FORMATS["Audio"]:
-            return False
-    return True
-
-
 async def purge_dir(dirname) -> None:
     """Purges empty directories"""
     deleted = []
@@ -100,13 +55,6 @@ async def purge_dir(dirname) -> None:
         if dir_count == 0:  # Helps with readability and i've had issues with it deleting non-empty dirs
             deleted.append(sub_dir)
     list(map(os.rmdir, deleted))
-
-
-async def write_last_post_file(file: Path, url: str):
-    """Writes the last post url from a thread to the specified file"""
-    async with aiofiles.open(file, mode='a') as f:
-        await f.write(url + '\n')
-    return
 
 
 async def get_db_path(url: URL, referer=None):
@@ -157,8 +105,3 @@ async def get_filename_and_ext(filename, forum=False):
     ext = "." + filename_parts[-1].lower()
     filename = await sanitize(filename_parts[0] + ext)
     return filename, ext
-
-
-async def is_4xx_client_error(status_code: int) -> bool:
-    """Checks whether the HTTP status code is 4xx client error"""
-    return HTTPStatus.BAD_REQUEST <= status_code < HTTPStatus.INTERNAL_SERVER_ERROR
