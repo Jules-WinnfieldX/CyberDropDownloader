@@ -373,7 +373,7 @@ async def download_cascade(args: dict, Cascade: CascadeItem, SQL_Helper: SQLHelp
     files = Files(overall_file_progress.add_task("[green]Completed", total=total_files),
                   overall_file_progress.add_task("[yellow]Skipped", total=total_files),
                   overall_file_progress.add_task("[red]Failed", total=total_files))
-    with Live(progress_table, refresh_per_second=30):
+    with Live(progress_table, refresh_per_second=args["Progress_Options"]["refresh_rate"]):
         cascade_task = cascade_progress.add_task("[light_salmon3]Domains", progress_type="cascade",
                                                  total=len(Cascade.domains))
 
@@ -410,7 +410,7 @@ async def download_forums(args: dict, Forums: ForumItem, SQL_Helper: SQLHelper, 
     files = Files(overall_file_progress.add_task("[green]Completed", total=total_files),
                   overall_file_progress.add_task("[yellow]Skipped", total=total_files),
                   overall_file_progress.add_task("[red]Failed", total=total_files))
-    with Live(progress_table, refresh_per_second=10):
+    with Live(progress_table, refresh_per_second=args["Progress_Options"]["refresh_rate"]):
         forum_task = forum_progress.add_task("[orange3]FORUM THREADS", total=len(Forums.threads))
         for title, Cascade in Forums.threads.items():
             cascade_task = cascade_progress.add_task("[light_salmon3]" + title.upper(), total=len(Cascade.domains))

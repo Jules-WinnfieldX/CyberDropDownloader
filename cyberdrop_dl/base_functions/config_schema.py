@@ -46,7 +46,8 @@ config_default = [
                 "dont_show_thread_progress": False,
                 "dont_show_domain_progress": False,
                 "dont_show_album_progress": False,
-                "dont_show_file_progress": False
+                "dont_show_file_progress": False,
+                "refresh_rate": 10
             },
             "Ratelimiting": {
                 "connection_timeout": 15,
@@ -96,7 +97,7 @@ jdownloader_args = ["apply_jdownloader", "jdownloader_username", "jdownloader_pa
 
 progress_args = ["hide_new_progress", "dont_show_overall_progress", "dont_show_forum_progress",
                  "dont_show_thread_progress", "dont_show_domain_progress", "dont_show_album_progress",
-                 "dont_show_file_progress"]
+                 "dont_show_file_progress", "refresh_rate"]
 
 ratelimiting_args = ["connection_timeout", "ratelimit", "throttle"]
 

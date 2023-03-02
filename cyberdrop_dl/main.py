@@ -97,6 +97,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--dont-show-domain-progress", help="removes domain progress section while downloading", action="store_true")
     parser.add_argument("--dont-show-album-progress", help="removes album progress section while downloading", action="store_true")
     parser.add_argument("--dont-show-file-progress", help="removes file progress section while downloading", action="store_true")
+    parser.add_argument("--refresh-rate", type=int, help="refresh rate for the progress table", default=10)
 
     # Links
     parser.add_argument("links", metavar="link", nargs="*", help="link to content to download (passing multiple links is supported)", default=[])

@@ -177,6 +177,7 @@ optional arguments:
 --dont-show-domain-progress 	removes domain progress section while downloading
 --dont-show-album-progress 	removes album progress section while downloading
 --dont-show-file-progress 	removes file progress section while downloading
+--refresh-rate                  changes the refresh rate of the progress table
 
 ```
 
