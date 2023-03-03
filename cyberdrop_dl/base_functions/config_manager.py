@@ -10,7 +10,7 @@ from cyberdrop_dl.base_functions.config_schema import config_default, authentica
     jdownloader_args, runtime_args, forum_args, ignore_args, ratelimiting_args, sorting_args, progress_args
 
 
-def create_config(config: Path, passed_args=None, remake=None):
+def create_config(config: Path, passed_args=None, remake=None, enabled=False):
     """Creates the default config file, or remakes it with passed arguments"""
     if config.is_file() and not remake:
         validate_config(config)
@@ -18,12 +18,16 @@ def create_config(config: Path, passed_args=None, remake=None):
 
     config_data = config_default
     if passed_args:
+        config_data[0]["Configuration"]["Apply_Config"] = enabled
         for arg in authentication_args:
             if arg in passed_args.keys():
                 config_data[0]["Configuration"]["Authentication"][arg] = passed_args[arg]
         for arg in files_args:
             if arg in passed_args.keys():
                 config_data[0]["Configuration"]["Files"][arg] = str(passed_args[arg])
+        for arg in ignore_args:
+            if arg in passed_args.keys():
+                config_data[0]["Configuration"]["Ignore"][arg] = str(passed_args[arg])
         for arg in forum_args:
             if arg in passed_args.keys():
                 config_data[0]["Configuration"]["Forum_Options"][arg] = passed_args[arg]
@@ -57,6 +61,7 @@ def validate_config(config: Path):
         data = yaml.load(yamlfile, Loader=yaml.FullLoader)
     try:
         data = data[0]["Configuration"]
+        enabled = data["Apply_Config"]
         recreate = 0
 
         if not set(authentication_args).issubset(set(data['Authentication'].keys())):
@@ -87,7 +92,7 @@ def validate_config(config: Path):
                          data['Sorting']]
             for dic in args_list:
                 args.update(dic)
-            create_config(config, args, True)
+            create_config(config, args, True, enabled)
 
     except (KeyError, TypeError):
         config.unlink()
