@@ -120,6 +120,8 @@ class DownloadSession:
         self.client_session = aiohttp.ClientSession(headers=self.headers, raise_for_status=True, cookie_jar=self.client.cookies, timeout=self.timeouts)
         self.throttle_times = {}
 
+        self.bunkr_maintenance = [URL("https://bnkr.b-cdn.net/maintenance-vid.mp4"), URL("https://bnkr.b-cdn.net/maintenance.mp4")]
+
     async def download_file(self, media: MediaItem, file: Path, current_throttle: int, resume_point: int,
                             proxy: str, headers: dict, file_task: TaskID):
         headers['Referer'] = str(media.referer)
@@ -130,7 +132,7 @@ class DownloadSession:
             content_type = resp.headers.get('Content-Type')
             if not content_type:
                 raise DownloadFailure(code=418, message="No content-type in response header")
-            if resp.url == URL("https://bnkr.b-cdn.net/maintenance.mp4"):
+            if resp.url in self.bunkr_maintenance:
                 raise DownloadFailure(code=503, message="Bunkr under maintenance")
             if 'text' in content_type.lower() or 'html' in content_type.lower():
                 logger.debug("Server for %s is experiencing issues, you are being ratelimited, or cookies have expired", str(media.url))
@@ -158,7 +160,7 @@ class DownloadSession:
             content_type = resp.headers.get('Content-Type')
             if not content_type:
                 raise DownloadFailure(code=418, message="No content-type in response header")
-            if resp.url == URL("https://bnkr.b-cdn.net/maintenance.mp4"):
+            if resp.url in self.bunkr_maintenance:
                 raise DownloadFailure(code=503, message="Bunkr under maintenance")
             if 'text' in content_type.lower() or 'html' in content_type.lower():
                 logger.debug("Server for %s is experiencing issues, you are being ratelimited, or cookies have expired", str(media.url))
