@@ -31,6 +31,7 @@ class NSFWXXXCrawler:
         """Gets posts for a user profile"""
         try:
             page = 1
+            model = url.name + " (NSFW.XXX)"
             while True:
                 page_url = URL(f"https://nsfw.xxx/page/{str(page)}?nsfw[]=0&types[]=image&types[]=video&types[]=gallery&slider=1&jsload=1&user={url.name}")
                 page_soup = await session.get_BS4(page_url)
@@ -44,7 +45,7 @@ class NSFWXXXCrawler:
 
                 posts = await self.get_post_hrefs(posts)
                 for post in posts:
-                    await self.get_post(session, post, domain_obj)
+                    await self.get_post(session, post, domain_obj, model)
                 page += 1
 
         except Exception as e:
@@ -61,11 +62,12 @@ class NSFWXXXCrawler:
                 posts_links.append(url)
         return posts_links
 
-    async def get_post(self, session: ScrapeSession, url: URL, domain_obj: DomainItem):
+    async def get_post(self, session: ScrapeSession, url: URL, domain_obj: DomainItem, model=None):
         """Gets content for a given post url"""
         try:
             soup = await session.get_BS4(url)
-            model = await make_title_safe(soup.select_one("a[class=sh-section__name]").get_text()) + " (NSFW.XXX)"
+            if not model:
+                model = await make_title_safe(soup.select_one("a[class=sh-section__name]").get_text()) + " (NSFW.XXX)"
             post_name = await make_title_safe(soup.select_one("div[class=sh-section__content] p").get_text())
 
             content_obj = soup.select("div[class=sh-section__image] img")
