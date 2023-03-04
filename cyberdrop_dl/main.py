@@ -163,7 +163,6 @@ async def consolidate_links(args: dict, links: list) -> list:
 
     if not links:
         await log("[red]No valid links found.[/red]")
-        exit(1)
     return links
 
 
@@ -203,20 +202,22 @@ async def director(args: dict, links: list) -> None:
     Scraper = ScrapeMapper(args, client, SQL_Helper, False)
 
     await SQL_Helper.sql_initialize()
-    Cascade, Forums = await scrape_links(Scraper, links)
-    await asyncio.sleep(5)
-    await clear()
 
-    if args['Progress_Options']['hide_new_progress']:
-        if not await Cascade.is_empty():
-            await old_download_cascade(args, Cascade, SQL_Helper, client, Scraper)
-        if not await Forums.is_empty():
-            await old_download_forums(args, Forums, SQL_Helper, client, Scraper)
-    else:
-        if not await Cascade.is_empty():
-            await download_cascade(args, Cascade, SQL_Helper, client, Scraper)
-        if not await Forums.is_empty():
-            await download_forums(args, Forums, SQL_Helper, client, Scraper)
+    if links:
+        Cascade, Forums = await scrape_links(Scraper, links)
+        await asyncio.sleep(5)
+        await clear()
+
+        if args['Progress_Options']['hide_new_progress']:
+            if not await Cascade.is_empty():
+                await old_download_cascade(args, Cascade, SQL_Helper, client, Scraper)
+            if not await Forums.is_empty():
+                await old_download_forums(args, Forums, SQL_Helper, client, Scraper)
+        else:
+            if not await Cascade.is_empty():
+                await download_cascade(args, Cascade, SQL_Helper, client, Scraper)
+            if not await Forums.is_empty():
+                await download_forums(args, Forums, SQL_Helper, client, Scraper)
 
     if args['Files']['output_folder'].is_dir():
         if args['Sorting']['sort_downloads']:
