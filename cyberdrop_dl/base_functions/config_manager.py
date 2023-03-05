@@ -27,7 +27,7 @@ def create_config(config: Path, passed_args=None, remake=None, enabled=False):
                 config_data[0]["Configuration"]["Files"][arg] = str(passed_args[arg])
         for arg in ignore_args:
             if arg in passed_args.keys():
-                config_data[0]["Configuration"]["Ignore"][arg] = str(passed_args[arg])
+                config_data[0]["Configuration"]["Ignore"][arg] = passed_args[arg]
         for arg in forum_args:
             if arg in passed_args.keys():
                 config_data[0]["Configuration"]["Forum_Options"][arg] = passed_args[arg]
