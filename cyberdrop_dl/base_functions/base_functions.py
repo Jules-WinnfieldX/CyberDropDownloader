@@ -91,8 +91,8 @@ async def check_direct(url: URL):
     """Checks whether the given url is a direct link to a content item"""
     mapping_direct = [r'i.pixl.li', r'i..pixl.li', r'img-...cyberdrop...', r'f.cyberdrop...',
                       r'fs-...cyberdrop...', r'jpg.church/images/...', r'simp..jpg.church', r's..putmega.com',
-                      r's..putme.ga', r'images..imgbox.com', 's..lovefap...']
-    return any(re.search(domain, url.host) for domain in mapping_direct)
+                      r's..putme.ga', r'images..imgbox.com', r's..lovefap...', r'img.kiwi/images/']
+    return any(re.search(domain, str(url)) for domain in mapping_direct)
 
 
 async def get_filename_and_ext(filename, forum=False):

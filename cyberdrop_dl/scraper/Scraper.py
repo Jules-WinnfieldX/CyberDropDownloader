@@ -77,7 +77,6 @@ class ScrapeMapper:
         self.jdownloader = JDownloader(args['JDownloader'], quiet)
 
         self.jpgfish_limiter = AsyncRateLimiter(10)
-        self.img_kiwi_limiter = AsyncRateLimiter(5)
         self.bunkr_limiter = AsyncRateLimiter(15)
         self.coomeno_limiter = AsyncRateLimiter(8)
         self.gofile_limiter = AsyncRateLimiter(max_calls=1, period=2)
@@ -253,9 +252,6 @@ class ScrapeMapper:
             async with self.jpgfish_semaphore:
                 async with self.jpgfish_limiter:
                     domain_obj = await self.sharex_crawler.fetch(sharex_session, url)
-        elif "img.kiwi" in url.host and sharex_session.client.ratelimit > 5:
-            async with self.img_kiwi_limiter:
-                domain_obj = await self.sharex_crawler.fetch(sharex_session, url)
         else:
             domain_obj = await self.sharex_crawler.fetch(sharex_session, url)
         await self.handle_additions("sharex", None, domain_obj, title)
