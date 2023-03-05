@@ -108,13 +108,12 @@ class CyberFileCrawler:
             script_funcs = soup.select('script')
             for script in script_funcs:
                 script_text = script.text
-                if script_text:
-                    if "showFileInformation" in script_text:
-                        parta = script_text.split("showFileInformation(")
-                        parta = [x for x in parta if x[0].isdigit()][0]
-                        partb = parta.split(");")[0]
-                        contentId = int(partb)
-                        return contentId
+                if script_text and "showFileInformation" in script_text:
+                    part_a = script_text.split("showFileInformation(")
+                    part_a = [x for x in part_a if x[0].isdigit()][0]
+                    part_b = part_a.split(");")[0]
+                    contentId = int(part_b)
+                    return contentId
             return None
 
         except Exception as e:

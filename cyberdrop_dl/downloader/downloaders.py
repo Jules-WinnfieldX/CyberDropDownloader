@@ -52,13 +52,12 @@ def retry(f):
             try:
                 return await f(self, *args, **kwargs)
             except DownloadFailure as e:
-                if not self.disable_attempt_limit:
-                    if self.current_attempt[args[3]] >= self.allowed_attempts - 1:
-                        await self.output_failed(args[2], e)
-                        logger.debug('Skipping %s...', args[2].url, exc_info=True)
-                        overall_file_progress.advance(self.files.failed_files_task_id, 1)
-                        self.files.failed_files += 1
-                        return
+                if not self.disable_attempt_limit and self.current_attempt[args[3]] >= self.allowed_attempts - 1:
+                    await self.output_failed(args[2], e)
+                    logger.debug('Skipping %s...', args[2].url, exc_info=True)
+                    overall_file_progress.advance(self.files.failed_files_task_id, 1)
+                    self.files.failed_files += 1
+                    return
                 logger.debug(e.message)
                 logger.debug(f'Retrying ({self.current_attempt[args[3]]}) {args[2].url}...')
                 self.current_attempt[args[3]] += 1
@@ -325,43 +324,37 @@ class Downloader:
         expected_size = None
         proceed = True
         while True:
-            if complete_file.exists() or partial_file.exists():
-                if not expected_size:
-                    expected_size = await self.download_session.get_filesize(media.url, str(media.referer),
-                                                                             current_throttle)
-                if complete_file.exists():
+            if not complete_file.exists() and not partial_file.exists():
+                break
+
+            if not expected_size:
+                expected_size = await self.download_session.get_filesize(media.url, str(media.referer),
+                                                                         current_throttle)
+            if complete_file.exists() and complete_file.stat().st_size == expected_size:
+                proceed = False
+                break
+
+            downloaded_filename = await self.SQL_Helper.get_downloaded_filename(url_path, original_filename)
+            if not downloaded_filename:
+                complete_file, partial_file = await self.iterate_filename(complete_file, media, album)
+                break
+
+            if media.filename == downloaded_filename:
+                if partial_file.exists():
+                    if partial_file.stat().st_size == expected_size:
+                        proceed = False
+                        partial_file.rename(complete_file)
+                elif complete_file.exists():
                     if complete_file.stat().st_size == expected_size:
                         proceed = False
-                        break
-                downloaded_filename = await self.SQL_Helper.get_downloaded_filename(url_path, original_filename)
-                if downloaded_filename:
-                    if media.filename == downloaded_filename:
-                        if partial_file.exists():
-                            if partial_file.stat().st_size == expected_size:
-                                proceed = False
-                                partial_file.rename(complete_file)
-                                break
-                            else:
-                                break
-                        elif complete_file.exists():
-                            if complete_file.stat().st_size == expected_size:
-                                proceed = False
-                                break
-                            else:
-                                complete_file, partial_file = await self.iterate_filename(complete_file, media, album)
-                                break
-                        else:
-                            break
                     else:
-                        media.filename = downloaded_filename
-                        complete_file = (self.download_dir / album / media.filename)
-                        partial_file = complete_file.with_suffix(complete_file.suffix + '.part')
-                        continue
-                else:
-                    complete_file, partial_file = await self.iterate_filename(complete_file, media, album)
-                    break
-            else:
+                        complete_file, partial_file = await self.iterate_filename(complete_file, media, album)
                 break
+
+            media.filename = downloaded_filename
+            complete_file = (self.download_dir / album / media.filename)
+            partial_file = complete_file.with_suffix(complete_file.suffix + '.part')
+
         return complete_file, partial_file, proceed
 
     async def iterate_filename(self, complete_file, media, album):
@@ -370,12 +363,11 @@ class Downloader:
             filename = f"{complete_file.stem} ({iterations}){media.ext}"
             iterations += 1
             temp_complete_file = (self.download_dir / album / filename)
-            if not temp_complete_file.exists():
-                if not await self.SQL_Helper.check_filename(filename):
-                    media.filename = filename
-                    complete_file = (self.download_dir / album / media.filename)
-                    partial_file = complete_file.with_suffix(complete_file.suffix + '.part')
-                    break
+            if not temp_complete_file.exists() and not await self.SQL_Helper.check_filename(filename):
+                media.filename = filename
+                complete_file = (self.download_dir / album / media.filename)
+                partial_file = complete_file.with_suffix(complete_file.suffix + '.part')
+                break
         return complete_file, partial_file
 
 

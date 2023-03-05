@@ -193,10 +193,7 @@ class SQLHelper:
         sql_file_check = self.curs.fetchone()
         if not sql_file_check:
             return False
-        elif sql_file_check[0] == 0:
-            return False
-        else:
-            return True
+        return sql_file_check[0] != 0
 
     """Downloader Operations"""
 

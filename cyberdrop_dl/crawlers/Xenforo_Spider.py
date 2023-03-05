@@ -232,9 +232,8 @@ class XenforoCrawler:
         for post in posts:
             post_num_str = post.select_one("li[class=u-concealed] a").get('href').split('/')[-1]
             post_num_int = int(post_num_str.split('post-')[-1])
-            if post_number:
-                if post_number > post_num_int:
-                    continue
+            if post_number > post_num_int:
+                continue
 
             temp_title = title + "/" + post_num_str if self.separate_posts else title
 
@@ -273,15 +272,12 @@ class XenforoCrawler:
                     next_page = domain / next_page[1:]
                 next_page = URL(next_page)
                 await self.parse_simpcity(session, next_page, cascade, title, post_number)
-        else:
-            if self.output_last:
-                if 'page-' in url.raw_name:
-                    last_post_url = url.parent / post_num_str
-                elif 'post-' in url.raw_name:
-                    last_post_url = url.parent / post_num_str
-                else:
-                    last_post_url = url / post_num_str
-                await write_last_post_file(self.output_last_file, str(last_post_url))
+        elif self.output_last:
+            if 'page-' in url.raw_name or 'post-' in url.raw_name:
+                last_post_url = url.parent / post_num_str
+            else:
+                last_post_url = url / post_num_str
+            await write_last_post_file(self.output_last_file, str(last_post_url))
         return title
 
     async def parse_socialmediagirls(self, session: ScrapeSession, url: URL, cascade: CascadeItem, title: str,
@@ -308,9 +304,8 @@ class XenforoCrawler:
         for post in posts:
             post_num_str = post.select_one("li[class=u-concealed] a").get('href').split('/')[-1]
             post_num_int = int(post_num_str.split('post-')[-1])
-            if post_number:
-                if post_number > post_num_int:
-                    continue
+            if post_number > post_num_int:
+                continue
 
             temp_title = title + "/" + post_num_str if self.separate_posts else title
 
@@ -348,15 +343,12 @@ class XenforoCrawler:
                     next_page = domain / next_page[1:]
                 next_page = URL(next_page)
                 await self.parse_socialmediagirls(session, next_page, cascade, title, post_number)
-        else:
-            if self.output_last:
-                if 'page-' in url.raw_name:
-                    last_post_url = url.parent / post_num_str
-                elif 'post-' in url.raw_name:
-                    last_post_url = url.parent / post_num_str
-                else:
-                    last_post_url = url / post_num_str
-                await write_last_post_file(self.output_last_file, str(last_post_url))
+        elif self.output_last:
+            if 'page-' in url.raw_name or 'post-' in url.raw_name:
+                last_post_url = url.parent / post_num_str
+            else:
+                last_post_url = url / post_num_str
+            await write_last_post_file(self.output_last_file, str(last_post_url))
         return title
 
     async def parse_xbunker(self, session: ScrapeSession, url: URL, cascade: CascadeItem, title: str,
@@ -383,9 +375,8 @@ class XenforoCrawler:
         for post in posts:
             post_num_str = post.select_one("li[class=u-concealed] a").get('href').split('/')[-1]
             post_num_int = int(post_num_str.split('post-')[-1])
-            if post_number:
-                if post_number > post_num_int:
-                    continue
+            if post_number > post_num_int:
+                continue
 
             temp_title = title + "/" + post_num_str if self.separate_posts else title
 
@@ -423,13 +414,10 @@ class XenforoCrawler:
                     next_page = domain / next_page[1:]
                 next_page = URL(next_page)
                 await self.parse_xbunker(session, next_page, cascade, title, post_number)
-        else:
-            if self.output_last:
-                if 'page-' in url.raw_name:
-                    last_post_url = url.parent / post_num_str
-                elif 'post-' in url.raw_name:
-                    last_post_url = url.parent / post_num_str
-                else:
-                    last_post_url = url / post_num_str
-                await write_last_post_file(self.output_last_file, str(last_post_url))
+        elif self.output_last:
+            if 'page-' in url.raw_name or 'post-' in url.raw_name:
+                last_post_url = url.parent / post_num_str
+            else:
+                last_post_url = url / post_num_str
+            await write_last_post_file(self.output_last_file, str(last_post_url))
         return title
