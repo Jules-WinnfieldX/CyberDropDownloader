@@ -48,7 +48,6 @@ class CyberdropCrawler:
                 title = url.name
             elif self.include_id:
                 titlep2 = url.name
-                titlep2 = [s for s in titlep2 if "." in s][-1]
                 title = title + " - " + titlep2
             title = await make_title_safe(title.replace(r"\n", "").strip())
             await album_obj.set_new_title(title)
