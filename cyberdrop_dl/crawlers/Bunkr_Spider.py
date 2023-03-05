@@ -88,10 +88,9 @@ class BunkrCrawler:
             link = None
 
             for script in scripts:
-                if script.text:
-                    if "link.href" in script.text:
-                        link = script.text.split('link.href = "')[-1].split('";')[0]
-                        break
+                if script.text and "link.href" in script.text:
+                    link = script.text.split('link.href = "')[-1].split('";')[0]
+                    break
             if not link:
                 raise
             link = URL(link)

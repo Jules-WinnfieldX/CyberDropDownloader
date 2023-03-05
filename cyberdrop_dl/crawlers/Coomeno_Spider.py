@@ -164,19 +164,15 @@ class CoomenoCrawler:
             soup = BeautifulSoup(text, 'html.parser')
 
             if self.separate_posts:
-                if self.include_id:
-                    if title:
-                        title = title + '/' + str(url.parts[-1]) + " - " + await make_title_safe(soup.select_one("h1[class=post__title]").text.replace('\n', '').replace("..", ""))
-                    else:
-                        title = await make_title_safe(str(url.parts[-1]) + " - " + soup.select_one("h1[class=post__title]").text.replace('\n', '').replace("..", ""))
+                post_title = soup.select_one("h1[class=post__title]").text.replace('\n', '').replace("..", "")
+                prefix = f"{str(url.parts[-1])} - " if self.include_id else ""
+                if title:
+                    title = title + '/' + await make_title_safe(prefix + post_title)
                 else:
-                    if title:
-                        title = title + '/' + await make_title_safe(soup.select_one("h1[class=post__title]").text.replace('\n', '').replace("..", ""))
-                    else:
-                        title = await make_title_safe(soup.select_one("h1[class=post__title]").text.replace('\n', '').replace("..", ""))
-            else:
-                if not title:
-                    title = await make_title_safe(soup.select_one("h1[class=post__title]").text.replace('\n', '').replace("..", ""))
+                    title = await make_title_safe(prefix + post_title)
+            elif not title:
+                post_title = soup.select_one("h1[class=post__title]").text.replace('\n', '').replace("..", "")
+                title = await make_title_safe(post_title)
 
             images = soup.select(images_selector)
             for image in images:

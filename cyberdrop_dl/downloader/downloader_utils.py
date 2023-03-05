@@ -10,18 +10,14 @@ from cyberdrop_dl.base_functions.data_classes import MediaItem
 async def allowed_filetype(media: MediaItem, block_images: bool, block_video: bool, block_audio: bool, block_other: bool):
     """Checks whether the enclosed file is allowed to be downloaded"""
     ext = media.ext
-    if block_images:
-        if ext in FILE_FORMATS["Images"]:
-            return False
-    if block_video:
-        if ext in FILE_FORMATS["Videos"]:
-            return False
-    if block_audio:
-        if ext in FILE_FORMATS["Audio"]:
-            return False
-    if block_other:
-        if ext not in FILE_FORMATS["Images"] and ext not in FILE_FORMATS["Videos"] and ext not in FILE_FORMATS["Audio"]:
-            return False
+    if block_images and ext in FILE_FORMATS["Images"]:
+        return False
+    if block_video and ext in FILE_FORMATS["Videos"]:
+        return False
+    if block_audio and ext in FILE_FORMATS["Audio"]:
+        return False
+    if block_other and ext not in (FILE_FORMATS["Images"] | FILE_FORMATS["Videos"] | FILE_FORMATS["Audio"]):
+        return False
     return True
 
 
