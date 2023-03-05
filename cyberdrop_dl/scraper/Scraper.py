@@ -76,13 +76,13 @@ class ScrapeMapper:
         self.quiet = quiet
         self.jdownloader = JDownloader(args['JDownloader'], quiet)
 
-        self.jpgfish_limiter = AsyncRateLimiter(10)
+        self.sharex_limiter = AsyncRateLimiter(10)
         self.bunkr_limiter = AsyncRateLimiter(15)
         self.coomeno_limiter = AsyncRateLimiter(8)
         self.gofile_limiter = AsyncRateLimiter(max_calls=1, period=2)
 
         self.gofile_semaphore = asyncio.Semaphore(1)
-        self.jpgfish_semaphore = asyncio.Semaphore(5)
+        self.sharex_semaphore = asyncio.Semaphore(5)
         self.cyberfile_semaphore = asyncio.Semaphore(2)
         self.simpcity_semaphore = asyncio.Semaphore(1)
         self.socialmediagirls_semaphore = asyncio.Semaphore(1)
@@ -248,12 +248,12 @@ class ScrapeMapper:
         sharex_session = ScrapeSession(self.client)
         if not self.sharex_crawler:
             self.sharex_crawler = ShareXCrawler(include_id=self.include_id, quiet=self.quiet, SQL_Helper=self.SQL_Helper)
-        if ("jpg.fish" in url.host or "jpg.church" in url.host) and sharex_session.client.ratelimit > 19:
-            async with self.jpgfish_semaphore:
-                async with self.jpgfish_limiter:
+        async with self.sharex_semaphore:
+            if sharex_session.client.ratelimit > 19:
+                async with self.sharex_limiter:
                     domain_obj = await self.sharex_crawler.fetch(sharex_session, url)
-        else:
-            domain_obj = await self.sharex_crawler.fetch(sharex_session, url)
+            else:
+                domain_obj = await self.sharex_crawler.fetch(sharex_session, url)
         await self.handle_additions("sharex", None, domain_obj, title)
         await sharex_session.exit_handler()
 
