@@ -180,6 +180,7 @@ async def scrape_links(scraper: ScrapeMapper, links: list, quiet=False) -> Casca
     Forums = scraper.Forums
     await Forums.dedupe()
 
+    await log("", quiet=quiet)
     await log("[green]Finished Scrape[/green]", quiet=quiet)
     return Cascade, Forums
 

@@ -1,4 +1,5 @@
 import asyncio
+import re
 
 from yarl import URL
 
@@ -24,6 +25,7 @@ class ShareXCrawler:
 
         if await check_direct(url):
             url = url.with_name(url.name.replace('.md.', '.').replace('.th.', '.'))
+            url = await self.jpg_fish_from_church(url)
             url_path = await get_db_path(url)
             complete = await self.SQL_Helper.check_complete_singular("anonfiles", url_path)
             filename, ext = await get_filename_and_ext(url.name)
@@ -42,6 +44,11 @@ class ShareXCrawler:
         await self.SQL_Helper.insert_domain("sharex", url_path, domain_obj)
         await log(f"[green]Finished: {str(url)}[/green]", quiet=self.quiet)
         return domain_obj
+
+    async def jpg_fish_from_church(self, url: URL):
+        pattern = r"/simp([1-5])\.jpg\.church/"
+        url = URL(re.sub(pattern, r'simp\1.jpg.fish/', str(url)))
+        return url
 
     async def get_albums(self, session: ScrapeSession, url: URL, domain_obj: DomainItem):
         """Handles scraping for Albums"""
@@ -73,6 +80,7 @@ class ShareXCrawler:
             soup = await session.get_BS4(url)
             link = URL(soup.select_one("input[id=embed-code-2]").get('value'))
             link = link.with_name(link.name.replace('.md.', '.').replace('.th.', '.'))
+            link = await self.jpg_fish_from_church(link)
 
             url_path = await get_db_path(link)
             complete = await self.SQL_Helper.check_complete_singular("sharex", url_path)
@@ -127,6 +135,7 @@ class ShareXCrawler:
             for link in links:
                 link = URL(link.get('src'))
                 link = link.with_name(link.name.replace('.md.', '.').replace('.th.', '.'))
+                link = await self.jpg_fish_from_church(link)
 
                 try:
                     filename, ext = await get_filename_and_ext(link.name)

@@ -95,7 +95,7 @@ class ScrapeMapper:
                         "postimg": self.PostImg, "saint": self.Saint, "img.kiwi": self.ShareX,
                         "jpg.church": self.ShareX, "jpg.fish": self.ShareX, "pixl.li": self.ShareX,
                         "nsfw.xxx": self.NSFW_XXX, "pimpandhost": self.PimpAndHost, "lovefap": self.LoveFap,
-                        "e-hentai": self.EHentai, "gallery.deltaporno": self.ShareX,
+                        "e-hentai": self.EHentai, "gallery.deltaporno": self.ShareX, "vk.com": self.vk_redirect,
                         "coomer.party": self.Coomeno, "kemono.party": self.Coomeno,
                         "simpcity": self.Xenforo, "socialmediagirls": self.Xenforo, "xbunker": self.Xenforo}
 
@@ -114,6 +114,12 @@ class ScrapeMapper:
             else:
                 for title, album in domain_obj.albums.items():
                     await self.Cascade.add_album(domain, album.title, album)
+
+    """Redirection handler for Simp City"""
+
+    async def vk_redirect(self, url: URL, title=None):
+        url = URL(url.query['to'])
+        await self.map_url(url, title)
 
     """Regular file host handling"""
 
