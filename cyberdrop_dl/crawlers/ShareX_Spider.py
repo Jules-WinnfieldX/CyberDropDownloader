@@ -46,7 +46,7 @@ class ShareXCrawler:
         return domain_obj
 
     async def jpg_fish_from_church(self, url: URL):
-        pattern = r"/simp([1-5])\.jpg\.church/"
+        pattern = r"simp([1-5])\.jpg\.church/"
         url = URL(re.sub(pattern, r'simp\1.jpg.fish/', str(url)))
         return url
 
