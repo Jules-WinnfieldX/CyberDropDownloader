@@ -29,7 +29,7 @@ FILE_FORMATS = {
 }
 
 logger = logging.getLogger(__name__)
-MAX_FILENAME_LENGTH = 100
+MAX_FILENAME_LENGTH = 95
 
 
 async def clear() -> None:
@@ -101,5 +101,6 @@ async def get_filename_and_ext(filename, forum=False):
     if filename_parts[-1].isnumeric() and forum:
         filename_parts = filename_parts[0].rsplit('-', 1)
     ext = "." + filename_parts[-1].lower()
-    filename = await sanitize(filename_parts[0] + ext)
+    filename = filename_parts[0][:MAX_FILENAME_LENGTH] if len(filename_parts[0]) > MAX_FILENAME_LENGTH else filename_parts[0]
+    filename = await sanitize(filename + ext)
     return filename, ext
