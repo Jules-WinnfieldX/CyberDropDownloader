@@ -140,7 +140,7 @@ class SQLHelper:
             for media in album.media:
                 url_path = await get_db_path(media.url, domain)
                 self.curs.execute("""INSERT OR IGNORE INTO media VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
-                                  (domain, url_path, album_path, str(media.referer), "", "", media.filename, 0,))
+                                  (domain, url_path, album_path, str(media.referer), "", "", media.original_filename, 0,))
         self.conn.commit()
 
     async def insert_domain(self, domain_name: str, album_path: str, domain: DomainItem):
@@ -151,7 +151,7 @@ class SQLHelper:
                     url_path = await get_db_path(media.url, domain_name)
                     self.curs.execute("""INSERT OR IGNORE INTO media VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
                                       (domain_name, url_path, album_path, str(media.referer), "", "",
-                                       media.filename, 0,))
+                                       media.original_filename, 0,))
         self.conn.commit()
 
     async def insert_cascade(self, cascade: CascadeItem):
@@ -163,7 +163,7 @@ class SQLHelper:
                         url_path = await get_db_path(media.url, domain)
                         self.curs.execute("""INSERT OR IGNORE INTO media VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
                                           (domain, url_path, media.referer.path, str(media.referer), "",
-                                           "", media.filename, 0,))
+                                           "", media.original_filename, 0,))
         self.conn.commit()
 
     async def get_downloaded_filename(self, url_path, filename):
@@ -212,6 +212,32 @@ class SQLHelper:
     async def mark_complete(self, url_path: str, original_filename: str):
         """Update the media entry post-download"""
         self.curs.execute("""UPDATE media SET completed = 1 WHERE url_path = ? AND original_filename = ?""", (url_path, original_filename,))
+        self.conn.commit()
+
+    """DB Fixes"""
+    async def fix_bunkr_entries(self, url_path: str, original_filename: str):
+        complete_row = None
+        self.curs.execute("""SELECT * FROM media WHERE url_path = ?""", (url_path,))
+        sql_res = self.curs.fetchall()
+        for row in sql_res:
+            if row[7] == 1:
+                complete_row = row
+            else:
+                if len(sql_res) < 2:
+                    await self.update_row_original_filename(url_path, original_filename)
+                    break
+                await self.remove_entry(url_path, row[6])
+        if complete_row:
+            if complete_row[6] != original_filename:
+                await self.update_row_original_filename(url_path, original_filename)
+        self.conn.commit()
+
+    async def update_row_original_filename(self, url_path: str, original_filename: str):
+        self.curs.execute("""UPDATE media SET original_filename = ? WHERE url_path = ?""", (original_filename, url_path,))
+        self.conn.commit()
+
+    async def remove_entry(self, url_path: str, original_filename: str):
+        self.curs.execute("""DELETE FROM media WHERE url_path = ? AND original_filename = ?""", (url_path, original_filename,))
         self.conn.commit()
 
     def exit_handler(self):

@@ -28,12 +28,14 @@ class BunkrCrawler:
             await album_obj.add_media(media)
             await log(f"[green]Finished: {str(url)}[/green]", quiet=self.quiet)
             if not media.complete:
-                await self.SQL_Helper.insert_media("bunkr", media.url.path, "", str(url), "", "", media.filename, 0)
+                url_path = await get_db_path(url)
+                await self.SQL_Helper.insert_media("bunkr", url_path, "", str(url), "", "", media.filename, 0)
             return album_obj
 
         if "a" in url.parts:
             album_obj = await self.get_album(session, url)
-            await self.SQL_Helper.insert_album("bunkr", url.path, album_obj)
+            url_path = await get_db_path(url)
+            await self.SQL_Helper.insert_album("bunkr", url_path, album_obj)
 
             if album_obj.media:
                 await log(f"[green]Finished: {str(url)}[/green]", quiet=self.quiet)
@@ -44,14 +46,15 @@ class BunkrCrawler:
         if ext:
             ext = ext.lower()
         if ext in FILE_FORMATS['Images']:
-            check_complete = await self.SQL_Helper.check_complete_singular("bunkr", url.path)
-            url = URL(str(url).replace("https://cdn", "https://i"))
-
             filename, ext = await get_filename_and_ext(url.name)
-            if self.remove_bunkr_id:
-                filename = await self.remove_id(filename, ext)
+            original_filename, filename = self.remove_id(filename, ext)
 
-            media_item = MediaItem(url, url, check_complete, filename, ext, filename)
+            url_path = await get_db_path(url)
+            await self.SQL_Helper.fix_bunkr_entries(url_path, original_filename)
+            check_complete = await self.SQL_Helper.check_complete_singular("bunkr", url_path)
+
+            url = URL(str(url).replace("https://cdn", "https://i"))
+            media_item = MediaItem(url, url, check_complete, filename, ext, original_filename)
             await album_obj.add_media(media_item)
         else:
             if ext in FILE_FORMATS['Videos']:
@@ -67,11 +70,13 @@ class BunkrCrawler:
 
     async def remove_id(self, filename: str, ext: str):
         """Removes the additional string bunkr adds to the end of every filename"""
-        filename = filename.rsplit(ext, 1)[0]
-        filename = filename.rsplit("-", 1)[0]
-        if ext not in filename:
-            filename = filename + ext
-        return filename
+        original_filename = filename
+        if self.remove_bunkr_id:
+            filename = filename.rsplit(ext, 1)[0]
+            filename = filename.rsplit("-", 1)[0]
+            if ext not in filename:
+                filename = filename + ext
+        return original_filename, filename
 
     async def check_for_la(self, url: URL):
         if "12" in url.host:
@@ -98,14 +103,16 @@ class BunkrCrawler:
             filename, ext = await get_filename_and_ext(link.name)
             if ext not in FILE_FORMATS['Images']:
                 link = await self.check_for_la(link)
-            if self.remove_bunkr_id:
-                filename = await self.remove_id(filename, ext)
 
-            complete = await self.SQL_Helper.check_complete_singular("bunkr", link.path)
+            original_filename, filename = await self.remove_id(filename, ext)
+
+            url_path = await get_db_path(link)
+            await self.SQL_Helper.fix_bunkr_entries(url_path, original_filename)
+            complete = await self.SQL_Helper.check_complete_singular("bunkr", url_path)
             if complete:
-                media = MediaItem(link, url, True, filename, ext, filename)
+                media = MediaItem(link, url, True, filename, ext, original_filename)
                 return media
-            media = MediaItem(link, url, False, filename, ext, filename)
+            media = MediaItem(link, url, False, filename, ext, original_filename)
             return media
 
         except Exception as e:
@@ -150,12 +157,12 @@ class BunkrCrawler:
                 if ext not in FILE_FORMATS['Images']:
                     link = await self.check_for_la(link)
 
-                if self.remove_bunkr_id:
-                    filename = await self.remove_id(filename, ext)
+                original_filename, filename = await self.remove_id(filename, ext)
 
                 url_path = await get_db_path(link)
+                await self.SQL_Helper.fix_bunkr_entries(url_path, original_filename)
                 complete = await self.SQL_Helper.check_complete_singular("bunkr", url_path)
-                media = MediaItem(link, referer, complete, filename, ext, filename)
+                media = MediaItem(link, referer, complete, filename, ext, original_filename)
                 await album.add_media(media)
 
         except Exception as e:

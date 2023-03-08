@@ -152,8 +152,6 @@ class Downloader:
 
     async def start_file(self, album_task: TaskID, album: str, media: MediaItem):
         """Handler for files and the progress bars for it"""
-        media.original_filename = media.filename
-
         if media.complete:
             await log(f"Previously Downloaded: {media.filename}", quiet=True)
             overall_file_progress.advance(self.files.skipped_files_task_id, 1)
@@ -195,11 +193,12 @@ class Downloader:
             album = album.split('/')[0]
 
         original_filename = media.original_filename
+        filename = media.filename
 
         try:
-            while await self.File_Lock.check_lock(original_filename):
+            while await self.File_Lock.check_lock(filename):
                 await asyncio.sleep(gauss(1, 1.5))
-            await self.File_Lock.add_lock(original_filename)
+            await self.File_Lock.add_lock(filename)
 
             if url_path not in self.current_attempt:
                 self.current_attempt[url_path] = 0
@@ -265,15 +264,15 @@ class Downloader:
             file_progress.update(file_task, visible=False)
 
             await log(f"Completed Download: {media.filename} from {media.referer}", quiet=True)
-            await self.File_Lock.remove_lock(original_filename)
+            await self.File_Lock.remove_lock(filename)
             return
 
         except (aiohttp.client_exceptions.ClientPayloadError, aiohttp.client_exceptions.ClientOSError,
                 aiohttp.client_exceptions.ServerDisconnectedError, asyncio.TimeoutError,
                 aiohttp.client_exceptions.ClientResponseError, aiohttp.client_exceptions.ServerTimeoutError,
                 DownloadFailure, FileNotFoundError, PermissionError) as e:
-            if await self.File_Lock.check_lock(original_filename):
-                await self.File_Lock.remove_lock(original_filename)
+            if await self.File_Lock.check_lock(filename):
+                await self.File_Lock.remove_lock(filename)
 
             new_error = DownloadFailure(code=1)
             try:
