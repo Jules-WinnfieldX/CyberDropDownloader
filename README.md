@@ -128,7 +128,8 @@ optional arguments:
 --exclude-videos 	skip downloading of video files
 --ignore-cache 	        ignores previous runs cached scrape history
 --ignore-history 	ignores previous download history
---skip 	                removes host links from downloads
+--only-hosts 	        only allows downloads and scraping from these hosts
+--skip-hosts 	        doesn't allow downloads and scraping from these hosts
 
 --allow-insecure-connections 	        allows insecure connections from content hosts
 --attempts 	                        number of attempts to download each file
