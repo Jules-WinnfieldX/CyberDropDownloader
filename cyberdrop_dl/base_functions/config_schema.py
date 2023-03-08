@@ -38,6 +38,7 @@ config_default = [
                 "ignore_cache": False,
                 "ignore_history": False,
                 "skip_hosts": [],
+                "only_hosts": []
             },
             "Progress_Options": {
                 "hide_new_progress": False,
@@ -91,7 +92,7 @@ files_args = ["db_file", "input_file", "log_file", "output_folder", "output_last
 forum_args = ["output_last_forum_post", "separate_posts"]
 
 ignore_args = ["exclude_videos", "exclude_images", "exclude_audio", "exclude_other", "ignore_cache", "ignore_history",
-               "skip_hosts"]
+               "skip_hosts", "only_hosts"]
 
 jdownloader_args = ["apply_jdownloader", "jdownloader_username", "jdownloader_password", "jdownloader_device"]
 

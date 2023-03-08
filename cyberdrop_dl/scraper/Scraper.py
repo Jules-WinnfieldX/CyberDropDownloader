@@ -42,6 +42,7 @@ class ScrapeMapper:
         self.Cascade = CascadeItem({})
         self.Forums = ForumItem({})
         self.skip_data = SkipData(args['Ignore']['skip_hosts'])
+        self.only_data = SkipData(args['Ignore']['only_hosts'])
 
         self.unsupported_file = args["Files"]["unsupported_urls_file"]
         self.unsupported_output = args['Runtime']['output_unsupported_urls']
@@ -342,7 +343,12 @@ class ScrapeMapper:
             return
         for key, value in self.mapping.items():
             if key in url_to_map.host:
-                if any(site in key for site in self.skip_data.sites):
+                if self.only_data.sites:
+                    if any(site in key for site in self.only_data.sites):
+                        await value(url=url_to_map, title=title)
+                    else:
+                        await log(f"[yellow]Skipping: {str(url_to_map)}[/yellow]", quiet=self.quiet)
+                elif any(site in key for site in self.skip_data.sites):
                     await log(f"[yellow]Skipping: {str(url_to_map)}[/yellow]", quiet=self.quiet)
                 else:
                     await value(url=url_to_map, title=title)

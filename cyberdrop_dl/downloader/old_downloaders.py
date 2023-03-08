@@ -243,6 +243,18 @@ class Old_Downloader:
                         self.current_attempt.pop(url_path)
                     await self.output_failed(media, e)
                     return
+                if e.code == HTTPStatus.SERVICE_UNAVAILABLE or e.code == 521:
+                    if hasattr(e, "message"):
+                        if not e.message:
+                            e.message = "Web server is down"
+                        logging.debug(f"\n{media.url} ({e.message})")
+                    await log(f"Failed Download: {media.filename}", quiet=True)
+                    self.files.failed_files += 1
+                    self.progress.update(1)
+                    if url_path in self.current_attempt.keys():
+                        self.current_attempt.pop(url_path)
+                    await self.output_failed(media, e)
+                    return
                 logger.debug("Error status code: " + str(e.code))
                 new_error.code = e.code
 

@@ -44,6 +44,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--ignore-cache", help="ignores previous runs cached scrape history", action="store_true")
     parser.add_argument("--ignore-history", help="ignores previous download history", action="store_true")
     parser.add_argument("--skip-hosts", choices=SkipData.supported_hosts, help="removes host links from downloads", action="append", default=[])
+    parser.add_argument("--only-hosts", choices=SkipData.supported_hosts, help="only allows downloads from these hosts", action="append", default=[])
 
     # Runtime arguments
     parser.add_argument("--allow-insecure-connections", help="allows insecure connections from content hosts", action="store_true")
