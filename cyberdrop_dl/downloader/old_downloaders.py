@@ -25,6 +25,7 @@ from cyberdrop_dl.client.client import Client, DownloadSession
 from cyberdrop_dl.scraper.Scraper import ScrapeMapper
 
 from .downloader_utils import (
+    CloudflareHTTPStatus,
     allowed_filetype,
     basic_auth,
     check_free_space,
@@ -243,7 +244,7 @@ class Old_Downloader:
                         self.current_attempt.pop(url_path)
                     await self.output_failed(media, e)
                     return
-                if e.code == HTTPStatus.SERVICE_UNAVAILABLE or e.code == 521:
+                if e.code == HTTPStatus.SERVICE_UNAVAILABLE or e.code == CloudflareHTTPStatus.WEB_SERVER_IS_DOWN:
                     if hasattr(e, "message"):
                         if not e.message:
                             e.message = "Web server is down"
