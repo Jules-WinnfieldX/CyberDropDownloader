@@ -1,5 +1,6 @@
 import shutil
 from base64 import b64encode
+from enum import IntEnum
 from http import HTTPStatus
 from pathlib import Path
 
@@ -7,8 +8,8 @@ from cyberdrop_dl.base_functions.base_functions import FILE_FORMATS
 from cyberdrop_dl.base_functions.data_classes import MediaItem
 
 
-class CloudflareHTTPStatus(HTTPStatus):
-    WEB_SERVER_IS_DOWN = 521, 'Web Server Is Down'
+class CloudflareHTTPStatus:
+    WEB_SERVER_IS_DOWN = 521
 
 
 async def allowed_filetype(media: MediaItem, block_images: bool, block_video: bool, block_audio: bool, block_other: bool):
