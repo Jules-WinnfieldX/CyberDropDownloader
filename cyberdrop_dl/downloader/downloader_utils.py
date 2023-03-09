@@ -8,7 +8,7 @@ from cyberdrop_dl.base_functions.base_functions import FILE_FORMATS
 from cyberdrop_dl.base_functions.data_classes import MediaItem
 
 
-class CloudflareHTTPStatus:
+class CloudflareHTTPStatus(IntEnum):
     WEB_SERVER_IS_DOWN = 521
 
 
