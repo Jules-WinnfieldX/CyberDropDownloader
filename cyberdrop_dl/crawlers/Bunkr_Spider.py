@@ -109,11 +109,7 @@ class BunkrCrawler:
             url_path = await get_db_path(link)
             await self.SQL_Helper.fix_bunkr_entries(url_path, original_filename)
             complete = await self.SQL_Helper.check_complete_singular("bunkr", url_path)
-            if complete:
-                media = MediaItem(link, url, True, filename, ext, original_filename)
-                return media
-            media = MediaItem(link, url, False, filename, ext, original_filename)
-            return media
+            return MediaItem(link, url, complete, filename, ext, original_filename)
 
         except Exception as e:
             logger.debug("Error encountered while handling %s", str(url), exc_info=True)
