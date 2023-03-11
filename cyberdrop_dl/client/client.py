@@ -21,6 +21,7 @@ from .rate_limiting import AsyncRateLimiter, throttle
 from ..base_functions.base_functions import logger
 from ..base_functions.data_classes import MediaItem
 from ..base_functions.error_classes import DownloadFailure, InvalidContentTypeFailure
+from ..downloader.downloader_utils import CustomHTTPStatus
 
 
 class Client:
@@ -132,12 +133,12 @@ class DownloadSession:
                                            raise_for_status=True, proxy=proxy) as resp:
             content_type = resp.headers.get('Content-Type')
             if not content_type:
-                raise DownloadFailure(code=HTTPStatus.IM_A_TEAPOT, message="No content-type in response header")
+                raise DownloadFailure(code=CustomHTTPStatus.IM_A_TEAPOT, message="No content-type in response header")
             if resp.url in self.bunkr_maintenance:
                 raise DownloadFailure(code=HTTPStatus.SERVICE_UNAVAILABLE, message="Bunkr under maintenance")
             if 'text' in content_type.lower() or 'html' in content_type.lower():
                 logger.debug("Server for %s is experiencing issues, you are being ratelimited, or cookies have expired", str(media.url))
-                raise DownloadFailure(code=HTTPStatus.IM_A_TEAPOT, message="Unexpectedly got text as response")
+                raise DownloadFailure(code=CustomHTTPStatus.IM_A_TEAPOT, message="Unexpectedly got text as response")
 
             total = int(resp.headers.get('Content-Length', str(0))) + resume_point
             file.parent.mkdir(parents=True, exist_ok=True)
@@ -160,12 +161,12 @@ class DownloadSession:
                                            raise_for_status=True, proxy=proxy) as resp:
             content_type = resp.headers.get('Content-Type')
             if not content_type:
-                raise DownloadFailure(code=HTTPStatus.IM_A_TEAPOT, message="No content-type in response header")
+                raise DownloadFailure(code=CustomHTTPStatus.IM_A_TEAPOT, message="No content-type in response header")
             if resp.url in self.bunkr_maintenance:
                 raise DownloadFailure(code=HTTPStatus.SERVICE_UNAVAILABLE, message="Bunkr under maintenance")
             if 'text' in content_type.lower() or 'html' in content_type.lower():
                 logger.debug("Server for %s is experiencing issues, you are being ratelimited, or cookies have expired", str(media.url))
-                raise DownloadFailure(code=HTTPStatus.IM_A_TEAPOT, message="Unexpectedly got text as response")
+                raise DownloadFailure(code=CustomHTTPStatus.IM_A_TEAPOT, message="Unexpectedly got text as response")
 
             total = int(resp.headers.get('Content-Length', str(0))) + resume_point
             file.parent.mkdir(parents=True, exist_ok=True)

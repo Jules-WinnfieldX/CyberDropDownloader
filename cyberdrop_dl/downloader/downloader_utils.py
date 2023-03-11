@@ -8,8 +8,10 @@ from cyberdrop_dl.base_functions.base_functions import FILE_FORMATS
 from cyberdrop_dl.base_functions.data_classes import MediaItem
 
 
-class CloudflareHTTPStatus:
+class CustomHTTPStatus(IntEnum):
     WEB_SERVER_IS_DOWN = 521
+    IM_A_TEAPOT = 418
+
 
 
 async def allowed_filetype(media: MediaItem, block_images: bool, block_video: bool, block_audio: bool, block_other: bool):
