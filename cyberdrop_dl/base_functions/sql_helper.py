@@ -5,7 +5,12 @@ from pathlib import Path
 from typing import List, Optional
 
 from cyberdrop_dl.base_functions.base_functions import get_db_path
-from cyberdrop_dl.base_functions.data_classes import AlbumItem, CascadeItem, DomainItem
+from cyberdrop_dl.base_functions.data_classes import (
+    AlbumItem,
+    CascadeItem,
+    DomainItem,
+    MediaItem,
+)
 
 
 class SQLHelper:
@@ -127,44 +132,43 @@ class SQLHelper:
 
     """Download Table Operations"""
 
-    async def insert_media(self, domain: str, url_path: str, album_path: str, referer: str, download_path: str,
-                           download_filename: str, original_filename: str, completed: int) -> None:
+    async def _insert_media(self, domain: str, album_path: str, media: MediaItem) -> None:
+        """Inserts a media entry into the media table without commit"""
+        url_path = await get_db_path(media.url, domain)
+        self.curs.execute("""INSERT OR IGNORE INTO media VALUES (?, ?, ?, ?, '', '', ?, 0)""",
+                          (domain, url_path, album_path, str(media.referer), media.original_filename))
+
+    async def _insert_album(self, domain: str, album_path: str, album: AlbumItem) -> None:
+        """Inserts an albums media into the media table without commit"""
+        for media in album.media:
+            await self._insert_media(domain, album_path, media)
+
+    async def insert_media(self, domain: str, album_path: str, media: MediaItem) -> None:
         """Inserts a media entry into the media table"""
-        self.curs.execute("""INSERT OR IGNORE INTO media VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
-                          (domain, url_path, album_path, referer, download_path, download_filename, original_filename, completed))
+        await self._insert_media(domain, album_path, media)
         self.conn.commit()
 
     async def insert_album(self, domain: str, album_path: str, album: AlbumItem) -> None:
         """Inserts an albums media into the media table"""
         if album.media:
-            for media in album.media:
-                url_path = await get_db_path(media.url, domain)
-                self.curs.execute("""INSERT OR IGNORE INTO media VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
-                                  (domain, url_path, album_path, str(media.referer), "", "", media.original_filename, 0))
-        self.conn.commit()
+            await self._insert_album(domain, album_path, album)
+            self.conn.commit()
 
     async def insert_domain(self, domain_name: str, album_path: str, domain: DomainItem) -> None:
         """Inserts a domains media into the media table"""
         if domain.albums:
-            for _, album in domain.albums.items():
-                for media in album.media:
-                    url_path = await get_db_path(media.url, domain_name)
-                    self.curs.execute("""INSERT OR IGNORE INTO media VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
-                                      (domain_name, url_path, album_path, str(media.referer), "", "",
-                                       media.original_filename, 0))
-        self.conn.commit()
+            for album in domain.albums.values():
+                await self._insert_album(domain_name, album_path, album)
+            self.conn.commit()
 
     async def insert_cascade(self, cascade: CascadeItem) -> None:
         """Inserts a cascades media into the media table"""
         if not await cascade.is_empty():
             for domain, domain_obj in cascade.domains.items():
-                for _, album_obj in domain_obj.albums.items():
+                for album_obj in domain_obj.albums.values():
                     for media in album_obj.media:
-                        url_path = await get_db_path(media.url, domain)
-                        self.curs.execute("""INSERT OR IGNORE INTO media VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
-                                          (domain, url_path, media.referer.path, str(media.referer), "",
-                                           "", media.original_filename, 0))
-        self.conn.commit()
+                        await self._insert_media(domain, media.referer.path, media)
+            self.conn.commit()
 
     async def get_downloaded_filename(self, url_path: str, filename: str) -> Optional[str]:
         """Gets downloaded filename given the url path and original filename"""
