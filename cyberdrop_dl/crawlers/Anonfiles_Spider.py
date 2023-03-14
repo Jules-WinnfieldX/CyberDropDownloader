@@ -36,7 +36,7 @@ class AnonfilesCrawler:
                 media_item = MediaItem(link, url, complete, filename, ext, filename)
                 await album_obj.add_media(media_item)
                 if not complete:
-                    await self.SQL_Helper.insert_media("anonfiles", url_path, "", str(url), "", "", filename, 0)
+                    await self.SQL_Helper.insert_media("anonfiles", "", media_item)
             else:
                 await log(f"[red]Dead: {str(url)}[/red]", quiet=self.quiet)
 

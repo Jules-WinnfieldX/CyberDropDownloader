@@ -28,8 +28,7 @@ class BunkrCrawler:
             await album_obj.add_media(media)
             await log(f"[green]Finished: {str(url)}[/green]", quiet=self.quiet)
             if not media.complete:
-                url_path = await get_db_path(media.url)
-                await self.SQL_Helper.insert_media("bunkr", url_path, "", str(url), "", "", media.original_filename, 0)
+                await self.SQL_Helper.insert_media("bunkr", "", media)
             return album_obj
 
         if "a" in url.parts:
