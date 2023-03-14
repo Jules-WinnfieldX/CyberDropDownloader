@@ -16,7 +16,7 @@ class ImgBoxCrawler:
     async def fetch(self, session: ScrapeSession, url: URL):
         """Director func for ImgBox scraping"""
         album_obj = AlbumItem("Loose ImgBox Files", [])
-        await log(f"[green]Starting: {str(url)}[/green]", quiet=self.quiet)
+        await log(f"Starting: {str(url)}", quiet=self.quiet, style="green")
 
         try:
             if await check_direct(url):
@@ -52,11 +52,11 @@ class ImgBoxCrawler:
 
         except Exception as e:
             logger.debug("Error encountered while handling %s", str(url), exc_info=True)
-            await log(f"[red]Error: {str(url)}[/red]", quiet=self.quiet)
+            await log(f"Error: {str(url)}", quiet=self.quiet, style="red")
             logger.debug(e)
 
         await self.SQL_Helper.insert_album("imgbox", url.path, album_obj)
-        await log(f"[green]Finished: {str(url)}[/green]", quiet=self.quiet)
+        await log(f"Finished: {str(url)}", quiet=self.quiet, style="green")
         return album_obj
 
     async def folder(self, session: ScrapeSession, url: URL):

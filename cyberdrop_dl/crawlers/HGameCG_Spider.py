@@ -15,9 +15,9 @@ class HGameCGCrawler:
         """Basic director for HGameCG"""
         album_obj = AlbumItem("Loose HGamesCG Files", [])
 
-        await log(f"[green]Starting: {str(url)}[/green]", quiet=self.quiet)
+        await log(f"Starting: {str(url)}", quiet=self.quiet, style="green")
         await self.get_album(session, url, album_obj)
-        await log(f"[green]Finished: {str(url)}[/green]", quiet=self.quiet)
+        await log(f"Finished: {str(url)}", quiet=self.quiet, style="green")
         url_path = await get_db_path(url)
         await self.SQL_Helper.insert_album("hgamecg", url_path, album_obj)
         return album_obj
@@ -51,7 +51,7 @@ class HGameCGCrawler:
 
         except Exception as e:
             logger.debug("Error encountered while handling %s", str(url), exc_info=True)
-            await log(f"[red]Error: {str(url)}[/red]", quiet=self.quiet)
+            await log(f"Error: {str(url)}", quiet=self.quiet, style="red")
             logger.debug(e)
 
     async def get_image(self, session: ScrapeSession, url: URL):
@@ -62,4 +62,4 @@ class HGameCGCrawler:
             image = URL(image.get('src'))
             return image
         except Exception:
-            await log(f"[red]Error: {str(url)}[/red]", quiet=self.quiet)
+            await log(f"Error: {str(url)}", quiet=self.quiet, style="red")

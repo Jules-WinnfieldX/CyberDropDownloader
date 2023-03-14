@@ -339,7 +339,7 @@ class ScrapeMapper:
         if not url_to_map:
             return
         elif not url_to_map.host:
-            await log(f"[yellow]Not Supported: {str(url_to_map)}[/yellow]", quiet=self.quiet)
+            await log(f"Not Supported: {str(url_to_map)}", quiet=self.quiet, style="yellow")
             return
         for key, value in self.mapping.items():
             if key in url_to_map.host:
@@ -347,9 +347,9 @@ class ScrapeMapper:
                     if any(site in key for site in self.only_data.sites):
                         await value(url=url_to_map, title=title)
                     else:
-                        await log(f"[yellow]Skipping: {str(url_to_map)}[/yellow]", quiet=self.quiet)
+                        await log(f"Skipping: {str(url_to_map)}", quiet=self.quiet, style="yellow")
                 elif any(site in key for site in self.skip_data.sites):
-                    await log(f"[yellow]Skipping: {str(url_to_map)}[/yellow]", quiet=self.quiet)
+                    await log(f"Skipping: {str(url_to_map)}", quiet=self.quiet, style="yellow")
                 else:
                     await value(url=url_to_map, title=title)
                 return
@@ -362,7 +362,7 @@ class ScrapeMapper:
             await self.jdownloader.direct_unsupported_to_jdownloader(url_to_map, title)
 
         else:
-            await log(f"[yellow]Not Supported: {str(url_to_map)}[/yellow]", quiet=self.quiet)
+            await log(f"Not Supported: {str(url_to_map)}", quiet=self.quiet, style="yellow")
             if self.unsupported_output:
                 title = title.encode("ascii", "ignore")
                 title = title.decode().strip()

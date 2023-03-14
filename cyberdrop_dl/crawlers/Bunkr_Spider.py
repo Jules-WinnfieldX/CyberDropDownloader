@@ -19,14 +19,14 @@ class BunkrCrawler:
     async def fetch(self, session: ScrapeSession, url: URL):
         """Scraper for Bunkr"""
         album_obj = AlbumItem("Loose Bunkr Files", [])
-        await log(f"[green]Starting: {str(url)}[/green]", quiet=self.quiet)
+        await log(f"Starting: {str(url)}", quiet=self.quiet, style="green")
 
         if "v" in url.parts or "d" in url.parts:
             media = await self.get_file(session, url)
             if not media.filename:
                 return album_obj
             await album_obj.add_media(media)
-            await log(f"[green]Finished: {str(url)}[/green]", quiet=self.quiet)
+            await log(f"Finished: {str(url)}", quiet=self.quiet, style="green")
             if not media.complete:
                 await self.SQL_Helper.insert_media("bunkr", "", media)
             return album_obj
@@ -37,7 +37,7 @@ class BunkrCrawler:
             await self.SQL_Helper.insert_album("bunkr", url_path, album_obj)
 
             if album_obj.media:
-                await log(f"[green]Finished: {str(url)}[/green]", quiet=self.quiet)
+                await log(f"Finished: {str(url)}", quiet=self.quiet, style="green")
             return album_obj
 
         cdn_possibilities = r"(?:cdn.bunkr...|cdn..bunkr...|cdn...bunkr...|media-files.bunkr...|media-files..bunkr...|media-files...bunkr...)"
@@ -64,7 +64,7 @@ class BunkrCrawler:
             await album_obj.add_media(media_item)
 
         await self.SQL_Helper.insert_album("bunkr", url.path, album_obj)
-        await log(f"[green]Finished: {str(url)}[/green]", quiet=self.quiet)
+        await log(f"Finished: {str(url)}", quiet=self.quiet, style="green")
         return album_obj
 
     async def remove_id(self, filename: str, ext: str):
@@ -112,7 +112,7 @@ class BunkrCrawler:
 
         except Exception as e:
             logger.debug("Error encountered while handling %s", str(url), exc_info=True)
-            await log(f"[red]Error: {str(url)}[/red]", quiet=self.quiet)
+            await log(f"Error: {str(url)}", quiet=self.quiet, style="red")
             logger.debug(e)
             return MediaItem(url, url, False, "", "", "")
 
@@ -162,7 +162,7 @@ class BunkrCrawler:
 
         except Exception as e:
             logger.debug("Error encountered while handling %s", str(url), exc_info=True)
-            await log(f"[red]Error: {str(url)}[/red]", quiet=self.quiet)
+            await log(f"Error: {str(url)}", quiet=self.quiet, style="red")
             logger.debug(e)
 
         return album

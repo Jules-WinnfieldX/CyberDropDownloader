@@ -36,7 +36,7 @@ class ForumLogin:
     async def login(self, session: ScrapeSession, url: URL, quiet: bool):
         """Handles forum logging in"""
         if not self.username or not self.password:
-            await log(f"[red]Login wasn't provided for {self.name}[/red]", quiet=quiet)
+            await log(f"Login wasn't provided for {self.name}", quiet=quiet, style="red")
             raise FailedLoginFailure()
         attempt = 0
         while True:
@@ -99,7 +99,7 @@ class XenforoCrawler:
 
     async def fetch(self, session: ScrapeSession, url: URL):
         """Xenforo forum director"""
-        await log(f"[green]Starting: {str(url)}[/green]", quiet=self.quiet)
+        await log(f"Starting: {str(url)}", quiet=self.quiet, style="green")
         cascade = CascadeItem({})
 
         scrape_url, post_num = await self.get_thread_url_and_post_num(url)
@@ -117,12 +117,12 @@ class XenforoCrawler:
 
         except Exception as e:
             logger.debug("Error encountered while handling %s", str(url), exc_info=True)
-            await log(f"[red]Error: {str(url)}[/red]", quiet=self.quiet)
+            await log(f"Error: {str(url)}", quiet=self.quiet, style="red")
             logger.debug(e)
             return cascade, ""
 
         await self.SQL_Helper.insert_cascade(cascade)
-        await log(f"[green]Finished: {str(url)}[/green]", quiet=self.quiet)
+        await log(f"Finished: {str(url)}", quiet=self.quiet, style="green")
         return cascade, title
 
     async def get_thread_url_and_post_num(self, url: URL):

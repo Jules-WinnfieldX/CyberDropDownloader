@@ -32,7 +32,7 @@ class GoFileCrawler:
                 raise
         except Exception as e:
             logger.debug("Error encountered while getting GoFile token", exc_info=True)
-            await log("[red]Error: Couldn't generate GoFile token[/red]", quiet=self.quiet)
+            await log("Error: Couldn't generate GoFile token", quiet=self.quiet, style="red")
             logger.debug(e)
 
     async def set_cookie(self, session: ScrapeSession):
@@ -46,7 +46,7 @@ class GoFileCrawler:
     async def fetch(self, session: ScrapeSession, url: URL):
         """Basic director for actual scraping"""
         try:
-            await log(f"[green]Starting: {str(url)}[/green]", quiet=self.quiet)
+            await log(f"Starting: {str(url)}", quiet=self.quiet, style="green")
             domain_obj = DomainItem("gofile", {})
             content_id = url.name
             results = await self.get_links(session, url, content_id, None)
@@ -55,12 +55,12 @@ class GoFileCrawler:
 
             url_path = await get_db_path(url)
             await self.SQL_Helper.insert_domain("gofile", url_path, domain_obj)
-            await log(f"[green]Finished: {str(url)}[/green]", quiet=self.quiet)
+            await log(f"Finished: {str(url)}", quiet=self.quiet, style="green")
             return domain_obj
 
         except Exception as e:
             logger.debug("Error encountered while handling %s", str(url), exc_info=True)
-            await log(f"[red]Error: {str(url)}[/red]", quiet=self.quiet)
+            await log(f"Error: {str(url)}", quiet=self.quiet, style="red")
             logger.debug(e)
 
     async def get_links(self, session: ScrapeSession, url: URL, content_id: str, title=None):
@@ -74,7 +74,7 @@ class GoFileCrawler:
         content = await session.get_json_with_params(self.api_address / "getContent", params)
         if content["status"] != "ok":
             logger.debug("Error encountered while handling %s", str(url), exc_info=True)
-            await log(f"[red]Error: {str(url)}[/red]", quiet=self.quiet)
+            await log(f"Error: {str(url)}", quiet=self.quiet, style="red")
             return results
 
         content = content['data']

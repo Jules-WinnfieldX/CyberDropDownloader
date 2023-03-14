@@ -15,7 +15,7 @@ class GfycatCrawler:
         """Basic scraper for gfycat"""
         try:
             album_obj = AlbumItem("Gfycat", [])
-            await log(f"[green]Starting: {str(url)}[/green]", quiet=self.quiet)
+            await log(f"Starting: {str(url)}", quiet=self.quiet, style="green")
             soup = await session.get_BS4(url)
 
             video = soup.select_one("video[class='video media']")
@@ -36,11 +36,11 @@ class GfycatCrawler:
             media_item = MediaItem(video_link, url, complete, filename, ext, filename)
             await album_obj.add_media(media_item)
             await self.SQL_Helper.insert_album("gfycat", url_path, album_obj)
-            await log(f"[green]Finished: {str(url)}[/green]", quiet=self.quiet)
+            await log(f"Finished: {str(url)}", quiet=self.quiet, style="green")
             return album_obj
 
         except Exception as e:
             logger.debug("Error encountered while handling %s", str(url), exc_info=True)
-            await log(f"[red]Error: {str(url)}[/red]", quiet=self.quiet)
+            await log(f"Error: {str(url)}", quiet=self.quiet, style="red")
             logger.debug(e)
             return album_obj
