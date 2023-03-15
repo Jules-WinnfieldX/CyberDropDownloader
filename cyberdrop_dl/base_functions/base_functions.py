@@ -37,11 +37,13 @@ async def clear() -> None:
     os.system('cls' if os.name == 'nt' else 'clear')
 
 
-async def log(text, quiet=False) -> None:
-    """Logs to the output log file and optionally prints to the terminal with given style"""
+async def log(text: str, quiet: bool = False, style: str = "") -> None:
+    """Logs to the output log file and optionally (by default) prints to the terminal with given style"""
     logger.debug(text)
     if not quiet:
-        rich.print(str(text))
+        if style:
+            text = f"[{style}]{text}[/{style}]"
+        rich.print(text)
 
 
 async def purge_dir(dirname) -> None:

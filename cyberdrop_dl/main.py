@@ -163,13 +163,13 @@ async def consolidate_links(args: dict, links: list) -> list:
     links = list(filter(None, links))
 
     if not links:
-        await log("[red]No valid links found.[/red]")
+        await log("No valid links found.", style="red")
     return links
 
 
 async def scrape_links(scraper: ScrapeMapper, links: list, quiet=False) -> CascadeItem:
     """Maps links from URLs.txt or command to the scraper class"""
-    await log("[green]Starting Scrape[/green]", quiet=quiet)
+    await log("Starting Scrape", quiet=quiet, style="green")
     tasks = []
 
     for link in links:
@@ -182,7 +182,7 @@ async def scrape_links(scraper: ScrapeMapper, links: list, quiet=False) -> Casca
     await Forums.dedupe()
 
     await log("", quiet=quiet)
-    await log("[green]Finished Scrape[/green]", quiet=quiet)
+    await log("Finished Scrape", quiet=quiet, style="green")
     return Cascade, Forums
 
 
@@ -194,7 +194,7 @@ async def director(args: dict, links: list) -> None:
     await log(f"We are running version {VERSION} of Cyberdrop Downloader")
 
     if not await check_free_space(args['Runtime']['required_free_space'], args['Files']['output_folder']):
-        await log("[red]Not enough free space to continue. You can change the required space required using --required-free-space.[/red]")
+        await log("Not enough free space to continue. You can change the required space required using --required-free-space.", style="red")
         exit(1)
 
     links = await consolidate_links(args, links)
@@ -240,12 +240,12 @@ async def director(args: dict, links: list) -> None:
 
         await log('Finished downloading. Enjoy :)')
         if partial_downloads:
-            await log('[yellow]There are partial downloads in the downloads folder.[/yellow]')
+            await log('There are partial downloads in the downloads folder.', style="yellow")
         if temp_downloads_check:
-            await log('[yellow]There are partial downloads from this run, please re-run the program.[/yellow]')
+            await log('There are partial downloads from this run, please re-run the program.', style="yellow")
 
     await log('')
-    await log("[green]If you enjoy using this program, please consider buying the developer a coffee :)\nhttps://www.buymeacoffee.com/juleswinnft")
+    await log("If you enjoy using this program, please consider buying the developer a coffee :)\nhttps://www.buymeacoffee.com/juleswinnft", style="green")
 
 
 def main(args=None):

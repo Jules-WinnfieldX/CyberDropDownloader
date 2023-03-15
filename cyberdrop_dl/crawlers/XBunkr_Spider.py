@@ -48,5 +48,5 @@ class XBunkrCrawler:
             logger.debug(e)
 
         await self.SQL_Helper.insert_album("xbunkr", "", album_obj)
-        await log(f"[green]Finished: {str(url)}[/green]", quiet=self.quiet)
+        await log(f"Finished: {str(url)}", quiet=self.quiet, style="green")
         return album_obj

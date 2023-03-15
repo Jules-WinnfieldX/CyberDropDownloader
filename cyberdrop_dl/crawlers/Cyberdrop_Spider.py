@@ -18,7 +18,7 @@ class CyberdropCrawler:
         """Cyberdrop scraper"""
         album_obj = AlbumItem("Loose Cyberdrop Files", [])
 
-        await log(f"[green]Starting: {str(url)}[/green]", quiet=self.quiet)
+        await log(f"Starting: {str(url)}", quiet=self.quiet, style="green")
         if await check_direct(url):
             url_path = await get_db_path(url)
             complete = await self.SQL_Helper.check_complete_singular("cyberdrop", url_path)
@@ -26,7 +26,7 @@ class CyberdropCrawler:
             media = MediaItem(url, url, complete, filename, ext, filename)
             await album_obj.add_media(media)
             await self.SQL_Helper.insert_album("cyberdrop", "", album_obj)
-            await log(f"[green]Finished: {str(url)}[/green]", quiet=self.quiet)
+            await log(f"Finished: {str(url)}", quiet=self.quiet, style="green")
             return album_obj
 
         try:
@@ -40,7 +40,7 @@ class CyberdropCrawler:
                 media = MediaItem(url, url, complete, filename, ext, filename)
                 await album_obj.add_media(media)
                 await self.SQL_Helper.insert_album("cyberdrop", "", album_obj)
-                await log(f"[green]Finished: {str(url)}[/green]", quiet=self.quiet)
+                await log(f"Finished: {str(url)}", quiet=self.quiet, style="green")
                 return album_obj
 
             title = soup.select_one("h1[id=title]").get_text()
@@ -68,11 +68,11 @@ class CyberdropCrawler:
 
         except Exception as e:
             logger.debug("Error encountered while handling %s", str(url), exc_info=True)
-            await log(f"[red]Error: {str(url)}[/red]", quiet=self.quiet)
+            await log(f"Error: {str(url)}", quiet=self.quiet, style="red")
             logger.debug(e)
             return album_obj
 
         url_path = await get_db_path(url)
         await self.SQL_Helper.insert_album("cyberdrop", url_path, album_obj)
-        await log(f"[green]Finished: {str(url)}[/green]", quiet=self.quiet)
+        await log(f"Finished: {str(url)}", quiet=self.quiet, style="green")
         return album_obj

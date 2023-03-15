@@ -62,10 +62,10 @@ class Sorter:
                     self.other += 1
         await asyncio.sleep(5)
         await self.purge_dir(str(self.download_dir))
-        await log(f"[green]Organized: {self.audio} Audio Files[/green]", quiet=False)
-        await log(f"[green]Organized: {self.images} Image Files[/green]", quiet=False)
-        await log(f"[green]Organized: {self.videos} Video Files[/green]", quiet=False)
-        await log(f"[green]Organized: {self.other} Other Files[/green]", quiet=False)
+        await log(f"Organized: {self.audio} Audio Files", style="green")
+        await log(f"Organized: {self.images} Image Files", style="green")
+        await log(f"Organized: {self.videos} Video Files", style="green")
+        await log(f"Organized: {self.other} Other Files", style="green")
 
     async def move_cd(self, file: Path, dest: Path):
         try:

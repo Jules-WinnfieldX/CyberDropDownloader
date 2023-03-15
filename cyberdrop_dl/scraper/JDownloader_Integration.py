@@ -28,7 +28,7 @@ class JDownloader:
             jd.connect(self.jdownloader_username, self.jdownloader_password)
             self.jdownloader_agent = jd.get_device(self.jdownloader_device)
         except JDownloaderFailure:
-            await log("[red]Failed JDownloader setup[/red]", quiet=self.quiet)
+            await log("Failed JDownloader setup", quiet=self.quiet, style="red")
             self.jdownloader_enable = False
 
     async def direct_unsupported_to_jdownloader(self, url: URL, title: str):
@@ -49,4 +49,4 @@ class JDownloader:
 
             except JDownloaderFailure as e:
                 logging.debug(e)
-                await log("[red]Failed to send " + str(url) + " to JDownloader[/red]", quiet=self.quiet)
+                await log(f"Failed to send {str(url)} to JDownloader", quiet=self.quiet, style="red")
