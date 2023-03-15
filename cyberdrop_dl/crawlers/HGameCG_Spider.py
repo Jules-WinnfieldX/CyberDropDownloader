@@ -11,7 +11,7 @@ class HGameCGCrawler:
         self.quiet = quiet
         self.SQL_Helper = SQL_Helper
 
-    async def fetch(self, session: ScrapeSession, url: URL):
+    async def fetch(self, session: ScrapeSession, url: URL) -> AlbumItem:
         """Basic director for HGameCG"""
         album_obj = AlbumItem("Loose HGamesCG Files", [])
 

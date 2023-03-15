@@ -11,7 +11,7 @@ class PimpAndHostCrawler:
         self.quiet = quiet
         self.SQL_Helper = SQL_Helper
 
-    async def fetch(self, session: ScrapeSession, url: URL):
+    async def fetch(self, session: ScrapeSession, url: URL) -> AlbumItem:
         """Director for pimpandhost scraping"""
         await log(f"Starting: {str(url)}", quiet=self.quiet, style="green")
         album_obj = AlbumItem("Loose Pixeldrain Files", [])

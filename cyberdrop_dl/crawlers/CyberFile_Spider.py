@@ -15,7 +15,7 @@ class CyberFileCrawler:
         self.load_files = URL('https://cyberfile.me/account/ajax/load_files')
         self.file_details = URL('https://cyberfile.me/account/ajax/file_details')
 
-    async def fetch(self, session: ScrapeSession, url: URL):
+    async def fetch(self, session: ScrapeSession, url: URL) -> DomainItem:
         """Director for cyberfile scraping"""
         await log(f"Starting: {str(url)}", quiet=self.quiet, style="green")
         domain_obj = DomainItem("cyberfile", {})

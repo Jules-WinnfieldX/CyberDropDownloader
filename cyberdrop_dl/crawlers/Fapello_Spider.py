@@ -1,3 +1,5 @@
+from typing import Optional
+
 from yarl import URL
 
 from ..base_functions.base_functions import log, logger, make_title_safe, get_filename_and_ext, get_db_path
@@ -12,18 +14,16 @@ class FapelloCrawler:
         self.quiet = quiet
         self.SQL_Helper = SQL_Helper
 
-    async def fetch(self, session: ScrapeSession, url: URL):
+    async def fetch(self, session: ScrapeSession, url: URL) -> Optional[AlbumItem]:
         """Basic director for fapello"""
         await log(f"Starting: {str(url)}", quiet=self.quiet, style="green")
 
         album_obj = await self.parse_profile(session, url)
 
         await log(f"Finished: {str(url)}", quiet=self.quiet, style="green")
-        if not album_obj:
-            return None
         return album_obj
 
-    async def parse_profile(self, session: ScrapeSession, url: URL):
+    async def parse_profile(self, session: ScrapeSession, url: URL) -> Optional[AlbumItem]:
         """Profile parser, passes posts to parse_post"""
         try:
             soup, returned_url = await session.get_BS4_and_url(url)
@@ -58,7 +58,7 @@ class FapelloCrawler:
             logger.debug("Error encountered while handling %s", str(url), exc_info=True)
             await log(f"Error: {str(url)}", quiet=self.quiet, style="red")
             logger.debug(e)
-            return
+            return None
 
     async def parse_post(self, session: ScrapeSession, url: URL):
         """Parses posts, returns list of media_items"""

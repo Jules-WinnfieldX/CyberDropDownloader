@@ -14,7 +14,7 @@ class PostImgCrawler:
         self.quiet = quiet
         self.SQL_Helper = SQL_Helper
 
-    async def fetch(self, session: ScrapeSession, url: URL):
+    async def fetch(self, session: ScrapeSession, url: URL) -> AlbumItem:
         """Director for PostImg scraping"""
         album_obj = AlbumItem("Loose PostImg Files", [])
         await log(f"Starting: {str(url)}", quiet=self.quiet, style="green")

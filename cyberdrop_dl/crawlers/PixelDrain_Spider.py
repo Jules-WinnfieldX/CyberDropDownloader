@@ -13,7 +13,7 @@ class PixelDrainCrawler:
         self.SQL_Helper = SQL_Helper
         self.api = URL('https://pixeldrain.com/api/')
 
-    async def fetch(self, session: ScrapeSession, url: URL):
+    async def fetch(self, session: ScrapeSession, url: URL) -> AlbumItem:
         """Director for pixeldrain scraping"""
         await log(f"Starting: {str(url)}", quiet=self.quiet, style="green")
         album_obj = AlbumItem("Loose Pixeldrain Files", [])

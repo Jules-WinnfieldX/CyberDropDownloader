@@ -11,7 +11,7 @@ class EHentaiCrawler:
         self.quiet = quiet
         self.SQL_Helper = SQL_Helper
 
-    async def fetch(self, session: ScrapeSession, url: URL):
+    async def fetch(self, session: ScrapeSession, url: URL) -> AlbumItem:
         """Director for E-Hentai"""
         album_obj = AlbumItem("Loose EHentai Files", [])
 

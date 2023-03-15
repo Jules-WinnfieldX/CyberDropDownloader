@@ -13,7 +13,7 @@ class LoveFapCrawler:
         self.SQL_Helper = SQL_Helper
         self.quiet = quiet
 
-    async def fetch(self, session: ScrapeSession, url: URL):
+    async def fetch(self, session: ScrapeSession, url: URL) -> AlbumItem:
         """Director for lovefap scraping"""
         album_obj = AlbumItem("Loose LoveFap Files", [])
 

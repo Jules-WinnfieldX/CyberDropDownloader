@@ -13,7 +13,7 @@ class ImgBoxCrawler:
         self.quiet = quiet
         self.SQL_Helper = SQL_Helper
 
-    async def fetch(self, session: ScrapeSession, url: URL):
+    async def fetch(self, session: ScrapeSession, url: URL) -> AlbumItem:
         """Director func for ImgBox scraping"""
         album_obj = AlbumItem("Loose ImgBox Files", [])
         await log(f"Starting: {str(url)}", quiet=self.quiet, style="green")

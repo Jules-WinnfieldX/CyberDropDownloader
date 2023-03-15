@@ -43,11 +43,11 @@ class GoFileCrawler:
         morsel.set('accountToken', client_token, client_token)
         session.client_session.cookie_jar.update_cookies({'gofile.io': morsel})
 
-    async def fetch(self, session: ScrapeSession, url: URL):
+    async def fetch(self, session: ScrapeSession, url: URL) -> DomainItem:
         """Basic director for actual scraping"""
+        domain_obj = DomainItem("gofile", {})
         try:
             await log(f"Starting: {str(url)}", quiet=self.quiet, style="green")
-            domain_obj = DomainItem("gofile", {})
             content_id = url.name
             results = await self.get_links(session, url, content_id, None)
             for title, media_item in results:
@@ -56,12 +56,12 @@ class GoFileCrawler:
             url_path = await get_db_path(url)
             await self.SQL_Helper.insert_domain("gofile", url_path, domain_obj)
             await log(f"Finished: {str(url)}", quiet=self.quiet, style="green")
-            return domain_obj
-
         except Exception as e:
             logger.debug("Error encountered while handling %s", str(url), exc_info=True)
             await log(f"Error: {str(url)}", quiet=self.quiet, style="red")
             logger.debug(e)
+
+        return domain_obj
 
     async def get_links(self, session: ScrapeSession, url: URL, content_id: str, title=None):
         """Gets links from the given url, creates media_items"""
