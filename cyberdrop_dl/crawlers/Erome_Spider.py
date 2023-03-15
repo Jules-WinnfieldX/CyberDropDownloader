@@ -13,7 +13,7 @@ class EromeCrawler:
         self.quiet = quiet
         self.SQL_Helper = SQL_Helper
 
-    async def fetch(self, session: ScrapeSession, url: URL):
+    async def fetch(self, session: ScrapeSession, url: URL) -> DomainItem:
         """Director function for Erome scraping"""
         await log(f"Starting: {str(url)}", quiet=self.quiet, style="green")
 
@@ -26,10 +26,10 @@ class EromeCrawler:
 
         return domain_obj
 
-    async def handle_album(self, session: ScrapeSession, url: URL):
+    async def handle_album(self, session: ScrapeSession, url: URL) -> DomainItem:
         """Handler function for erome albums, adds media items to the domain item"""
+        domain_obj = DomainItem("erome", {})
         try:
-            domain_obj = DomainItem("erome", {})
             soup = await session.get_BS4(url)
             title = soup.select_one('div[class="col-sm-12 page-content"] h1').get_text()
             if title is None:
@@ -66,18 +66,17 @@ class EromeCrawler:
 
             url_path = await get_db_path(url)
             await self.SQL_Helper.insert_domain("erome", url_path, domain_obj)
-            return domain_obj
-
         except Exception as e:
             logger.debug("Error encountered while handling %s", str(url), exc_info=True)
             await log(f"Error: {str(url)}", quiet=self.quiet, style="red")
             logger.debug(e)
-            return domain_obj
 
-    async def handle_profile(self, session: ScrapeSession, url: URL):
+        return domain_obj
+
+    async def handle_profile(self, session: ScrapeSession, url: URL) -> DomainItem:
         """Handler for erome profiles, sends albums to handle_album"""
+        domain_obj = DomainItem("erome", {})
         try:
-            domain_obj = DomainItem("erome", {})
             soup = await session.get_BS4(url)
             title = soup.select_one('h1[class="username"]').get_text()
             if title is None:
@@ -90,10 +89,9 @@ class EromeCrawler:
                 url = URL(album.get('href'))
                 await domain_obj.extend(await self.handle_album(session, url))
             await domain_obj.append_title(title)
-            return domain_obj
-
         except Exception as e:
             logger.debug("Error encountered while handling %s", str(url), exc_info=True)
             await log(f"Error: {str(url)}", quiet=self.quiet, style="red")
             logger.debug(e)
-            return domain_obj
+
+        return domain_obj

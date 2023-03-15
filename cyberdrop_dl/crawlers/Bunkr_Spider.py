@@ -16,7 +16,7 @@ class BunkrCrawler:
         self.SQL_Helper = SQL_Helper
         self.remove_bunkr_id = remove_bunkr_id
 
-    async def fetch(self, session: ScrapeSession, url: URL):
+    async def fetch(self, session: ScrapeSession, url: URL) -> AlbumItem:
         """Scraper for Bunkr"""
         album_obj = AlbumItem("Loose Bunkr Files", [])
         await log(f"Starting: {str(url)}", quiet=self.quiet, style="green")

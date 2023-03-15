@@ -14,7 +14,7 @@ class CyberdropCrawler:
         self.SQL_Helper = SQL_Helper
         self.quiet = quiet
 
-    async def fetch(self, session: ScrapeSession, url: URL):
+    async def fetch(self, session: ScrapeSession, url: URL) -> AlbumItem:
         """Cyberdrop scraper"""
         album_obj = AlbumItem("Loose Cyberdrop Files", [])
 
