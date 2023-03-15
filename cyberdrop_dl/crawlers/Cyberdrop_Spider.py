@@ -44,12 +44,12 @@ class CyberdropCrawler:
                 return album_obj
 
             title = soup.select_one("h1[id=title]").get_text()
+            title = await make_title_safe(title.replace("\n", "").strip())
             if title is None:
                 title = url.name
             elif self.include_id:
                 titlep2 = url.name
                 title = title + " - " + titlep2
-            title = await make_title_safe(title.replace(r"\n", "").strip())
             await album_obj.set_new_title(title)
 
             links = soup.select('div[class="image-container column"] a')
