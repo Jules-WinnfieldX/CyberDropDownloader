@@ -169,11 +169,10 @@ class Downloader:
                 album_progress.advance(album_task, 1)
                 return
         async with self._semaphore:
-            url_path = await get_db_path(URL(media.url), self.domain)
-            await self.download_file(album_task, album, media, url_path)
+            await self._download_file(album_task, album, media)
 
     @retry
-    async def download_file(self, album_task: TaskID, album: str, media: MediaItem, url_path: str):
+    async def _download_file(self, album_task: TaskID, album: str, media: MediaItem) -> None:
         """File downloader"""
         if not await check_free_space(self.required_free_space, self.download_dir):
             await log("We've run out of free space.", quiet=True)
@@ -195,6 +194,7 @@ class Downloader:
 
         original_filename = media.original_filename
         filename = media.filename
+        url_path = await get_db_path(media.url, self.domain)
 
         try:
             while await self.File_Lock.check_lock(filename):

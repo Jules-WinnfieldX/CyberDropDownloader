@@ -137,11 +137,10 @@ class Old_Downloader:
                 self.progress.update(1)
                 return
         async with self._semaphore:
-            url_path = await get_db_path(URL(media.url), self.domain)
-            await self.download_file(album, media, url_path)
+            await self._download_file(album, media)
 
     @retry
-    async def download_file(self, album: str, media: MediaItem, url_path: str):
+    async def _download_file(self, album: str, media: MediaItem) -> None:
         """File downloader"""
         if not await check_free_space(self.required_free_space, self.download_dir):
             await log("We've run out of free space.", quiet=True)
@@ -158,6 +157,8 @@ class Old_Downloader:
 
         if self.block_sub_folders:
             album = album.split('/')[0]
+
+        url_path = await get_db_path(media.url, self.domain)
 
         try:
             while await self.File_Lock.check_lock(media.filename):
