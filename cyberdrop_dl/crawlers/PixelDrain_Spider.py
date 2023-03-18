@@ -28,7 +28,7 @@ class PixelDrainCrawler:
         else:
             link = await self.create_download_link(identifier)
             url_path = await get_db_path(link)
-            complete = await self.SQL_Helper.check_complete_singular("anonfiles", url_path)
+            complete = await self.SQL_Helper.check_complete_singular("pixeldrain", url_path)
             filename, ext = await get_filename_and_ext(await self.get_file_name(session, identifier))
             media_item = MediaItem(link, url, complete, filename, ext, filename)
             await album_obj.add_media(media_item)
