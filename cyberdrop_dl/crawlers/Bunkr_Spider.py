@@ -46,7 +46,7 @@ class BunkrCrawler:
             ext = ext.lower()
         if ext in FILE_FORMATS['Images']:
             filename, ext = await get_filename_and_ext(url.name)
-            original_filename, filename = self.remove_id(filename, ext)
+            original_filename, filename = await self.remove_id(filename, ext)
 
             url_path = await get_db_path(url)
             await self.SQL_Helper.fix_bunkr_entries(url_path, original_filename)
