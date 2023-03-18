@@ -27,7 +27,7 @@ class ShareXCrawler:
             url = url.with_name(url.name.replace('.md.', '.').replace('.th.', '.'))
             url = await self.jpg_fish_from_church(url)
             url_path = await get_db_path(url)
-            complete = await self.SQL_Helper.check_complete_singular("anonfiles", url_path)
+            complete = await self.SQL_Helper.check_complete_singular("sharex", url_path)
             filename, ext = await get_filename_and_ext(url.name)
             media_item = MediaItem(url, url, complete, filename, ext, filename)
             await domain_obj.add_media("Loose ShareX Files", media_item)

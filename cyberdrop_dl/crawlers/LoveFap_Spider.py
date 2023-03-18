@@ -41,7 +41,7 @@ class LoveFapCrawler:
             return album_obj
 
         url_path = await get_db_path(url)
-        await self.SQL_Helper.insert_album("cyberdrop", url_path, album_obj)
+        await self.SQL_Helper.insert_album("lovefap", url_path, album_obj)
         await log(f"Finished: {str(url)}", quiet=self.quiet, style="green")
         return album_obj
 
