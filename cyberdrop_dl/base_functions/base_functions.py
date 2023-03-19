@@ -104,5 +104,6 @@ async def get_filename_and_ext(filename, forum=False):
         filename_parts = filename_parts[0].rsplit('-', 1)
     ext = "." + filename_parts[-1].lower()
     filename = filename_parts[0][:MAX_FILENAME_LENGTH] if len(filename_parts[0]) > MAX_FILENAME_LENGTH else filename_parts[0]
+    filename = filename.strip()
     filename = await sanitize(filename + ext)
     return filename, ext
