@@ -3,7 +3,6 @@ from __future__ import annotations
 import asyncio
 import logging
 import multiprocessing
-from functools import wraps
 from http import HTTPStatus
 from random import gauss
 
@@ -30,29 +29,8 @@ from .downloader_utils import (
     basic_auth,
     check_free_space,
     is_4xx_client_error,
+    retry,
 )
-
-
-def retry(f):
-    """This function is a wrapper that handles retrying for failed downloads"""
-
-    @wraps(f)
-    async def wrapper(self, *args, **kwargs):
-        while True:
-            try:
-                return await f(self, *args, **kwargs)
-            except DownloadFailure as e:
-                if not self.disable_attempt_limit and self.current_attempt[args[2]] >= self.allowed_attempts - 1:
-                    await self.output_failed(args[1], e)
-                    logger.debug('Skipping %s...', args[1].url, exc_info=True)
-                    self.files.failed_files += 1
-                    self.progress.update(1)
-                    return
-                logger.debug(e.message)
-                logger.debug(f'Retrying ({self.current_attempt[args[2]]}) {args[1].url}...')
-                self.current_attempt[args[2]] += 1
-
-    return wrapper
 
 
 class Files:
@@ -141,7 +119,7 @@ class Old_Downloader:
             await self.download_file(album, media, url_path)
 
     @retry
-    async def download_file(self, album: str, media: MediaItem, url_path: str):
+    async def download_file(self, album: str, media: MediaItem, url_path: str) -> None:
         """File downloader"""
         if not await check_free_space(self.required_free_space, self.download_dir):
             await log("We've run out of free space.", quiet=True)
@@ -265,6 +243,9 @@ class Old_Downloader:
         if self.errored_output:
             async with aiofiles.open(self.errored_file, mode='a') as file:
                 await file.write(f"{media.url},{media.referer},{e.message}\n")
+
+    async def failed_files_progress(self) -> None:
+        self.progress.update(1)
 
     async def check_file_exists(self, complete_file, partial_file, media, album, url_path, original_filename,
                                 current_throttle):
