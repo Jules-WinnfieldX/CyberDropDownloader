@@ -3,7 +3,6 @@ from __future__ import annotations
 import asyncio
 import logging
 import multiprocessing
-from functools import wraps
 from http import HTTPStatus
 from random import gauss
 
@@ -31,6 +30,7 @@ from .downloader_utils import (
     basic_auth,
     check_free_space,
     is_4xx_client_error,
+    retry,
 )
 from .progress_definitions import (
     album_progress,
@@ -42,28 +42,6 @@ from .progress_definitions import (
     get_forum_table,
     overall_file_progress,
 )
-
-
-def retry(f):
-    """This function is a wrapper that handles retrying for failed downloads"""
-
-    @wraps(f)
-    async def wrapper(self, *args, **kwargs):
-        while True:
-            try:
-                return await f(self, *args, **kwargs)
-            except DownloadFailure as e:
-                if not self.disable_attempt_limit and self.current_attempt[args[3]] >= self.allowed_attempts - 1:
-                    await self.output_failed(args[2], e)
-                    logger.debug('Skipping %s...', args[2].url, exc_info=True)
-                    overall_file_progress.advance(self.files.failed_files_task_id, 1)
-                    self.files.failed_files += 1
-                    return
-                logger.debug(e.message)
-                logger.debug(f'Retrying ({self.current_attempt[args[3]]}) {args[2].url}...')
-                self.current_attempt[args[3]] += 1
-
-    return wrapper
 
 
 class Files:
@@ -170,10 +148,10 @@ class Downloader:
                 return
         async with self._semaphore:
             url_path = await get_db_path(URL(media.url), self.domain)
-            await self.download_file(album_task, album, media, url_path)
+            await self.download_file(album, media, url_path, album_task)
 
     @retry
-    async def download_file(self, album_task: TaskID, album: str, media: MediaItem, url_path: str):
+    async def download_file(self, album: str, media: MediaItem, url_path: str, album_task: TaskID) -> None:
         """File downloader"""
         if not await check_free_space(self.required_free_space, self.download_dir):
             await log("We've run out of free space.", quiet=True)
@@ -317,6 +295,9 @@ class Downloader:
         if self.errored_output:
             async with aiofiles.open(self.errored_file, mode='a') as file:
                 await file.write(f"{media.url},{media.referer},{e.message}\n")
+
+    async def failed_files_progress(self) -> None:
+        overall_file_progress.advance(self.files.failed_files_task_id, 1)
 
     async def check_file_exists(self, complete_file, partial_file, media, album, url_path, original_filename,
                                 current_throttle):
