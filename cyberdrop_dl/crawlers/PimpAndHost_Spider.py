@@ -1,6 +1,6 @@
 from yarl import URL
 
-from ..base_functions.base_functions import log, logger, get_filename_and_ext, get_db_path, make_title_safe
+from ..base_functions.base_functions import get_filename_and_ext, log, logger, make_title_safe
 from ..base_functions.data_classes import AlbumItem, MediaItem
 from ..base_functions.sql_helper import SQLHelper
 from ..client.client import ScrapeSession
@@ -26,7 +26,7 @@ class PimpAndHostCrawler:
             media_item = await self.get_singular(session, url)
             await album_obj.add_media(media_item)
 
-        await self.SQL_Helper.insert_album("pimpandhost", url.path, album_obj)
+        await self.SQL_Helper.insert_album("pimpandhost", url, album_obj)
         await log(f"Finished: {str(url)}", quiet=self.quiet, style="green")
         return album_obj
 
@@ -59,8 +59,7 @@ class PimpAndHostCrawler:
             if img.startswith("//"):
                 img = URL("https:" + img)
             filename, ext = await get_filename_and_ext(img.name)
-            url_path = await get_db_path(img)
-            complete = await self.SQL_Helper.check_complete_singular("pimpandhost", url_path)
+            complete = await self.SQL_Helper.check_complete_singular("pimpandhost", img)
             media_item = MediaItem(img, url, complete, filename, ext, filename)
             return media_item
         except Exception as e:

@@ -4,13 +4,31 @@ import sqlite3
 from pathlib import Path
 from typing import List, Optional
 
-from cyberdrop_dl.base_functions.base_functions import get_db_path
+from yarl import URL
+
 from cyberdrop_dl.base_functions.data_classes import (
     AlbumItem,
     CascadeItem,
     DomainItem,
     MediaItem,
 )
+
+
+async def get_db_path(url: URL, referer: str = None) -> str:
+    """Gets the URL path to be put into the DB and checked from the DB"""
+    url_path = url.path
+
+    if url.host and 'anonfiles' in url.host or 'bayfiles' in url.host:
+        url_parts = url_path.split('/')
+        url_parts.pop(0)
+        if len(url_parts) > 1:
+            url_parts.pop(1)
+        url_path = '/' + '/'.join(url_parts)
+
+    if referer and "e-hentai" in referer:
+        url_path = url_path.split('keystamp')[0][:-1]
+
+    return url_path
 
 
 class SQLHelper:
@@ -115,15 +133,17 @@ class SQLHelper:
 
     """Coomeno Table Operations"""
 
-    async def insert_blob(self, blob: str, url_path: str) -> None:
+    async def insert_blob(self, blob: str, url: URL) -> None:
         """Inserts the post content into coomeno"""
+        url_path = await get_db_path(url)
         self.curs.execute("""INSERT OR IGNORE INTO coomeno VALUES (?, ?)""", (url_path, blob))
         self.conn.commit()
 
-    async def get_blob(self, url_path: str) -> Optional[str]:
+    async def get_blob(self, url: URL) -> Optional[str]:
         """returns the post content for a given coomeno post url"""
         if self.ignore_cache:
             return None
+        url_path = await get_db_path(url)
         self.curs.execute("""SELECT post_data FROM coomeno WHERE url_path = ?""", (url_path,))
         sql_file_check = self.curs.fetchone()
         if sql_file_check:
@@ -148,15 +168,17 @@ class SQLHelper:
         await self._insert_media(domain, album_path, media)
         self.conn.commit()
 
-    async def insert_album(self, domain: str, album_path: str, album: AlbumItem) -> None:
+    async def insert_album(self, domain: str, album_url: URL, album: AlbumItem) -> None:
         """Inserts an albums media into the media table"""
         if album.media:
+            album_path = await get_db_path(album_url)
             await self._insert_album(domain, album_path, album)
             self.conn.commit()
 
-    async def insert_domain(self, domain_name: str, album_path: str, domain: DomainItem) -> None:
+    async def insert_domain(self, domain_name: str, album_url: URL, domain: DomainItem) -> None:
         """Inserts a domains media into the media table"""
         if domain.albums:
+            album_path = await get_db_path(album_url)
             for album in domain.albums.values():
                 await self._insert_album(domain_name, album_path, album)
             self.conn.commit()
@@ -187,10 +209,11 @@ class SQLHelper:
         sql_file_check = self.curs.fetchone()
         return sql_file_check and sql_file_check[0] == 1
 
-    async def check_complete_singular(self, domain: str, url_path: str) -> bool:
+    async def check_complete_singular(self, domain: str, url: URL) -> bool:
         """Checks whether an individual file has completed given its domain and url path"""
         if self.ignore_history:
             return False
+        url_path = await get_db_path(url, domain)
         self.curs.execute("""SELECT completed FROM media WHERE domain = ? and url_path = ?""", (domain, url_path))
         sql_file_check = self.curs.fetchone()
         return sql_file_check and sql_file_check[0] != 0
@@ -215,8 +238,9 @@ class SQLHelper:
         self.conn.commit()
 
     """DB Fixes"""
-    async def fix_bunkr_entries(self, url_path: str, original_filename: str) -> None:
+    async def fix_bunkr_entries(self, url: URL, original_filename: str) -> None:
         complete_row = None
+        url_path = await get_db_path(url)
         self.curs.execute("""SELECT * FROM media WHERE url_path = ?""", (url_path,))
         sql_res = self.curs.fetchall()
         for row in sql_res:

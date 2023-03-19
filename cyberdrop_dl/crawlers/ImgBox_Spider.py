@@ -1,7 +1,12 @@
 from yarl import URL
 
-from ..base_functions.base_functions import log, logger, check_direct, get_filename_and_ext, get_db_path, \
-    make_title_safe
+from ..base_functions.base_functions import (
+    check_direct,
+    get_filename_and_ext,
+    log,
+    logger,
+    make_title_safe,
+)
 from ..base_functions.data_classes import AlbumItem, MediaItem
 from ..base_functions.error_classes import NoExtensionFailure
 from ..base_functions.sql_helper import SQLHelper
@@ -21,8 +26,7 @@ class ImgBoxCrawler:
         try:
             if await check_direct(url):
                 filename, ext = await get_filename_and_ext(url.name)
-                url_path = await get_db_path(url)
-                complete = await self.SQL_Helper.check_complete_singular("imgbox", url_path)
+                complete = await self.SQL_Helper.check_complete_singular("imgbox", url)
                 media_item = MediaItem(url, url, complete, filename, ext, filename)
                 await album_obj.add_media(media_item)
 
@@ -38,15 +42,13 @@ class ImgBoxCrawler:
                     except NoExtensionFailure:
                         logger.debug("Couldn't get extension for %s", str(img))
                         continue
-                    url_path = await get_db_path(img)
-                    complete = await self.SQL_Helper.check_complete_singular("imgbox", url_path)
+                    complete = await self.SQL_Helper.check_complete_singular("imgbox", img)
                     media_item = MediaItem(img, url, complete, filename, ext, filename)
                     await album_obj.add_media(media_item)
             else:
                 img = await self.singular(session, url)
                 filename, ext = await get_filename_and_ext(img.name)
-                url_path = await get_db_path(img)
-                complete = await self.SQL_Helper.check_complete_singular("imgbox", url_path)
+                complete = await self.SQL_Helper.check_complete_singular("imgbox", img)
                 media_item = MediaItem(img, url, complete, filename, ext, filename)
                 await album_obj.add_media(media_item)
 
@@ -55,7 +57,7 @@ class ImgBoxCrawler:
             await log(f"Error: {str(url)}", quiet=self.quiet, style="red")
             logger.debug(e)
 
-        await self.SQL_Helper.insert_album("imgbox", url.path, album_obj)
+        await self.SQL_Helper.insert_album("imgbox", url, album_obj)
         await log(f"Finished: {str(url)}", quiet=self.quiet, style="green")
         return album_obj
 

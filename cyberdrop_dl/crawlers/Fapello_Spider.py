@@ -2,7 +2,7 @@ from typing import Optional
 
 from yarl import URL
 
-from ..base_functions.base_functions import log, logger, make_title_safe, get_filename_and_ext, get_db_path
+from ..base_functions.base_functions import get_filename_and_ext, log, logger, make_title_safe
 from ..base_functions.data_classes import AlbumItem, MediaItem
 from ..base_functions.error_classes import NoExtensionFailure
 from ..base_functions.sql_helper import SQLHelper
@@ -51,7 +51,7 @@ class FapelloCrawler:
                 next_page = next_page.get('href')
                 if next_page:
                     await album_obj.extend(await self.parse_profile(session, URL(next_page)))
-            await self.SQL_Helper.insert_album("fapello", url.path, album_obj)
+            await self.SQL_Helper.insert_album("fapello", url, album_obj)
             return album_obj
 
         except Exception as e:
@@ -76,8 +76,7 @@ class FapelloCrawler:
                 except NoExtensionFailure:
                     logger.debug("Couldn't get extension for %s", str(download_link))
                     continue
-                url_path = await get_db_path(download_link)
-                complete = await self.SQL_Helper.check_complete_singular("fapello", url_path)
+                complete = await self.SQL_Helper.check_complete_singular("fapello", download_link)
                 results.append(MediaItem(download_link, url, complete, filename, ext, filename))
 
             videos = content_section.select("source")
@@ -88,8 +87,7 @@ class FapelloCrawler:
                 except NoExtensionFailure:
                     logger.debug("Couldn't get extension for %s", str(download_link))
                     continue
-                url_path = await get_db_path(download_link)
-                complete = await self.SQL_Helper.check_complete_singular("fapello", url_path)
+                complete = await self.SQL_Helper.check_complete_singular("fapello", download_link)
                 results.append(MediaItem(download_link, url, complete, filename, ext, filename))
 
             return results

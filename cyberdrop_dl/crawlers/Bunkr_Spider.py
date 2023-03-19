@@ -2,8 +2,13 @@ import re
 
 from yarl import URL
 
-from ..base_functions.base_functions import log, logger, make_title_safe, FILE_FORMATS, get_filename_and_ext, \
-    get_db_path
+from ..base_functions.base_functions import (
+    FILE_FORMATS,
+    get_filename_and_ext,
+    log,
+    logger,
+    make_title_safe,
+)
 from ..base_functions.data_classes import AlbumItem, MediaItem
 from ..base_functions.error_classes import NoExtensionFailure
 from ..base_functions.sql_helper import SQLHelper
@@ -33,8 +38,7 @@ class BunkrCrawler:
 
         if "a" in url.parts:
             album_obj = await self.get_album(session, url)
-            url_path = await get_db_path(url)
-            await self.SQL_Helper.insert_album("bunkr", url_path, album_obj)
+            await self.SQL_Helper.insert_album("bunkr", url, album_obj)
 
             if album_obj.media:
                 await log(f"Finished: {str(url)}", quiet=self.quiet, style="green")
@@ -48,9 +52,8 @@ class BunkrCrawler:
             filename, ext = await get_filename_and_ext(url.name)
             original_filename, filename = await self.remove_id(filename, ext)
 
-            url_path = await get_db_path(url)
-            await self.SQL_Helper.fix_bunkr_entries(url_path, original_filename)
-            check_complete = await self.SQL_Helper.check_complete_singular("bunkr", url_path)
+            await self.SQL_Helper.fix_bunkr_entries(url, original_filename)
+            check_complete = await self.SQL_Helper.check_complete_singular("bunkr", url)
 
             url = URL(str(url).replace("https://cdn", "https://i"))
             media_item = MediaItem(url, url, check_complete, filename, ext, original_filename)
@@ -63,7 +66,7 @@ class BunkrCrawler:
             media_item = await self.get_file(session, referer)
             await album_obj.add_media(media_item)
 
-        await self.SQL_Helper.insert_album("bunkr", url.path, album_obj)
+        await self.SQL_Helper.insert_album("bunkr", url, album_obj)
         await log(f"Finished: {str(url)}", quiet=self.quiet, style="green")
         return album_obj
 
@@ -105,9 +108,8 @@ class BunkrCrawler:
 
             original_filename, filename = await self.remove_id(filename, ext)
 
-            url_path = await get_db_path(link)
-            await self.SQL_Helper.fix_bunkr_entries(url_path, original_filename)
-            complete = await self.SQL_Helper.check_complete_singular("bunkr", url_path)
+            await self.SQL_Helper.fix_bunkr_entries(link, original_filename)
+            complete = await self.SQL_Helper.check_complete_singular("bunkr", link)
             return MediaItem(link, url, complete, filename, ext, original_filename)
 
         except Exception as e:
@@ -154,9 +156,8 @@ class BunkrCrawler:
 
                 original_filename, filename = await self.remove_id(filename, ext)
 
-                url_path = await get_db_path(link)
-                await self.SQL_Helper.fix_bunkr_entries(url_path, original_filename)
-                complete = await self.SQL_Helper.check_complete_singular("bunkr", url_path)
+                await self.SQL_Helper.fix_bunkr_entries(link, original_filename)
+                complete = await self.SQL_Helper.check_complete_singular("bunkr", link)
                 media = MediaItem(link, referer, complete, filename, ext, original_filename)
                 await album.add_media(media)
 

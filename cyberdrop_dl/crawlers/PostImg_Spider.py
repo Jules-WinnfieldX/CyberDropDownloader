@@ -2,7 +2,7 @@ from http import HTTPStatus
 
 from yarl import URL
 
-from ..base_functions.base_functions import log, logger, get_db_path, get_filename_and_ext
+from ..base_functions.base_functions import get_filename_and_ext, log, logger
 from ..base_functions.data_classes import AlbumItem, MediaItem
 from ..base_functions.error_classes import NoExtensionFailure
 from ..base_functions.sql_helper import SQLHelper
@@ -33,7 +33,7 @@ class PostImgCrawler:
             await log(f"Error: {str(url)}", quiet=self.quiet, style="red")
             logger.debug(e)
 
-        await self.SQL_Helper.insert_album("postimg", url.path, album_obj)
+        await self.SQL_Helper.insert_album("postimg", url, album_obj)
         await log(f"Finished: {str(url)}", quiet=self.quiet, style="green")
         return album_obj
 
@@ -58,8 +58,7 @@ class PostImgCrawler:
                 except NoExtensionFailure:
                     logger.debug("Couldn't get extension for %s", str(img))
                     continue
-                url_path = await get_db_path(img)
-                complete = await self.SQL_Helper.check_complete_singular("postimg", url_path)
+                complete = await self.SQL_Helper.check_complete_singular("postimg", img)
                 media_item = MediaItem(img, referer, complete, filename, ext, filename)
 
                 content.append(media_item)
@@ -72,8 +71,7 @@ class PostImgCrawler:
         link = URL(soup.select_one("a[id=download]").get('href').replace("?dl=1", ""))
 
         filename, ext = await get_filename_and_ext(link.name)
-        url_path = await get_db_path(link)
-        complete = await self.SQL_Helper.check_complete_singular("postimg", url_path)
+        complete = await self.SQL_Helper.check_complete_singular("postimg", link)
         media_item = MediaItem(link, url, complete, filename, ext, filename)
 
         return media_item

@@ -59,22 +59,6 @@ async def purge_dir(dirname) -> None:
     list(map(os.rmdir, deleted))
 
 
-async def get_db_path(url: URL, referer=None):
-    """Gets the URL path to be put into the DB and checked from the DB"""
-    url_path = url.path
-    if 'anonfiles' in url.host or 'bayfiles' in url.host:
-        url_path = url_path.split('/')
-        url_path.pop(0)
-        if len(url_path) > 1:
-            url_path.pop(1)
-        url_path = '/' + '/'.join(url_path)
-
-    if referer and "e-hentai" in referer:
-        url_path = url_path.split('keystamp')[0][:-1]
-
-    return url_path
-
-
 async def sanitize(name: str) -> str:
     """Simple sanitization to remove illegal characters"""
     return re.sub(r'[<>:"/\\|?*\']', "", name).strip()
