@@ -18,7 +18,7 @@ async def get_db_path(url: URL, referer: str = None) -> str:
     """Gets the URL path to be put into the DB and checked from the DB"""
     url_path = url.path
 
-    if url.host and 'anonfiles' in url.host or 'bayfiles' in url.host:
+    if url.host and ('anonfiles' in url.host or 'bayfiles' in url.host):
         url_parts = url_path.split('/')
         url_parts.pop(0)
         if len(url_parts) > 1:
