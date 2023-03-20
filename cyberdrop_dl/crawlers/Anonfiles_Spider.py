@@ -1,7 +1,7 @@
 from yarl import URL
 
-from ..base_functions.base_functions import log, logger, get_filename_and_ext, get_db_path
-from ..base_functions.data_classes import MediaItem, AlbumItem
+from ..base_functions.base_functions import get_filename_and_ext, log, logger
+from ..base_functions.data_classes import AlbumItem, MediaItem
 from ..base_functions.sql_helper import SQLHelper
 from ..client.client import ScrapeSession
 
@@ -29,8 +29,7 @@ class AnonfilesCrawler:
                 link = soup.select_one("a[id=download-url]")
                 link = URL(link.get('href'))
 
-                url_path = await get_db_path(link)
-                complete = await self.SQL_Helper.check_complete_singular("anonfiles", url_path)
+                complete = await self.SQL_Helper.check_complete_singular("anonfiles", link)
 
                 filename, ext = await get_filename_and_ext(".".join(json['data']['file']['metadata']['name'].rsplit("_", 1)))
                 media_item = MediaItem(link, url, complete, filename, ext, filename)

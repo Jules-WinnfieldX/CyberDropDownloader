@@ -1,6 +1,6 @@
 from yarl import URL
 
-from ..base_functions.base_functions import log, logger, make_title_safe, get_db_path, get_filename_and_ext
+from ..base_functions.base_functions import get_filename_and_ext, log, logger, make_title_safe
 from ..base_functions.data_classes import AlbumItem, MediaItem
 from ..base_functions.error_classes import NoExtensionFailure
 from ..base_functions.sql_helper import SQLHelper
@@ -18,8 +18,7 @@ class XBunkrCrawler:
 
         try:
             if "media" in url.host:
-                url_path = await get_db_path(url)
-                complete = await self.SQL_Helper.check_complete_singular("xbunkr", url_path)
+                complete = await self.SQL_Helper.check_complete_singular("xbunkr", url)
                 filename, ext = await get_filename_and_ext(url.name)
                 media_item = MediaItem(url, url, complete, filename, ext, filename)
                 await album_obj.add_media(media_item)
@@ -37,8 +36,7 @@ class XBunkrCrawler:
                     except NoExtensionFailure:
                         logger.debug("Couldn't get extension for %s", str(link))
                         continue
-                    url_path = await get_db_path(link)
-                    complete = await self.SQL_Helper.check_complete_singular("xbunkr", url_path)
+                    complete = await self.SQL_Helper.check_complete_singular("xbunkr", link)
                     media_item = MediaItem(link, url, complete, filename, ext, filename)
                     await album_obj.add_media(media_item)
 
@@ -47,6 +45,6 @@ class XBunkrCrawler:
             await log("Error scraping " + str(url), quiet=self.quiet)
             logger.debug(e)
 
-        await self.SQL_Helper.insert_album("xbunkr", "", album_obj)
+        await self.SQL_Helper.insert_album("xbunkr", URL(""), album_obj)
         await log(f"Finished: {str(url)}", quiet=self.quiet, style="green")
         return album_obj

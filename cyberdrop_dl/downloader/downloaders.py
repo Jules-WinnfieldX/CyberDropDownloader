@@ -14,13 +14,12 @@ from yarl import URL
 
 from cyberdrop_dl.base_functions.base_functions import (
     clear,
-    get_db_path,
     log,
     logger,
 )
 from cyberdrop_dl.base_functions.data_classes import AlbumItem, CascadeItem, DomainItem, FileLock, ForumItem, MediaItem
 from cyberdrop_dl.base_functions.error_classes import DownloadFailure
-from cyberdrop_dl.base_functions.sql_helper import SQLHelper
+from cyberdrop_dl.base_functions.sql_helper import SQLHelper, get_db_path
 from cyberdrop_dl.client.client import Client, DownloadSession
 from cyberdrop_dl.scraper.Scraper import ScrapeMapper
 
@@ -138,8 +137,7 @@ class Downloader:
             album_progress.advance(album_task, 1)
             return
         else:
-            url_path = await get_db_path(URL(media.url), self.domain)
-            complete = await self.SQL_Helper.check_complete_singular(self.domain, url_path)
+            complete = await self.SQL_Helper.check_complete_singular(self.domain, media.url)
             if complete:
                 await log(f"Previously Downloaded: {media.filename}", quiet=True)
                 overall_file_progress.advance(self.files.skipped_files_task_id, 1)
@@ -147,7 +145,7 @@ class Downloader:
                 album_progress.advance(album_task, 1)
                 return
         async with self._semaphore:
-            url_path = await get_db_path(URL(media.url), self.domain)
+            url_path = await get_db_path(media.url, self.domain)
             await self.download_file(album, media, url_path, album_task)
 
     @retry

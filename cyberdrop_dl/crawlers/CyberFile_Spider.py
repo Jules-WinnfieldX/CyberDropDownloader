@@ -1,7 +1,7 @@
 from bs4 import BeautifulSoup
 from yarl import URL
 
-from ..base_functions.base_functions import log, logger, get_filename_and_ext, make_title_safe, get_db_path
+from ..base_functions.base_functions import get_filename_and_ext, log, logger, make_title_safe
 from ..base_functions.data_classes import DomainItem, MediaItem
 from ..base_functions.error_classes import NoExtensionFailure
 from ..base_functions.sql_helper import SQLHelper
@@ -40,8 +40,7 @@ class CyberFileCrawler:
 
         for title, media_item in download_links:
             await domain_obj.add_media(title, media_item)
-        url_path = await get_db_path(url)
-        await self.SQL_Helper.insert_domain("cyberfile", url_path, domain_obj)
+        await self.SQL_Helper.insert_domain("cyberfile", url, domain_obj)
         await log(f"Finished: {str(url)}", quiet=self.quiet, style="green")
         return domain_obj
 
@@ -219,8 +218,7 @@ class CyberFileCrawler:
                 elif button:
                     html_download_text = button.get("onclick")
                     link = URL(html_download_text.replace("openUrl('", "").replace("'); return false;", ""))
-                link_path = await get_db_path(link)
-                complete = await self.SQL_Helper.check_complete_singular("cyberfile", link_path)
+                complete = await self.SQL_Helper.check_complete_singular("cyberfile", link)
                 try:
                     filename, ext = await get_filename_and_ext(link.name)
                 except NoExtensionFailure:

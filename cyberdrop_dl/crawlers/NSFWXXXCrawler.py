@@ -1,7 +1,6 @@
 from yarl import URL
 
-from ..base_functions.base_functions import log, logger, make_title_safe, get_filename_and_ext, \
-    get_db_path
+from ..base_functions.base_functions import get_filename_and_ext, log, logger, make_title_safe
 from ..base_functions.data_classes import MediaItem, DomainItem
 from ..base_functions.error_classes import NoExtensionFailure
 from ..base_functions.sql_helper import SQLHelper
@@ -23,8 +22,7 @@ class NSFWXXXCrawler:
             await self.get_user(session, url, domain_obj)
         else:
             await self.get_post(session, url, domain_obj)
-        url_path = await get_db_path(url)
-        await self.SQL_Helper.insert_domain("nsfw.xxx", url_path, domain_obj)
+        await self.SQL_Helper.insert_domain("nsfw.xxx", url, domain_obj)
         return domain_obj
 
     async def get_user(self, session: ScrapeSession, url: URL, domain_obj: DomainItem):
@@ -78,8 +76,7 @@ class NSFWXXXCrawler:
                 link = URL(content.get("src"))
                 if "-mobile" in link.name or ".webm" in link.name:
                     continue
-                url_path = await get_db_path(link)
-                complete = await self.SQL_Helper.check_complete_singular("nsfw.xxx", url_path)
+                complete = await self.SQL_Helper.check_complete_singular("nsfw.xxx", link)
                 try:
                     filename, ext = await get_filename_and_ext(link.name)
                 except NoExtensionFailure:

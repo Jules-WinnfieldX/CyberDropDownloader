@@ -1,6 +1,6 @@
 from yarl import URL
 
-from ..base_functions.base_functions import log, logger, get_filename_and_ext, get_db_path
+from ..base_functions.base_functions import get_filename_and_ext, log, logger
 from ..base_functions.data_classes import AlbumItem, MediaItem
 from ..base_functions.error_classes import NoExtensionFailure
 from ..base_functions.sql_helper import SQLHelper
@@ -27,13 +27,12 @@ class PixelDrainCrawler:
                     await album_obj.add_media(media_item)
         else:
             link = await self.create_download_link(identifier)
-            url_path = await get_db_path(link)
-            complete = await self.SQL_Helper.check_complete_singular("pixeldrain", url_path)
+            complete = await self.SQL_Helper.check_complete_singular("pixeldrain", link)
             filename, ext = await get_filename_and_ext(await self.get_file_name(session, identifier))
             media_item = MediaItem(link, url, complete, filename, ext, filename)
             await album_obj.add_media(media_item)
 
-        await self.SQL_Helper.insert_album("pixeldrain", url.path, album_obj)
+        await self.SQL_Helper.insert_album("pixeldrain", url, album_obj)
         await log(f"Finished: {str(url)}", quiet=self.quiet, style="green")
         return album_obj
 
@@ -49,8 +48,7 @@ class PixelDrainCrawler:
                 except NoExtensionFailure:
                     logger.debug("Couldn't get extension for %s", str(link))
                     continue
-                url_path = await get_db_path(link)
-                complete = await self.SQL_Helper.check_complete_singular("pixeldrain", url_path)
+                complete = await self.SQL_Helper.check_complete_singular("pixeldrain", link)
                 media_item = MediaItem(link, url, complete, filename, ext, filename)
                 media_items.append(media_item)
             return media_items

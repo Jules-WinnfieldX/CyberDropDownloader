@@ -1,7 +1,12 @@
 from yarl import URL
 
-from ..base_functions.base_functions import log, logger, make_title_safe, check_direct, get_filename_and_ext, \
-    get_db_path
+from ..base_functions.base_functions import (
+    check_direct,
+    get_filename_and_ext,
+    log,
+    logger,
+    make_title_safe,
+)
 from ..base_functions.data_classes import AlbumItem, MediaItem
 from ..base_functions.error_classes import NoExtensionFailure
 from ..base_functions.sql_helper import SQLHelper
@@ -19,12 +24,11 @@ class LoveFapCrawler:
 
         await log(f"Starting: {str(url)}", quiet=self.quiet, style="green")
         if await check_direct(url):
-            url_path = await get_db_path(url)
-            complete = await self.SQL_Helper.check_complete_singular("lovefap", url_path)
+            complete = await self.SQL_Helper.check_complete_singular("lovefap", url)
             filename, ext = await get_filename_and_ext(url.name)
             media = MediaItem(url, url, complete, filename, ext, filename)
             await album_obj.add_media(media)
-            await self.SQL_Helper.insert_album("lovefap", "", album_obj)
+            await self.SQL_Helper.insert_album("lovefap", URL(""), album_obj)
             await log(f"Finished: {str(url)}", quiet=self.quiet, style="green")
             return album_obj
 
@@ -40,14 +44,12 @@ class LoveFapCrawler:
             logger.debug(e)
             return album_obj
 
-        url_path = await get_db_path(url)
-        await self.SQL_Helper.insert_album("lovefap", url_path, album_obj)
+        await self.SQL_Helper.insert_album("lovefap", url, album_obj)
         await log(f"Finished: {str(url)}", quiet=self.quiet, style="green")
         return album_obj
 
     async def fetch_album(self, session: ScrapeSession, url: URL, album_obj: AlbumItem):
         """Gets media_items for albums, and adds them to the Album_obj"""
-        url_path = await get_db_path(url)
         soup = await session.get_BS4(url)
 
         title = soup.select_one('div[class=albums-content-header] span[style*="float: left"]').get_text()
@@ -72,8 +74,7 @@ class LoveFapCrawler:
                     logger.debug("Couldn't get extension for %s", str(link))
                     continue
 
-                url_path = await get_db_path(link)
-                complete = await self.SQL_Helper.check_complete_singular("lovefap", url_path)
+                complete = await self.SQL_Helper.check_complete_singular("lovefap", link)
                 media = MediaItem(link, url, complete, filename, ext, filename)
                 await album_obj.add_media(media)
 
@@ -89,7 +90,6 @@ class LoveFapCrawler:
                 logger.debug("Couldn't get extension for %s", str(link))
                 return
 
-            url_path = await get_db_path(link)
-            complete = await self.SQL_Helper.check_complete_singular("lovefap", url_path)
+            complete = await self.SQL_Helper.check_complete_singular("lovefap", link)
             media = MediaItem(link, url, complete, filename, ext, filename)
             await album_obj.add_media(media)

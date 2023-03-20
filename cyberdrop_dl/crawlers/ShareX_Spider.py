@@ -3,8 +3,13 @@ import re
 
 from yarl import URL
 
-from ..base_functions.base_functions import log, logger, make_title_safe, check_direct, get_db_path, \
-    get_filename_and_ext
+from ..base_functions.base_functions import (
+    check_direct,
+    get_filename_and_ext,
+    log,
+    logger,
+    make_title_safe,
+)
 from ..base_functions.data_classes import DomainItem, MediaItem
 from ..base_functions.error_classes import NoExtensionFailure
 from ..base_functions.sql_helper import SQLHelper
@@ -26,8 +31,7 @@ class ShareXCrawler:
         if await check_direct(url):
             url = url.with_name(url.name.replace('.md.', '.').replace('.th.', '.'))
             url = await self.jpg_fish_from_church(url)
-            url_path = await get_db_path(url)
-            complete = await self.SQL_Helper.check_complete_singular("sharex", url_path)
+            complete = await self.SQL_Helper.check_complete_singular("sharex", url)
             filename, ext = await get_filename_and_ext(url.name)
             media_item = MediaItem(url, url, complete, filename, ext, filename)
             await domain_obj.add_media("Loose ShareX Files", media_item)
@@ -40,8 +44,7 @@ class ShareXCrawler:
         else:
             await self.parse_profile(session, url, domain_obj)
 
-        url_path = await get_db_path(url)
-        await self.SQL_Helper.insert_domain("sharex", url_path, domain_obj)
+        await self.SQL_Helper.insert_domain("sharex", url, domain_obj)
         await log(f"Finished: {str(url)}", quiet=self.quiet, style="green")
         return domain_obj
 
@@ -82,8 +85,7 @@ class ShareXCrawler:
             link = link.with_name(link.name.replace('.md.', '.').replace('.th.', '.'))
             link = await self.jpg_fish_from_church(link)
 
-            url_path = await get_db_path(link)
-            complete = await self.SQL_Helper.check_complete_singular("sharex", url_path)
+            complete = await self.SQL_Helper.check_complete_singular("sharex", link)
             filename, ext = await get_filename_and_ext(link.name)
             media_item = MediaItem(link, url, complete, filename, ext, filename)
             await domain_obj.add_media("Loose ShareX Files", media_item)
@@ -142,8 +144,7 @@ class ShareXCrawler:
                 except NoExtensionFailure:
                     logger.debug("Couldn't get extension for %s", str(link))
                     continue
-                url_path = await get_db_path(link)
-                complete = await self.SQL_Helper.check_complete_singular("sharex", url_path)
+                complete = await self.SQL_Helper.check_complete_singular("sharex", link)
                 media_item = MediaItem(link, url, complete, filename, ext, filename)
                 await domain_obj.add_media(title, media_item)
 

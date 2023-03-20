@@ -189,7 +189,7 @@ class XenforoCrawler:
             if str(link).endswith("/"):
                 link = URL(str(link)[:-1])
             if 'attachments' in link.parts or 'content' in link.parts or 'data' in link.parts:
-                completed = await self.SQL_Helper.check_complete_singular(domain, link.path)
+                completed = await self.SQL_Helper.check_complete_singular(domain, link)
                 try:
                     filename, ext = await get_filename_and_ext(link.name, True)
                 except NoExtensionFailure:

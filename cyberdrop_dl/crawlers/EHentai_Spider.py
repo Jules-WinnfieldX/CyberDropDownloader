@@ -1,6 +1,6 @@
 from yarl import URL
 
-from ..base_functions.base_functions import log, logger, make_title_safe, get_filename_and_ext, get_db_path
+from ..base_functions.base_functions import get_filename_and_ext, log, logger, make_title_safe
 from ..base_functions.data_classes import AlbumItem, MediaItem
 from ..base_functions.sql_helper import SQLHelper
 from ..client.client import ScrapeSession
@@ -21,8 +21,7 @@ class EHentaiCrawler:
         elif "s" in url.parts:
             await self.get_image(session, url, album_obj)
         await log(f"Finished: {str(url)}", quiet=self.quiet, style="green")
-        url_path = await get_db_path(url)
-        await self.SQL_Helper.insert_album("e-hentai", url_path, album_obj)
+        await self.SQL_Helper.insert_album("e-hentai", url, album_obj)
         return album_obj
 
     async def get_album(self, session: ScrapeSession, url: URL, album_obj: AlbumItem):
@@ -61,8 +60,7 @@ class EHentaiCrawler:
             image = soup.select_one("img[id=img]")
             link = URL(image.get('src'))
 
-            url_path = await get_db_path(link, 'e-hentai')
-            complete = await self.SQL_Helper.check_complete_singular("e-hentai", url_path)
+            complete = await self.SQL_Helper.check_complete_singular("e-hentai", link)
 
             filename, ext = await get_filename_and_ext(link.name)
             media_item = MediaItem(link, url, complete, filename, ext, filename)

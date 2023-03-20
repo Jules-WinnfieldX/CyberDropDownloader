@@ -3,7 +3,7 @@ from typing import Union
 
 from yarl import URL
 
-from ..base_functions.base_functions import log, logger, make_title_safe, get_filename_and_ext, get_db_path
+from ..base_functions.base_functions import log, logger, make_title_safe, get_filename_and_ext
 from ..base_functions.data_classes import DomainItem, MediaItem
 from ..base_functions.error_classes import NoExtensionFailure
 from ..base_functions.sql_helper import SQLHelper
@@ -53,8 +53,7 @@ class GoFileCrawler:
             for title, media_item in results:
                 await domain_obj.add_media(title, media_item)
 
-            url_path = await get_db_path(url)
-            await self.SQL_Helper.insert_domain("gofile", url_path, domain_obj)
+            await self.SQL_Helper.insert_domain("gofile", url, domain_obj)
             await log(f"Finished: {str(url)}", quiet=self.quiet, style="green")
         except Exception as e:
             logger.debug("Error encountered while handling %s", str(url), exc_info=True)
@@ -95,8 +94,7 @@ class GoFileCrawler:
                 except NoExtensionFailure:
                     logger.debug("Couldn't get extension for %s", str(link))
                     continue
-                link_path = await get_db_path(link)
-                complete = await self.SQL_Helper.check_complete_singular("gofile", link_path)
+                complete = await self.SQL_Helper.check_complete_singular("gofile", link)
                 media_item = MediaItem(link, url, complete, filename, ext, filename)
                 results.append([title, media_item])
         for sub_folder in sub_folders:
