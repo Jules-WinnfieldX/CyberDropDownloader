@@ -9,7 +9,6 @@ from random import gauss
 import aiofiles
 import aiohttp.client_exceptions
 from tqdm import tqdm
-from yarl import URL
 
 from cyberdrop_dl.base_functions.base_functions import (
     clear,
@@ -100,18 +99,11 @@ class Old_Downloader:
 
     async def start_file(self, album: str, media: MediaItem):
         """Handler for files and the progress bars for it"""
-        if media.complete:
+        if media.complete or await self.SQL_Helper.check_complete_singular(self.domain, media.url):
             await log(f"Previously Downloaded: {media.filename}", quiet=True)
             self.files.skipped_files += 1
             self.progress.update(1)
             return
-        else:
-            complete = await self.SQL_Helper.check_complete_singular(self.domain, media.url)
-            if complete:
-                await log(f"Previously Downloaded: {media.filename}", quiet=True)
-                self.files.skipped_files += 1
-                self.progress.update(1)
-                return
         async with self._semaphore:
             url_path = await get_db_path(media.url, self.domain)
             await self.download_file(album, media, url_path)
