@@ -1,3 +1,5 @@
+import itertools
+
 from yarl import URL
 
 from ..base_functions.base_functions import get_filename_and_ext, log, logger, make_title_safe
@@ -28,10 +30,9 @@ class NSFWXXXCrawler:
     async def get_user(self, session: ScrapeSession, url: URL, domain_obj: DomainItem):
         """Gets posts for a user profile"""
         try:
-            page = 1
             model = url.name + " (NSFW.XXX)"
-            while True:
-                page_url = URL(f"https://nsfw.xxx/page/{str(page)}?nsfw[]=0&types[]=image&types[]=video&types[]=gallery&slider=1&jsload=1&user={url.name}")
+            for page in itertools.count(1):
+                page_url = URL(f"https://nsfw.xxx/page/{page}?nsfw[]=0&types[]=image&types[]=video&types[]=gallery&slider=1&jsload=1&user={url.name}")
                 page_soup = await session.get_BS4(page_url)
 
                 posts = page_soup.select('div[class="sh-section__image grid-item"] a[class=slider_init_href]')
@@ -44,7 +45,6 @@ class NSFWXXXCrawler:
                 posts = await self.get_post_hrefs(posts)
                 for post in posts:
                     await self.get_post(session, post, domain_obj, model)
-                page += 1
 
         except Exception as e:
             logger.debug("Error encountered while handling %s", str(url), exc_info=True)
