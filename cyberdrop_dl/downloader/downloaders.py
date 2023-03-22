@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import itertools
 import logging
 import multiprocessing
 from http import HTTPStatus
@@ -322,10 +323,8 @@ class Downloader:
         return complete_file, partial_file, proceed
 
     async def iterate_filename(self, complete_file, media, album):
-        iterations = 1
-        while True:
+        for iterations in itertools.count(1):
             filename = f"{complete_file.stem} ({iterations}){media.ext}"
-            iterations += 1
             temp_complete_file = (self.download_dir / album / filename)
             if not temp_complete_file.exists() and not await self.SQL_Helper.check_filename(filename):
                 media.filename = filename

@@ -1,3 +1,4 @@
+import itertools
 from http import HTTPStatus
 
 from yarl import URL
@@ -42,8 +43,7 @@ class PostImgCrawler:
         album = url.raw_name
         data = {"action": "list", "album": album}
         content = []
-        i = 1
-        while True:
+        for i in itertools.count(1):
             data_used = data
             data_used["page"] = i
             data_out = await session.post(URL("https://postimg.cc/json"), data_used)
@@ -62,7 +62,6 @@ class PostImgCrawler:
                 media_item = MediaItem(img, referer, complete, filename, ext, filename)
 
                 content.append(media_item)
-            i += 1
         return content
 
     async def get_singular(self, session: ScrapeSession, url: URL):
