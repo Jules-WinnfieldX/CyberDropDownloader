@@ -8,20 +8,19 @@ from http import HTTPStatus
 from pathlib import Path
 
 import aiofiles
-from bs4 import BeautifulSoup
-from tqdm import tqdm
-from rich.progress import TaskID
-from yarl import URL
-
 import aiohttp
 import certifi
+from bs4 import BeautifulSoup
+from rich.progress import TaskID
+from tqdm import tqdm
+from yarl import URL
 
-from cyberdrop_dl.downloader.progress_definitions import file_progress
-from .rate_limiting import AsyncRateLimiter, throttle
-from ..base_functions.base_functions import logger
+from ..base_functions.base_functions import adjust, logger
 from ..base_functions.data_classes import MediaItem
 from ..base_functions.error_classes import DownloadFailure, InvalidContentTypeFailure
 from ..downloader.downloader_utils import CustomHTTPStatus
+from ..downloader.progress_definitions import file_progress
+from .rate_limiting import AsyncRateLimiter, throttle
 
 
 class Client:
@@ -171,11 +170,7 @@ class DownloadSession:
             total = int(resp.headers.get('Content-Length', str(0))) + resume_point
             file.parent.mkdir(parents=True, exist_ok=True)
 
-            task_description = media.url.host + ": " + media.filename
-            if len(task_description) >= 40:
-                task_description = task_description[:37] + "..."
-            else:
-                task_description = task_description.ljust(40)
+            task_description = adjust(f"{media.url.host}: {media.filename}")
 
             with tqdm(total=total, unit_scale=True, unit='B', leave=False, initial=resume_point,
                       desc=task_description) as progress:

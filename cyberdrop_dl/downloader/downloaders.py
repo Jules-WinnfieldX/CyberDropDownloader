@@ -10,9 +10,9 @@ import aiofiles
 import aiohttp.client_exceptions
 from rich.live import Live
 from rich.progress import TaskID
-from yarl import URL
 
 from cyberdrop_dl.base_functions.base_functions import (
+    adjust,
     clear,
     log,
     logger,
@@ -116,10 +116,7 @@ class Downloader:
             return
         task_description = album.split('/')[-1]
         task_description = task_description.encode("ascii", "ignore").decode().strip()
-        if len(task_description) >= 40:
-            task_description = task_description[:37] + "..."
-        else:
-            task_description = task_description.ljust(40)
+        task_description = adjust(task_description)
         album_task = album_progress.add_task("[pink3]" + task_description.upper(), total=len(album_obj.media))
         download_tasks = []
         for media in album_obj.media:
@@ -213,12 +210,8 @@ class Downloader:
             if range_num:
                 headers['Range'] = range_num
 
-            task_description = media.filename
-            task_description = task_description.encode("ascii", "ignore").decode().strip()
-            if len(task_description) >= 40:
-                task_description = task_description[:37] + "..."
-            else:
-                task_description = task_description.ljust(40)
+            task_description = media.filename.encode("ascii", "ignore").decode().strip()
+            task_description = adjust(task_description)
             file_task = file_progress.add_task("[plum3]" + task_description, progress_type="file")
 
             if not await self.SQL_Helper.sql_check_old_existing(url_path) and not fake_download:
