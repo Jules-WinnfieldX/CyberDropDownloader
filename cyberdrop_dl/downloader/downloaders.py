@@ -65,7 +65,7 @@ class Downloader:
     """Downloader class, directs downloading for domain objects"""
 
     def __init__(self, args: dict, client: Client, SQL_Helper: SQLHelper, scraper: ScrapeMapper, max_workers: int,
-                 domain: str, domain_obj: DomainItem, semaphore: asyncio.Semaphore, files: Files):
+                 domain: str, domain_obj: DomainItem, files: Files):
         self.backup_scraper = scraper
         self.client = client
         self.download_session = DownloadSession(client)
@@ -82,7 +82,7 @@ class Downloader:
 
         self.current_attempt = {}
         self.max_workers = max_workers
-        self._semaphore = semaphore
+        self._semaphore = asyncio.Semaphore(max_workers)
         self.delay = {'cyberfile': 1, 'anonfiles': 1, "coomer": 0.2, "kemono": 0.2}
 
         self.pixeldrain_api_key = args["Authentication"]["pixeldrain_api_key"]
@@ -117,7 +117,7 @@ class Downloader:
             return
         task_description = album.split('/')[-1]
         task_description = task_description.encode("ascii", "ignore").decode().strip()
-        task_description = adjust(task_description)
+        task_description = await adjust(task_description)
         album_task = album_progress.add_task("[pink3]" + task_description.upper(), total=len(album_obj.media))
         download_tasks = []
         for media in album_obj.media:
@@ -204,7 +204,7 @@ class Downloader:
                 headers['Range'] = range_num
 
             task_description = media.filename.encode("ascii", "ignore").decode().strip()
-            task_description = adjust(task_description)
+            task_description = await adjust(task_description)
             file_task = file_progress.add_task("[plum3]" + task_description, progress_type="file")
 
             if not await self.SQL_Helper.sql_check_old_existing(url_path) and not fake_download:
@@ -355,9 +355,8 @@ async def download_cascade(args: dict, Cascade: CascadeItem, SQL_Helper: SQLHelp
             threads = user_threads if user_threads != 0 else multiprocessing.cpu_count()
             if 'bunkr' in domain or 'pixeldrain' in domain or 'anonfiles' in domain:
                 threads = 2 if (threads > 2) else threads
-            download_semaphore = asyncio.Semaphore(threads)
             downloaders.append(Downloader(args, client, SQL_Helper, scraper, threads, domain, domain_obj,
-                                          download_semaphore, files))
+                                          files))
         for downloader in downloaders:
             tasks.append(downloader.start_domain(cascade_task))
         await asyncio.gather(*tasks)
@@ -393,9 +392,8 @@ async def download_forums(args: dict, Forums: ForumItem, SQL_Helper: SQLHelper, 
                 threads = user_threads if user_threads != 0 else multiprocessing.cpu_count()
                 if 'bunkr' in domain or 'pixeldrain' in domain or 'anonfiles' in domain:
                     threads = 2 if (threads > 2) else threads
-                download_semaphore = asyncio.Semaphore(threads)
                 downloaders.append(Downloader(args, client, SQL_Helper, scraper, threads, domain, domain_obj,
-                                              download_semaphore, files))
+                                              files))
             for downloader in downloaders:
                 tasks.append(downloader.start_domain(cascade_task))
             await asyncio.gather(*tasks)

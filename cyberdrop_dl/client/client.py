@@ -170,7 +170,7 @@ class DownloadSession:
             total = int(resp.headers.get('Content-Length', str(0))) + resume_point
             file.parent.mkdir(parents=True, exist_ok=True)
 
-            task_description = adjust(f"{media.url.host}: {media.filename}")
+            task_description = await adjust(f"{media.url.host}: {media.filename}")
 
             with tqdm(total=total, unit_scale=True, unit='B', leave=False, initial=resume_point,
                       desc=task_description) as progress:
