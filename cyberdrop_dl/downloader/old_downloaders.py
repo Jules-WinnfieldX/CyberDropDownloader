@@ -288,7 +288,6 @@ async def old_download_cascade(args: dict, Cascade: CascadeItem, SQL_Helper: SQL
 
     files = Files()
 
-    downloaders = []
     tasks = []
     total_files = await Cascade.get_total()
     with tqdm(total=total_files, unit_scale=True, unit='Files', leave=True, initial=0,
@@ -297,9 +296,8 @@ async def old_download_cascade(args: dict, Cascade: CascadeItem, SQL_Helper: SQL
             threads = user_threads if user_threads != 0 else multiprocessing.cpu_count()
             if 'bunkr' in domain or 'pixeldrain' in domain or 'anonfiles' in domain:
                 threads = 2 if (threads > 2) else threads
-            downloaders.append(Old_Downloader(args, client, SQL_Helper, scraper, threads, domain, domain_obj,
-                                              files, progress))
-        for downloader in downloaders:
+            downloader = Old_Downloader(args, client, SQL_Helper, scraper, threads, domain, domain_obj,
+                                        files, progress)
             tasks.append(downloader.start_domain())
         await asyncio.gather(*tasks)
 
@@ -318,16 +316,14 @@ async def old_download_forums(args: dict, Forums: ForumItem, SQL_Helper: SQLHelp
     with tqdm(total=total_files, unit_scale=True, unit='Files', leave=True, initial=0,
               desc="Files Downloaded") as progress:
         for title, Cascade in Forums.threads.items():
-            downloaders = []
             tasks = []
 
             for domain, domain_obj in Cascade.domains.items():
                 threads = user_threads if user_threads != 0 else multiprocessing.cpu_count()
                 if 'bunkr' in domain or 'pixeldrain' in domain or 'anonfiles' in domain:
                     threads = 2 if (threads > 2) else threads
-                downloaders.append(Old_Downloader(args, client, SQL_Helper, scraper, threads, domain, domain_obj,
-                                                  files, progress))
-            for downloader in downloaders:
+                downloader = Old_Downloader(args, client, SQL_Helper, scraper, threads, domain, domain_obj,
+                                            files, progress)
                 tasks.append(downloader.start_domain())
             await asyncio.gather(*tasks)
 

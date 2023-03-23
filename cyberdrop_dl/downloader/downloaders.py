@@ -348,16 +348,13 @@ async def download_cascade(args: dict, Cascade: CascadeItem, SQL_Helper: SQLHelp
         cascade_task = cascade_progress.add_task("[light_salmon3]Domains", progress_type="cascade",
                                                  total=len(Cascade.domains))
 
-        downloaders = []
         tasks = []
 
         for domain, domain_obj in Cascade.domains.items():
             threads = user_threads if user_threads != 0 else multiprocessing.cpu_count()
             if 'bunkr' in domain or 'pixeldrain' in domain or 'anonfiles' in domain:
                 threads = 2 if (threads > 2) else threads
-            downloaders.append(Downloader(args, client, SQL_Helper, scraper, threads, domain, domain_obj,
-                                          files))
-        for downloader in downloaders:
+            downloader = Downloader(args, client, SQL_Helper, scraper, threads, domain, domain_obj, files)
             tasks.append(downloader.start_domain(cascade_task))
         await asyncio.gather(*tasks)
 
@@ -385,16 +382,13 @@ async def download_forums(args: dict, Forums: ForumItem, SQL_Helper: SQLHelper, 
         for title, Cascade in Forums.threads.items():
             cascade_task = cascade_progress.add_task("[light_salmon3]" + title.upper(), total=len(Cascade.domains))
 
-            downloaders = []
             tasks = []
 
             for domain, domain_obj in Cascade.domains.items():
                 threads = user_threads if user_threads != 0 else multiprocessing.cpu_count()
                 if 'bunkr' in domain or 'pixeldrain' in domain or 'anonfiles' in domain:
                     threads = 2 if (threads > 2) else threads
-                downloaders.append(Downloader(args, client, SQL_Helper, scraper, threads, domain, domain_obj,
-                                              files))
-            for downloader in downloaders:
+                downloader = Downloader(args, client, SQL_Helper, scraper, threads, domain, domain_obj, files)
                 tasks.append(downloader.start_domain(cascade_task))
             await asyncio.gather(*tasks)
             cascade_progress.update(cascade_task, visible=False)
