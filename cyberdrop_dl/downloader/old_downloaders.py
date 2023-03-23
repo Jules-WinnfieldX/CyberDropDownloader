@@ -45,7 +45,7 @@ class Old_Downloader:
     """Downloader class, directs downloading for domain objects"""
 
     def __init__(self, args: dict, client: Client, SQL_Helper: SQLHelper, scraper: ScrapeMapper, max_workers: int,
-                 domain: str, domain_obj: DomainItem, semaphore: asyncio.Semaphore, files: Files, progress: tqdm):
+                 domain: str, domain_obj: DomainItem, files: Files, progress: tqdm):
         self.backup_scraper = scraper
         self.client = client
         self.download_session = DownloadSession(client)
@@ -63,7 +63,7 @@ class Old_Downloader:
 
         self.current_attempt = {}
         self.max_workers = max_workers
-        self._semaphore = semaphore
+        self._semaphore = asyncio.Semaphore(max_workers)
         self.delay = {'cyberfile': 1, 'anonfiles': 1, "coomer": 0.2, "kemono": 0.2}
 
         self.pixeldrain_api_key = args["Authentication"]["pixeldrain_api_key"]
@@ -297,9 +297,8 @@ async def old_download_cascade(args: dict, Cascade: CascadeItem, SQL_Helper: SQL
             threads = user_threads if user_threads != 0 else multiprocessing.cpu_count()
             if 'bunkr' in domain or 'pixeldrain' in domain or 'anonfiles' in domain:
                 threads = 2 if (threads > 2) else threads
-            download_semaphore = asyncio.Semaphore(threads)
             downloaders.append(Old_Downloader(args, client, SQL_Helper, scraper, threads, domain, domain_obj,
-                                              download_semaphore, files, progress))
+                                              files, progress))
         for downloader in downloaders:
             tasks.append(downloader.start_domain())
         await asyncio.gather(*tasks)
@@ -326,9 +325,8 @@ async def old_download_forums(args: dict, Forums: ForumItem, SQL_Helper: SQLHelp
                 threads = user_threads if user_threads != 0 else multiprocessing.cpu_count()
                 if 'bunkr' in domain or 'pixeldrain' in domain or 'anonfiles' in domain:
                     threads = 2 if (threads > 2) else threads
-                download_semaphore = asyncio.Semaphore(threads)
                 downloaders.append(Old_Downloader(args, client, SQL_Helper, scraper, threads, domain, domain_obj,
-                                                  download_semaphore, files, progress))
+                                                  files, progress))
             for downloader in downloaders:
                 tasks.append(downloader.start_domain())
             await asyncio.gather(*tasks)
