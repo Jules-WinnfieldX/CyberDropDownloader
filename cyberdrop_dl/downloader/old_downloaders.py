@@ -3,7 +3,6 @@ from __future__ import annotations
 import asyncio
 import itertools
 import logging
-import multiprocessing
 from http import HTTPStatus
 from random import gauss
 
@@ -27,6 +26,7 @@ from .downloader_utils import (
     allowed_filetype,
     basic_auth,
     check_free_space,
+    get_threads_number,
     is_4xx_client_error,
     retry,
 )
@@ -284,8 +284,6 @@ class Old_Downloader:
 async def old_download_cascade(args: dict, Cascade: CascadeItem, SQL_Helper: SQLHelper, client: Client,
                                scraper: ScrapeMapper) -> None:
     """Handler for cascades and the progress bars for it"""
-    user_threads = args["Runtime"]["simultaneous_downloads_per_domain"]
-
     files = Files()
 
     tasks = []
@@ -293,9 +291,7 @@ async def old_download_cascade(args: dict, Cascade: CascadeItem, SQL_Helper: SQL
     with tqdm(total=total_files, unit_scale=True, unit='Files', leave=True, initial=0,
               desc="Files Downloaded") as progress:
         for domain, domain_obj in Cascade.domains.items():
-            threads = user_threads if user_threads != 0 else multiprocessing.cpu_count()
-            if 'bunkr' in domain or 'pixeldrain' in domain or 'anonfiles' in domain:
-                threads = 2 if (threads > 2) else threads
+            threads = await get_threads_number(args, domain)
             downloader = Old_Downloader(args, client, SQL_Helper, scraper, threads, domain, domain_obj,
                                         files, progress)
             tasks.append(downloader.start_domain())
@@ -309,8 +305,6 @@ async def old_download_cascade(args: dict, Cascade: CascadeItem, SQL_Helper: SQL
 async def old_download_forums(args: dict, Forums: ForumItem, SQL_Helper: SQLHelper, client: Client,
                               scraper: ScrapeMapper) -> None:
     """Handler for forum threads and the progress bars for it"""
-    user_threads = args["Runtime"]["simultaneous_downloads_per_domain"]
-
     files = Files()
     total_files = await Forums.get_total()
     with tqdm(total=total_files, unit_scale=True, unit='Files', leave=True, initial=0,
@@ -319,9 +313,7 @@ async def old_download_forums(args: dict, Forums: ForumItem, SQL_Helper: SQLHelp
             tasks = []
 
             for domain, domain_obj in Cascade.domains.items():
-                threads = user_threads if user_threads != 0 else multiprocessing.cpu_count()
-                if 'bunkr' in domain or 'pixeldrain' in domain or 'anonfiles' in domain:
-                    threads = 2 if (threads > 2) else threads
+                threads = await get_threads_number(args, domain)
                 downloader = Old_Downloader(args, client, SQL_Helper, scraper, threads, domain, domain_obj,
                                             files, progress)
                 tasks.append(downloader.start_domain())
