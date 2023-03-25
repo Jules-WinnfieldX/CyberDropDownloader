@@ -1,3 +1,4 @@
+import multiprocessing
 import shutil
 from base64 import b64encode
 from enum import IntEnum
@@ -39,6 +40,13 @@ async def check_free_space(required_space_gb: int, download_directory: Path) -> 
     free_space = shutil.disk_usage(download_directory.parent).free
     free_space_gb = free_space / 1024 ** 3
     return free_space_gb >= required_space_gb
+
+
+async def get_threads_number(args: dict, domain: str) -> int:
+    threads = args["Runtime"]["simultaneous_downloads_per_domain"] or multiprocessing.cpu_count()
+    if any(s in domain for s in ('anonfiles', 'bunkr', 'pixeldrain')):
+        return min(threads, 2)
+    return threads
 
 
 async def is_4xx_client_error(status_code: int) -> bool:
