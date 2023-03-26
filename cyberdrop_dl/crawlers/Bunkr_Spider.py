@@ -60,9 +60,9 @@ class BunkrCrawler:
             await album_obj.add_media(media_item)
         else:
             if ext in FILE_FORMATS['Videos']:
-                referer = URL(re.sub(cdn_possibilities, "bunkr.su/v", str(url)))
+                referer = URL(re.sub(cdn_possibilities, "bunkr.la/v", str(url)))
             else:
-                referer = URL(re.sub(cdn_possibilities, "bunkr.su/d", str(url)))
+                referer = URL(re.sub(cdn_possibilities, "bunkr.la/d", str(url)))
             media_item = await self.get_file(session, referer)
             await album_obj.add_media(media_item)
 
