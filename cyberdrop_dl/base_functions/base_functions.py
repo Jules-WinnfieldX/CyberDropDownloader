@@ -71,6 +71,9 @@ async def sanitize(name: str) -> str:
 
 async def make_title_safe(title: str) -> str:
     """Simple sanitization to remove illegal characters from titles and trim the length to be less than 60 chars"""
+    title = title.replace("\n", "").strip()
+    title = title.replace("\t", "").strip()
+    title = re.sub(' +', ' ', title)
     title = re.sub(r'[\\*?:"<>|./]', "-", title)
     title = title[:60].strip()
     return title

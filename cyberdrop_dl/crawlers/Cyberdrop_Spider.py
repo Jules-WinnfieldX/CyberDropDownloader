@@ -46,7 +46,7 @@ class CyberdropCrawler:
                 return album_obj
 
             title = soup.select_one("h1[id=title]").get_text()
-            title = await make_title_safe(title.replace("\n", "").strip())
+            title = await make_title_safe(title)
             if title is None:
                 title = url.name
             elif self.include_id:
