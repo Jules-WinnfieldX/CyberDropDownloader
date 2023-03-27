@@ -336,6 +336,11 @@ class ScrapeMapper:
 
     """URL to Function Mapper"""
 
+    async def is_skip_host(self, host: str) -> bool:
+        if self.only_data.sites:
+            return not any(site in host for site in self.only_data.sites)
+        return any(site in host for site in self.skip_data.sites)
+
     async def map_url(self, url_to_map: URL, title=None, referer=None):
         if not url_to_map:
             return
@@ -345,15 +350,10 @@ class ScrapeMapper:
 
         key = next((key for key in self.mapping if key in url_to_map.host), None)
         if key:
-            handler = self.mapping[key]
-            if self.only_data.sites:
-                if any(site in key for site in self.only_data.sites):
-                    await handler(url=url_to_map, title=title)
-                else:
-                    await log(f"Skipping: {str(url_to_map)}", quiet=self.quiet, style="yellow")
-            elif any(site in key for site in self.skip_data.sites):
+            if await self.is_skip_host(key):
                 await log(f"Skipping: {str(url_to_map)}", quiet=self.quiet, style="yellow")
             else:
+                handler = self.mapping[key]
                 await handler(url=url_to_map, title=title)
             return
 
