@@ -212,14 +212,14 @@ async def director(args: dict, links: list) -> None:
 
         if args['Progress_Options']['hide_new_progress']:
             if not await Cascade.is_empty():
-                await old_download_cascade(args, Cascade, SQL_Helper, client, Scraper)
+                await old_download_cascade(args, Cascade, SQL_Helper, client)
             if not await Forums.is_empty():
-                await old_download_forums(args, Forums, SQL_Helper, client, Scraper)
+                await old_download_forums(args, Forums, SQL_Helper, client)
         else:
             if not await Cascade.is_empty():
-                await download_cascade(args, Cascade, SQL_Helper, client, Scraper)
+                await download_cascade(args, Cascade, SQL_Helper, client)
             if not await Forums.is_empty():
-                await download_forums(args, Forums, SQL_Helper, client, Scraper)
+                await download_forums(args, Forums, SQL_Helper, client)
 
     if args['Files']['output_folder'].is_dir():
         if args['Sorting']['sort_downloads']:

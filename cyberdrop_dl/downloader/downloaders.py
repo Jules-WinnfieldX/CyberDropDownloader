@@ -21,7 +21,6 @@ from cyberdrop_dl.base_functions.data_classes import AlbumItem, CascadeItem, Dom
 from cyberdrop_dl.base_functions.error_classes import DownloadFailure
 from cyberdrop_dl.base_functions.sql_helper import SQLHelper, get_db_path
 from cyberdrop_dl.client.client import Client, DownloadSession
-from cyberdrop_dl.scraper.Scraper import ScrapeMapper
 
 from .downloader_utils import (
     CustomHTTPStatus,
@@ -64,9 +63,8 @@ class Files:
 class Downloader:
     """Downloader class, directs downloading for domain objects"""
 
-    def __init__(self, args: dict, client: Client, SQL_Helper: SQLHelper, scraper: ScrapeMapper, max_workers: int,
+    def __init__(self, args: dict, client: Client, SQL_Helper: SQLHelper,
                  domain: str, domain_obj: DomainItem, files: Files):
-        self.backup_scraper = scraper
         self.client = client
         self.download_session = DownloadSession(client)
         self.File_Lock = FileLock()
@@ -81,13 +79,12 @@ class Downloader:
         self.files = files
 
         self.current_attempt = {}
-        self.max_workers = max_workers
+        max_workers = get_threads_number(args, domain)
         self._semaphore = asyncio.Semaphore(max_workers)
         self.delay = {'cyberfile': 1, 'anonfiles': 1, "coomer": 0.2, "kemono": 0.2}
 
         self.pixeldrain_api_key = args["Authentication"]["pixeldrain_api_key"]
 
-        self.ignore_history = args["Ignore"]["ignore_history"]
         self.exclude_audio = args["Ignore"]["exclude_audio"]
         self.exclude_images = args["Ignore"]["exclude_images"]
         self.exclude_videos = args["Ignore"]["exclude_videos"]
@@ -95,7 +92,6 @@ class Downloader:
 
         self.block_sub_folders = args['Runtime']['block_sub_folders']
         self.allowed_attempts = args["Runtime"]["attempts"]
-        self.allow_insecure_connections = args["Runtime"]["allow_insecure_connections"]
         self.disable_attempt_limit = args["Runtime"]["disable_attempt_limit"]
         self.download_dir = args["Files"]["output_folder"]
         self.mark_downloaded = args["Runtime"]["skip_download_mark_completed"]
@@ -334,8 +330,7 @@ class Downloader:
         return complete_file, partial_file
 
 
-async def download_cascade(args: dict, Cascade: CascadeItem, SQL_Helper: SQLHelper, client: Client,
-                           scraper: ScrapeMapper) -> None:
+async def download_cascade(args: dict, Cascade: CascadeItem, SQL_Helper: SQLHelper, client: Client) -> None:
     """Handler for cascades and the progress bars for it"""
     progress_table = await get_cascade_table(args["Progress_Options"])
     total_files = await Cascade.get_total()
@@ -347,10 +342,8 @@ async def download_cascade(args: dict, Cascade: CascadeItem, SQL_Helper: SQLHelp
                                                  total=len(Cascade.domains))
 
         tasks = []
-
         for domain, domain_obj in Cascade.domains.items():
-            threads = await get_threads_number(args, domain)
-            downloader = Downloader(args, client, SQL_Helper, scraper, threads, domain, domain_obj, files)
+            downloader = Downloader(args, client, SQL_Helper, domain, domain_obj, files)
             tasks.append(downloader.start_domain(cascade_task))
         await asyncio.gather(*tasks)
 
@@ -363,8 +356,7 @@ async def download_cascade(args: dict, Cascade: CascadeItem, SQL_Helper: SQLHelp
               f"{files.skipped_files}[/yellow] - [red]Files Failed: {files.failed_files}[/red] |")
 
 
-async def download_forums(args: dict, Forums: ForumItem, SQL_Helper: SQLHelper, client: Client,
-                          scraper: ScrapeMapper) -> None:
+async def download_forums(args: dict, Forums: ForumItem, SQL_Helper: SQLHelper, client: Client) -> None:
     """Handler for forum threads and the progress bars for it"""
     progress_table = await get_forum_table(args["Progress_Options"])
     total_files = await Forums.get_total()
@@ -377,12 +369,11 @@ async def download_forums(args: dict, Forums: ForumItem, SQL_Helper: SQLHelper, 
             cascade_task = cascade_progress.add_task("[light_salmon3]" + title.upper(), total=len(Cascade.domains))
 
             tasks = []
-
             for domain, domain_obj in Cascade.domains.items():
-                threads = await get_threads_number(args, domain)
-                downloader = Downloader(args, client, SQL_Helper, scraper, threads, domain, domain_obj, files)
+                downloader = Downloader(args, client, SQL_Helper, domain, domain_obj, files)
                 tasks.append(downloader.start_domain(cascade_task))
             await asyncio.gather(*tasks)
+
             cascade_progress.update(cascade_task, visible=False)
             forum_progress.advance(forum_task, 1)
 
