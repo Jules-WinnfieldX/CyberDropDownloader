@@ -38,17 +38,17 @@ config_default = [
                 "ignore_cache": False,
                 "ignore_history": False,
                 "skip_hosts": [],
-                "only_hosts": []
+                "only_hosts": [],
             },
             "Progress_Options": {
                 "hide_new_progress": False,
-                "dont_show_overall_progress": False,
-                "dont_show_forum_progress": False,
-                "dont_show_thread_progress": False,
-                "dont_show_domain_progress": False,
-                "dont_show_album_progress": False,
-                "dont_show_file_progress": False,
-                "refresh_rate": 10
+                "hide_overall_progress": False,
+                "hide_forum_progress": False,
+                "hide_thread_progress": False,
+                "hide_domain_progress": False,
+                "hide_album_progress": False,
+                "hide_file_progress": False,
+                "refresh_rate": 10,
             },
             "Ratelimiting": {
                 "connection_timeout": 15,
@@ -75,10 +75,10 @@ config_default = [
                 "sorted_audio": "{sort_dir}/{base_dir}/Audio",
                 "sorted_images": "{sort_dir}/{base_dir}/Images",
                 "sorted_others": "{sort_dir}/{base_dir}/Other",
-                "sorted_videos": "{sort_dir}/{base_dir}/Videos"
-            }
-        }
-    }
+                "sorted_videos": "{sort_dir}/{base_dir}/Videos",
+            },
+        },
+    },
 ]
 
 authentication_args = ["pixeldrain_api_key",
@@ -96,9 +96,8 @@ ignore_args = ["exclude_videos", "exclude_images", "exclude_audio", "exclude_oth
 
 jdownloader_args = ["apply_jdownloader", "jdownloader_username", "jdownloader_password", "jdownloader_device"]
 
-progress_args = ["hide_new_progress", "dont_show_overall_progress", "dont_show_forum_progress",
-                 "dont_show_thread_progress", "dont_show_domain_progress", "dont_show_album_progress",
-                 "dont_show_file_progress", "refresh_rate"]
+progress_args = ["hide_new_progress", "hide_overall_progress", "hide_forum_progress", "hide_thread_progress",
+                 "hide_domain_progress", "hide_album_progress", "hide_file_progress", "refresh_rate"]
 
 ratelimiting_args = ["connection_timeout", "ratelimit", "throttle"]
 

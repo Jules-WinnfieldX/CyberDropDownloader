@@ -44,17 +44,17 @@ file_progress = Progress(SpinnerColumn(),
 async def get_forum_table(progress_options: dict):
     """Table creator for forum threads"""
     progress_table = Table.grid(expand=True)
-    if not progress_options['dont_show_overall_progress']:
+    if not progress_options['hide_overall_progress']:
         progress_table.add_row(Panel.fit(overall_file_progress, title="Overall Progress", border_style="green", padding=(1, 1)))
-    if not progress_options['dont_show_forum_progress']:
+    if not progress_options['hide_forum_progress']:
         progress_table.add_row(Panel.fit(forum_progress, title="Total Thread", border_style="green", padding=(1, 1)))
-    if not progress_options['dont_show_thread_progress']:
+    if not progress_options['hide_thread_progress']:
         progress_table.add_row(Panel.fit(cascade_progress, title="Current Thread", border_style="green", padding=(1, 1)))
-    if not progress_options['dont_show_domain_progress']:
+    if not progress_options['hide_domain_progress']:
         progress_table.add_row(Panel.fit(domain_progress, title="Domains Being Downloaded", border_style="green", padding=(1, 1)))
-    if not progress_options['dont_show_album_progress']:
+    if not progress_options['hide_album_progress']:
         progress_table.add_row(Panel.fit(album_progress, title="Albums Being Downloaded", border_style="green", padding=(1, 1)))
-    if not progress_options['dont_show_file_progress']:
+    if not progress_options['hide_file_progress']:
         progress_table.add_row(Panel.fit(file_progress, title="[b]Files Being Downloaded", border_style="green", padding=(1, 1)))
     return progress_table
 
@@ -62,14 +62,14 @@ async def get_forum_table(progress_options: dict):
 async def get_cascade_table(progress_options: dict):
     """Table creator for cascade objects"""
     progress_table = Table.grid(expand=True)
-    if not progress_options['dont_show_overall_progress']:
+    if not progress_options['hide_overall_progress']:
         progress_table.add_row(Panel.fit(overall_file_progress, title="Overall Progress", border_style="green", padding=(1, 1)))
-    if not progress_options['dont_show_thread_progress']:
+    if not progress_options['hide_thread_progress']:
         progress_table.add_row(Panel.fit(cascade_progress, title="Current Thread", border_style="green", padding=(1, 1)))
-    if not progress_options['dont_show_domain_progress']:
+    if not progress_options['hide_domain_progress']:
         progress_table.add_row(Panel.fit(domain_progress, title="Domains Being Downloaded", border_style="green", padding=(1, 1)))
-    if not progress_options['dont_show_album_progress']:
+    if not progress_options['hide_album_progress']:
         progress_table.add_row(Panel.fit(album_progress, title="Albums Being Downloaded", border_style="green", padding=(1, 1)))
-    if not progress_options['dont_show_file_progress']:
+    if not progress_options['hide_file_progress']:
         progress_table.add_row(Panel.fit(file_progress, title="[b]Files Being Downloaded", border_style="green", padding=(1, 1)))
     return progress_table
