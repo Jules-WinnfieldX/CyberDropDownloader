@@ -19,7 +19,6 @@ from cyberdrop_dl.base_functions.data_classes import AlbumItem, CascadeItem, Dom
 from cyberdrop_dl.base_functions.error_classes import DownloadFailure
 from cyberdrop_dl.base_functions.sql_helper import SQLHelper, get_db_path
 from cyberdrop_dl.client.client import Client, DownloadSession
-from cyberdrop_dl.scraper.Scraper import ScrapeMapper
 
 from .downloader_utils import (
     CustomHTTPStatus,
@@ -35,18 +34,30 @@ from .downloader_utils import (
 class Files:
     """Class that keeps track of completed, skipped and failed files"""
 
-    def __init__(self):
+    def __init__(self, progress: tqdm):
+        self.progress = progress
         self.completed_files = 0
         self.skipped_files = 0
         self.failed_files = 0
+
+    async def add_completed(self):
+        self.completed_files += 1
+        self.progress.update(1)
+
+    async def add_skipped(self):
+        self.skipped_files += 1
+        self.progress.update(1)
+
+    async def add_failed(self):
+        self.failed_files += 1
+        self.progress.update(1)
 
 
 class Old_Downloader:
     """Downloader class, directs downloading for domain objects"""
 
-    def __init__(self, args: dict, client: Client, SQL_Helper: SQLHelper, scraper: ScrapeMapper, max_workers: int,
-                 domain: str, domain_obj: DomainItem, files: Files, progress: tqdm):
-        self.backup_scraper = scraper
+    def __init__(self, args: dict, client: Client, SQL_Helper: SQLHelper,
+                 domain: str, domain_obj: DomainItem, files: Files):
         self.client = client
         self.download_session = DownloadSession(client)
         self.File_Lock = FileLock()
@@ -59,16 +70,14 @@ class Old_Downloader:
         self.errored_file = args['Files']['errored_urls_file']
 
         self.files = files
-        self.progress = progress
 
         self.current_attempt = {}
-        self.max_workers = max_workers
+        max_workers = get_threads_number(args, domain)
         self._semaphore = asyncio.Semaphore(max_workers)
         self.delay = {'cyberfile': 1, 'anonfiles': 1, "coomer": 0.2, "kemono": 0.2}
 
         self.pixeldrain_api_key = args["Authentication"]["pixeldrain_api_key"]
 
-        self.ignore_history = args["Ignore"]["ignore_history"]
         self.exclude_audio = args["Ignore"]["exclude_audio"]
         self.exclude_images = args["Ignore"]["exclude_images"]
         self.exclude_videos = args["Ignore"]["exclude_videos"]
@@ -76,7 +85,6 @@ class Old_Downloader:
 
         self.block_sub_folders = args['Runtime']['block_sub_folders']
         self.allowed_attempts = args["Runtime"]["attempts"]
-        self.allow_insecure_connections = args["Runtime"]["allow_insecure_connections"]
         self.disable_attempt_limit = args["Runtime"]["disable_attempt_limit"]
         self.download_dir = args["Files"]["output_folder"]
         self.mark_downloaded = args["Runtime"]["skip_download_mark_completed"]
@@ -102,8 +110,7 @@ class Old_Downloader:
         """Handler for files and the progress bars for it"""
         if media.complete or await self.SQL_Helper.check_complete_singular(self.domain, media.url):
             await log(f"Previously Downloaded: {media.filename}", quiet=True)
-            self.files.skipped_files += 1
-            self.progress.update(1)
+            await self.files.add_skipped()
             return
         async with self._semaphore:
             url_path = await get_db_path(media.url, self.domain)
@@ -114,15 +121,13 @@ class Old_Downloader:
         """File downloader"""
         if not await check_free_space(self.required_free_space, self.download_dir):
             await log("We've run out of free space.", quiet=True)
-            self.files.skipped_files += 1
-            self.progress.update(1)
+            await self.files.add_skipped()
             return
 
         if not await allowed_filetype(media, self.exclude_images, self.exclude_videos, self.exclude_audio,
                                       self.exclude_other):
             await log(f"Blocked by file extension: {media.filename}", quiet=True)
-            self.files.skipped_files += 1
-            self.progress.update(1)
+            await self.files.add_skipped()
             return
 
         if self.block_sub_folders:
@@ -180,11 +185,9 @@ class Old_Downloader:
                 self.current_attempt.pop(media.url.parts[-1])
 
             if fake_download:
-                self.files.skipped_files += 1
-                self.progress.update(1)
+                await self.files.add_skipped()
             else:
-                self.files.completed_files += 1
-                self.progress.update(1)
+                await self.files.add_completed()
 
             await log(f"Completed Download: {media.filename} from {media.referer}", quiet=True)
             await self.File_Lock.remove_lock(original_filename)
@@ -207,8 +210,7 @@ class Old_Downloader:
                 if await is_4xx_client_error(e.code) and e.code != HTTPStatus.TOO_MANY_REQUESTS:
                     logger.debug("We ran into a 400 level error: %s", str(e.code))
                     await log(f"Failed Download: {media.filename}", quiet=True)
-                    self.files.failed_files += 1
-                    self.progress.update(1)
+                    await self.files.add_failed()
                     if url_path in self.current_attempt.keys():
                         self.current_attempt.pop(url_path)
                     await self.output_failed(media, e)
@@ -219,8 +221,7 @@ class Old_Downloader:
                             e.message = "Web server is down"
                         logging.debug(f"\n{media.url} ({e.message})")
                     await log(f"Failed Download: {media.filename}", quiet=True)
-                    self.files.failed_files += 1
-                    self.progress.update(1)
+                    await self.files.add_failed()
                     if url_path in self.current_attempt.keys():
                         self.current_attempt.pop(url_path)
                     await self.output_failed(media, e)
@@ -234,9 +235,6 @@ class Old_Downloader:
         if self.errored_output:
             async with aiofiles.open(self.errored_file, mode='a') as file:
                 await file.write(f"{media.url},{media.referer},{e.message}\n")
-
-    async def failed_files_progress(self) -> None:
-        self.progress.update(1)
 
     async def check_file_exists(self, complete_file, partial_file, media, album, url_path, original_filename,
                                 current_throttle):
@@ -281,19 +279,15 @@ class Old_Downloader:
         return complete_file, partial_file, proceed
 
 
-async def old_download_cascade(args: dict, Cascade: CascadeItem, SQL_Helper: SQLHelper, client: Client,
-                               scraper: ScrapeMapper) -> None:
+async def old_download_cascade(args: dict, Cascade: CascadeItem, SQL_Helper: SQLHelper, client: Client) -> None:
     """Handler for cascades and the progress bars for it"""
-    files = Files()
-
-    tasks = []
     total_files = await Cascade.get_total()
     with tqdm(total=total_files, unit_scale=True, unit='Files', leave=True, initial=0,
               desc="Files Downloaded") as progress:
+        files = Files(progress)
+        tasks = []
         for domain, domain_obj in Cascade.domains.items():
-            threads = await get_threads_number(args, domain)
-            downloader = Old_Downloader(args, client, SQL_Helper, scraper, threads, domain, domain_obj,
-                                        files, progress)
+            downloader = Old_Downloader(args, client, SQL_Helper, domain, domain_obj, files)
             tasks.append(downloader.start_domain())
         await asyncio.gather(*tasks)
 
@@ -302,20 +296,16 @@ async def old_download_cascade(args: dict, Cascade: CascadeItem, SQL_Helper: SQL
               f"{files.skipped_files}[/yellow] - [red]Files Failed: {files.failed_files}[/red] |")
 
 
-async def old_download_forums(args: dict, Forums: ForumItem, SQL_Helper: SQLHelper, client: Client,
-                              scraper: ScrapeMapper) -> None:
+async def old_download_forums(args: dict, Forums: ForumItem, SQL_Helper: SQLHelper, client: Client) -> None:
     """Handler for forum threads and the progress bars for it"""
-    files = Files()
     total_files = await Forums.get_total()
     with tqdm(total=total_files, unit_scale=True, unit='Files', leave=True, initial=0,
               desc="Files Downloaded") as progress:
+        files = Files(progress)
         for title, Cascade in Forums.threads.items():
             tasks = []
-
             for domain, domain_obj in Cascade.domains.items():
-                threads = await get_threads_number(args, domain)
-                downloader = Old_Downloader(args, client, SQL_Helper, scraper, threads, domain, domain_obj,
-                                            files, progress)
+                downloader = Old_Downloader(args, client, SQL_Helper, domain, domain_obj, files)
                 tasks.append(downloader.start_domain())
             await asyncio.gather(*tasks)
 

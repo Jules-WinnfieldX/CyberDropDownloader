@@ -42,7 +42,7 @@ async def check_free_space(required_space_gb: int, download_directory: Path) -> 
     return free_space_gb >= required_space_gb
 
 
-async def get_threads_number(args: dict, domain: str) -> int:
+def get_threads_number(args: dict, domain: str) -> int:
     threads = args["Runtime"]["simultaneous_downloads_per_domain"] or multiprocessing.cpu_count()
     if any(s in domain for s in ('anonfiles', 'bunkr', 'pixeldrain')):
         return min(threads, 2)
@@ -68,8 +68,7 @@ def retry(f):
                 if not self.disable_attempt_limit and self.current_attempt[url_path] >= self.allowed_attempts - 1:
                     await self.output_failed(media, e)
                     logger.debug('Skipping %s...', media.url, exc_info=True)
-                    self.files.failed_files += 1
-                    await self.failed_files_progress()
+                    await self.files.add_failed()
                     return None
                 logger.debug(e.message)
                 logger.debug(f'Retrying ({self.current_attempt[url_path]}) {media.url}...')
