@@ -172,14 +172,13 @@ optional arguments:
 --jdownloader-device 	device name to login to for jdownloader
 
 --hide-new-progress             disables the new rich progress entirely and uses older methods
---dont-show-overall-progress 	removes overall progress section while downloading
---dont-show-forum-progress 	removes forum progress section while downloading
---dont-show-thread-progress 	removes thread progress section while downloading
---dont-show-domain-progress 	removes domain progress section while downloading
---dont-show-album-progress 	removes album progress section while downloading
---dont-show-file-progress 	removes file progress section while downloading
+--hide-overall-progress         removes overall progress section while downloading
+--hide-forum-progress           removes forum progress section while downloading
+--hide-thread-progress          removes thread progress section while downloading
+--hide-domain-progress          removes domain progress section while downloading
+--hide-album-progress           removes album progress section while downloading
+--hide-file-progress            removes file progress section while downloading
 --refresh-rate                  changes the refresh rate of the progress table
-
 ```
 
---skip-hosts can use: `"anonfiles", "bayfiles", "bunkr", "coomer.party", "cyberdrop", "cyberfile", "e-hentai", "erome", "fapello", "gfycat", "gallery.deltaporno.com", "gofile", "hgamecg", "img.kiwi", "imgbox", "jpg.church", "jpg.fish", "kemono.party", "lovefap", "nsfw.xxx", "pimpandhost", "pixeldrain", "pixl.li", "postimg", "saint", "simpcity", "socialmediagirls", "xbunker", "xbunkr"`
+`--only-hosts` and `--skip-hosts` can use: `"anonfiles", "bayfiles", "bunkr", "coomer.party", "cyberdrop", "cyberfile", "e-hentai", "erome", "fapello", "gfycat", "gallery.deltaporno.com", "gofile", "hgamecg", "img.kiwi", "imgbox", "jpg.church", "jpg.fish", "kemono.party", "lovefap", "nsfw.xxx", "pimpandhost", "pixeldrain", "pixl.li", "postimg", "saint", "simpcity", "socialmediagirls", "xbunker", "xbunkr"`

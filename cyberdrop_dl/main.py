@@ -104,12 +104,12 @@ def parse_args() -> argparse.Namespace:
     # Progress Options
     progress_opts = parser.add_argument_group("Progress options")
     progress_opts.add_argument("--hide-new-progress", help="disables the new rich progress entirely and uses older methods", action="store_true")
-    progress_opts.add_argument("--dont-show-overall-progress", help="removes overall progress section while downloading", action="store_true")
-    progress_opts.add_argument("--dont-show-forum-progress", help="removes forum progress section while downloading", action="store_true")
-    progress_opts.add_argument("--dont-show-thread-progress", help="removes thread progress section while downloading", action="store_true")
-    progress_opts.add_argument("--dont-show-domain-progress", help="removes domain progress section while downloading", action="store_true")
-    progress_opts.add_argument("--dont-show-album-progress", help="removes album progress section while downloading", action="store_true")
-    progress_opts.add_argument("--dont-show-file-progress", help="removes file progress section while downloading", action="store_true")
+    progress_opts.add_argument("--hide-overall-progress", help="removes overall progress section while downloading", action="store_true")
+    progress_opts.add_argument("--hide-forum-progress", help="removes forum progress section while downloading", action="store_true")
+    progress_opts.add_argument("--hide-thread-progress", help="removes thread progress section while downloading", action="store_true")
+    progress_opts.add_argument("--hide-domain-progress", help="removes domain progress section while downloading", action="store_true")
+    progress_opts.add_argument("--hide-album-progress", help="removes album progress section while downloading", action="store_true")
+    progress_opts.add_argument("--hide-file-progress", help="removes file progress section while downloading", action="store_true")
     progress_opts.add_argument("--refresh-rate", type=int, help="refresh rate for the progress table (default: %(default)s)", default=10)
 
     # Links
