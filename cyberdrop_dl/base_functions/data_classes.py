@@ -55,20 +55,20 @@ class DomainItem:
     albums: dict
 
     async def add_to_album(self, title: str, media: MediaItem):
-        if title in self.albums.keys():
+        if title in self.albums:
             await self.albums[title].add_media(media)
         else:
             self.albums[title] = AlbumItem(title=title, media=[media])
 
     async def add_media(self, title: str, media: MediaItem):
-        if title in self.albums.keys():
+        if title in self.albums:
             album = self.albums[title]
             await album.add_media(media)
         else:
             self.albums[title] = AlbumItem(title, [media])
 
     async def add_album(self, title: str, album: AlbumItem):
-        if title in self.albums.keys():
+        if title in self.albums:
             stored_album = self.albums[title]
             for media_item in album.media:
                 if media_item in stored_album.media:
@@ -107,35 +107,35 @@ class CascadeItem:
             await self.add_album(domain, title, album)
 
     async def add_to_album(self, domain: str, title: str, media_item: MediaItem):
-        if domain in self.domains.keys():
+        if domain in self.domains:
             await self.domains[domain].add_to_album(title, media_item)
         else:
             self.domains[domain] = DomainItem(domain, {title: AlbumItem(title, [media_item])})
 
     async def add_album(self, domain: str, title: str, album: AlbumItem):
-        if domain in self.domains.keys():
+        if domain in self.domains:
             await self.domains[domain].add_album(title, album)
         else:
             self.domains[domain] = DomainItem(domain, {title: album})
 
     async def is_empty(self):
-        for _, domain in self.domains.items():
-            for _, album in domain.albums.items():
+        for domain in self.domains.values():
+            for album in domain.albums.values():
                 if album.media:
                     return False
         return True
 
     async def get_total(self):
         total = 0
-        for _, domain in self.domains.items():
-            for _, album in domain.albums.items():
+        for domain in self.domains.values():
+            for album in domain.albums.values():
                 total += len(album.media)
         return total
 
     async def append_title(self, title: str):
         if not title:
             return
-        for _, domain in self.domains.items():
+        for domain in self.domains.values():
             new_albums = {}
             for album_str, album in domain.albums.items():
                 new_title = title+'/'+album_str
@@ -150,8 +150,8 @@ class CascadeItem:
                     await self.add_album(domain_str, album_str, album)
 
     async def dedupe(self):
-        for _, domain in self.domains.items():
-            for _, album in domain.albums.items():
+        for domain in self.domains.values():
+            for album in domain.albums.values():
                 check = []
                 allowed = []
                 for media_item in album.media:
@@ -168,37 +168,37 @@ class ForumItem:
     threads: dict
 
     async def add_album_to_thread(self, title: str, domain: str, album: AlbumItem):
-        if title not in self.threads.keys():
+        if title not in self.threads:
             self.threads[title] = CascadeItem({domain: DomainItem(domain, {album.title: album})})
         else:
             await self.threads[title].add_album(domain, album.title, album)
 
     async def add_thread(self, title: str, cascade: CascadeItem):
-        if title not in self.threads.keys():
+        if title not in self.threads:
             self.threads[title] = cascade
         else:
             await self.threads[title].extend(cascade)
 
     async def is_empty(self):
-        for _, Cascade in self.threads.items():
-            for _, domain in Cascade.domains.items():
-                for _, album in domain.albums.items():
+        for Cascade in self.threads.values():
+            for domain in Cascade.domains.values():
+                for album in domain.albums.values():
                     if album.media:
                         return False
         return True
 
     async def get_total(self):
         total = 0
-        for _, Cascade in self.threads.items():
-            for _, domain in Cascade.domains.items():
-                for _, album in domain.albums.items():
+        for Cascade in self.threads.values():
+            for domain in Cascade.domains.values():
+                for album in domain.albums.values():
                     total += len(album.media)
         return total
 
     async def dedupe(self):
-        for _, Cascade in self.threads.items():
-            for _, domain in Cascade.domains.items():
-                for _, album in domain.albums.items():
+        for Cascade in self.threads.values():
+            for domain in Cascade.domains.values():
+                for album in domain.albums.values():
                     check = []
                     allowed = []
                     for media_item in album.media:
@@ -209,7 +209,7 @@ class ForumItem:
                     album.media = allowed
 
     async def extend_thread(self, title: str, cascade: CascadeItem):
-        if title in self.threads.keys():
+        if title in self.threads:
             await self.threads[title].extend(cascade)
         else:
             self.threads[title] = cascade
