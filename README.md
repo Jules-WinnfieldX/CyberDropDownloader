@@ -59,7 +59,7 @@ https://github.com/Jules-WinnfieldX/CyberDropDownloader/wiki/
 | Postimg.cc              | Albums: postimg.cc/gallery/... <br> Direct Images: postimg.cc/...                                                                                                                                                                      |
 | SimpCity                | Thread: simpcity.st/threads/...  <br> Continue from (will download this post and after): simpcity.st/threads/...post-NUMBER                                                                                                            | 
 | SocialMediaGirls        | Thread: forum.socialmediagirls.com/threads/...  <br> Continue from (will download this post and after): forum.socialmediagirls.com/threads/...post-NUMBER                                                                              |
-| XBunker                 | Thread: xbunker.su/threads/...  <br> Continue from (will download this post and after): xbunker.su/threads/...post-NUMBER                                                                                                              |
+| XBunker                 | Thread: xbunker.nu/threads/...  <br> Continue from (will download this post and after): xbunker.nu/threads/...post-NUMBER                                                                                                              |
 | XBunkr                  | Album: xbunkr.com/a/... <br> Direct Links: media.xbunkr.com/...                                                                                                                                                                        |
 
 Reminder to leave the link full (include the https://)

@@ -88,6 +88,10 @@ class BunkrCrawler:
 
     async def get_file(self, session: ScrapeSession, url: URL):
         """Gets the media item from the supplied url"""
+
+        ### Temp Fix ###
+        url = url.with_host("bunkr.la")
+
         try:
             soup = await session.get_BS4(url)
             head = soup.select_one("head")
@@ -120,6 +124,10 @@ class BunkrCrawler:
 
     async def get_album(self, session: ScrapeSession, url: URL):
         """Iterates through an album and creates the media items"""
+
+        ### Temp Fix ###
+        url = url.with_host("bunkr.la")
+
         album = AlbumItem(url.name, [])
         try:
             soup = await session.get_BS4(url)
