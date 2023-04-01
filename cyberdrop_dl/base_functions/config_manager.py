@@ -69,37 +69,27 @@ def _validate_config(config: Path) -> dict:
     try:
         data = data[0]["Configuration"]
         enabled = data["Apply_Config"]
-        recreate = 0
 
-        if not set(authentication_args).issubset(set(data['Authentication'])):
-            recreate = 1
-        if not set(files_args).issubset(set(data['Files'])):
-            recreate = 1
-        if not set(forum_args).issubset(set(data['Forum_Options'])):
-            recreate = 1
-        if not set(ignore_args).issubset(set(data['Ignore'])):
-            recreate = 1
-        if not set(jdownloader_args).issubset(set(data['JDownloader'])):
-            recreate = 1
-        if not set(progress_args).issubset(set(data['Progress_Options'])):
-            recreate = 1
-        if not set(ratelimiting_args).issubset(set(data['Ratelimiting'])):
-            recreate = 1
-        if not set(runtime_args).issubset(set(data['Runtime'])):
-            recreate = 1
-        if not set(sorting_args).issubset(set(data['Sorting'])):
-            recreate = 1
+        if all((set(authentication_args).issubset(set(data['Authentication'])),
+                set(files_args).issubset(set(data['Files'])),
+                set(forum_args).issubset(set(data['Forum_Options'])),
+                set(ignore_args).issubset(set(data['Ignore'])),
+                set(jdownloader_args).issubset(set(data['JDownloader'])),
+                set(progress_args).issubset(set(data['Progress_Options'])),
+                set(ratelimiting_args).issubset(set(data['Ratelimiting'])),
+                set(runtime_args).issubset(set(data['Runtime'])),
+                set(sorting_args).issubset(set(data['Sorting'])))):
+            return data
 
-        if recreate:
-            config.unlink()
+        config.unlink()
 
-            args = {}
-            args_list = [data['Authentication'], data['Files'], data['Forum_Options'], data['Ignore'],
-                         data['JDownloader'], data['Progress_Options'], data['Ratelimiting'], data['Runtime'],
-                         data['Sorting']]
-            for dic in args_list:
-                args.update(dic)
-            data = _create_config(config, args, enabled)
+        args = {}
+        args_list = [data['Authentication'], data['Files'], data['Forum_Options'], data['Ignore'],
+                     data['JDownloader'], data['Progress_Options'], data['Ratelimiting'], data['Runtime'],
+                     data['Sorting']]
+        for dic in args_list:
+            args.update(dic)
+        data = _create_config(config, args, enabled)
 
     except (KeyError, TypeError):
         config.unlink()
