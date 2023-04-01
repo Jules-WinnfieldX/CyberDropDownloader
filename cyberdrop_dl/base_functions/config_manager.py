@@ -20,7 +20,7 @@ from cyberdrop_dl.base_functions.config_schema import (
 )
 
 
-def _create_config(config: Path, passed_args: dict = None, enabled=False):
+def _create_config(config: Path, passed_args: dict = None, enabled=False) -> dict:
     """Creates the default config file, or remakes it with passed arguments"""
     config_data = config_default
     if passed_args:
@@ -59,8 +59,10 @@ def _create_config(config: Path, passed_args: dict = None, enabled=False):
     with open(config, 'w') as yamlfile:
         yaml.dump(config_data, yamlfile)
 
+    return config_data[0]["Configuration"]
 
-def _validate_config(config: Path):
+
+def _validate_config(config: Path) -> dict:
     """Validates the existing config file"""
     with open(config, "r") as yamlfile:
         data = yaml.load(yamlfile, Loader=yaml.FullLoader)
@@ -97,23 +99,18 @@ def _validate_config(config: Path):
                          data['Sorting']]
             for dic in args_list:
                 args.update(dic)
-            _create_config(config, args, enabled)
+            data = _create_config(config, args, enabled)
 
     except (KeyError, TypeError):
         config.unlink()
-        _create_config(config)
+        data = _create_config(config)
+
+    return data
 
 
 def run_args(config: Path, cmd_arg: dict) -> dict:
     """Returns the proper runtime arguments based on the config and command line arguments"""
-    if config.is_file():
-        _validate_config(config)
-    else:
-        _create_config(config, cmd_arg)
-
-    with open(config, "r") as yamlfile:
-        data = yaml.load(yamlfile, Loader=yaml.FullLoader)
-    data = data[0]["Configuration"]
+    data = _validate_config(config) if config.is_file() else _create_config(config, cmd_arg)
     if data['Apply_Config']:
         for file, path in data['Files'].items():
             data['Files'][file] = Path(path)
