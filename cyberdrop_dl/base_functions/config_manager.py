@@ -24,51 +24,51 @@ def _create_config(config: Path, passed_args: dict = None, enabled=False) -> dic
     """Creates the default config file, or remakes it with passed arguments"""
     config_data = config_default
     if passed_args:
-        config_data[0]["Configuration"]["Apply_Config"] = enabled
+        config_data["Apply_Config"] = enabled
         for arg in authentication_args:
             if arg in passed_args:
-                config_data[0]["Configuration"]["Authentication"][arg] = passed_args[arg]
+                config_data["Configuration"]["Authentication"][arg] = passed_args[arg]
         for arg in files_args:
             if arg in passed_args:
-                config_data[0]["Configuration"]["Files"][arg] = str(passed_args[arg])
+                config_data["Configuration"]["Files"][arg] = str(passed_args[arg])
         for arg in ignore_args:
             if arg in passed_args:
-                config_data[0]["Configuration"]["Ignore"][arg] = passed_args[arg]
+                config_data["Configuration"]["Ignore"][arg] = passed_args[arg]
         for arg in forum_args:
             if arg in passed_args:
-                config_data[0]["Configuration"]["Forum_Options"][arg] = passed_args[arg]
+                config_data["Configuration"]["Forum_Options"][arg] = passed_args[arg]
         for arg in jdownloader_args:
             if arg in passed_args:
-                config_data[0]["Configuration"]["JDownloader"][arg] = passed_args[arg]
+                config_data["Configuration"]["JDownloader"][arg] = passed_args[arg]
         for arg in progress_args:
             if arg in passed_args:
-                config_data[0]["Configuration"]["Progress_Options"][arg] = passed_args[arg]
+                config_data["Configuration"]["Progress_Options"][arg] = passed_args[arg]
         for arg in ratelimiting_args:
             if arg in passed_args:
-                config_data[0]["Configuration"]["Ratelimiting"][arg] = passed_args[arg]
+                config_data["Configuration"]["Ratelimiting"][arg] = passed_args[arg]
         for arg in runtime_args:
             if arg in passed_args:
-                config_data[0]["Configuration"]["Runtime"][arg] = passed_args[arg]
+                config_data["Configuration"]["Runtime"][arg] = passed_args[arg]
         for arg in sorting_args:
             if arg in passed_args:
                 if arg == "sort_directory":
-                    config_data[0]["Configuration"]["Sorting"][arg] = str(passed_args[arg])
+                    config_data["Configuration"]["Sorting"][arg] = str(passed_args[arg])
                 else:
-                    config_data[0]["Configuration"]["Sorting"][arg] = passed_args[arg]
+                    config_data["Configuration"]["Sorting"][arg] = passed_args[arg]
 
     with open(config, 'w') as yamlfile:
         yaml.dump(config_data, yamlfile)
 
-    return config_data[0]["Configuration"]
+    return config_data
 
 
 def _validate_config(config: Path) -> dict:
     """Validates the existing config file"""
     with open(config, "r") as yamlfile:
-        data = yaml.load(yamlfile, Loader=yaml.FullLoader)
+        config_data = yaml.load(yamlfile, Loader=yaml.FullLoader)
     try:
-        data = data[0]["Configuration"]
-        enabled = data["Apply_Config"]
+        data = config_data["Configuration"]
+        enabled = config_data["Apply_Config"]
 
         if all((set(authentication_args).issubset(set(data['Authentication'])),
                 set(files_args).issubset(set(data['Files'])),
@@ -79,7 +79,7 @@ def _validate_config(config: Path) -> dict:
                 set(ratelimiting_args).issubset(set(data['Ratelimiting'])),
                 set(runtime_args).issubset(set(data['Runtime'])),
                 set(sorting_args).issubset(set(data['Sorting'])))):
-            return data
+            return config_data
 
         config.unlink()
 
@@ -89,25 +89,26 @@ def _validate_config(config: Path) -> dict:
                      data['Sorting']]
         for dic in args_list:
             args.update(dic)
-        data = _create_config(config, args, enabled)
+        config_data = _create_config(config, args, enabled)
 
     except (KeyError, TypeError):
         config.unlink()
-        data = _create_config(config)
+        config_data = _create_config(config)
 
-    return data
+    return config_data
 
 
 def run_args(config: Path, cmd_arg: dict) -> dict:
     """Returns the proper runtime arguments based on the config and command line arguments"""
     data = _validate_config(config) if config.is_file() else _create_config(config, cmd_arg)
     if data['Apply_Config']:
+        data = data["Configuration"]
         for file, path in data['Files'].items():
             data['Files'][file] = Path(path)
         data['Sorting']['sort_directory'] = Path(data['Sorting']['sort_directory'])
         return data
 
-    config_data = config_default[0]["Configuration"]
+    config_data = config_default["Configuration"]
     for arg in authentication_args:
         if arg in cmd_arg:
             config_data["Authentication"][arg] = cmd_arg[arg]
