@@ -6,16 +6,22 @@ from pathlib import Path
 import yaml
 
 from cyberdrop_dl.base_functions.base_functions import log
-from cyberdrop_dl.base_functions.config_schema import config_default, authentication_args, files_args, \
-    jdownloader_args, runtime_args, forum_args, ignore_args, ratelimiting_args, sorting_args, progress_args
+from cyberdrop_dl.base_functions.config_schema import (
+    authentication_args,
+    config_default,
+    files_args,
+    forum_args,
+    ignore_args,
+    jdownloader_args,
+    progress_args,
+    ratelimiting_args,
+    runtime_args,
+    sorting_args,
+)
 
 
-def create_config(config: Path, passed_args=None, remake=None, enabled=False):
+def _create_config(config: Path, passed_args: dict = None, enabled=False):
     """Creates the default config file, or remakes it with passed arguments"""
-    if config.is_file() and not remake:
-        validate_config(config)
-        return
-
     config_data = config_default
     if passed_args:
         config_data[0]["Configuration"]["Apply_Config"] = enabled
@@ -52,10 +58,9 @@ def create_config(config: Path, passed_args=None, remake=None, enabled=False):
 
     with open(config, 'w') as yamlfile:
         yaml.dump(config_data, yamlfile)
-    return
 
 
-def validate_config(config: Path):
+def _validate_config(config: Path):
     """Validates the existing config file"""
     with open(config, "r") as yamlfile:
         data = yaml.load(yamlfile, Loader=yaml.FullLoader)
@@ -92,16 +97,19 @@ def validate_config(config: Path):
                          data['Sorting']]
             for dic in args_list:
                 args.update(dic)
-            create_config(config, args, True, enabled)
+            _create_config(config, args, enabled)
 
     except (KeyError, TypeError):
         config.unlink()
-        create_config(config, None, True)
+        _create_config(config)
 
 
-def run_args(config: Path, cmd_arg: dict):
+def run_args(config: Path, cmd_arg: dict) -> dict:
     """Returns the proper runtime arguments based on the config and command line arguments"""
-    create_config(config, cmd_arg)
+    if config.is_file():
+        _validate_config(config)
+    else:
+        _create_config(config, cmd_arg)
 
     with open(config, "r") as yamlfile:
         data = yaml.load(yamlfile, Loader=yaml.FullLoader)
