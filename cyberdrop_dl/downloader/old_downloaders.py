@@ -181,7 +181,7 @@ class Old_Downloader:
                 partial_file.rename(complete_file)
 
             await self.SQL_Helper.mark_complete(url_path, original_filename)
-            if media.url.parts[-1] in self.current_attempt.keys():
+            if media.url.parts[-1] in self.current_attempt:
                 self.current_attempt.pop(media.url.parts[-1])
 
             if fake_download:
@@ -211,7 +211,7 @@ class Old_Downloader:
                     logger.debug("We ran into a 400 level error: %s", str(e.code))
                     await log(f"Failed Download: {media.filename}", quiet=True)
                     await self.files.add_failed()
-                    if url_path in self.current_attempt.keys():
+                    if url_path in self.current_attempt:
                         self.current_attempt.pop(url_path)
                     await self.output_failed(media, e)
                     return
@@ -222,7 +222,7 @@ class Old_Downloader:
                         logging.debug(f"\n{media.url} ({e.message})")
                     await log(f"Failed Download: {media.filename}", quiet=True)
                     await self.files.add_failed()
-                    if url_path in self.current_attempt.keys():
+                    if url_path in self.current_attempt:
                         self.current_attempt.pop(url_path)
                     await self.output_failed(media, e)
                     return

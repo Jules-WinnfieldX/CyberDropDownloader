@@ -26,31 +26,31 @@ def _create_config(config: Path, passed_args: dict = None, enabled=False):
     if passed_args:
         config_data[0]["Configuration"]["Apply_Config"] = enabled
         for arg in authentication_args:
-            if arg in passed_args.keys():
+            if arg in passed_args:
                 config_data[0]["Configuration"]["Authentication"][arg] = passed_args[arg]
         for arg in files_args:
-            if arg in passed_args.keys():
+            if arg in passed_args:
                 config_data[0]["Configuration"]["Files"][arg] = str(passed_args[arg])
         for arg in ignore_args:
-            if arg in passed_args.keys():
+            if arg in passed_args:
                 config_data[0]["Configuration"]["Ignore"][arg] = passed_args[arg]
         for arg in forum_args:
-            if arg in passed_args.keys():
+            if arg in passed_args:
                 config_data[0]["Configuration"]["Forum_Options"][arg] = passed_args[arg]
         for arg in jdownloader_args:
-            if arg in passed_args.keys():
+            if arg in passed_args:
                 config_data[0]["Configuration"]["JDownloader"][arg] = passed_args[arg]
         for arg in progress_args:
-            if arg in passed_args.keys():
+            if arg in passed_args:
                 config_data[0]["Configuration"]["Progress_Options"][arg] = passed_args[arg]
         for arg in ratelimiting_args:
-            if arg in passed_args.keys():
+            if arg in passed_args:
                 config_data[0]["Configuration"]["Ratelimiting"][arg] = passed_args[arg]
         for arg in runtime_args:
-            if arg in passed_args.keys():
+            if arg in passed_args:
                 config_data[0]["Configuration"]["Runtime"][arg] = passed_args[arg]
         for arg in sorting_args:
-            if arg in passed_args.keys():
+            if arg in passed_args:
                 if arg == "sort_directory":
                     config_data[0]["Configuration"]["Sorting"][arg] = str(passed_args[arg])
                 else:
@@ -69,23 +69,23 @@ def _validate_config(config: Path):
         enabled = data["Apply_Config"]
         recreate = 0
 
-        if not set(authentication_args).issubset(set(data['Authentication'].keys())):
+        if not set(authentication_args).issubset(set(data['Authentication'])):
             recreate = 1
-        if not set(files_args).issubset(set(data['Files'].keys())):
+        if not set(files_args).issubset(set(data['Files'])):
             recreate = 1
-        if not set(forum_args).issubset(set(data['Forum_Options'].keys())):
+        if not set(forum_args).issubset(set(data['Forum_Options'])):
             recreate = 1
-        if not set(ignore_args).issubset(set(data['Ignore'].keys())):
+        if not set(ignore_args).issubset(set(data['Ignore'])):
             recreate = 1
-        if not set(jdownloader_args).issubset(set(data['JDownloader'].keys())):
+        if not set(jdownloader_args).issubset(set(data['JDownloader'])):
             recreate = 1
-        if not set(progress_args).issubset(set(data['Progress_Options'].keys())):
+        if not set(progress_args).issubset(set(data['Progress_Options'])):
             recreate = 1
-        if not set(ratelimiting_args).issubset(set(data['Ratelimiting'].keys())):
+        if not set(ratelimiting_args).issubset(set(data['Ratelimiting'])):
             recreate = 1
-        if not set(runtime_args).issubset(set(data['Runtime'].keys())):
+        if not set(runtime_args).issubset(set(data['Runtime'])):
             recreate = 1
-        if not set(sorting_args).issubset(set(data['Sorting'].keys())):
+        if not set(sorting_args).issubset(set(data['Sorting'])):
             recreate = 1
 
         if recreate:
@@ -122,31 +122,31 @@ def run_args(config: Path, cmd_arg: dict) -> dict:
 
     config_data = config_default[0]["Configuration"]
     for arg in authentication_args:
-        if arg in cmd_arg.keys():
+        if arg in cmd_arg:
             config_data["Authentication"][arg] = cmd_arg[arg]
     for arg in files_args:
-        if arg in cmd_arg.keys():
+        if arg in cmd_arg:
             config_data["Files"][arg] = cmd_arg[arg]
     for arg in forum_args:
-        if arg in cmd_arg.keys():
+        if arg in cmd_arg:
             config_data["Forum_Options"][arg] = cmd_arg[arg]
     for arg in ignore_args:
-        if arg in cmd_arg.keys():
+        if arg in cmd_arg:
             config_data["Ignore"][arg] = cmd_arg[arg]
     for arg in jdownloader_args:
-        if arg in cmd_arg.keys():
+        if arg in cmd_arg:
             config_data["JDownloader"][arg] = cmd_arg[arg]
     for arg in progress_args:
-        if arg in cmd_arg.keys():
+        if arg in cmd_arg:
             config_data["Progress_Options"][arg] = cmd_arg[arg]
     for arg in ratelimiting_args:
-        if arg in cmd_arg.keys():
+        if arg in cmd_arg:
             config_data["Ratelimiting"][arg] = cmd_arg[arg]
     for arg in runtime_args:
-        if arg in cmd_arg.keys():
+        if arg in cmd_arg:
             config_data["Runtime"][arg] = cmd_arg[arg]
     for arg in sorting_args:
-        if arg in cmd_arg.keys():
+        if arg in cmd_arg:
             config_data["Sorting"][arg] = cmd_arg[arg]
     return config_data
 
