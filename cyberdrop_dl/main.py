@@ -274,7 +274,6 @@ def main(args=None):
     try:
         loop = asyncio.get_event_loop()
         loop.run_until_complete(director(args, links))
-        loop.run_until_complete(asyncio.sleep(5))
     except RuntimeError:
         pass
 
