@@ -9,6 +9,7 @@ from yarl import URL
 
 from cyberdrop_dl.base_functions.base_functions import clear, log, purge_dir
 from cyberdrop_dl.base_functions.config_manager import document_args, run_args
+from cyberdrop_dl.base_functions.config_schema import config_default
 from cyberdrop_dl.base_functions.sorting_functions import Sorter
 from cyberdrop_dl.base_functions.sql_helper import SQLHelper
 from cyberdrop_dl.client.client import Client
@@ -26,19 +27,26 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Bulk downloader for multiple file hosts")
     parser.add_argument("-V", "--version", action="version", version=f"%(prog)s {VERSION}")
 
+    config_data = config_default["Configuration"]
+
     # Path options
+    config_group = config_data["Files"]
     path_opts = parser.add_argument_group("Path options")
-    path_opts.add_argument("-i", "--input-file", type=Path, help="file containing links to download (default: %(default)s)", default="URLs.txt")
-    path_opts.add_argument("-o", "--output-folder", type=Path, help="folder to download files to (default: %(default)s)", default="Downloads")
+    path_opts.add_argument("-i", "--input-file", type=Path, help="file containing links to download (default: %(default)s)", default=config_group["input_file"])
+    path_opts.add_argument("-o", "--output-folder", type=Path, help="folder to download files to (default: %(default)s)", default=config_group["output_folder"])
 
     path_opts.add_argument("--config-file", type=Path, help="config file to read arguments from (default: %(default)s)", default="config.yaml")
-    path_opts.add_argument("--db-file", type=Path, help="history database file to write to (default: %(default)s)", default="download_history.sqlite")
-    path_opts.add_argument("--errored-urls-file", type=Path, help="csv file to write failed download information to (default: %(default)s)", default="Errored_URLs.csv")
-    path_opts.add_argument("--log-file", type=Path, help="log file to write to (default: %(default)s)", default="downloader.log")
-    path_opts.add_argument("--output-last-forum-post-file", type=Path, help="the text file to output last scraped post from a forum thread for re-feeding into CDL (default: %(default)s)", default="URLs_Last_Post.txt")
-    path_opts.add_argument("--unsupported-urls-file", type=Path, help="the csv file to output unsupported links into (default: %(default)s)", default="Unsupported_URLs.csv")
+    path_opts.add_argument("--db-file", type=Path, help="history database file to write to (default: %(default)s)", default=config_group["db_file"])
+    path_opts.add_argument("--errored-urls-file", type=Path, default=config_group["errored_urls_file"], 
+                           help="csv file to write failed download information to (default: %(default)s)")
+    path_opts.add_argument("--log-file", type=Path, help="log file to write to (default: %(default)s)", default=config_group["log_file"])
+    path_opts.add_argument("--output-last-forum-post-file", type=Path, default=config_group["output_last_forum_post_file"],
+                           help="the text file to output last scraped post from a forum thread for re-feeding into CDL (default: %(default)s)")
+    path_opts.add_argument("--unsupported-urls-file", type=Path, default=config_group["unsupported_urls_file"],
+                           help="the csv file to output unsupported links into (default: %(default)s)")
 
     # Ignore
+    config_group = config_data["Ignore"]
     ignore_opts = parser.add_argument_group("Ignore options")
     ignore_opts.add_argument("--exclude-audio", help="skip downloading of audio files", action="store_true")
     ignore_opts.add_argument("--exclude-images", help="skip downloading of image files", action="store_true")
@@ -46,38 +54,48 @@ def parse_args() -> argparse.Namespace:
     ignore_opts.add_argument("--exclude-videos", help="skip downloading of video files", action="store_true")
     ignore_opts.add_argument("--ignore-cache", help="ignores previous runs cached scrape history", action="store_true")
     ignore_opts.add_argument("--ignore-history", help="ignores previous download history", action="store_true")
-    ignore_opts.add_argument("--skip-hosts", choices=SkipData.supported_hosts, help="removes host links from downloads", action="append", default=[])
-    ignore_opts.add_argument("--only-hosts", choices=SkipData.supported_hosts, help="only allows downloads from these hosts", action="append", default=[])
+    ignore_opts.add_argument("--skip-hosts", choices=SkipData.supported_hosts, action="append",
+                             help="removes host links from downloads", default=config_group["skip_hosts"])
+    ignore_opts.add_argument("--only-hosts", choices=SkipData.supported_hosts, action="append",
+                             help="only allows downloads from these hosts", default=config_group["only_hosts"])
 
     # Runtime arguments
+    config_group = config_data["Runtime"]
     runtime_opts = parser.add_argument_group("Runtime options")
     runtime_opts.add_argument("--allow-insecure-connections", help="allows insecure connections from content hosts", action="store_true")
-    runtime_opts.add_argument("--attempts", type=int, help="number of attempts to download each file (default: %(default)s)", default=10)
+    runtime_opts.add_argument("--attempts", type=int, help="number of attempts to download each file (default: %(default)s)", default=config_group["attempts"])
     runtime_opts.add_argument("--block-sub-folders", help="block sub folders from being created", action="store_true")
     runtime_opts.add_argument("--disable-attempt-limit", help="disables the attempt limitation", action="store_true")
     runtime_opts.add_argument("--include-id", help="include the ID in the download folder name", action="store_true")
     runtime_opts.add_argument("--skip-download-mark-completed", help="sets the scraped files as downloaded without downloading", action="store_true")
     runtime_opts.add_argument("--output-errored-urls", help="sets the failed urls to be output to the errored urls file", action="store_true")
     runtime_opts.add_argument("--output-unsupported-urls", help="sets the unsupported urls to be output to the unsupported urls file", action="store_true")
-    runtime_opts.add_argument("--proxy", help="HTTP/HTTPS proxy used for downloading, format [protocal]://[ip]:[port]", default=None)
+    runtime_opts.add_argument("--proxy", help="HTTP/HTTPS proxy used for downloading, format [protocal]://[ip]:[port]", default=config_group["proxy"])
     runtime_opts.add_argument("--remove-bunkr-identifier", help="removes the bunkr added identifier from output filenames", action="store_true")
-    runtime_opts.add_argument("--required-free-space", type=int, help="required free space (in gigabytes) for the program to run (default: %(default)s)", default=5)
-    runtime_opts.add_argument("--simultaneous-downloads-per-domain", type=int, help="Number of simultaneous downloads to use per domain (default: %(default)s)", default=4)
+    runtime_opts.add_argument("--required-free-space", type=int, default=config_group["required_free_space"],
+                              help="required free space (in gigabytes) for the program to run (default: %(default)s)")
+    runtime_opts.add_argument("--simultaneous-downloads-per-domain", type=int, default=config_group["simultaneous_downloads_per_domain"],
+                              help="Number of simultaneous downloads to use per domain (default: %(default)s)")
 
     # Sorting
+    config_group = config_data["Sorting"]
     sort_opts = parser.add_argument_group("Sorting options")
     sort_opts.add_argument("--sort-downloads", help="sorts downloaded files after downloads have finished", action="store_true")
-    sort_opts.add_argument("--sort-directory", type=Path, help="folder to download files to (default: %(default)s)", default="Sorted Downloads")
-    sort_opts.add_argument("--sorted-audio", type=str, help="schema to sort audio (default: %(default)s)", default="{sort_dir}/{base_dir}/Audio")
-    sort_opts.add_argument("--sorted-images", type=str, help="schema to sort images (default: %(default)s)", default="{sort_dir}/{base_dir}/Images")
-    sort_opts.add_argument("--sorted-others", type=str, help="schema to sort other (default: %(default)s)", default="{sort_dir}/{base_dir}/Other")
-    sort_opts.add_argument("--sorted-videos", type=str, help="schema to sort videos (default: %(default)s)", default="{sort_dir}/{base_dir}/Videos")
+    sort_opts.add_argument("--sort-directory", type=Path, help="folder to download files to (default: %(default)s)", default=config_group["sort_directory"])
+    sort_opts.add_argument("--sorted-audio", help="schema to sort audio (default: %(default)s)", default=config_group["sorted_audio"])
+    sort_opts.add_argument("--sorted-images", help="schema to sort images (default: %(default)s)", default=config_group["sorted_images"])
+    sort_opts.add_argument("--sorted-others", help="schema to sort other (default: %(default)s)", default=config_group["sorted_others"])
+    sort_opts.add_argument("--sorted-videos", help="schema to sort videos (default: %(default)s)", default=config_group["sorted_videos"])
 
     # Ratelimiting
+    config_group = config_data["Ratelimiting"]
     ratelimit_opts = parser.add_argument_group("Ratelimiting options")
-    ratelimit_opts.add_argument("--connection-timeout", type=int, help="number of seconds to wait attempting to connect to a URL during the downloading phase (default: %(default)s)", default=15)
-    ratelimit_opts.add_argument("--ratelimit", type=int, help="this applies to requests made in the program during scraping, the number you provide is in requests/seconds (default: %(default)s)", default=50)
-    ratelimit_opts.add_argument("--throttle", type=int, help="this is a throttle between requests during the downloading phase, the number is in seconds (default: %(default)s)", default=0.5)
+    ratelimit_opts.add_argument("--connection-timeout", type=int, default=config_group["connection_timeout"],
+                                help="number of seconds to wait attempting to connect to a URL during the downloading phase (default: %(default)s)")
+    ratelimit_opts.add_argument("--ratelimit", type=int, default=config_group["ratelimit"],
+                                help="this applies to requests made in the program during scraping, the number you provide is in requests/seconds (default: %(default)s)")
+    ratelimit_opts.add_argument("--throttle", type=int, default=config_group["throttle"],
+                                help="this is a throttle between requests during the downloading phase, the number is in seconds (default: %(default)s)")
 
     # Forum Options
     forum_opts = parser.add_argument_group("Forum options")
@@ -85,23 +103,26 @@ def parse_args() -> argparse.Namespace:
     forum_opts.add_argument("--separate-posts", help="separates forum scraping into folders by post number", action="store_true")
 
     # Authentication details
+    config_group = config_data["Authentication"]
     auth_opts = parser.add_argument_group("Authentication options")
-    auth_opts.add_argument("--pixeldrain-api-key", type=str, help="api key for premium pixeldrain", default=None)
-    auth_opts.add_argument("--simpcity-password", type=str, help="password to login to simpcity", default=None)
-    auth_opts.add_argument("--simpcity-username", type=str, help="username to login to simpcity", default=None)
-    auth_opts.add_argument("--socialmediagirls-password", type=str, help="password to login to socialmediagirls", default=None)
-    auth_opts.add_argument("--socialmediagirls-username", type=str, help="username to login to socialmediagirls", default=None)
-    auth_opts.add_argument("--xbunker-password", type=str, help="password to login to xbunker", default=None)
-    auth_opts.add_argument("--xbunker-username", type=str, help="username to login to xbunker", default=None)
+    auth_opts.add_argument("--pixeldrain-api-key", help="api key for premium pixeldrain", default=config_group["pixeldrain_api_key"])
+    auth_opts.add_argument("--simpcity-username", help="username to login to simpcity", default=config_group["simpcity_username"])
+    auth_opts.add_argument("--simpcity-password", help="password to login to simpcity", default=config_group['simpcity_password'])
+    auth_opts.add_argument("--socialmediagirls-username", help="username to login to socialmediagirls", default=config_group["socialmediagirls_username"])
+    auth_opts.add_argument("--socialmediagirls-password", help="password to login to socialmediagirls", default=config_group["socialmediagirls_password"])
+    auth_opts.add_argument("--xbunker-username", help="username to login to xbunker", default=config_group["xbunker_username"])
+    auth_opts.add_argument("--xbunker-password", help="password to login to xbunker", default=config_group["xbunker_password"])
 
     # JDownloader details
+    config_group = config_data["JDownloader"]
     jdownloader_opts = parser.add_argument_group("JDownloader options")
     jdownloader_opts.add_argument("--apply-jdownloader", help="enables sending unsupported URLs to a running jdownloader2 instance to download", action="store_true")
-    jdownloader_opts.add_argument("--jdownloader-username", type=str, help="username to login to jdownloader", default=None)
-    jdownloader_opts.add_argument("--jdownloader-password", type=str, help="password to login to jdownloader", default=None)
-    jdownloader_opts.add_argument("--jdownloader-device", type=str, help="device name to login to for jdownloader", default=None)
+    jdownloader_opts.add_argument("--jdownloader-username", help="username to login to jdownloader", default=config_group["jdownloader_username"])
+    jdownloader_opts.add_argument("--jdownloader-password", help="password to login to jdownloader", default=config_group["jdownloader_password"])
+    jdownloader_opts.add_argument("--jdownloader-device", help="device name to login to for jdownloader", default=config_group["jdownloader_device"])
 
     # Progress Options
+    config_group = config_data["Progress_Options"]
     progress_opts = parser.add_argument_group("Progress options")
     progress_opts.add_argument("--hide-new-progress", help="disables the new rich progress entirely and uses older methods", action="store_true")
     progress_opts.add_argument("--hide-overall-progress", help="removes overall progress section while downloading", action="store_true")
@@ -110,7 +131,7 @@ def parse_args() -> argparse.Namespace:
     progress_opts.add_argument("--hide-domain-progress", help="removes domain progress section while downloading", action="store_true")
     progress_opts.add_argument("--hide-album-progress", help="removes album progress section while downloading", action="store_true")
     progress_opts.add_argument("--hide-file-progress", help="removes file progress section while downloading", action="store_true")
-    progress_opts.add_argument("--refresh-rate", type=int, help="refresh rate for the progress table (default: %(default)s)", default=10)
+    progress_opts.add_argument("--refresh-rate", type=int, help="refresh rate for the progress table (default: %(default)s)", default=config_group["refresh_rate"])
 
     # Links
     parser.add_argument("links", metavar="link", nargs="*", help="link to content to download (passing multiple links is supported)", default=[])
