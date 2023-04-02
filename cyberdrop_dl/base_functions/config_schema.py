@@ -78,29 +78,3 @@ config_default = {
         },
     },
 }
-
-authentication_args = ["pixeldrain_api_key",
-                       "simpcity_username", "simpcity_password",
-                       "socialmediagirls_username", "socialmediagirls_password",
-                       "xbunker_username", "xbunker_password"]
-
-files_args = ["db_file", "input_file", "log_file", "output_folder", "output_last_forum_post_file",
-              "unsupported_urls_file", "errored_urls_file"]
-
-forum_args = ["output_last_forum_post", "separate_posts"]
-
-ignore_args = ["exclude_videos", "exclude_images", "exclude_audio", "exclude_other", "ignore_cache", "ignore_history",
-               "skip_hosts", "only_hosts"]
-
-jdownloader_args = ["apply_jdownloader", "jdownloader_username", "jdownloader_password", "jdownloader_device"]
-
-progress_args = ["hide_new_progress", "hide_overall_progress", "hide_forum_progress", "hide_thread_progress",
-                 "hide_domain_progress", "hide_album_progress", "hide_file_progress", "refresh_rate"]
-
-ratelimiting_args = ["connection_timeout", "ratelimit", "throttle"]
-
-runtime_args = ["simultaneous_downloads_per_domain", "allow_insecure_connections", "attempts", "disable_attempt_limit",
-                "include_id", "skip_download_mark_completed", "proxy", "required_free_space", "output_errored_urls",
-                "output_unsupported_urls", "block_sub_folders", "remove_bunkr_identifier"]
-
-sorting_args = ["sort_downloads", "sort_directory", "sorted_audio", "sorted_images", "sorted_others", "sorted_videos"]
