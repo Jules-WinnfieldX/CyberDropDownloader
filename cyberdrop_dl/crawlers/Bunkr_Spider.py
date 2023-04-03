@@ -166,7 +166,7 @@ class BunkrCrawler:
 
                 await self.SQL_Helper.fix_bunkr_entries(link, original_filename)
                 complete = await self.SQL_Helper.check_complete_singular("bunkr", link)
-                media = MediaItem(link, referer, complete, filename, ext, original_filename)
+                media = MediaItem(link, url, complete, filename, ext, original_filename)
                 await album.add_media(media)
 
         except Exception as e:
