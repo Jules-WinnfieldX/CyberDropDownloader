@@ -5,11 +5,11 @@ import itertools
 import logging
 from http import HTTPStatus
 from random import gauss
+from typing import TYPE_CHECKING
 
 import aiofiles
 import aiohttp.client_exceptions
 from rich.live import Live
-from rich.progress import TaskID
 
 from cyberdrop_dl.base_functions.base_functions import (
     adjust,
@@ -17,7 +17,14 @@ from cyberdrop_dl.base_functions.base_functions import (
     log,
     logger,
 )
-from cyberdrop_dl.base_functions.data_classes import AlbumItem, CascadeItem, DomainItem, FileLock, ForumItem, MediaItem
+from cyberdrop_dl.base_functions.data_classes import (
+    AlbumItem,
+    CascadeItem,
+    DomainItem,
+    FileLock,
+    ForumItem,
+    MediaItem,
+)
 from cyberdrop_dl.base_functions.error_classes import DownloadFailure
 from cyberdrop_dl.base_functions.sql_helper import SQLHelper, get_db_path
 from cyberdrop_dl.client.client import Client, DownloadSession
@@ -41,6 +48,9 @@ from .progress_definitions import (
     get_forum_table,
     overall_file_progress,
 )
+
+if TYPE_CHECKING:
+    from rich.progress import TaskID
 
 
 class Files:

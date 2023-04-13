@@ -3,11 +3,15 @@ from __future__ import annotations
 import logging
 import os
 import re
+from typing import TYPE_CHECKING
 
 import rich
-from yarl import URL
 
 from cyberdrop_dl.base_functions.error_classes import NoExtensionFailure
+
+if TYPE_CHECKING:
+    from yarl import URL
+
 
 FILE_FORMATS = {
     'Images': {
