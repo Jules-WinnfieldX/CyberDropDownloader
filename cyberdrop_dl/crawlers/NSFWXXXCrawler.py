@@ -32,7 +32,9 @@ class NSFWXXXCrawler:
         try:
             model = url.name + " (NSFW.XXX)"
             for page in itertools.count(1):
-                page_url = URL(f"https://nsfw.xxx/page/{page}?nsfw[]=0&types[]=image&types[]=video&types[]=gallery&slider=1&jsload=1&user={url.name}")
+                model_name = url.path.split("/")
+                model_name = list(filter(None, model_name))[-1]
+                page_url = URL(f"https://nsfw.xxx/page/{page}?nsfw[]=0&types[]=image&types[]=video&types[]=gallery&slider=1&jsload=1&user={model_name}")
                 page_soup = await session.get_BS4(page_url)
 
                 posts = page_soup.select('div[class="sh-section__image grid-item"] a[class=slider_init_href]')

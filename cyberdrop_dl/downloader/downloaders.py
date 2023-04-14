@@ -269,7 +269,8 @@ class Downloader:
                         self.current_attempt.pop(url_path)
                     await self.output_failed(media, e)
                     return
-                if e.code == HTTPStatus.SERVICE_UNAVAILABLE or e.code == CustomHTTPStatus.WEB_SERVER_IS_DOWN:
+                if e.code == HTTPStatus.SERVICE_UNAVAILABLE or e.code == HTTPStatus.BAD_GATEWAY \
+                        or e.code == CustomHTTPStatus.WEB_SERVER_IS_DOWN:
                     if hasattr(e, "message"):
                         if not e.message:
                             e.message = "Web server is down"
