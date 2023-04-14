@@ -5,22 +5,27 @@ import json
 import logging
 import ssl
 from http import HTTPStatus
-from pathlib import Path
+from typing import TYPE_CHECKING
 
 import aiofiles
 import aiohttp
 import certifi
 from bs4 import BeautifulSoup
-from rich.progress import TaskID
 from tqdm import tqdm
 from yarl import URL
 
 from ..base_functions.base_functions import adjust, logger
-from ..base_functions.data_classes import MediaItem
 from ..base_functions.error_classes import DownloadFailure, InvalidContentTypeFailure
 from ..downloader.downloader_utils import CustomHTTPStatus
 from ..downloader.progress_definitions import file_progress
 from .rate_limiting import AsyncRateLimiter, throttle
+
+if TYPE_CHECKING:
+    from pathlib import Path
+
+    from rich.progress import TaskID
+
+    from ..base_functions.data_classes import MediaItem
 
 
 class Client:

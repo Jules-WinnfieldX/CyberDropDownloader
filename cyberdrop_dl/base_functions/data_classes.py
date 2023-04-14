@@ -2,9 +2,10 @@ from __future__ import annotations
 
 import asyncio
 from dataclasses import dataclass
-from typing import ClassVar, List, Tuple, Optional
+from typing import TYPE_CHECKING, ClassVar, List, Tuple
 
-from yarl import URL
+if TYPE_CHECKING:
+    from yarl import URL
 
 
 @dataclass

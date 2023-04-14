@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import re
-from pathlib import Path
+from typing import TYPE_CHECKING
 
 import aiofiles
 from bs4 import BeautifulSoup
@@ -16,8 +16,12 @@ from ..base_functions.base_functions import (
 )
 from ..base_functions.data_classes import CascadeItem, MediaItem
 from ..base_functions.error_classes import FailedLoginFailure, NoExtensionFailure
-from ..base_functions.sql_helper import SQLHelper
-from ..client.client import ScrapeSession
+
+if TYPE_CHECKING:
+    from pathlib import Path
+
+    from ..base_functions.sql_helper import SQLHelper
+    from ..client.client import ScrapeSession
 
 
 async def write_last_post_file(file: Path, url: str):
