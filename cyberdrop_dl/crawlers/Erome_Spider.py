@@ -75,7 +75,7 @@ class EromeCrawler:
         domain_obj = DomainItem("erome", {})
         try:
             soup = await session.get_BS4(url)
-            title = soup.select_one('h1[class="username"]').get_text()
+            title = url.name
             if title is None:
                 title = url.name
             elif self.include_id:
@@ -83,9 +83,16 @@ class EromeCrawler:
             title = await make_title_safe(title)
 
             for album in soup.select("a[class=album-link]"):
-                url = URL(album.get('href'))
-                await domain_obj.extend(await self.handle_album(session, url))
+                album_url = URL(album.get('href'))
+                await domain_obj.extend(await self.handle_album(session, album_url))
             await domain_obj.append_title(title)
+
+            next_page = soup.select_one('a[rel="next"]')
+            if next_page:
+                next_page = next_page.get("href").split("page=")[-1]
+                next_page = url.with_query(f"page={next_page}")
+                await domain_obj.extend(await self.handle_profile(session, next_page))
+
         except Exception as e:
             logger.debug("Error encountered while handling %s", str(url), exc_info=True)
             await log(f"Error: {str(url)}", quiet=self.quiet, style="red")
