@@ -189,7 +189,7 @@ class ScrapeMapper:
         if not self.gofile_crawler:
             self.gofile_crawler = GoFileCrawler(quiet=self.quiet, SQL_Helper=self.SQL_Helper)
         async with self.gofile_semaphore:
-            await self.gofile_crawler.get_token(session=gofile_session)
+            await self.gofile_crawler.get_token(session=gofile_session, api_token=self.args['Authentication']['gofile_api_key'])
         async with self.gofile_limiter:
             domain_obj = await self.gofile_crawler.fetch(gofile_session, url)
         await self._handle_domain_additions("gofile", domain_obj, title)

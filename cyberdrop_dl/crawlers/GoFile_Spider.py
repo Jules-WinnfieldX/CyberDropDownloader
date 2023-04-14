@@ -18,9 +18,13 @@ class GoFileCrawler:
         self.api_address = URL("https://api.gofile.io")
         self.token = None
 
-    async def get_token(self, session: ScrapeSession):
+    async def get_token(self, session: ScrapeSession, api_token=None):
         """Creates an anon gofile account to use."""
         if self.token:
+            return
+
+        if api_token:
+            self.token = api_token
             return
 
         try:

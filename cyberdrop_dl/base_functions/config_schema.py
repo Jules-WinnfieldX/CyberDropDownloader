@@ -2,6 +2,7 @@ config_default = {
     "Apply_Config": False,
     "Configuration": {
         "Authentication": {
+            "gofile_api_key": "",
             "pixeldrain_api_key": "",
             "simpcity_username": "",
             "simpcity_password": "",
