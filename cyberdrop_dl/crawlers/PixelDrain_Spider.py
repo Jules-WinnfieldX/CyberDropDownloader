@@ -40,7 +40,7 @@ class PixelDrainCrawler:
         """Handles album scraping"""
         media_items = []
         try:
-            content = await session.get_json((self.api / "list" / identifier))
+            content = await session.get_json(self.api / "list" / identifier)
             for file in content['files']:
                 link = await self.create_download_link(file['id'])
                 try:
@@ -60,7 +60,7 @@ class PixelDrainCrawler:
 
     async def get_file_name(self, session: ScrapeSession, identifier: str):
         """Gets filename for the given file identifier"""
-        content = await session.get_json((self.api / 'file' / identifier / 'info'))
+        content = await session.get_json(self.api / 'file' / identifier / 'info')
         filename = content['name']
         return filename
 
