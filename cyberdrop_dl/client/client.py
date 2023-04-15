@@ -41,12 +41,12 @@ def scrape_limit(func):
 
 class Client:
     """Creates a 'client' that can be referenced by scraping or download sessions"""
-    def __init__(self, ratelimit: int, throttle: int, secure: bool, connect_timeout: int):
+    def __init__(self, ratelimit: int, throttle: int, secure: bool, connect_timeout: int, user_agent: str):
         self.connect_timeout = connect_timeout
         self.ratelimit = ratelimit
         self.throttle = throttle
         self.simultaneous_session_limit = asyncio.Semaphore(50)
-        self.user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/112.0'
+        self.user_agent = user_agent
         self.verify_ssl = secure
         self.ssl_context = ssl.create_default_context(cafile=certifi.where()) if secure else False
         self.cookies = aiohttp.CookieJar(quote_cookie=False)
