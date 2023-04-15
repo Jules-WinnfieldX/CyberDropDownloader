@@ -28,6 +28,17 @@ if TYPE_CHECKING:
     from ..base_functions.data_classes import MediaItem
 
 
+def scrape_limit(func):
+    """Wrapper handles limits for scrape session"""
+
+    async def wrapper(self, *args, **kwargs):
+        async with self.client.simultaneous_session_limit:
+            async with self.rate_limiter:
+                return await func(self, *args, **kwargs)
+
+    return wrapper
+
+
 class Client:
     """Creates a 'client' that can be referenced by scraping or download sessions"""
     def __init__(self, ratelimit: int, throttle: int, secure: bool, connect_timeout: int):
@@ -50,57 +61,46 @@ class ScrapeSession:
         self.timeouts = aiohttp.ClientTimeout(total=5 * 60, connect=self.client.connect_timeout, sock_read=30)
         self.client_session = aiohttp.ClientSession(headers=self.headers, raise_for_status=True, cookie_jar=self.client.cookies, timeout=self.timeouts)
 
+    @scrape_limit
     async def get_BS4(self, url: URL):
-        async with self.client.simultaneous_session_limit:
-            async with self.rate_limiter:
-                async with self.client_session.get(url, ssl=self.client.ssl_context) as response:
-                    content_type = response.headers.get('Content-Type')
-                    if 'text' in content_type.lower() or 'html' in content_type.lower():
-                        text = await response.text()
-                        soup = BeautifulSoup(text, 'html.parser')
-                        return soup
-                    else:
-                        raise InvalidContentTypeFailure(message=f"Received {content_type}, was expecting text")
+        async with self.client_session.get(url, ssl=self.client.ssl_context) as response:
+            content_type = response.headers.get('Content-Type')
+            if not any(s in content_type.lower() for s in ("html", "text")):
+                raise InvalidContentTypeFailure(message=f"Received {content_type}, was expecting text")
+            text = await response.text()
+            return BeautifulSoup(text, 'html.parser')
 
+    @scrape_limit
     async def get_BS4_and_url(self, url: URL):
-        async with self.client.simultaneous_session_limit:
-            async with self.rate_limiter:
-                async with self.client_session.get(url, ssl=self.client.ssl_context) as response:
-                    text = await response.text()
-                    soup = BeautifulSoup(text, 'html.parser')
-                    return soup, URL(response.url)
+        async with self.client_session.get(url, ssl=self.client.ssl_context) as response:
+            text = await response.text()
+            soup = BeautifulSoup(text, 'html.parser')
+            return soup, URL(response.url)
 
+    @scrape_limit
     async def get_json(self, url: URL, params: dict = None):
-        async with self.client.simultaneous_session_limit:
-            async with self.rate_limiter:
-                async with self.client_session.get(url, ssl=self.client.ssl_context, params=params) as response:
-                    return json.loads(await response.content.read())
+        async with self.client_session.get(url, ssl=self.client.ssl_context, params=params) as response:
+            return json.loads(await response.content.read())
 
+    @scrape_limit
     async def get_text(self, url: URL):
-        async with self.client.simultaneous_session_limit:
-            async with self.rate_limiter:
-                async with self.client_session.get(url, ssl=self.client.ssl_context) as response:
-                    text = await response.text()
-                    return text
+        async with self.client_session.get(url, ssl=self.client.ssl_context) as response:
+            return await response.text()
 
+    @scrape_limit
     async def post(self, url: URL, data: dict):
-        async with self.client.simultaneous_session_limit:
-            async with self.rate_limiter:
-                async with self.client_session.post(url, data=data, headers=self.headers, ssl=self.client.ssl_context) as response:
-                    content = json.loads(await response.content.read())
-                    return content
+        async with self.client_session.post(url, data=data, headers=self.headers, ssl=self.client.ssl_context) as response:
+            return json.loads(await response.content.read())
 
+    @scrape_limit
     async def get_no_resp(self, url: URL, headers: dict):
-        async with self.client.simultaneous_session_limit:
-            async with self.rate_limiter:
-                async with self.client_session.get(url, headers=headers, ssl=self.client.ssl_context):
-                    pass
+        async with self.client_session.get(url, headers=headers, ssl=self.client.ssl_context):
+            pass
 
+    @scrape_limit
     async def post_data_no_resp(self, url: URL, data: dict):
-        async with self.client.simultaneous_session_limit:
-            async with self.rate_limiter:
-                async with self.client_session.post(url, data=data, headers=self.headers, ssl=self.client.ssl_context):
-                    pass
+        async with self.client_session.post(url, data=data, headers=self.headers, ssl=self.client.ssl_context):
+            pass
 
     async def exit_handler(self):
         try:
@@ -182,8 +182,7 @@ class DownloadSession:
         await throttle(self, current_throttle, url.host)
         async with self.client_session.get(url, headers=headers, ssl=self.client.ssl_context,
                                            raise_for_status=True) as resp:
-            total_size = int(resp.headers.get('Content-Length', str(0)))
-            return total_size
+            return int(resp.headers.get('Content-Length', str(0)))
 
     async def exit_handler(self):
         try:
