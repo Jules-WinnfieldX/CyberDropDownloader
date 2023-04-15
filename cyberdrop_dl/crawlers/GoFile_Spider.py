@@ -74,7 +74,7 @@ class GoFileCrawler:
             "contentId": content_id,
             "websiteToken": "12345",
         }
-        content = await session.get_json_with_params(self.api_address / "getContent", params)
+        content = await session.get_json(self.api_address / "getContent", params)
         if content["status"] != "ok":
             logger.debug("Error encountered while handling %s", str(url), exc_info=True)
             await log(f"Error: {str(url)}", quiet=self.quiet, style="red")
