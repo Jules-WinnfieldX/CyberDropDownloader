@@ -5,7 +5,7 @@ import json
 import logging
 import ssl
 from http import HTTPStatus
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Callable
 
 import aiofiles
 import aiohttp
@@ -120,8 +120,16 @@ class DownloadSession:
 
         self.bunkr_maintenance = [URL("https://bnkr.b-cdn.net/maintenance-vid.mp4"), URL("https://bnkr.b-cdn.net/maintenance.mp4")]
 
-    async def download_file(self, media: MediaItem, file: Path, current_throttle: int, resume_point: int,
-                            proxy: str, headers: dict, file_task: TaskID):
+    async def _append_content(self, file: Path, content: aiohttp.StreamReader, update_progress: Callable[[int], None]):
+        file.parent.mkdir(parents=True, exist_ok=True)
+        async with aiofiles.open(file, mode='ab') as f:
+            async for chunk, _ in content.iter_chunks():
+                await asyncio.sleep(0)
+                await f.write(chunk)
+                update_progress(len(chunk))
+
+    async def _download(self, media: MediaItem, current_throttle: int, proxy: str, headers: dict,
+                        save_content: Callable[[aiohttp.StreamReader, int], None]) -> None:
         headers['Referer'] = str(media.referer)
         headers['user-agent'] = self.client.user_agent
         await throttle(self, current_throttle, media.url.host)
@@ -132,50 +140,33 @@ class DownloadSession:
                 raise DownloadFailure(code=CustomHTTPStatus.IM_A_TEAPOT, message="No content-type in response header")
             if resp.url in self.bunkr_maintenance:
                 raise DownloadFailure(code=HTTPStatus.SERVICE_UNAVAILABLE, message="Bunkr under maintenance")
-            if 'text' in content_type.lower() or 'html' in content_type.lower():
+            if any(s in content_type.lower() for s in ('html', 'text')):
                 logger.debug("Server for %s is experiencing issues, you are being ratelimited, or cookies have expired", str(media.url))
                 raise DownloadFailure(code=CustomHTTPStatus.IM_A_TEAPOT, message="Unexpectedly got text as response")
 
-            total = int(resp.headers.get('Content-Length', str(0))) + resume_point
-            file.parent.mkdir(parents=True, exist_ok=True)
+            size = int(resp.headers.get('Content-Length', '0'))
+            await save_content(resp.content, size)
 
-            file_progress.update(file_task, total=total)
+    async def download_file(self, media: MediaItem, file: Path, current_throttle: int, resume_point: int,
+                            proxy: str, headers: dict, file_task: TaskID):
+
+        async def save_content(content: aiohttp.StreamReader, size: int):
+            file_progress.update(file_task, total=size + resume_point)
             file_progress.advance(file_task, resume_point)
+            await self._append_content(file, content, lambda chunk_len: file_progress.advance(file_task, chunk_len))
 
-            async with aiofiles.open(file, mode='ab') as f:
-                async for chunk, _ in resp.content.iter_chunks():
-                    await asyncio.sleep(0)
-                    await f.write(chunk)
-                    file_progress.advance(file_task, len(chunk))
+        await self._download(media, current_throttle, proxy, headers, save_content)
 
     async def old_download_file(self, media: MediaItem, file: Path, current_throttle: int, resume_point: int,
                                 proxy: str, headers: dict):
-        headers['Referer'] = str(media.referer)
-        headers['user-agent'] = self.client.user_agent
-        await throttle(self, current_throttle, media.url.host)
-        async with self.client_session.get(media.url, headers=headers, ssl=self.client.ssl_context,
-                                           raise_for_status=True, proxy=proxy) as resp:
-            content_type = resp.headers.get('Content-Type')
-            if not content_type:
-                raise DownloadFailure(code=CustomHTTPStatus.IM_A_TEAPOT, message="No content-type in response header")
-            if resp.url in self.bunkr_maintenance:
-                raise DownloadFailure(code=HTTPStatus.SERVICE_UNAVAILABLE, message="Bunkr under maintenance")
-            if 'text' in content_type.lower() or 'html' in content_type.lower():
-                logger.debug("Server for %s is experiencing issues, you are being ratelimited, or cookies have expired", str(media.url))
-                raise DownloadFailure(code=CustomHTTPStatus.IM_A_TEAPOT, message="Unexpectedly got text as response")
 
-            total = int(resp.headers.get('Content-Length', str(0))) + resume_point
-            file.parent.mkdir(parents=True, exist_ok=True)
-
+        async def save_content(content: aiohttp.StreamReader, size: int):
             task_description = await adjust(f"{media.url.host}: {media.filename}")
+            with tqdm(total=size + resume_point, unit_scale=True, unit='B', leave=False,
+                      initial=resume_point, desc=task_description) as progress:
+                await self._append_content(file, content, lambda chunk_len: progress.update(chunk_len))
 
-            with tqdm(total=total, unit_scale=True, unit='B', leave=False, initial=resume_point,
-                      desc=task_description) as progress:
-                async with aiofiles.open(file, mode='ab') as f:
-                    async for chunk, _ in resp.content.iter_chunks():
-                        await asyncio.sleep(0)
-                        await f.write(chunk)
-                        progress.update(len(chunk))
+        await self._download(media, current_throttle, proxy, headers, save_content)
 
     async def get_filesize(self, url: URL, referer: str, current_throttle: int):
         headers = {'Referer': referer, 'user-agent': self.client.user_agent}
