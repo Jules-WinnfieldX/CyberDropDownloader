@@ -48,10 +48,9 @@ class ShareXCrawler:
         await log(f"Finished: {str(url)}", quiet=self.quiet, style="green")
         return domain_obj
 
-    async def jpg_fish_from_church(self, url: URL):
+    async def jpg_fish_from_church(self, url: URL) -> URL:
         pattern = r"simp([1-5])\.jpg\.church/"
-        url = URL(re.sub(pattern, r'simp\1.jpg.fish/', str(url)))
-        return url
+        return URL(re.sub(pattern, r'simp\1.jpg.fish/', str(url)))
 
     async def get_albums(self, session: ScrapeSession, url: URL, domain_obj: DomainItem):
         """Handles scraping for Albums"""
