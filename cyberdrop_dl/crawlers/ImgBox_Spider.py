@@ -75,8 +75,7 @@ class ImgBoxCrawler:
 
         return title, output
 
-    async def singular(self, session: ScrapeSession, url: URL):
+    async def singular(self, session: ScrapeSession, url: URL) -> URL:
         """Gets individual links"""
         soup = await session.get_BS4(url)
-        link = URL(soup.select_one("img[id=img]").get('src'))
-        return link
+        return URL(soup.select_one("img[id=img]").get('src'))

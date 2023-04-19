@@ -58,13 +58,11 @@ class PixelDrainCrawler:
             await log(f"Error: {str(url)}", quiet=self.quiet, style="red")
             logger.debug(e)
 
-    async def get_file_name(self, session: ScrapeSession, identifier: str):
+    async def get_file_name(self, session: ScrapeSession, identifier: str) -> str:
         """Gets filename for the given file identifier"""
         content = await session.get_json(self.api / 'file' / identifier / 'info')
-        filename = content['name']
-        return filename
+        return content['name']
 
-    async def create_download_link(self, file: str):
+    async def create_download_link(self, file: str) -> URL:
         """Gets download links for the file given"""
-        final_url = (self.api / 'file' / file).with_query('download')
-        return final_url
+        return (self.api / 'file' / file).with_query('download')

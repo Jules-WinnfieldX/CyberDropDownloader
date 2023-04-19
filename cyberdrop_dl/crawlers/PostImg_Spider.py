@@ -64,13 +64,12 @@ class PostImgCrawler:
                 content.append(media_item)
         return content
 
-    async def get_singular(self, session: ScrapeSession, url: URL):
+    async def get_singular(self, session: ScrapeSession, url: URL) -> MediaItem:
         """Handles singular folder scraping"""
         soup = await session.get_BS4(url)
         link = URL(soup.select_one("a[id=download]").get('href').replace("?dl=1", ""))
 
         filename, ext = await get_filename_and_ext(link.name)
         complete = await self.SQL_Helper.check_complete_singular("postimg", link)
-        media_item = MediaItem(link, url, complete, filename, ext, filename)
 
-        return media_item
+        return MediaItem(link, url, complete, filename, ext, filename)
