@@ -250,7 +250,6 @@ class Downloader:
             if await self.File_Lock.check_lock(filename):
                 await self.File_Lock.remove_lock(filename)
 
-            new_error = DownloadFailure(code=1)
             try:
                 file_progress.update(file_task, visible=False)
             except Exception:
@@ -258,7 +257,6 @@ class Downloader:
 
             if hasattr(e, "message"):
                 logging.debug(f"\n{media.url} ({e.message})")
-            new_error.message = repr(e)
 
             if hasattr(e, "code"):
                 if await is_4xx_client_error(e.code) and e.code != HTTPStatus.TOO_MANY_REQUESTS:
@@ -283,9 +281,8 @@ class Downloader:
                     return
 
                 logger.debug("Error status code: " + str(e.code))
-                new_error.code = e.code
 
-            raise new_error
+            raise DownloadFailure(code=getattr(e, "code", 1), message=repr(e))
 
     async def output_failed(self, media, e):
         if self.errored_output:
