@@ -157,7 +157,8 @@ optional arguments:
 
 --output-last-forum-post 	outputs the last post of a forum scrape to use as a starting point for future runs
 --separate-posts 	        separates forum scraping into folders by post number
-	
+
+--gofile-api-key 	        api key for premium gofile
 --pixeldrain-api-key 	        api key for premium pixeldrain
 --simpcity-password 	        password to login to simpcity
 --simpcity-username 	        username to login to simpcity
