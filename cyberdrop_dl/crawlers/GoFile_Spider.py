@@ -25,6 +25,7 @@ class GoFileCrawler:
 
         if api_token:
             self.token = api_token
+            await self.set_cookie(session)
             return
 
         try:

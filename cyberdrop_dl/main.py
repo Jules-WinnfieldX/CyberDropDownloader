@@ -105,6 +105,7 @@ def parse_args() -> argparse.Namespace:
     # Authentication details
     config_group = config_data["Authentication"]
     auth_opts = parser.add_argument_group("Authentication options")
+    auth_opts.add_argument("--gofile-api-key", help="api key for premium gofile", default=config_group["gofile_api_key"])
     auth_opts.add_argument("--pixeldrain-api-key", help="api key for premium pixeldrain", default=config_group["pixeldrain_api_key"])
     auth_opts.add_argument("--simpcity-username", help="username to login to simpcity", default=config_group["simpcity_username"])
     auth_opts.add_argument("--simpcity-password", help="password to login to simpcity", default=config_group['simpcity_password'])
