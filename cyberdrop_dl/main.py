@@ -1,5 +1,6 @@
 import argparse
 import asyncio
+import contextlib
 import logging
 import re
 from pathlib import Path
@@ -294,11 +295,9 @@ def main(args=None):
         filemode="w"
     )
 
-    try:
+    with contextlib.suppress(RuntimeError):
         loop = asyncio.get_event_loop()
         loop.run_until_complete(director(args, links))
-    except RuntimeError:
-        pass
 
 
 if __name__ == '__main__':

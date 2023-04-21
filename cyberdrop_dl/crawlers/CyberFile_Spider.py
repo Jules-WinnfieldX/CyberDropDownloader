@@ -1,3 +1,4 @@
+import contextlib
 from bs4 import BeautifulSoup
 from yarl import URL
 
@@ -80,14 +81,11 @@ class CyberFileCrawler:
             total_pages = int(soup.select("a[onclick*=loadImages]")[-1].get('onclick').split(',')[2])
             listings = soup.select("div[class=fileListing] div")
             for listing in listings:
-                try:
+                with contextlib.suppress(TypeError):
                     nodes.append(int(listing.get('folderid')))
-                except TypeError:
-                    pass
-                try:
+
+                with contextlib.suppress(TypeError):
                     contents.append((title, int(listing.get('fileid'))))
-                except TypeError:
-                    pass
 
             if page < total_pages:
                 contents.extend(await self.get_folder_content(session, url, nodeId, page+1, original_title))
@@ -139,15 +137,12 @@ class CyberFileCrawler:
             listings = soup.select("div[class=fileListing] div")
             for listing in listings:
                 title = await make_title_safe(content['page_title'])
-                try:
+                with contextlib.suppress(TypeError, AttributeError):
                     title = title + '/' + await make_title_safe(listing.select_one('span[class=filename]').text)
                     nodes.append((title, int(listing.get('folderid'))))
-                except (TypeError, AttributeError):
-                    pass
-                try:
+
+                with contextlib.suppress(TypeError):
                     contents.append((title, int(listing.get('fileid'))))
-                except TypeError:
-                    pass
 
             if page < total_pages:
                 nodes_temp, content_temp = await self.get_shared_ids_and_content(session, url, page + 1)
@@ -177,16 +172,13 @@ class CyberFileCrawler:
             total_pages = int(soup.select("a[onclick*=loadImages]")[-1].get('onclick').split(',')[2])
             listings = soup.select("div[class=fileListing] div")
             for listing in listings:
-                try:
+                with contextlib.suppress(TypeError, AttributeError):
                     filename = listing.select_one('span[class=filename]')
                     temp_title = title + '/' + await make_title_safe(filename.text)
                     nodes.append((temp_title, int(listing.get('folderid'))))
-                except (TypeError, AttributeError):
-                    pass
-                try:
+
+                with contextlib.suppress(TypeError):
                     contents.append((title, int(listing.get('fileid'))))
-                except TypeError:
-                    pass
 
             if page < total_pages:
                 contents.extend(await self.get_shared_content(session, url, nodeId, page + 1, title))
