@@ -1,7 +1,7 @@
 from yarl import URL
 
-from ..base_functions.base_functions import get_filename_and_ext, log, logger, make_title_safe
-from ..base_functions.data_classes import AlbumItem, MediaItem
+from ..base_functions.base_functions import create_media_item, log, logger, make_title_safe
+from ..base_functions.data_classes import AlbumItem
 from ..base_functions.sql_helper import SQLHelper
 from ..client.client import ScrapeSession
 
@@ -58,10 +58,7 @@ class PimpAndHostCrawler:
             img = img.get("src")
             if img.startswith("//"):
                 img = URL("https:" + img)
-            filename, ext = await get_filename_and_ext(img.name)
-            complete = await self.SQL_Helper.check_complete_singular("pimpandhost", img)
-            media_item = MediaItem(img, url, complete, filename, ext, filename)
-            return media_item
+            return await create_media_item(img, url, self.SQL_Helper, "pimpandhost")
         except Exception as e:
             logger.debug("Error encountered while handling %s", str(url), exc_info=True)
             await log(f"Error: {str(url)}", quiet=self.quiet, style="red")

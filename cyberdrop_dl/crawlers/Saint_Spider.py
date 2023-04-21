@@ -1,7 +1,7 @@
 from yarl import URL
 
-from ..base_functions.base_functions import get_filename_and_ext, log, logger
-from ..base_functions.data_classes import AlbumItem, MediaItem
+from ..base_functions.base_functions import create_media_item, log, logger
+from ..base_functions.data_classes import AlbumItem
 from ..base_functions.sql_helper import SQLHelper
 from ..client.client import ScrapeSession
 
@@ -19,9 +19,7 @@ class SaintCrawler:
         try:
             soup = await session.get_BS4(url)
             link = URL(soup.select_one('video[id=main-video] source').get('src'))
-            complete = await self.SQL_Helper.check_complete_singular("saint", link)
-            filename, ext = await get_filename_and_ext(link.name)
-            media_item = MediaItem(link, url, complete, filename, ext, filename)
+            media_item = await create_media_item(link, url, self.SQL_Helper, "saint")
             await album_obj.add_media(media_item)
             await self.SQL_Helper.insert_album("saint", link, album_obj)
 

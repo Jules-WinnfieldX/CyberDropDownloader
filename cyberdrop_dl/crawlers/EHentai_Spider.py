@@ -1,7 +1,7 @@
 from yarl import URL
 
-from ..base_functions.base_functions import get_filename_and_ext, log, logger, make_title_safe
-from ..base_functions.data_classes import AlbumItem, MediaItem
+from ..base_functions.base_functions import create_media_item, log, logger, make_title_safe
+from ..base_functions.data_classes import AlbumItem
 from ..base_functions.sql_helper import SQLHelper
 from ..client.client import ScrapeSession
 
@@ -60,10 +60,7 @@ class EHentaiCrawler:
             image = soup.select_one("img[id=img]")
             link = URL(image.get('src'))
 
-            complete = await self.SQL_Helper.check_complete_singular("e-hentai", link)
-
-            filename, ext = await get_filename_and_ext(link.name)
-            media_item = MediaItem(link, url, complete, filename, ext, filename)
+            media_item = await create_media_item(link, url, self.SQL_Helper, "e-hentai")
             await album_obj.add_media(media_item)
         except Exception as e:
             logger.debug("Error encountered while handling %s", str(url), exc_info=True)

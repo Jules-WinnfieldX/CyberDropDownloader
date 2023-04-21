@@ -1,7 +1,7 @@
 from yarl import URL
 
-from ..base_functions.base_functions import get_filename_and_ext, log, logger
-from ..base_functions.data_classes import AlbumItem, MediaItem
+from ..base_functions.base_functions import create_media_item, log, logger
+from ..base_functions.data_classes import AlbumItem
 from ..base_functions.sql_helper import SQLHelper
 from ..client.client import ScrapeSession
 
@@ -30,9 +30,7 @@ class GfycatCrawler:
             if video_link is None:
                 video_link = URL(video_srcs[0].get("src"))
 
-            complete = await self.SQL_Helper.check_complete_singular("gfycat", video_link)
-            filename, ext = await get_filename_and_ext(video_link.name)
-            media_item = MediaItem(video_link, url, complete, filename, ext, filename)
+            media_item = await create_media_item(video_link, url, self.SQL_Helper, "gfycat")
             await album_obj.add_media(media_item)
             await self.SQL_Helper.insert_album("gfycat", video_link, album_obj)
             await log(f"Finished: {str(url)}", quiet=self.quiet, style="green")

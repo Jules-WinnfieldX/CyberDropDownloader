@@ -2,12 +2,12 @@ from yarl import URL
 
 from ..base_functions.base_functions import (
     check_direct,
-    get_filename_and_ext,
+    create_media_item,
     log,
     logger,
     make_title_safe,
 )
-from ..base_functions.data_classes import AlbumItem, MediaItem
+from ..base_functions.data_classes import AlbumItem
 from ..base_functions.error_classes import NoExtensionFailure
 from ..base_functions.sql_helper import SQLHelper
 from ..client.client import ScrapeSession
@@ -25,9 +25,7 @@ class ImgBoxCrawler:
 
         try:
             if await check_direct(url):
-                filename, ext = await get_filename_and_ext(url.name)
-                complete = await self.SQL_Helper.check_complete_singular("imgbox", url)
-                media_item = MediaItem(url, url, complete, filename, ext, filename)
+                media_item = await create_media_item(url, url, self.SQL_Helper, "imgbox")
                 await album_obj.add_media(media_item)
 
             elif "g" in url.parts:
@@ -38,18 +36,14 @@ class ImgBoxCrawler:
                 await album_obj.set_new_title(title)
                 for img in images:
                     try:
-                        filename, ext = await get_filename_and_ext(img.name)
+                        media_item = await create_media_item(img, url, self.SQL_Helper, "imgbox")
                     except NoExtensionFailure:
                         logger.debug("Couldn't get extension for %s", str(img))
                         continue
-                    complete = await self.SQL_Helper.check_complete_singular("imgbox", img)
-                    media_item = MediaItem(img, url, complete, filename, ext, filename)
                     await album_obj.add_media(media_item)
             else:
                 img = await self.singular(session, url)
-                filename, ext = await get_filename_and_ext(img.name)
-                complete = await self.SQL_Helper.check_complete_singular("imgbox", img)
-                media_item = MediaItem(img, url, complete, filename, ext, filename)
+                media_item = await create_media_item(img, url, self.SQL_Helper, "imgbox")
                 await album_obj.add_media(media_item)
 
         except Exception as e:

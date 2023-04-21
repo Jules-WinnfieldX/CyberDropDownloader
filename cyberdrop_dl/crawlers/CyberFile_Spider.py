@@ -1,9 +1,10 @@
 import contextlib
+
 from bs4 import BeautifulSoup
 from yarl import URL
 
-from ..base_functions.base_functions import get_filename_and_ext, log, logger, make_title_safe
-from ..base_functions.data_classes import DomainItem, MediaItem
+from ..base_functions.base_functions import create_media_item, log, logger, make_title_safe
+from ..base_functions.data_classes import DomainItem
 from ..base_functions.error_classes import NoExtensionFailure
 from ..base_functions.sql_helper import SQLHelper
 from ..client.client import ScrapeSession
@@ -210,13 +211,11 @@ class CyberFileCrawler:
                 elif button:
                     html_download_text = button.get("onclick")
                     link = URL(html_download_text.replace("openUrl('", "").replace("'); return false;", ""))
-                complete = await self.SQL_Helper.check_complete_singular("cyberfile", link)
                 try:
-                    filename, ext = await get_filename_and_ext(link.name)
+                    media = await create_media_item(link, url, self.SQL_Helper, "cyberfile")
                 except NoExtensionFailure:
                     logger.debug("Couldn't get extension for %s", str(link))
                     continue
-                media = MediaItem(link, url, complete, filename, ext, filename)
 
                 download_links.append((title, media))
             return download_links
