@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import itertools
 import logging
 from http import HTTPStatus
@@ -250,10 +251,8 @@ class Downloader:
             if await self.File_Lock.check_lock(filename):
                 await self.File_Lock.remove_lock(filename)
 
-            try:
+            with contextlib.suppress(Exception):
                 file_progress.update(file_task, visible=False)
-            except Exception:
-                pass
 
             if hasattr(e, "message"):
                 logging.debug(f"\n{media.url} ({e.message})")
