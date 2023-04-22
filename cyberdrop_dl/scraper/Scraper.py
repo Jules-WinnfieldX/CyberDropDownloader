@@ -1,12 +1,13 @@
+from __future__ import annotations
+
 import asyncio
-from typing import Dict
+from typing import TYPE_CHECKING, Dict
 
 import aiofiles
 from yarl import URL
 
 from cyberdrop_dl.base_functions.base_functions import log
-from cyberdrop_dl.base_functions.data_classes import SkipData, CascadeItem, ForumItem, AlbumItem, DomainItem
-from cyberdrop_dl.base_functions.sql_helper import SQLHelper
+from cyberdrop_dl.base_functions.data_classes import AlbumItem, CascadeItem, DomainItem, ForumItem, SkipData
 from cyberdrop_dl.client.client import Client, ScrapeSession
 from cyberdrop_dl.client.rate_limiting import AsyncRateLimiter
 from cyberdrop_dl.crawlers.Anonfiles_Spider import AnonfilesCrawler
@@ -31,6 +32,9 @@ from cyberdrop_dl.crawlers.ShareX_Spider import ShareXCrawler
 from cyberdrop_dl.crawlers.XBunkr_Spider import XBunkrCrawler
 from cyberdrop_dl.crawlers.Xenforo_Spider import XenforoCrawler
 from cyberdrop_dl.scraper.JDownloader_Integration import JDownloader
+
+if TYPE_CHECKING:
+    from cyberdrop_dl.base_functions.sql_helper import SQLHelper
 
 
 class ScrapeMapper:

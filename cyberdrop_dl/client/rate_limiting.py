@@ -1,10 +1,13 @@
+from __future__ import annotations
+
 import asyncio
 import collections
 import time
-
 from datetime import datetime
-from types import TracebackType
-from typing import Optional, Callable, Awaitable, Any, Type
+from typing import TYPE_CHECKING, Any, Awaitable, Callable, Optional, Type
+
+if TYPE_CHECKING:
+    from types import TracebackType
 
 
 class AsyncRateLimiter:

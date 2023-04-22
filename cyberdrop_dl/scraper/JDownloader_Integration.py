@@ -1,10 +1,15 @@
+from __future__ import annotations
+
 import logging
+from typing import TYPE_CHECKING
 
 from myjdapi import myjdapi
-from yarl import URL
 
 from cyberdrop_dl.base_functions.base_functions import log
 from cyberdrop_dl.base_functions.error_classes import JDownloaderFailure
+
+if TYPE_CHECKING:
+    from yarl import URL
 
 
 class JDownloader:

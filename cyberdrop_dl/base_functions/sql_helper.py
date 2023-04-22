@@ -1,17 +1,21 @@
+from __future__ import annotations
+
 import atexit
 import logging
 import sqlite3
-from pathlib import Path
-from typing import List, Optional
+from typing import TYPE_CHECKING, List, Optional
 
-from yarl import URL
+if TYPE_CHECKING:
+    from pathlib import Path
 
-from cyberdrop_dl.base_functions.data_classes import (
-    AlbumItem,
-    CascadeItem,
-    DomainItem,
-    MediaItem,
-)
+    from yarl import URL
+
+    from cyberdrop_dl.base_functions.data_classes import (
+        AlbumItem,
+        CascadeItem,
+        DomainItem,
+        MediaItem,
+    )
 
 
 async def get_db_path(url: URL, referer: str = None) -> str:

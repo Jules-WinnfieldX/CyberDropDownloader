@@ -1,14 +1,20 @@
+from __future__ import annotations
+
 import multiprocessing
 import shutil
 from base64 import b64encode
 from enum import IntEnum
 from functools import wraps
 from http import HTTPStatus
-from pathlib import Path
+from typing import TYPE_CHECKING
 
 from cyberdrop_dl.base_functions.base_functions import FILE_FORMATS, logger
-from cyberdrop_dl.base_functions.data_classes import MediaItem
 from cyberdrop_dl.base_functions.error_classes import DownloadFailure
+
+if TYPE_CHECKING:
+    from pathlib import Path
+
+    from cyberdrop_dl.base_functions.data_classes import MediaItem
 
 
 class CustomHTTPStatus(IntEnum):
