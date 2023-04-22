@@ -1,9 +1,15 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from yarl import URL
 
 from ..base_functions.base_functions import create_media_item, log, logger
 from ..base_functions.data_classes import AlbumItem
-from ..base_functions.sql_helper import SQLHelper
-from ..client.client import ScrapeSession
+
+if TYPE_CHECKING:
+    from ..base_functions.sql_helper import SQLHelper
+    from ..client.client import ScrapeSession
 
 
 class GfycatCrawler:

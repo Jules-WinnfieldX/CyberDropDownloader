@@ -1,12 +1,16 @@
-from typing import Optional
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Optional
 
 from yarl import URL
 
 from ..base_functions.base_functions import create_media_item, log, logger, make_title_safe
 from ..base_functions.data_classes import AlbumItem
 from ..base_functions.error_classes import NoExtensionFailure
-from ..base_functions.sql_helper import SQLHelper
-from ..client.client import ScrapeSession
+
+if TYPE_CHECKING:
+    from ..base_functions.sql_helper import SQLHelper
+    from ..client.client import ScrapeSession
 
 
 class FapelloCrawler:
