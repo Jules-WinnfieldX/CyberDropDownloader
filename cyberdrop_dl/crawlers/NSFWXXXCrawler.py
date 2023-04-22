@@ -2,8 +2,8 @@ import itertools
 
 from yarl import URL
 
-from ..base_functions.base_functions import get_filename_and_ext, log, logger, make_title_safe
-from ..base_functions.data_classes import MediaItem, DomainItem
+from ..base_functions.base_functions import create_media_item, log, logger, make_title_safe
+from ..base_functions.data_classes import DomainItem
 from ..base_functions.error_classes import NoExtensionFailure
 from ..base_functions.sql_helper import SQLHelper
 from ..client.client import ScrapeSession
@@ -78,13 +78,11 @@ class NSFWXXXCrawler:
                 link = URL(content.get("src"))
                 if "-mobile" in link.name or ".webm" in link.name:
                     continue
-                complete = await self.SQL_Helper.check_complete_singular("nsfw.xxx", link)
                 try:
-                    filename, ext = await get_filename_and_ext(link.name)
+                    media = await create_media_item(link, url, self.SQL_Helper, "nsfw.xxx")
                 except NoExtensionFailure:
                     logger.debug("Couldn't get extension for %s", str(link))
                     continue
-                media = MediaItem(link, url, complete, filename, ext, filename)
 
                 title = f"{model}/{post_name}" if self.separate_posts else model
                 await domain_obj.add_media(title, media)

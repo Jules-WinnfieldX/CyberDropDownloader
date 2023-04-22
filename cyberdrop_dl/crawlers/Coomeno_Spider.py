@@ -3,8 +3,8 @@ import asyncio
 from bs4 import BeautifulSoup
 from yarl import URL
 
-from ..base_functions.base_functions import get_filename_and_ext, log, logger, make_title_safe
-from ..base_functions.data_classes import CascadeItem, MediaItem
+from ..base_functions.base_functions import create_media_item, log, logger, make_title_safe
+from ..base_functions.data_classes import CascadeItem
 from ..base_functions.sql_helper import SQLHelper
 from ..client.client import ScrapeSession
 
@@ -49,15 +49,11 @@ class CoomenoCrawler:
             parts = [x for x in url.parts if x not in ("thumbnail", "/")]
             link = URL("https://coomer.party/" + "/".join(parts))
 
-            complete = await self.SQL_Helper.check_complete_singular("coomer", link)
-            filename, ext = await get_filename_and_ext(link.name)
-            media_item = MediaItem(link, url, complete, filename, ext, filename)
+            media_item = await create_media_item(link, url, self.SQL_Helper, "coomer")
             await cascade.add_to_album("coomer", title, media_item)
 
         elif "data" in url.parts:
-            complete = await self.SQL_Helper.check_complete_singular("coomer", url)
-            filename, ext = await get_filename_and_ext(url.name)
-            media_item = MediaItem(url, url, complete, filename, ext, filename)
+            media_item = await create_media_item(url, url, self.SQL_Helper, "coomer")
             await cascade.add_to_album("coomer", title, media_item)
 
         elif "post" in url.parts:
@@ -83,15 +79,11 @@ class CoomenoCrawler:
             parts = [x for x in url.parts if x not in ("thumbnail", "/")]
             link = URL("https://kemono.party/" + "/".join(parts))
 
-            complete = await self.SQL_Helper.check_complete_singular("kemono", link)
-            filename, ext = await get_filename_and_ext(link.name)
-            media_item = MediaItem(link, url, complete, filename, ext, filename)
+            media_item = await create_media_item(link, url, self.SQL_Helper, "kemono")
             await cascade.add_to_album("kemono", title, media_item)
 
         elif "data" in url.parts:
-            complete = await self.SQL_Helper.check_complete_singular("kemono", url)
-            filename, ext = await get_filename_and_ext(url.name)
-            media_item = MediaItem(url, url, complete, filename, ext, filename)
+            media_item = await create_media_item(url, url, self.SQL_Helper, "kemono")
             await cascade.add_to_album("kemono", title, media_item)
 
         elif "post" in url.parts:
@@ -176,9 +168,7 @@ class CoomenoCrawler:
                     link = URL("https://" + url.host + href)
                 else:
                     link = URL(href)
-                complete = await self.SQL_Helper.check_complete_singular(domain, link)
-                filename, ext = await get_filename_and_ext(link.name)
-                media_item = MediaItem(link, url, complete, filename, ext, filename)
+                media_item = await create_media_item(link, url, self.SQL_Helper, domain)
                 await cascade.add_to_album(domain, title, media_item)
 
             downloads = soup.select(downloads_selector)
@@ -188,9 +178,7 @@ class CoomenoCrawler:
                     link = URL("https://" + url.host + href)
                 else:
                     link = URL(href)
-                complete = await self.SQL_Helper.check_complete_singular(domain, link)
-                filename, ext = await get_filename_and_ext(link.name)
-                media_item = MediaItem(link, url, complete, filename, ext, filename)
+                media_item = await create_media_item(link, url, self.SQL_Helper, domain)
                 await cascade.add_to_album(domain, title, media_item)
 
             text_content = soup.select(text_selector)

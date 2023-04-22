@@ -7,10 +7,13 @@ from typing import TYPE_CHECKING
 
 import rich
 
+from cyberdrop_dl.base_functions.data_classes import MediaItem
 from cyberdrop_dl.base_functions.error_classes import NoExtensionFailure
 
 if TYPE_CHECKING:
     from yarl import URL
+    
+    from cyberdrop_dl.base_functions.sql_helper import SQLHelper
 
 
 FILE_FORMATS = {
@@ -103,3 +106,10 @@ async def get_filename_and_ext(filename, forum=False):
     filename = filename.strip()
     filename = await sanitize(filename + ext)
     return filename, ext
+
+
+async def create_media_item(url: URL, referer: URL, sql_helper: SQLHelper, domain: str) -> MediaItem:
+    """Returns the MediaItem of a given url, throws NoExtensionFailure if url.name doesn't have extension"""
+    filename, ext = await get_filename_and_ext(url.name)
+    complete = await sql_helper.check_complete_singular(domain, url)
+    return MediaItem(url, referer, complete, filename, ext, filename)

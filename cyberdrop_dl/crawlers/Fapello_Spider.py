@@ -2,8 +2,8 @@ from typing import Optional
 
 from yarl import URL
 
-from ..base_functions.base_functions import get_filename_and_ext, log, logger, make_title_safe
-from ..base_functions.data_classes import AlbumItem, MediaItem
+from ..base_functions.base_functions import create_media_item, log, logger, make_title_safe
+from ..base_functions.data_classes import AlbumItem
 from ..base_functions.error_classes import NoExtensionFailure
 from ..base_functions.sql_helper import SQLHelper
 from ..client.client import ScrapeSession
@@ -72,23 +72,21 @@ class FapelloCrawler:
             for image in images:
                 download_link = URL(image.get('src'))
                 try:
-                    filename, ext = await get_filename_and_ext(download_link.name)
+                    media_item = await create_media_item(download_link, url, self.SQL_Helper, "fapello")
                 except NoExtensionFailure:
                     logger.debug("Couldn't get extension for %s", str(download_link))
                     continue
-                complete = await self.SQL_Helper.check_complete_singular("fapello", download_link)
-                results.append(MediaItem(download_link, url, complete, filename, ext, filename))
+                results.append(media_item)
 
             videos = content_section.select("source")
             for video in videos:
                 download_link = URL(video.get('src'))
                 try:
-                    filename, ext = await get_filename_and_ext(download_link.name)
+                    media_item = await create_media_item(download_link, url, self.SQL_Helper, "fapello")
                 except NoExtensionFailure:
                     logger.debug("Couldn't get extension for %s", str(download_link))
                     continue
-                complete = await self.SQL_Helper.check_complete_singular("fapello", download_link)
-                results.append(MediaItem(download_link, url, complete, filename, ext, filename))
+                results.append(media_item)
 
             return results
 

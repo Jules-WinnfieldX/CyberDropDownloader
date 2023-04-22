@@ -2,12 +2,12 @@ from yarl import URL
 
 from ..base_functions.base_functions import (
     check_direct,
-    get_filename_and_ext,
+    create_media_item,
     log,
     logger,
     make_title_safe,
 )
-from ..base_functions.data_classes import AlbumItem, MediaItem
+from ..base_functions.data_classes import AlbumItem
 from ..base_functions.error_classes import NoExtensionFailure
 from ..base_functions.sql_helper import SQLHelper
 from ..client.client import ScrapeSession
@@ -24,9 +24,7 @@ class LoveFapCrawler:
 
         await log(f"Starting: {str(url)}", quiet=self.quiet, style="green")
         if await check_direct(url):
-            complete = await self.SQL_Helper.check_complete_singular("lovefap", url)
-            filename, ext = await get_filename_and_ext(url.name)
-            media = MediaItem(url, url, complete, filename, ext, filename)
+            media = await create_media_item(url, url, self.SQL_Helper, "lovefap")
             await album_obj.add_media(media)
             await self.SQL_Helper.insert_album("lovefap", URL(""), album_obj)
             await log(f"Finished: {str(url)}", quiet=self.quiet, style="green")
@@ -69,13 +67,11 @@ class LoveFapCrawler:
                 await self.fetch_video(session, url, album_obj)
             else:
                 try:
-                    filename, ext = await get_filename_and_ext(link.name)
+                    media = await create_media_item(link, url, self.SQL_Helper, "lovefap")
                 except NoExtensionFailure:
                     logger.debug("Couldn't get extension for %s", str(link))
                     continue
 
-                complete = await self.SQL_Helper.check_complete_singular("lovefap", link)
-                media = MediaItem(link, url, complete, filename, ext, filename)
                 await album_obj.add_media(media)
 
     async def fetch_video(self, session: ScrapeSession, url: URL, album_obj: AlbumItem):
@@ -85,11 +81,9 @@ class LoveFapCrawler:
         if video:
             link = URL(video.get("src"))
             try:
-                filename, ext = await get_filename_and_ext(link.name)
+                media = await create_media_item(link, url, self.SQL_Helper, "lovefap")
             except NoExtensionFailure:
                 logger.debug("Couldn't get extension for %s", str(link))
                 return
 
-            complete = await self.SQL_Helper.check_complete_singular("lovefap", link)
-            media = MediaItem(link, url, complete, filename, ext, filename)
             await album_obj.add_media(media)

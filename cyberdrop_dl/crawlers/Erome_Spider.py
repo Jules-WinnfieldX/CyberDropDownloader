@@ -1,7 +1,7 @@
 from yarl import URL
 
-from ..base_functions.base_functions import get_filename_and_ext, log, logger, make_title_safe
-from ..base_functions.data_classes import DomainItem, MediaItem
+from ..base_functions.base_functions import create_media_item, log, logger, make_title_safe
+from ..base_functions.data_classes import DomainItem
 from ..base_functions.error_classes import NoExtensionFailure
 from ..base_functions.sql_helper import SQLHelper
 from ..client.client import ScrapeSession
@@ -42,24 +42,20 @@ class EromeCrawler:
             for link in soup.select('img[class="img-front lasyload"]'):
                 link = URL(link['data-src'])
                 try:
-                    filename, ext = await get_filename_and_ext(link.name)
+                    media = await create_media_item(link, url, self.SQL_Helper, "erome")
                 except NoExtensionFailure:
                     logger.debug("Couldn't get extension for %s", str(url))
                     continue
-                complete = await self.SQL_Helper.check_complete_singular("erome", link)
-                media = MediaItem(link, url, complete, filename, ext, filename)
                 await domain_obj.add_media(title, media)
 
             # Videos
             for link in soup.select('div[class=media-group] div[class=video-lg] video source'):
                 link = URL(link['src'])
                 try:
-                    filename, ext = await get_filename_and_ext(link.name)
+                    media = await create_media_item(link, url, self.SQL_Helper, "erome")
                 except NoExtensionFailure:
                     logger.debug("Couldn't get extension for %s", str(link))
                     continue
-                complete = await self.SQL_Helper.check_complete_singular("erome", link)
-                media = MediaItem(link, url, complete, filename, ext, filename)
                 await domain_obj.add_media(title, media)
 
             await self.SQL_Helper.insert_domain("erome", url, domain_obj)

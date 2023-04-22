@@ -1,7 +1,7 @@
 from yarl import URL
 
-from ..base_functions.base_functions import get_filename_and_ext, log, logger, make_title_safe
-from ..base_functions.data_classes import AlbumItem, MediaItem
+from ..base_functions.base_functions import create_media_item, log, logger, make_title_safe
+from ..base_functions.data_classes import AlbumItem
 from ..base_functions.sql_helper import SQLHelper
 from ..client.client import ScrapeSession
 
@@ -34,10 +34,7 @@ class HGameCGCrawler:
                 image = URL("https://" + url.host + image)
                 link = await self.get_image(session, image)
 
-                complete = await self.SQL_Helper.check_complete_singular("hgamecg", link)
-
-                filename, ext = await get_filename_and_ext(link.name)
-                media_item = MediaItem(link, image, complete, filename, ext, filename)
+                media_item = await create_media_item(link, image, self.SQL_Helper, "hgamecg")
                 await album_obj.add_media(media_item)
 
             next_page = soup.find("a", text="Next Page")
