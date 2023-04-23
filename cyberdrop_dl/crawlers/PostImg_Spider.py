@@ -49,9 +49,8 @@ class PostImgCrawler:
         data = {"action": "list", "album": album}
         content = []
         for i in itertools.count(1):
-            data_used = data
-            data_used["page"] = i
-            data_out = await session.post(URL("https://postimg.cc/json"), data_used)
+            data["page"] = i
+            data_out = await session.post(URL("https://postimg.cc/json"), data)
             if data_out['status_code'] != HTTPStatus.OK or not data_out['images']:
                 break
             for item in data_out['images']:
