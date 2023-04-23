@@ -70,10 +70,8 @@ async def throttle(self, delay: int, host: str) -> None:
     if delay is None or delay == 0:
         return
 
-    key: Optional[str] = None
+    key = f'throttle:{host}'
     while True:
-        if key is None:
-            key = f'throttle:{host}'
         now = time.time()
         last = self.throttle_times.get(key, 0.0)
         elapsed = now - last
