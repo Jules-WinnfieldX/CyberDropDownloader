@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import asyncio
 import collections
-import time
 from datetime import datetime
 from typing import TYPE_CHECKING, Any, Awaitable, Callable, Optional, Type
 
@@ -63,22 +62,3 @@ class AsyncRateLimiter:
     @property
     def _timespan(self) -> float:
         return self.calls[-1] - self.calls[0]
-
-
-async def throttle(self, delay: int, host: str) -> None:
-    """Throttles requests to domains by a parameter amount of time"""
-    if delay is None or delay == 0:
-        return
-
-    key = f'throttle:{host}'
-    while True:
-        now = time.time()
-        last = self.throttle_times.get(key, 0.0)
-        elapsed = now - last
-
-        if elapsed >= delay:
-            self.throttle_times[key] = now
-            return
-
-        remaining = delay - elapsed + 0.1
-        await asyncio.sleep(remaining)
