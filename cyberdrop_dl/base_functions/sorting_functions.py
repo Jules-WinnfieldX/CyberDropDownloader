@@ -1,7 +1,7 @@
 import asyncio
-import os
 from pathlib import Path
-from .base_functions import FILE_FORMATS, log
+
+from .base_functions import FILE_FORMATS, log, purge_dir
 
 
 class Sorter:
@@ -61,7 +61,7 @@ class Sorter:
                     await self.move_cd(file, other_destination)
                     self.other += 1
         await asyncio.sleep(5)
-        await self.purge_dir(str(self.download_dir))
+        await purge_dir(self.download_dir)
         await log(f"Organized: {self.audio} Audio Files", style="green")
         await log(f"Organized: {self.images} Image Files", style="green")
         await log(f"Organized: {self.videos} Video Files", style="green")
@@ -82,11 +82,3 @@ class Sorter:
                 i += 1
             if file.is_file():
                 file.rename((dest / f"{temp_stem}{ext}"))
-
-    async def purge_dir(self, directory: str):
-        dir_tree = list(os.walk(directory, topdown=False))
-        for tree_element in dir_tree:
-            sub_dir = tree_element[0]
-            is_empty = not len(os.listdir(sub_dir))
-            if is_empty:
-                os.rmdir(sub_dir)
