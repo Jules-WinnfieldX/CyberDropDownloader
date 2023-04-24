@@ -1,10 +1,10 @@
-yarl==1.9.1
+yarl==1.8.2
 PyYAML~=6.0
 aiofiles~=23.1.0
 aiohttp~=3.8.4
 certifi~=2022.12.7
 beautifulsoup4==4.12.2
-rich==13.3.4
+rich~=13.3.1
 myjdapi~=1.1.6
 setuptools==67.7.2
 tqdm==4.65.0
