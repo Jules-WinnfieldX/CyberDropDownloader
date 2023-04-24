@@ -11,6 +11,8 @@ from cyberdrop_dl.base_functions.data_classes import MediaItem
 from cyberdrop_dl.base_functions.error_classes import NoExtensionFailure
 
 if TYPE_CHECKING:
+    from pathlib import Path
+
     from yarl import URL
     
     from cyberdrop_dl.base_functions.sql_helper import SQLHelper
@@ -58,7 +60,7 @@ async def log(text: str, quiet: bool = False, style: str = "") -> None:
         rich.print(text)
 
 
-async def purge_dir(dirname) -> None:
+async def purge_dir(dirname: Path) -> None:
     """Purges empty directories"""
     deleted = []
     dir_tree = list(os.walk(dirname, topdown=False))
