@@ -15,11 +15,6 @@ class Sorter:
         self.video_dir = video_dir
         self.other_dir = other_dir
 
-        self.audio = 0
-        self.images = 0
-        self.videos = 0
-        self.other = 0
-
     async def find_files_in_dir(self, directory: Path):
         file_list = []
         for x in directory.iterdir():
@@ -30,6 +25,11 @@ class Sorter:
         return file_list
 
     async def sort(self):
+        audio_count = 0
+        image_count = 0
+        video_count = 0
+        other_count = 0
+
         for folder in self.download_dir.iterdir():
             if not folder.is_dir():
                 continue
@@ -44,28 +44,28 @@ class Sorter:
                 ext = file.suffix.lower()
                 if '.part' in ext:
                     continue
-                elif ext in FILE_FORMATS['Audio']:
+                if ext in FILE_FORMATS['Audio']:
                     audio_destination.mkdir(parents=True, exist_ok=True)
                     await self.move_cd(file, audio_destination)
-                    self.audio += 1
+                    audio_count += 1
                 elif ext in FILE_FORMATS['Images']:
                     image_destination.mkdir(parents=True, exist_ok=True)
                     await self.move_cd(file, image_destination)
-                    self.images += 1
+                    image_count += 1
                 elif ext in FILE_FORMATS['Videos']:
                     video_destination.mkdir(parents=True, exist_ok=True)
                     await self.move_cd(file, video_destination)
-                    self.videos += 1
+                    video_count += 1
                 else:
                     other_destination.mkdir(parents=True, exist_ok=True)
                     await self.move_cd(file, other_destination)
-                    self.other += 1
+                    other_count += 1
         await asyncio.sleep(5)
         await purge_dir(self.download_dir)
-        await log(f"Organized: {self.audio} Audio Files", style="green")
-        await log(f"Organized: {self.images} Image Files", style="green")
-        await log(f"Organized: {self.videos} Video Files", style="green")
-        await log(f"Organized: {self.other} Other Files", style="green")
+        await log(f"Organized: {audio_count} Audio Files", style="green")
+        await log(f"Organized: {image_count} Image Files", style="green")
+        await log(f"Organized: {video_count} Video Files", style="green")
+        await log(f"Organized: {other_count} Other Files", style="green")
 
     async def move_cd(self, file: Path, dest: Path):
         try:
