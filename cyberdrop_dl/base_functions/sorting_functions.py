@@ -1,4 +1,5 @@
 import asyncio
+import itertools
 from pathlib import Path
 
 from .base_functions import FILE_FORMATS, log, purge_dir
@@ -69,16 +70,14 @@ class Sorter:
 
     async def move_cd(self, file: Path, dest: Path):
         try:
-            file.rename((dest / file.name))
+            dest_file = dest / file.name
+            file.rename(dest_file)
         except FileExistsError:
-            stem = file.stem
-            temp_stem = stem
-            ext = file.suffix
-            i = 1
-            while (dest / f"{temp_stem}{ext}").is_file() and file.is_file():
-                if file.stat().st_size == (dest / file.name).stat().st_size:
-                    file.unlink()
-                temp_stem = f"{stem} ({i})"
-                i += 1
-            if file.is_file():
-                file.rename((dest / f"{temp_stem}{ext}"))
+            if file.stat().st_size == dest_file.stat().st_size:
+                file.unlink()
+                return
+            for i in itertools.count(1):
+                dest_file = dest / f"{file.stem} ({i}){file.suffix}"
+                if not dest_file.is_file():
+                    break
+            file.rename(dest_file)
