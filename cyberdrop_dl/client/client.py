@@ -4,6 +4,7 @@ import asyncio
 import json
 import logging
 import ssl
+import time
 from http import HTTPStatus
 from typing import TYPE_CHECKING, Callable
 
@@ -18,7 +19,7 @@ from ..base_functions.base_functions import adjust, logger
 from ..base_functions.error_classes import DownloadFailure, InvalidContentTypeFailure
 from ..downloader.downloader_utils import CustomHTTPStatus
 from ..downloader.progress_definitions import file_progress
-from .rate_limiting import AsyncRateLimiter, throttle
+from .rate_limiting import AsyncRateLimiter
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -132,7 +133,7 @@ class DownloadSession:
                         save_content: Callable[[aiohttp.StreamReader, int], None]) -> None:
         headers['Referer'] = str(media.referer)
         headers['user-agent'] = self.client.user_agent
-        await throttle(self, current_throttle, media.url.host)
+        await self._throttle(current_throttle, media.url.host)
         async with self.client_session.get(media.url, headers=headers, ssl=self.client.ssl_context,
                                            raise_for_status=True, proxy=proxy) as resp:
             content_type = resp.headers.get('Content-Type')
@@ -146,6 +147,24 @@ class DownloadSession:
 
             size = int(resp.headers.get('Content-Length', '0'))
             await save_content(resp.content, size)
+
+    async def _throttle(self, delay: int, host: str) -> None:
+        """Throttles requests to domains by a parameter amount of time"""
+        if delay is None or delay == 0:
+            return
+
+        key = f'throttle:{host}'
+        while True:
+            now = time.time()
+            last = self.throttle_times.get(key, 0.0)
+            elapsed = now - last
+
+            if elapsed >= delay:
+                self.throttle_times[key] = now
+                return
+
+            remaining = delay - elapsed + 0.1
+            await asyncio.sleep(remaining)
 
     async def download_file(self, media: MediaItem, file: Path, current_throttle: int, resume_point: int,
                             proxy: str, headers: dict, file_task: TaskID):
@@ -170,7 +189,7 @@ class DownloadSession:
 
     async def get_filesize(self, url: URL, referer: str, current_throttle: int):
         headers = {'Referer': referer, 'user-agent': self.client.user_agent}
-        await throttle(self, current_throttle, url.host)
+        await self._throttle(current_throttle, url.host)
         async with self.client_session.get(url, headers=headers, ssl=self.client.ssl_context,
                                            raise_for_status=True) as resp:
             return int(resp.headers.get('Content-Length', str(0)))

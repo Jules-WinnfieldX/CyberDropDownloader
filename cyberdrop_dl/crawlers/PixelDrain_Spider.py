@@ -28,9 +28,8 @@ class PixelDrainCrawler:
         if url.parts[1] == 'l':
             await album_obj.set_new_title(url.name)
             media_items = await self.get_listings(session, identifier, url)
-            if media_items:
-                for media_item in media_items:
-                    await album_obj.add_media(media_item)
+            for media_item in media_items:
+                await album_obj.add_media(media_item)
         else:
             link = await self.create_download_link(identifier)
             complete = await self.SQL_Helper.check_complete_singular("pixeldrain", link)
@@ -42,7 +41,7 @@ class PixelDrainCrawler:
         await log(f"Finished: {str(url)}", quiet=self.quiet, style="green")
         return album_obj
 
-    async def get_listings(self, session: ScrapeSession, identifier: str, url: URL):
+    async def get_listings(self, session: ScrapeSession, identifier: str, url: URL) -> list[MediaItem]:
         """Handles album scraping"""
         media_items = []
         try:
@@ -57,12 +56,12 @@ class PixelDrainCrawler:
                 complete = await self.SQL_Helper.check_complete_singular("pixeldrain", link)
                 media_item = MediaItem(link, url, complete, filename, ext, filename)
                 media_items.append(media_item)
-            return media_items
-
         except Exception as e:
             logger.debug("Error encountered while handling %s", str(url), exc_info=True)
             await log(f"Error: {str(url)}", quiet=self.quiet, style="red")
             logger.debug(e)
+
+        return media_items
 
     async def get_file_name(self, session: ScrapeSession, identifier: str) -> str:
         """Gets filename for the given file identifier"""
