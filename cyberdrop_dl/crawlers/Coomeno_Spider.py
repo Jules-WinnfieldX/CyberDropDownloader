@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
 from bs4 import BeautifulSoup
@@ -10,8 +11,26 @@ from ..base_functions.base_functions import create_media_item, log, logger, make
 from ..base_functions.data_classes import CascadeItem
 
 if TYPE_CHECKING:
+    from bs4 import Tag
+
     from ..base_functions.sql_helper import SQLHelper
     from ..client.client import ScrapeSession
+
+
+@dataclass
+class ParseSpec:
+    """Class for specific selectors of supported domains"""
+    domain: str
+    posts_selectors: list[str] = field(init=False)
+    next_page_selector: str = field(init=False)
+
+    def __post_init__(self):
+        if self.domain == "coomer":
+            self.posts_selectors = ['h2[class=post-card__heading] a']
+            self.next_page_selector = 'a[title="Next page"]'
+        elif self.domain == "kemono":
+            self.posts_selectors = ['article[class="post-card post-card--preview"] a', 'article[class="post-card"] a']
+            self.next_page_selector = 'a[class=next]'
 
 
 class CoomenoCrawler:
@@ -28,10 +47,9 @@ class CoomenoCrawler:
         cascade = CascadeItem({})
         title = None
         try:
-            if "coomer" in url.host:
-                title = await self.handle_coomer(session, url, cascade)
-            elif "kemono" in url.host:
-                title = await self.handle_kemono(session, url, cascade)
+            domain = next((domain for domain in ("coomer", "kemono") if domain in url.host), None)
+            if domain:
+                title = await self.handle_coomeno(session, url, domain, cascade)
         except Exception as e:
             logger.debug("Error encountered while handling %s", str(url), exc_info=True)
             await log(f"Error: {str(url)}", quiet=self.quiet, style="red")
@@ -41,63 +59,25 @@ class CoomenoCrawler:
         await log(f"Finished: {str(url)}", quiet=self.quiet, style="green")
         return cascade, title
 
-    async def handle_coomer(self, session: ScrapeSession, url: URL, cascade: CascadeItem):
-        """Coomer director function"""
-        post_selectors = ['h2[class=post-card__heading] a']
-        next_page_selector = 'a[title="Next page"]'
-        images_selector = 'a[class="fileThumb"]'
-        downloads_selector = 'a[class=post__attachment-link]'
-        text_selector = 'div[class=post__content] a'
-
-        title = "Loose Coomer Files"
+    async def handle_coomeno(self, session: ScrapeSession, url: URL, domain: str, cascade: CascadeItem) -> str:
+        """Coomer/Kemono director function"""
+        title = f"Loose {domain.capitalize()} Files"
         if "thumbnail" in url.parts:
             parts = [x for x in url.parts if x not in ("thumbnail", "/")]
-            link = URL("https://coomer.party/" + "/".join(parts))
+            link = URL(f"https://{domain}.party/{'/'.join(parts)}")
 
-            media_item = await create_media_item(link, url, self.SQL_Helper, "coomer")
-            await cascade.add_to_album("coomer", title, media_item)
-
-        elif "data" in url.parts:
-            media_item = await create_media_item(url, url, self.SQL_Helper, "coomer")
-            await cascade.add_to_album("coomer", title, media_item)
-
-        elif "post" in url.parts:
-            title = await self.parse_post(session, url, "coomer", cascade, images_selector, downloads_selector,
-                                          text_selector)
-
-        else:
-            title = await self.parse_profile(session, url, "coomer", cascade, post_selectors, next_page_selector,
-                                             images_selector, downloads_selector, text_selector)
-
-        return title
-
-    async def handle_kemono(self, session: ScrapeSession, url: URL, cascade: CascadeItem):
-        """Kemono director function"""
-        post_selectors = ['article[class="post-card post-card--preview"] a', 'article[class="post-card"] a']
-        next_page_selector = 'a[class=next]'
-        images_selector = 'a[class="fileThumb"]'
-        downloads_selector = 'a[class=post__attachment-link]'
-        text_selector = 'div[class=post__content] a'
-
-        title = "Loose Kemono Files"
-        if "thumbnail" in url.parts:
-            parts = [x for x in url.parts if x not in ("thumbnail", "/")]
-            link = URL("https://kemono.party/" + "/".join(parts))
-
-            media_item = await create_media_item(link, url, self.SQL_Helper, "kemono")
-            await cascade.add_to_album("kemono", title, media_item)
+            media_item = await create_media_item(link, url, self.SQL_Helper, domain)
+            await cascade.add_to_album(domain, title, media_item)
 
         elif "data" in url.parts:
-            media_item = await create_media_item(url, url, self.SQL_Helper, "kemono")
-            await cascade.add_to_album("kemono", title, media_item)
+            media_item = await create_media_item(url, url, self.SQL_Helper, domain)
+            await cascade.add_to_album(domain, title, media_item)
 
         elif "post" in url.parts:
-            title = await self.parse_post(session, url, "kemono", cascade, images_selector, downloads_selector,
-                                          text_selector)
+            title = await self.parse_post(session, url, domain, cascade)
 
         else:
-            title = await self.parse_profile(session, url, "kemono", cascade, post_selectors, next_page_selector,
-                                             images_selector, downloads_selector, text_selector)
+            title = await self.parse_profile(session, url, ParseSpec(domain), cascade)
 
         return title
 
@@ -110,9 +90,7 @@ class CoomenoCrawler:
         if tasks:
             await asyncio.wait(tasks)
 
-    async def parse_profile(self, session: ScrapeSession, url: URL, domain: str, cascade: CascadeItem,
-                            posts_selectors: list, next_page_selector: str, images_selector: str,
-                            downloads_selector: str, text_selector: str):
+    async def parse_profile(self, session: ScrapeSession, url: URL, spec: ParseSpec, cascade: CascadeItem) -> str:
         """Parses profiles with supplied selectors"""
         title = None
         try:
@@ -121,22 +99,19 @@ class CoomenoCrawler:
             title = f"{title} ({url.host})"
 
             posts = []
-            for posts_selector in posts_selectors:
+            for posts_selector in spec.posts_selectors:
                 posts += soup.select(posts_selector)
             for post in posts:
                 path = post.get('href')
                 if path:
                     post_link = URL("https://" + url.host + path)
-                    await self.parse_post(session, post_link, domain, cascade, images_selector, downloads_selector,
-                                          text_selector, title)
+                    await self.parse_post(session, post_link, spec.domain, cascade, title)
 
-            next_page = soup.select_one(next_page_selector)
+            next_page = soup.select_one(spec.next_page_selector)
             if next_page:
                 next_page = next_page.get('href')
                 if next_page:
-                    await self.parse_profile(session, URL("https://" + url.host + next_page), domain, cascade,
-                                             posts_selectors, next_page_selector, images_selector, downloads_selector,
-                                             text_selector)
+                    await self.parse_profile(session, URL("https://" + url.host + next_page), spec, cascade)
 
         except Exception as e:
             logger.debug("Error encountered while handling %s", str(url), exc_info=True)
@@ -145,8 +120,7 @@ class CoomenoCrawler:
 
         return title
 
-    async def parse_post(self, session: ScrapeSession, url: URL, domain: str, cascade: CascadeItem,
-                         images_selector: str, downloads_selector: str, text_selector: str, title=None):
+    async def parse_post(self, session: ScrapeSession, url: URL, domain: str, cascade: CascadeItem, title: str = None) -> str:
         """Parses posts with supplied selectors"""
         try:
             text = await self.SQL_Helper.get_blob(url)
@@ -166,27 +140,15 @@ class CoomenoCrawler:
                 post_title = soup.select_one("h1[class=post__title]").text.replace('\n', '').replace("..", "")
                 title = await make_title_safe(post_title)
 
-            images = soup.select(images_selector)
+            images = soup.select('a[class="fileThumb"]')
             for image in images:
-                href = image.get('href')
-                if href.startswith("/"):
-                    link = URL("https://" + url.host + href)
-                else:
-                    link = URL(href)
-                media_item = await create_media_item(link, url, self.SQL_Helper, domain)
-                await cascade.add_to_album(domain, title, media_item)
+                await self.parse_tag(image, url, domain, title, cascade)
 
-            downloads = soup.select(downloads_selector)
+            downloads = soup.select('a[class=post__attachment-link]')
             for download in downloads:
-                href = download.get('href')
-                if href.startswith("/"):
-                    link = URL("https://" + url.host + href)
-                else:
-                    link = URL(href)
-                media_item = await create_media_item(link, url, self.SQL_Helper, domain)
-                await cascade.add_to_album(domain, title, media_item)
+                await self.parse_tag(download, url, domain, title, cascade)
 
-            text_content = soup.select(text_selector)
+            text_content = soup.select('div[class=post__content] a')
             await self.map_links(text_content, title, url)
         except Exception as e:
             logger.debug("Error encountered while handling %s", str(url), exc_info=True)
@@ -194,3 +156,12 @@ class CoomenoCrawler:
             logger.debug(e)
 
         return title
+
+    async def parse_tag(self, tag: Tag, url: URL, domain: str, title: str, cascade: CascadeItem):
+        """Convert link from tag to MediaItem and add it to cascade"""
+        href = tag.get('href')
+        if href.startswith("/"):
+            href = "https://" + url.host + href
+        link = URL(href)
+        media_item = await create_media_item(link, url, self.SQL_Helper, domain)
+        await cascade.add_to_album(domain, title, media_item)
