@@ -161,6 +161,8 @@ optional arguments:
 
 --gofile-api-key                api key for premium gofile
 --pixeldrain-api-key            api key for premium pixeldrain
+--nudostar-username             username to login to nudostar
+--nudostar-password             password to login to nudostar
 --simpcity-username             username to login to simpcity
 --simpcity-password             password to login to simpcity
 --socialmediagirls-username     username to login to socialmediagirls
