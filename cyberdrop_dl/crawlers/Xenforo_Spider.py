@@ -19,16 +19,8 @@ from ..base_functions.data_classes import CascadeItem, MediaItem
 from ..base_functions.error_classes import FailedLoginFailure, NoExtensionFailure
 
 if TYPE_CHECKING:
-    from pathlib import Path
-
     from ..base_functions.sql_helper import SQLHelper
     from ..client.client import ScrapeSession
-
-
-async def write_last_post_file(file: Path, url: str):
-    """Writes the last post url from a thread to the specified file"""
-    async with aiofiles.open(file, mode='a') as f:
-        await f.write(url + '\n')
 
 
 @dataclass
@@ -297,5 +289,6 @@ class XenforoCrawler:
                 last_post_url = url.parent / post_num_str
             else:
                 last_post_url = url / post_num_str
-            await write_last_post_file(self.output_last_file, str(last_post_url))
+            async with aiofiles.open(self.output_last_file, mode='a') as f:
+                await f.write(f'{last_post_url}\n')
         return title
