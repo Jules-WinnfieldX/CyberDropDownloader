@@ -40,7 +40,7 @@ class ParseSpec:
     links_element: str = "a"
     links_attribute: str = "href"
 
-    images_element: str = "div[class*='bbImage']"
+    images_element: str = field(init=False)
     images_attribute: str = field(init=False)
 
     video_element: str = "video source"
@@ -62,11 +62,13 @@ class ParseSpec:
         if self.domain in ("simpcity", "xbunker", "socialmediagirls"):
             self.title_clutter_element = "a" if self.domain in ("simpcity", "xbunker") else "span"
             self.posts_number_element = "li[class=u-concealed] a"
+            self.images_element = "div[class*=bbImage]"
             self.images_attribute = "data-src"
 
         elif self.domain == "nudostar":
             self.title_clutter_element = "span"
             self.posts_number_element = "a[class=u-concealed]"
+            self.images_element = "img[class*=bbImage]"
             self.images_attribute = "src"
 
 
@@ -237,8 +239,7 @@ class XenforoCrawler:
         forum_direct_urls.extend([x for x in content_links if "smgmedia" in x[0].host])
         content_links = [x for x in content_links if x not in forum_direct_urls]
         for link_title_bundle in forum_direct_urls:
-            link = link_title_bundle[0]
-            temp_title = link_title_bundle[1]
+            link, temp_title = link_title_bundle
             in_prog_title = temp_title + "/Attachments"
             if str(link).endswith("/"):
                 link = URL(str(link)[:-1])
