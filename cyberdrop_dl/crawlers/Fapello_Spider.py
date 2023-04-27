@@ -25,6 +25,7 @@ class FapelloCrawler:
 
         if not str(url).endswith("/"):
             url = url / ""
+
         album_obj = await self.parse_profile(session, url)
 
         await log(f"Finished: {str(url)}", quiet=self.quiet, style="green")
