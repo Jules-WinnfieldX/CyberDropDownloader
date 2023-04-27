@@ -38,7 +38,7 @@ class ParseSpec:
     title_block_element: str = "h1[class=p-title-value]"
     title_clutter_element: str = field(init=False)
 
-    posts_block_element: str = field(init=False)
+    posts_block_element: str = "div[class*=message-main]"
     posts_number_element: str = field(init=False)
     posts_number_attribute: str = "href"
 
@@ -69,14 +69,12 @@ class ParseSpec:
     def __post_init__(self):
         if self.domain in ("simpcity", "xbunker", "socialmediagirls"):
             self.title_clutter_element = "a" if self.domain in ("simpcity", "xbunker") else "span"
-            self.posts_block_element = 'div[class="message-main uix_messageContent js-quickEditTarget"]'
             self.posts_number_element = "li[class=u-concealed] a"
             self.images_attribute = "data-src"
 
         elif self.domain == "nudostar":
             self.title_clutter_element = "span"
-            self.posts_block_element = 'div[class*="message-userContent lbContainer js-lbContainer"]'
-            self.posts_number_element = "a[id*=js-XFUniqueId]"
+            self.posts_number_element = "a[class=u-concealed]"
             self.images_attribute = "src"
 
 
