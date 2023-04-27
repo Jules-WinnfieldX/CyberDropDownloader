@@ -88,7 +88,7 @@ async def make_title_safe(title: str) -> str:
     return title
 
 
-async def check_direct(url: URL):
+async def check_direct(url: URL) -> bool:
     """Checks whether the given url is a direct link to a content item"""
     mapping_direct = [r'i.pixl.li', r'i..pixl.li', r'img-...cyberdrop...', r'f.cyberdrop...',
                       r'fs-...cyberdrop...', r'jpg.church/images/...', r'simp..jpg.church', r's..putmega.com',
@@ -96,7 +96,7 @@ async def check_direct(url: URL):
     return any(re.search(domain, str(url)) for domain in mapping_direct)
 
 
-async def get_filename_and_ext(filename, forum=False):
+async def get_filename_and_ext(filename: str, forum: bool = False) -> (str, str):
     """Returns the filename and extension of a given file, throws NoExtensionFailure if there is no extension"""
     filename_parts = filename.rsplit('.', 1)
     if len(filename_parts) == 1:
