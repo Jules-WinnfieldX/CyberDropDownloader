@@ -4,6 +4,8 @@ config_default = {
         "Authentication": {
             "gofile_api_key": "",
             "pixeldrain_api_key": "",
+            "nudostar_username": "",
+            "nudostar_password": "",
             "simpcity_username": "",
             "simpcity_password": "",
             "socialmediagirls_username": "",

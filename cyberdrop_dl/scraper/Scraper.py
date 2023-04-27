@@ -89,6 +89,7 @@ class ScrapeMapper:
         self.gofile_semaphore = asyncio.Semaphore(1)
         self.jpgfish_semaphore = asyncio.Semaphore(5)
         self.cyberfile_semaphore = asyncio.Semaphore(2)
+        self.nudostar_semaphore = asyncio.Semaphore(1)
         self.simpcity_semaphore = asyncio.Semaphore(1)
         self.socialmediagirls_semaphore = asyncio.Semaphore(1)
         self.xbunker_semaphore = asyncio.Semaphore(1)
@@ -101,7 +102,7 @@ class ScrapeMapper:
                         "jpg.church": self.ShareX, "jpg.fish": self.ShareX, "pixl.li": self.ShareX,
                         "nsfw.xxx": self.NSFW_XXX, "pimpandhost": self.PimpAndHost, "lovefap": self.LoveFap,
                         "e-hentai": self.EHentai, "gallery.deltaporno": self.ShareX, "vk.com": self.vk_redirect,
-                        "coomer.party": self.Coomeno, "kemono.party": self.Coomeno,
+                        "coomer.party": self.Coomeno, "kemono.party": self.Coomeno, "nudostar": self.Xenforo,
                         "simpcity": self.Xenforo, "socialmediagirls": self.Xenforo, "xbunker": self.Xenforo}
 
     async def _handle_album_additions(self, domain: str, album_obj: AlbumItem, title=None) -> None:
@@ -326,11 +327,14 @@ class ScrapeMapper:
         if "simpcity" in url.host:
             async with self.simpcity_semaphore:
                 cascade, title = await self.xenforo_crawler.fetch(xenforo_session, url)
-        if "socialmediagirls" in url.host:
+        elif "socialmediagirls" in url.host:
             async with self.socialmediagirls_semaphore:
                 cascade, title = await self.xenforo_crawler.fetch(xenforo_session, url)
-        if "xbunker" in url.host:
+        elif "xbunker" in url.host:
             async with self.xbunker_semaphore:
+                cascade, title = await self.xenforo_crawler.fetch(xenforo_session, url)
+        elif "nudostar" in url.host:
+            async with self.nudostar_semaphore:
                 cascade, title = await self.xenforo_crawler.fetch(xenforo_session, url)
         if not title or await cascade.is_empty():
             await xenforo_session.exit_handler()

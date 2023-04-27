@@ -239,5 +239,5 @@ class SkipData:
                                              "hgamecg", "img.kiwi", "imgbox", "jpg.church", "jpg.fish",
                                              "gallery.deltaporno.com", "kemono.party",
                                              "lovefap", "nsfw.xxx", "pimpandhost", "pixeldrain", "pixl.li", "postimg",
-                                             "saint", "simpcity", "socialmediagirls", "xbunker", "xbunkr")
+                                             "saint", "nudostar", "simpcity", "socialmediagirls", "xbunker", "xbunkr")
     sites: List[str]

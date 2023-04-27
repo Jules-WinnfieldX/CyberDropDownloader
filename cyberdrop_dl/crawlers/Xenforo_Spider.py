@@ -35,13 +35,49 @@ async def write_last_post_file(file: Path, url: str):
 class ParseSpec:
     """Class for specific selectors of supported domains"""
     domain: str
-    title_clutter_tag: str = field(init=False)
+    title_block_element: str = "h1[class=p-title-value]"
+    title_clutter_element: str = field(init=False)
+
+    posts_block_element: str = field(init=False)
+    posts_number_element: str = field(init=False)
+    posts_number_attribute: str = "href"
+
+    post_content_element: str = "div[class=bbWrapper]"
+    block_quote_element: str = "blockquote"
+
+    links_element: str = "a"
+    links_attribute: str = "href"
+
+    images_element: str = "div[class*='bbImage']"
+    images_attribute: str = field(init=False)
+
+    video_element: str = "video source"
+    video_attribute: str = "src"
+    saint_iframe_element: str = "iframe[class=saint-iframe]"
+    saint_iframe_attribute: str = "src"
+
+    embedded_content_element: str = "span[data-s9e-mediaembed-iframe]"
+    embedded_content_attribute: str = "data-s9e-mediaembed-iframe"
+
+    attachment_block_element: str = "section[class=message-attachments]"
+    attachment_element: str = "a"
+    attachment_attribute: str = "href"
+
+    next_page_element: str = 'a[class="pageNav-jump pageNav-jump--next"]'
+    next_page_attribute: str = "href"
 
     def __post_init__(self):
-        if self.domain in ("simpcity", "xbunker"):
-            self.title_clutter_tag = "a"
-        elif self.domain == "socialmediagirls":
-            self.title_clutter_tag = "span"
+        if self.domain in ("simpcity", "xbunker", "socialmediagirls"):
+            self.title_clutter_element = "a" if self.domain in ("simpcity", "xbunker") else "span"
+            self.posts_block_element = 'div[class="message-main uix_messageContent js-quickEditTarget"]'
+            self.posts_number_element = "li[class=u-concealed] a"
+            self.images_attribute = "data-src"
+
+        elif self.domain == "nudostar":
+            self.title_clutter_element = "span"
+            self.posts_block_element = 'div[class*="message-userContent lbContainer js-lbContainer"]'
+            self.posts_number_element = "a[id*=js-XFUniqueId]"
+            self.images_attribute = "src"
 
 
 class ForumLogin:
@@ -64,7 +100,9 @@ class ForumLogin:
                 if attempt == 5:
                     raise FailedLoginFailure()
 
-                domain = URL("https://" + url.host) / "login"
+                domain = URL("https://" + url.host) / "forum/login" if "nudostar" in url.host else \
+                    URL("https://" + url.host) / "login"
+
                 text = await session.get_text(domain)
                 await asyncio.sleep(5)
                 soup = BeautifulSoup(text, 'html.parser')
@@ -93,7 +131,7 @@ class ForumLogin:
 
 
 class XenforoCrawler:
-    domains = ("simpcity", "socialmediagirls", "xbunker")
+    domains = ("nudostar", "simpcity", "socialmediagirls", "xbunker")
 
     def __init__(self, *, scraping_mapper, args: dict, SQL_Helper: SQLHelper, quiet: bool):
         self.include_id = args["Runtime"]["include_id"]
@@ -101,6 +139,10 @@ class XenforoCrawler:
         self.separate_posts = args["Forum_Options"]["separate_posts"]
         self.output_last = args["Forum_Options"]["output_last_forum_post"]
         self.output_last_file = args["Files"]["output_last_forum_post_file"]
+
+        self.nudostar = ForumLogin("NudoStar",
+                                   args["Authentication"]["nudostar_username"],
+                                   args["Authentication"]["nudostar_password"])
 
         self.simpcity = ForumLogin("SimpCity",
                                    args["Authentication"]["simpcity_username"],
@@ -131,6 +173,8 @@ class XenforoCrawler:
                 await self.socialmediagirls.login(session, url, self.quiet)
             elif "xbunker" in url.host:
                 await self.xbunker.login(session, url, self.quiet)
+            elif "nudostar" in url.host:
+                await self.nudostar.login(session, url, self.quiet)
 
             domain = next((domain for domain in self.domains if domain in url.host), None)
             if domain:
@@ -171,7 +215,7 @@ class XenforoCrawler:
             found_links.append([URL(link), temp_title])
         return found_links
 
-    async def get_embedded(self, post_content, selector, attribute, domain, temp_title):
+    async def get_embedded(self, post_content, selector, attribute, temp_title):
         """Gets embedded media from post content based on selector and attribute provided"""
         found_links = []
         links = post_content.select(selector)
@@ -237,8 +281,8 @@ class XenforoCrawler:
         post_num_str = None
         content_links = []
 
-        title_block = soup.select_one("h1[class=p-title-value]")
-        for elem in title_block.find_all(spec.title_clutter_tag):
+        title_block = soup.select_one(spec.title_block_element)
+        for elem in title_block.find_all(spec.title_clutter_element):
             elem.decompose()
 
         if title:
@@ -247,46 +291,50 @@ class XenforoCrawler:
             title = title_block.text
             title = await make_title_safe(title.replace("\n", "").strip())
 
-        posts = soup.select("div[class='message-main uix_messageContent js-quickEditTarget']")
+        posts = soup.select(spec.posts_block_element)
 
         for post in posts:
-            post_num_str = post.select_one("li[class=u-concealed] a").get('href').split('/')[-1]
+            post_num_str = post.select_one(spec.posts_number_element).get(spec.posts_number_attribute).split('/')[-1]
             post_num_int = int(post_num_str.split('post-')[-1])
             if post_number > post_num_int:
                 continue
 
             temp_title = title + "/" + post_num_str if self.separate_posts else title
 
-            for elem in post.find_all('blockquote'):
+            for elem in post.find_all(spec.block_quote_element):
                 elem.decompose()
-            post_content = post.select_one("div[class=bbWrapper]")
+            post_content = post.select_one(spec.post_content_element)
 
             # Get Links
-            content_links.extend(await self.get_links(post_content, "a", "href", domain, temp_title))
+            content_links.extend(await self.get_links(post_content, spec.links_element, spec.links_attribute, domain,
+                                                      temp_title))
 
             # Get Images
-            content_links.extend(await self.get_links(post_content, "div[class='bbImageWrapper js-lbImage']", "data-src", domain, temp_title))
-            content_links.extend(await self.get_links(post_content, "div[class='bbImageWrapper lazyload js-lbImage']", "data-src", domain, temp_title))
+            content_links.extend(await self.get_links(post_content, spec.images_element, spec.images_attribute, domain,
+                                                      temp_title))
 
             # Get Videos:
-            content_links.extend(await self.get_links(post_content, "video source", "src", domain, temp_title))
-            content_links.extend(await self.get_links(post_content, "iframe[class=saint-iframe]", "src", domain, temp_title))
+            content_links.extend(await self.get_links(post_content, spec.video_element, spec.video_attribute, domain,
+                                                      temp_title))
+            content_links.extend(await self.get_links(post_content, spec.saint_iframe_element,
+                                                      spec.saint_iframe_attribute, domain, temp_title))
 
             # Get Other Embedded Content
-            content_links.extend(await self.get_embedded(post_content, "span[data-s9e-mediaembed-iframe]", "data-s9e-mediaembed-iframe",
-                                 domain, temp_title))
+            content_links.extend(await self.get_embedded(post_content, spec.embedded_content_element,
+                                                         spec.embedded_content_attribute, temp_title))
 
             # Get Attachments
-            attachments_block = post.select_one("section[class=message-attachments]")
-            content_links.extend(await self.get_links(attachments_block, "a[class='file-preview js-lbImage']", "href", domain, temp_title))
+            attachments_block = post.select_one(spec.attachment_block_element)
+            content_links.extend(await self.get_links(attachments_block, spec.attachment_element,
+                                                      spec.attachment_attribute, domain, temp_title))
 
         # Handle links
         content_links = await self.filter_content_links(cascade, content_links, url, spec.domain)
         await self.handle_external_links(content_links, url)
 
-        next_page = soup.select_one('a[class="pageNav-jump pageNav-jump--next"]')
+        next_page = soup.select_one(spec.next_page_element)
         if next_page is not None:
-            next_page = next_page.get('href')
+            next_page = next_page.get(spec.next_page_attribute)
             if next_page is not None:
                 if next_page.startswith('/'):
                     next_page = domain / next_page[1:]
