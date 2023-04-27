@@ -276,6 +276,6 @@ class SQLHelper:
             self.conn.commit()
             self.conn.close()
         except Exception as e:
-            logging.debug("Failed to close sqlite database connection: %s", str(e))
+            logging.debug("Failed to close sqlite database connection: %s", e)
         else:
             logging.debug("Successfully closed sqlite database connection")

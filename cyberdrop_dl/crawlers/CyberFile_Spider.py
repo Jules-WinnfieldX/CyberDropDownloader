@@ -24,7 +24,7 @@ class CyberFileCrawler:
 
     async def fetch(self, session: ScrapeSession, url: URL) -> DomainItem:
         """Director for cyberfile scraping"""
-        log(f"Starting: {str(url)}", quiet=self.quiet, style="green")
+        log(f"Starting: {url}", quiet=self.quiet, style="green")
         domain_obj = DomainItem("cyberfile", {})
 
         download_links = []
@@ -48,7 +48,7 @@ class CyberFileCrawler:
         for title, media_item in download_links:
             await domain_obj.add_media(title, media_item)
         await self.SQL_Helper.insert_domain("cyberfile", url, domain_obj)
-        log(f"Finished: {str(url)}", quiet=self.quiet, style="green")
+        log(f"Finished: {url}", quiet=self.quiet, style="green")
         return domain_obj
 
     async def get_folder_id(self, session: ScrapeSession, url: URL) -> int:
@@ -62,8 +62,8 @@ class CyberFileCrawler:
             return nodeId
 
         except Exception as e:
-            logger.debug("Error encountered while handling %s", str(url), exc_info=True)
-            log(f"Error: {str(url)}", quiet=self.quiet, style="red")
+            logger.debug("Error encountered while handling %s", url, exc_info=True)
+            log(f"Error: {url}", quiet=self.quiet, style="red")
             logger.debug(e)
             return 0
 
@@ -112,7 +112,7 @@ class CyberFileCrawler:
             return contents
 
         except Exception as e:
-            log(f"Error: {str(url)}", quiet=self.quiet, style="red")
+            log(f"Error: {url}", quiet=self.quiet, style="red")
             logger.debug(e)
             return []
 
@@ -132,8 +132,8 @@ class CyberFileCrawler:
             return 0
 
         except Exception as e:
-            logger.debug("Error encountered while handling %s", str(url), exc_info=True)
-            log(f"Error: {str(url)}", quiet=self.quiet, style="red")
+            logger.debug("Error encountered while handling %s", url, exc_info=True)
+            log(f"Error: {url}", quiet=self.quiet, style="red")
             logger.debug(e)
             return 0
 
@@ -181,8 +181,8 @@ class CyberFileCrawler:
             return nodes, contents
 
         except Exception as e:
-            logger.debug("Error encountered while handling %s", str(url), exc_info=True)
-            log(f"Error: {str(url)}", quiet=self.quiet, style="red")
+            logger.debug("Error encountered while handling %s", url, exc_info=True)
+            log(f"Error: {url}", quiet=self.quiet, style="red")
             logger.debug(e)
             return [], []
 
@@ -226,8 +226,8 @@ class CyberFileCrawler:
             return contents
 
         except Exception as e:
-            logger.debug("Error encountered while handling %s", str(url), exc_info=True)
-            log(f"Error: {str(url)}", quiet=self.quiet, style="red")
+            logger.debug("Error encountered while handling %s", url, exc_info=True)
+            log(f"Error: {url}", quiet=self.quiet, style="red")
             logger.debug(e)
             return []
 
@@ -253,14 +253,14 @@ class CyberFileCrawler:
                 try:
                     media = await create_media_item(link, url, self.SQL_Helper, "cyberfile")
                 except NoExtensionFailure:
-                    logger.debug("Couldn't get extension for %s", str(link))
+                    logger.debug("Couldn't get extension for %s", link)
                     continue
 
                 download_links.append((title, media))
             return download_links
 
         except Exception as e:
-            logger.debug("Error encountered while handling %s", str(url), exc_info=True)
-            log(f"Error: {str(url)}", quiet=self.quiet, style="red")
+            logger.debug("Error encountered while handling %s", url, exc_info=True)
+            log(f"Error: {url}", quiet=self.quiet, style="red")
             logger.debug(e)
             return []

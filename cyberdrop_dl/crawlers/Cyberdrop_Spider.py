@@ -29,12 +29,12 @@ class CyberdropCrawler:
         """Cyberdrop scraper"""
         album_obj = AlbumItem("Loose Cyberdrop Files", [])
 
-        log(f"Starting: {str(url)}", quiet=self.quiet, style="green")
+        log(f"Starting: {url}", quiet=self.quiet, style="green")
         if await check_direct(url):
             media = await create_media_item(url, url, self.SQL_Helper, "cyberdrop")
             await album_obj.add_media(media)
             await self.SQL_Helper.insert_album("cyberdrop", URL(""), album_obj)
-            log(f"Finished: {str(url)}", quiet=self.quiet, style="green")
+            log(f"Finished: {url}", quiet=self.quiet, style="green")
             return album_obj
 
         try:
@@ -44,7 +44,7 @@ class CyberdropCrawler:
                 media = await create_media_item(url, url, self.SQL_Helper, "cyberdrop")
                 await album_obj.add_media(media)
                 await self.SQL_Helper.insert_album("cyberdrop", URL(""), album_obj)
-                log(f"Finished: {str(url)}", quiet=self.quiet, style="green")
+                log(f"Finished: {url}", quiet=self.quiet, style="green")
                 return album_obj
 
             title = soup.select_one("h1[id=title]").get_text()
@@ -62,17 +62,17 @@ class CyberdropCrawler:
                 try:
                     media = await create_media_item(link, url, self.SQL_Helper, "cyberdrop")
                 except NoExtensionFailure:
-                    logger.debug("Couldn't get extension for %s", str(link))
+                    logger.debug("Couldn't get extension for %s", link)
                     continue
 
                 await album_obj.add_media(media)
 
         except Exception as e:
-            logger.debug("Error encountered while handling %s", str(url), exc_info=True)
-            log(f"Error: {str(url)}", quiet=self.quiet, style="red")
+            logger.debug("Error encountered while handling %s", url, exc_info=True)
+            log(f"Error: {url}", quiet=self.quiet, style="red")
             logger.debug(e)
             return album_obj
 
         await self.SQL_Helper.insert_album("cyberdrop", url, album_obj)
-        log(f"Finished: {str(url)}", quiet=self.quiet, style="green")
+        log(f"Finished: {url}", quiet=self.quiet, style="green")
         return album_obj

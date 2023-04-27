@@ -21,14 +21,14 @@ class FapelloCrawler:
 
     async def fetch(self, session: ScrapeSession, url: URL) -> Optional[AlbumItem]:
         """Basic director for fapello"""
-        log(f"Starting: {str(url)}", quiet=self.quiet, style="green")
+        log(f"Starting: {url}", quiet=self.quiet, style="green")
 
         if not str(url).endswith("/"):
             url = url / ""
 
         album_obj = await self.parse_profile(session, url)
 
-        log(f"Finished: {str(url)}", quiet=self.quiet, style="green")
+        log(f"Finished: {url}", quiet=self.quiet, style="green")
         return album_obj
 
     async def parse_profile(self, session: ScrapeSession, url: URL) -> Optional[AlbumItem]:
@@ -63,8 +63,8 @@ class FapelloCrawler:
             return album_obj
 
         except Exception as e:
-            logger.debug("Error encountered while handling %s", str(url), exc_info=True)
-            log(f"Error: {str(url)}", quiet=self.quiet, style="red")
+            logger.debug("Error encountered while handling %s", url, exc_info=True)
+            log(f"Error: {url}", quiet=self.quiet, style="red")
             logger.debug(e)
             return None
 
@@ -82,7 +82,7 @@ class FapelloCrawler:
                 try:
                     media_item = await create_media_item(download_link, url, self.SQL_Helper, "fapello")
                 except NoExtensionFailure:
-                    logger.debug("Couldn't get extension for %s", str(download_link))
+                    logger.debug("Couldn't get extension for %s", download_link)
                     continue
                 results.append(media_item)
 
@@ -92,12 +92,12 @@ class FapelloCrawler:
                 try:
                     media_item = await create_media_item(download_link, url, self.SQL_Helper, "fapello")
                 except NoExtensionFailure:
-                    logger.debug("Couldn't get extension for %s", str(download_link))
+                    logger.debug("Couldn't get extension for %s", download_link)
                     continue
                 results.append(media_item)
         except Exception as e:
-            logger.debug("Error encountered while handling %s", str(url), exc_info=True)
-            log(f"Error: {str(url)}", quiet=self.quiet, style="red")
+            logger.debug("Error encountered while handling %s", url, exc_info=True)
+            log(f"Error: {url}", quiet=self.quiet, style="red")
             logger.debug(e)
 
         return results

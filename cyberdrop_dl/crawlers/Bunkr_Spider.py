@@ -29,14 +29,14 @@ class BunkrCrawler:
     async def fetch(self, session: ScrapeSession, url: URL) -> AlbumItem:
         """Scraper for Bunkr"""
         album_obj = AlbumItem("Loose Bunkr Files", [])
-        log(f"Starting: {str(url)}", quiet=self.quiet, style="green")
+        log(f"Starting: {url}", quiet=self.quiet, style="green")
 
         if "v" in url.parts or "d" in url.parts:
             media = await self.get_file(session, url)
             if not media.filename:
                 return album_obj
             await album_obj.add_media(media)
-            log(f"Finished: {str(url)}", quiet=self.quiet, style="green")
+            log(f"Finished: {url}", quiet=self.quiet, style="green")
             if not media.complete:
                 await self.SQL_Helper.insert_media("bunkr", "", media)
             return album_obj
@@ -46,7 +46,7 @@ class BunkrCrawler:
             await self.SQL_Helper.insert_album("bunkr", url, album_obj)
 
             if album_obj.media:
-                log(f"Finished: {str(url)}", quiet=self.quiet, style="green")
+                log(f"Finished: {url}", quiet=self.quiet, style="green")
             return album_obj
 
         cdn_possibilities = r"(?:cdn.bunkr...|cdn..bunkr...|cdn...bunkr...|media-files.bunkr...|media-files..bunkr...|media-files...bunkr...)"
@@ -72,7 +72,7 @@ class BunkrCrawler:
             await album_obj.add_media(media_item)
 
         await self.SQL_Helper.insert_album("bunkr", url, album_obj)
-        log(f"Finished: {str(url)}", quiet=self.quiet, style="green")
+        log(f"Finished: {url}", quiet=self.quiet, style="green")
         return album_obj
 
     async def remove_id(self, filename: str, ext: str):
@@ -123,8 +123,8 @@ class BunkrCrawler:
             return MediaItem(link, url, complete, filename, ext, original_filename)
 
         except Exception as e:
-            logger.debug("Error encountered while handling %s", str(url), exc_info=True)
-            log(f"Error: {str(url)}", quiet=self.quiet, style="red")
+            logger.debug("Error encountered while handling %s", url, exc_info=True)
+            log(f"Error: {url}", quiet=self.quiet, style="red")
             logger.debug(e)
             return MediaItem(url, url, False, "", "", "")
 
@@ -154,7 +154,7 @@ class BunkrCrawler:
                 try:
                     filename, ext = await get_filename_and_ext(link.name)
                 except NoExtensionFailure:
-                    logger.debug("Couldn't get extension for %s", str(link))
+                    logger.debug("Couldn't get extension for %s", link)
                     continue
 
                 if "v" in link.parts or "d" in link.parts:
@@ -176,8 +176,8 @@ class BunkrCrawler:
                 await album.add_media(media)
 
         except Exception as e:
-            logger.debug("Error encountered while handling %s", str(url), exc_info=True)
-            log(f"Error: {str(url)}", quiet=self.quiet, style="red")
+            logger.debug("Error encountered while handling %s", url, exc_info=True)
+            log(f"Error: {url}", quiet=self.quiet, style="red")
             logger.debug(e)
 
         return album

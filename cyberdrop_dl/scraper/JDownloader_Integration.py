@@ -56,4 +56,4 @@ class JDownloader:
 
             except (JDownloaderFailure, AssertionError) as e:
                 logging.debug(e)
-                log(f"Failed to send {str(url)} to JDownloader", quiet=self.quiet, style="red")
+                log(f"Failed to send {url} to JDownloader", quiet=self.quiet, style="red")

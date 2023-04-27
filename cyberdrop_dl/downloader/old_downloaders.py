@@ -208,7 +208,7 @@ class Old_Downloader:
 
             if hasattr(e, "code"):
                 if await is_4xx_client_error(e.code) and e.code != HTTPStatus.TOO_MANY_REQUESTS:
-                    logger.debug("We ran into a 400 level error: %s", str(e.code))
+                    logger.debug("We ran into a 400 level error: %s", e.code)
                     log(f"Failed Download: {media.filename}", quiet=True)
                     await self.files.add_failed()
                     if url_path in self.current_attempt:
@@ -226,7 +226,7 @@ class Old_Downloader:
                         self.current_attempt.pop(url_path)
                     await self.output_failed(media, e)
                     return
-                logger.debug("Error status code: " + str(e.code))
+                logger.debug("Error status code: %s", e.code)
 
             raise DownloadFailure(code=getattr(e, "code", 1), message=repr(e))
 

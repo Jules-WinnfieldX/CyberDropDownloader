@@ -56,17 +56,17 @@ class GoFileCrawler:
         """Basic director for actual scraping"""
         domain_obj = DomainItem("gofile", {})
         try:
-            log(f"Starting: {str(url)}", quiet=self.quiet, style="green")
+            log(f"Starting: {url}", quiet=self.quiet, style="green")
             content_id = url.name
             results = await self.get_links(session, url, content_id, None)
             for title, media_item in results:
                 await domain_obj.add_media(title, media_item)
 
             await self.SQL_Helper.insert_domain("gofile", url, domain_obj)
-            log(f"Finished: {str(url)}", quiet=self.quiet, style="green")
+            log(f"Finished: {url}", quiet=self.quiet, style="green")
         except Exception as e:
-            logger.debug("Error encountered while handling %s", str(url), exc_info=True)
-            log(f"Error: {str(url)}", quiet=self.quiet, style="red")
+            logger.debug("Error encountered while handling %s", url, exc_info=True)
+            log(f"Error: {url}", quiet=self.quiet, style="red")
             logger.debug(e)
 
         return domain_obj
@@ -81,8 +81,8 @@ class GoFileCrawler:
         }
         content = await session.get_json(self.api_address / "getContent", params)
         if content["status"] != "ok":
-            logger.debug("Error encountered while handling %s", str(url))
-            log(f"Error: {str(url)}", quiet=self.quiet, style="red")
+            logger.debug("Error encountered while handling %s", url)
+            log(f"Error: {url}", quiet=self.quiet, style="red")
             return results
 
         content = content['data']
@@ -107,7 +107,7 @@ class GoFileCrawler:
                 try:
                     filename, ext = await get_filename_and_ext(val['name'])
                 except NoExtensionFailure:
-                    logger.debug("Couldn't get extension for %s", str(link))
+                    logger.debug("Couldn't get extension for %s", link)
                     continue
                 complete = await self.SQL_Helper.check_complete_singular("gofile", link)
                 media_item = MediaItem(link, url, complete, filename, ext, filename)

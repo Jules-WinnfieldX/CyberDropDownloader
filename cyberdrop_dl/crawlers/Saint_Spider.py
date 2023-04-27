@@ -20,7 +20,7 @@ class SaintCrawler:
     async def fetch(self, session: ScrapeSession, url: URL) -> AlbumItem:
         """Basic director for saint scraping"""
         album_obj = AlbumItem("Loose Saint Files", [])
-        log(f"Starting: {str(url)}", quiet=self.quiet, style="green")
+        log(f"Starting: {url}", quiet=self.quiet, style="green")
 
         try:
             soup = await session.get_BS4(url)
@@ -30,9 +30,9 @@ class SaintCrawler:
             await self.SQL_Helper.insert_album("saint", link, album_obj)
 
         except Exception as e:
-            logger.debug("Error encountered while handling %s", str(url), exc_info=True)
-            log(f"Error: {str(url)}", quiet=self.quiet, style="red")
+            logger.debug("Error encountered while handling %s", url, exc_info=True)
+            log(f"Error: {url}", quiet=self.quiet, style="red")
             logger.debug(e)
 
-        log(f"Finished: {str(url)}", quiet=self.quiet, style="green")
+        log(f"Finished: {url}", quiet=self.quiet, style="green")
         return album_obj

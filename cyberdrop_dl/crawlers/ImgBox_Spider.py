@@ -27,7 +27,7 @@ class ImgBoxCrawler:
     async def fetch(self, session: ScrapeSession, url: URL) -> AlbumItem:
         """Director func for ImgBox scraping"""
         album_obj = AlbumItem("Loose ImgBox Files", [])
-        log(f"Starting: {str(url)}", quiet=self.quiet, style="green")
+        log(f"Starting: {url}", quiet=self.quiet, style="green")
 
         try:
             if await check_direct(url):
@@ -44,7 +44,7 @@ class ImgBoxCrawler:
                     try:
                         media_item = await create_media_item(img, url, self.SQL_Helper, "imgbox")
                     except NoExtensionFailure:
-                        logger.debug("Couldn't get extension for %s", str(img))
+                        logger.debug("Couldn't get extension for %s", img)
                         continue
                     await album_obj.add_media(media_item)
             else:
@@ -53,12 +53,12 @@ class ImgBoxCrawler:
                 await album_obj.add_media(media_item)
 
         except Exception as e:
-            logger.debug("Error encountered while handling %s", str(url), exc_info=True)
-            log(f"Error: {str(url)}", quiet=self.quiet, style="red")
+            logger.debug("Error encountered while handling %s", url, exc_info=True)
+            log(f"Error: {url}", quiet=self.quiet, style="red")
             logger.debug(e)
 
         await self.SQL_Helper.insert_album("imgbox", url, album_obj)
-        log(f"Finished: {str(url)}", quiet=self.quiet, style="green")
+        log(f"Finished: {url}", quiet=self.quiet, style="green")
         return album_obj
 
     async def folder(self, session: ScrapeSession, url: URL):
