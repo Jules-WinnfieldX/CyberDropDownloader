@@ -267,8 +267,8 @@ async def director(args: dict, links: list) -> None:
 
         await log("")
         await log("Checking for incomplete downloads")
-        partial_downloads = [str(f) for f in args['Files']['output_folder'].rglob("*.part") if f.is_file()]
-        temp_downloads_check = [str(f) for f in await SQL_Helper.get_temp_names() if Path(f).is_file()]
+        partial_downloads = any(f.is_file() for f in args['Files']['output_folder'].rglob("*.part"))
+        temp_downloads = any(Path(f).is_file() for f in await SQL_Helper.get_temp_names())
 
         await log('Purging empty directories')
         await purge_dir(args['Files']['output_folder'])
@@ -276,7 +276,7 @@ async def director(args: dict, links: list) -> None:
         await log('Finished downloading. Enjoy :)')
         if partial_downloads:
             await log('There are partial downloads in the downloads folder.', style="yellow")
-        if temp_downloads_check:
+        if temp_downloads:
             await log('There are partial downloads from this run, please re-run the program.', style="yellow")
 
     await log('')
