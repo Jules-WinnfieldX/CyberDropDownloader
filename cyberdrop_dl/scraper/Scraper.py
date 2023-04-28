@@ -81,7 +81,7 @@ class ScrapeMapper:
 
         self.bunkr_limiter = AsyncRateLimiter(15)
         self.coomer_limiter = AsyncRateLimiter(8)
-        self.gofile_limiter = AsyncRateLimiter(max_calls=1, period=2)
+        self.gofile_limiter = AsyncRateLimiter(max_calls=1, period=3)
         self.jpgfish_limiter = AsyncRateLimiter(10)
         self.kemono_limiter = AsyncRateLimiter(8)
 
@@ -194,9 +194,10 @@ class ScrapeMapper:
         gofile_session = ScrapeSession(self.client)
         if not self.gofile_crawler:
             self.gofile_crawler = GoFileCrawler(quiet=self.quiet, SQL_Helper=self.SQL_Helper)
-        async with self.gofile_semaphore:
-            await self.gofile_crawler.get_token(session=gofile_session, api_token=self.args['Authentication']['gofile_api_key'])
         async with self.gofile_limiter:
+            async with self.gofile_semaphore:
+                await self.gofile_crawler.get_token(session=gofile_session,
+                                                    api_token=self.args['Authentication']['gofile_api_key'])
             domain_obj = await self.gofile_crawler.fetch(gofile_session, url)
         await self._handle_domain_additions("gofile", domain_obj, title)
         await gofile_session.exit_handler()
