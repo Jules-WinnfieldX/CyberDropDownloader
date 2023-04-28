@@ -203,6 +203,8 @@ class XenforoCrawler:
         links = post_content.select(selector)
         for link in links:
             link = link.get(attribute)
+            if not link:
+                continue
             if link.endswith("/"):
                 link = link[:-1]
             if link.startswith('//'):
