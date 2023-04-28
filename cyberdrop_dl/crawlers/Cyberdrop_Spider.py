@@ -29,12 +29,12 @@ class CyberdropCrawler:
         """Cyberdrop scraper"""
         album_obj = AlbumItem("Loose Cyberdrop Files", [])
 
-        await log(f"Starting: {str(url)}", quiet=self.quiet, style="green")
+        log(f"Starting: {str(url)}", quiet=self.quiet, style="green")
         if await check_direct(url):
             media = await create_media_item(url, url, self.SQL_Helper, "cyberdrop")
             await album_obj.add_media(media)
             await self.SQL_Helper.insert_album("cyberdrop", URL(""), album_obj)
-            await log(f"Finished: {str(url)}", quiet=self.quiet, style="green")
+            log(f"Finished: {str(url)}", quiet=self.quiet, style="green")
             return album_obj
 
         try:
@@ -44,7 +44,7 @@ class CyberdropCrawler:
                 media = await create_media_item(url, url, self.SQL_Helper, "cyberdrop")
                 await album_obj.add_media(media)
                 await self.SQL_Helper.insert_album("cyberdrop", URL(""), album_obj)
-                await log(f"Finished: {str(url)}", quiet=self.quiet, style="green")
+                log(f"Finished: {str(url)}", quiet=self.quiet, style="green")
                 return album_obj
 
             title = soup.select_one("h1[id=title]").get_text()
@@ -69,10 +69,10 @@ class CyberdropCrawler:
 
         except Exception as e:
             logger.debug("Error encountered while handling %s", str(url), exc_info=True)
-            await log(f"Error: {str(url)}", quiet=self.quiet, style="red")
+            log(f"Error: {str(url)}", quiet=self.quiet, style="red")
             logger.debug(e)
             return album_obj
 
         await self.SQL_Helper.insert_album("cyberdrop", url, album_obj)
-        await log(f"Finished: {str(url)}", quiet=self.quiet, style="green")
+        log(f"Finished: {str(url)}", quiet=self.quiet, style="green")
         return album_obj

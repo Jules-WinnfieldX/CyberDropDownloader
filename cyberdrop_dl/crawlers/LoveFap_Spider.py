@@ -28,12 +28,12 @@ class LoveFapCrawler:
         """Director for lovefap scraping"""
         album_obj = AlbumItem("Loose LoveFap Files", [])
 
-        await log(f"Starting: {str(url)}", quiet=self.quiet, style="green")
+        log(f"Starting: {str(url)}", quiet=self.quiet, style="green")
         if await check_direct(url):
             media = await create_media_item(url, url, self.SQL_Helper, "lovefap")
             await album_obj.add_media(media)
             await self.SQL_Helper.insert_album("lovefap", URL(""), album_obj)
-            await log(f"Finished: {str(url)}", quiet=self.quiet, style="green")
+            log(f"Finished: {str(url)}", quiet=self.quiet, style="green")
             return album_obj
 
         try:
@@ -44,12 +44,12 @@ class LoveFapCrawler:
 
         except Exception as e:
             logger.debug("Error encountered while handling %s", str(url), exc_info=True)
-            await log(f"Error: {str(url)}", quiet=self.quiet, style="red")
+            log(f"Error: {str(url)}", quiet=self.quiet, style="red")
             logger.debug(e)
             return album_obj
 
         await self.SQL_Helper.insert_album("lovefap", url, album_obj)
-        await log(f"Finished: {str(url)}", quiet=self.quiet, style="green")
+        log(f"Finished: {str(url)}", quiet=self.quiet, style="green")
         return album_obj
 
     async def fetch_album(self, session: ScrapeSession, url: URL, album_obj: AlbumItem):

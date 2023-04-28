@@ -20,12 +20,13 @@ class AnonfilesCrawler:
 
     async def fetch(self, session: ScrapeSession, url: URL) -> AlbumItem:
         """Scraper for Anonfiles"""
+        assert url.host is not None
         if 'cdn' in url.host:
             url = URL("https://anonfiles.com") / url.parts[1]
 
         album_obj = AlbumItem("Loose Anon Files", [])
 
-        await log(f"Starting: {str(url)}", quiet=self.quiet, style="green")
+        log(f"Starting: {str(url)}", quiet=self.quiet, style="green")
 
         try:
             json = await session.get_json(self.api_link/url.parts[1]/"info")
@@ -43,13 +44,13 @@ class AnonfilesCrawler:
                 if not complete:
                     await self.SQL_Helper.insert_media("anonfiles", "", media_item)
             else:
-                await log(f"Dead: {str(url)}", quiet=self.quiet, style="red")
+                log(f"Dead: {str(url)}", quiet=self.quiet, style="red")
 
         except Exception as e:
             logger.debug("Error encountered while handling %s", str(url), exc_info=True)
-            await log(f"Error: {str(url)}", quiet=self.quiet, style="red")
+            log(f"Error: {str(url)}", quiet=self.quiet, style="red")
             logger.debug(e)
             return album_obj
 
-        await log(f"Finished: {str(url)}", quiet=self.quiet, style="green")
+        log(f"Finished: {str(url)}", quiet=self.quiet, style="green")
         return album_obj

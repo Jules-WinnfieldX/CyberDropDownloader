@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import asyncio
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Union
 
 from bs4 import BeautifulSoup
 from yarl import URL
@@ -43,20 +43,21 @@ class CoomenoCrawler:
 
     async def fetch(self, session: ScrapeSession, url: URL):
         """Director for Coomer/Kemono scraping"""
-        await log(f"Starting: {str(url)}", quiet=self.quiet, style="green")
+        log(f"Starting: {str(url)}", quiet=self.quiet, style="green")
         cascade = CascadeItem({})
         title = None
         try:
+            assert url.host is not None
             domain = next((domain for domain in ("coomer", "kemono") if domain in url.host), None)
             if domain:
                 title = await self.handle_coomeno(session, url, domain, cascade)
         except Exception as e:
             logger.debug("Error encountered while handling %s", str(url), exc_info=True)
-            await log(f"Error: {str(url)}", quiet=self.quiet, style="red")
+            log(f"Error: {str(url)}", quiet=self.quiet, style="red")
             logger.debug(e)
 
         await self.SQL_Helper.insert_cascade(cascade)
-        await log(f"Finished: {str(url)}", quiet=self.quiet, style="green")
+        log(f"Finished: {str(url)}", quiet=self.quiet, style="green")
         return cascade, title
 
     async def handle_coomeno(self, session: ScrapeSession, url: URL, domain: str, cascade: CascadeItem) -> str:
@@ -92,13 +93,14 @@ class CoomenoCrawler:
 
     async def parse_profile(self, session: ScrapeSession, url: URL, spec: ParseSpec, cascade: CascadeItem) -> str:
         """Parses profiles with supplied selectors"""
-        title = None
+        title = ""
         try:
             soup = await session.get_BS4(url)
             title = await make_title_safe(soup.select_one("span[itemprop=name]").get_text())
             title = f"{title} ({url.host})"
 
             posts = []
+            assert url.host is not None
             for posts_selector in spec.posts_selectors:
                 posts += soup.select(posts_selector)
             for post in posts:
@@ -115,29 +117,35 @@ class CoomenoCrawler:
 
         except Exception as e:
             logger.debug("Error encountered while handling %s", str(url), exc_info=True)
-            await log(f"Error: {str(url)}", quiet=self.quiet, style="red")
+            log(f"Error: {str(url)}", quiet=self.quiet, style="red")
             logger.debug(e)
 
         return title
 
-    async def parse_post(self, session: ScrapeSession, url: URL, domain: str, cascade: CascadeItem, title: str = None) -> str:
+    async def parse_post(self, session: ScrapeSession, url: URL, domain: str, cascade: CascadeItem,
+                         title: str = "") -> str:
         """Parses posts with supplied selectors"""
         try:
             text = await self.SQL_Helper.get_blob(url)
             if not text:
                 text = await session.get_text(url)
+                assert text is not None
                 await self.SQL_Helper.insert_blob(text, url)
             soup = BeautifulSoup(text, 'html.parser')
 
             if self.separate_posts:
-                post_title = soup.select_one("h1[class=post__title]").text.replace('\n', '').replace("..", "")
+                post_tag = soup.select_one("h1[class=post__title]")
+                assert post_tag is not None
+                post_title = post_tag.text.replace('\n', '').replace("..", "")
                 prefix = f"{str(url.parts[-1])} - " if self.include_id else ""
                 if title:
                     title = title + '/' + await make_title_safe(prefix + post_title)
                 else:
                     title = await make_title_safe(prefix + post_title)
             elif not title:
-                post_title = soup.select_one("h1[class=post__title]").text.replace('\n', '').replace("..", "")
+                post_tag = soup.select_one("h1[class=post__title]")
+                assert post_tag is not None
+                post_title = post_tag.text.replace('\n', '').replace("..", "")
                 title = await make_title_safe(post_title)
 
             images = soup.select('a[class="fileThumb"]')
@@ -152,14 +160,16 @@ class CoomenoCrawler:
             await self.map_links(text_content, title, url)
         except Exception as e:
             logger.debug("Error encountered while handling %s", str(url), exc_info=True)
-            await log(f"Error: {str(url)}", quiet=self.quiet, style="red")
+            log(f"Error: {str(url)}", quiet=self.quiet, style="red")
             logger.debug(e)
 
         return title
 
     async def parse_tag(self, tag: Tag, url: URL, domain: str, title: str, cascade: CascadeItem):
         """Convert link from tag to MediaItem and add it to cascade"""
-        href = tag.get('href')
+        href: Union[str, list[str], None] = tag.get('href')
+
+        assert url.host is not None and isinstance(href, str)
         if href.startswith("/"):
             href = "https://" + url.host + href
         link = URL(href)

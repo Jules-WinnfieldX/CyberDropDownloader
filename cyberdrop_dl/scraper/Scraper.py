@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import asyncio
-from typing import TYPE_CHECKING, Dict
+from typing import TYPE_CHECKING, Optional
 
 import aiofiles
 from yarl import URL
@@ -39,7 +39,7 @@ if TYPE_CHECKING:
 
 class ScrapeMapper:
     """This class maps links to their respective handlers, or JDownloader if they are unsupported"""
-    def __init__(self, args: Dict, client: Client, SQL_Helper: SQLHelper, quiet: bool):
+    def __init__(self, args: dict, client: Client, SQL_Helper: SQLHelper, quiet: bool):
         self.args = args
         self.client = client
         self.SQL_Helper = SQL_Helper
@@ -51,29 +51,27 @@ class ScrapeMapper:
         self.unsupported_file = args["Files"]["unsupported_urls_file"]
         self.unsupported_output = args['Runtime']['output_unsupported_urls']
 
-        self.anonfiles_crawler = None
-        self.bunkr_crawler = None
-        self.cyberdrop_crawler = None
-        self.coomeno_crawler = None
-        self.cyberfile_crawler = None
-        self.ehentai_crawler = None
-        self.erome_crawler = None
-        self.fapello_crawler = None
-        self.gfycat_crawler = None
-        self.gofile_crawler = None
-        self.hgamecg_crawler = None
-        self.imgbox_crawler = None
-        self.lovefap_crawler = None
-        self.nsfwxxx_crawler = None
-        self.pimpandhost_crawler = None
-        self.pixeldrain_crawler = None
-        self.postimg_crawler = None
-        self.redgifs_crawler = None
-        self.rule34_crawler = None
-        self.saint_crawler = None
-        self.sharex_crawler = None
-        self.xbunkr_crawler = None
-        self.xenforo_crawler = None
+        self.anonfiles_crawler: Optional[AnonfilesCrawler] = None
+        self.bunkr_crawler: Optional[BunkrCrawler] = None
+        self.cyberdrop_crawler: Optional[CyberdropCrawler] = None
+        self.coomeno_crawler: Optional[CoomenoCrawler] = None
+        self.cyberfile_crawler: Optional[CyberFileCrawler] = None
+        self.ehentai_crawler: Optional[EHentaiCrawler] = None
+        self.erome_crawler: Optional[EromeCrawler] = None
+        self.fapello_crawler: Optional[FapelloCrawler] = None
+        self.gfycat_crawler: Optional[GfycatCrawler] = None
+        self.gofile_crawler: Optional[GoFileCrawler] = None
+        self.hgamecg_crawler: Optional[HGameCGCrawler] = None
+        self.imgbox_crawler: Optional[ImgBoxCrawler] = None
+        self.lovefap_crawler: Optional[LoveFapCrawler] = None
+        self.nsfwxxx_crawler: Optional[NSFWXXXCrawler] = None
+        self.pimpandhost_crawler: Optional[PimpAndHostCrawler] = None
+        self.pixeldrain_crawler: Optional[PixelDrainCrawler] = None
+        self.postimg_crawler: Optional[PostImgCrawler] = None
+        self.saint_crawler: Optional[SaintCrawler] = None
+        self.sharex_crawler: Optional[ShareXCrawler] = None
+        self.xbunkr_crawler: Optional[XBunkrCrawler] = None
+        self.xenforo_crawler: Optional[XenforoCrawler] = None
 
         self.include_id = args['Runtime']['include_id']
         self.remove_bunkr_id = args['Runtime']['remove_bunkr_identifier']
@@ -81,14 +79,17 @@ class ScrapeMapper:
         self.quiet = quiet
         self.jdownloader = JDownloader(args['JDownloader'], quiet)
 
-        self.jpgfish_limiter = AsyncRateLimiter(10)
         self.bunkr_limiter = AsyncRateLimiter(15)
-        self.coomeno_limiter = AsyncRateLimiter(6)
+        self.coomer_limiter = AsyncRateLimiter(8)
         self.gofile_limiter = AsyncRateLimiter(max_calls=1, period=2)
+        self.jpgfish_limiter = AsyncRateLimiter(10)
+        self.kemono_limiter = AsyncRateLimiter(8)
 
+        self.coomer_semaphore = asyncio.Semaphore(1)
+        self.cyberfile_semaphore = asyncio.Semaphore(2)
         self.gofile_semaphore = asyncio.Semaphore(1)
         self.jpgfish_semaphore = asyncio.Semaphore(5)
-        self.cyberfile_semaphore = asyncio.Semaphore(2)
+        self.kemono_semaphore = asyncio.Semaphore(1)
         self.nudostar_semaphore = asyncio.Semaphore(1)
         self.simpcity_semaphore = asyncio.Semaphore(1)
         self.socialmediagirls_semaphore = asyncio.Semaphore(1)
@@ -302,8 +303,15 @@ class ScrapeMapper:
             self.coomeno_crawler = CoomenoCrawler(include_id=self.include_id, scraping_mapper=self,
                                                   separate_posts=self.separate_posts, SQL_Helper=self.SQL_Helper,
                                                   quiet=self.quiet)
-        async with self.coomeno_limiter:
-            cascade, new_title = await self.coomeno_crawler.fetch(coomeno_session, url)
+        assert url.host is not None
+        if "coomer" in url.host:
+            async with self.coomer_semaphore:
+                async with self.coomer_limiter:
+                    cascade, new_title = await self.coomeno_crawler.fetch(coomeno_session, url)
+        elif "kemono" in url.host:
+            async with self.kemono_semaphore:
+                async with self.kemono_limiter:
+                    cascade, new_title = await self.coomeno_crawler.fetch(coomeno_session, url)
         if not new_title or await cascade.is_empty():
             await coomeno_session.exit_handler()
             return
@@ -324,6 +332,7 @@ class ScrapeMapper:
         title = None
         cascade = None
 
+        assert self.xenforo_crawler is not None and url.host is not None
         if "simpcity" in url.host:
             async with self.simpcity_semaphore:
                 cascade, title = await self.xenforo_crawler.fetch(xenforo_session, url)
@@ -336,9 +345,12 @@ class ScrapeMapper:
         elif "nudostar" in url.host:
             async with self.nudostar_semaphore:
                 cascade, title = await self.xenforo_crawler.fetch(xenforo_session, url)
+
+        assert cascade is not None
         if not title or await cascade.is_empty():
             await xenforo_session.exit_handler()
             return
+
         await self.Forums.add_thread(title, cascade)
         await xenforo_session.exit_handler()
 
@@ -353,27 +365,23 @@ class ScrapeMapper:
         if not url_to_map:
             return
         if not url_to_map.host:
-            await log(f"Not Supported: {str(url_to_map)}", quiet=self.quiet, style="yellow")
+            log(f"Not Supported: {str(url_to_map)}", quiet=self.quiet, style="yellow")
             return
 
         key = next((key for key in self.mapping if key in url_to_map.host), None)
         if key:
             if await self.is_skip_host(key):
-                await log(f"Skipping: {str(url_to_map)}", quiet=self.quiet, style="yellow")
+                log(f"Skipping: {str(url_to_map)}", quiet=self.quiet, style="yellow")
             else:
                 handler = self.mapping[key]
                 await handler(url=url_to_map, title=title)
             return
 
         if self.jdownloader.jdownloader_enable:
-            async with asyncio.Semaphore(1):
-                self.jdownloader.quiet = self.quiet
-                if not self.jdownloader.jdownloader_agent:
-                    await self.jdownloader.jdownloader_setup()
             await self.jdownloader.direct_unsupported_to_jdownloader(url_to_map, title)
 
         else:
-            await log(f"Not Supported: {str(url_to_map)}", quiet=self.quiet, style="yellow")
+            log(f"Not Supported: {str(url_to_map)}", quiet=self.quiet, style="yellow")
             if self.unsupported_output:
                 title = title.encode("ascii", "ignore")
                 title = title.decode().strip()

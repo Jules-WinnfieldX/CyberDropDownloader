@@ -51,7 +51,7 @@ async def clear() -> None:
     os.system('cls' if os.name == 'nt' else 'clear')
 
 
-async def log(text: str, quiet: bool = False, style: str = "") -> None:
+def log(text: str, quiet: bool = False, style: str = "") -> None:
     """Logs to the output log file and optionally (by default) prints to the terminal with given style"""
     logger.debug(text)
     if not quiet:
@@ -96,7 +96,7 @@ async def check_direct(url: URL) -> bool:
     return any(re.search(domain, str(url)) for domain in mapping_direct)
 
 
-async def get_filename_and_ext(filename: str, forum: bool = False) -> (str, str):
+async def get_filename_and_ext(filename: str, forum: bool = False) -> tuple[str, str]:
     """Returns the filename and extension of a given file, throws NoExtensionFailure if there is no extension"""
     filename_parts = filename.rsplit('.', 1)
     if len(filename_parts) == 1:

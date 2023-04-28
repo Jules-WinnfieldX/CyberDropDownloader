@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 from myjdapi import myjdapi
 
@@ -18,33 +18,35 @@ class JDownloader:
         self.jdownloader_device = jdownloader_args['jdownloader_device']
         self.jdownloader_username = jdownloader_args['jdownloader_username']
         self.jdownloader_password = jdownloader_args['jdownloader_password']
-
         self.jdownloader_enable = jdownloader_args['apply_jdownloader']
-        self.jdownloader_agent = None
         self.quiet = quiet
+        self.jdownloader_agent = self.jdownloader_setup()
 
-    async def jdownloader_setup(self):
+    def jdownloader_setup(self) -> Optional[myjdapi.Jddevice]:
         """Setup function for JDownloader"""
+        if not self.jdownloader_enable:
+            return None
+
         try:
             if not self.jdownloader_username or not self.jdownloader_password or not self.jdownloader_device:
                 raise JDownloaderFailure("jdownloader credentials were not provided.")
             jd = myjdapi.Myjdapi()
             jd.set_app_key("CYBERDROP-DL")
             jd.connect(self.jdownloader_username, self.jdownloader_password)
-            self.jdownloader_agent = jd.get_device(self.jdownloader_device)
+            return jd.get_device(self.jdownloader_device)
         except JDownloaderFailure:
-            await log("Failed JDownloader setup", quiet=self.quiet, style="red")
+            log("Failed JDownloader setup", quiet=self.quiet, style="red")
             self.jdownloader_enable = False
+            return None
 
-    async def direct_unsupported_to_jdownloader(self, url: URL, title: str):
+    async def direct_unsupported_to_jdownloader(self, url: URL, title: str) -> None:
         """Sends links to JDownloader"""
         if self.jdownloader_enable:
-            if not self.jdownloader_agent:
-                await self.jdownloader_setup()
             try:
+                assert url.host is not None
                 if "facebook" in url.host.lower() or "instagram" in url.host.lower():
                     raise JDownloaderFailure("Blacklisted META")
-
+                assert self.jdownloader_agent is not None
                 self.jdownloader_agent.linkgrabber.add_links([{
                     "autostart": False,
                     "links": str(url),
@@ -52,6 +54,6 @@ class JDownloader:
                     "overwritePackagizerRules": True
                     }])
 
-            except JDownloaderFailure as e:
+            except (JDownloaderFailure, AssertionError) as e:
                 logging.debug(e)
-                await log(f"Failed to send {str(url)} to JDownloader", quiet=self.quiet, style="red")
+                log(f"Failed to send {str(url)} to JDownloader", quiet=self.quiet, style="red")

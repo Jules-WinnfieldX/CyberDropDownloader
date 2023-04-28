@@ -27,48 +27,49 @@ if TYPE_CHECKING:
 class ParseSpec:
     """Class for specific selectors of supported domains"""
     domain: str
-    title_block_element: str = "h1[class=p-title-value]"
-    title_clutter_element: str = field(init=False)
+    
+    title_block_tag: str = "h1[class=p-title-value]"
+    title_clutter_tag: str = field(init=False)
 
-    posts_block_element: str = "div[class*=message-main]"
-    posts_number_element: str = field(init=False)
+    posts_block_tag: str = "div[class*=message-main]"
+    posts_number_tag: str = field(init=False)
     posts_number_attribute: str = "href"
 
-    post_content_element: str = "div[class=bbWrapper]"
-    block_quote_element: str = "blockquote"
+    post_content_tag: str = "div[class=bbWrapper]"
+    block_quote_tag: str = "blockquote"
 
-    links_element: str = "a"
+    links_tag: str = "a"
     links_attribute: str = "href"
 
-    images_element: str = field(init=False)
+    images_tag: str = field(init=False)
     images_attribute: str = field(init=False)
 
-    video_element: str = "video source"
+    video_tag: str = "video source"
     video_attribute: str = "src"
-    saint_iframe_element: str = "iframe[class=saint-iframe]"
+    saint_iframe_tag: str = "iframe[class=saint-iframe]"
     saint_iframe_attribute: str = "src"
 
-    embedded_content_element: str = "span[data-s9e-mediaembed-iframe]"
+    embedded_content_tag: str = "span[data-s9e-mediaembed-iframe]"
     embedded_content_attribute: str = "data-s9e-mediaembed-iframe"
 
-    attachment_block_element: str = "section[class=message-attachments]"
-    attachment_element: str = "a"
+    attachment_block_tag: str = "section[class=message-attachments]"
+    attachment_tag: str = "a"
     attachment_attribute: str = "href"
 
-    next_page_element: str = 'a[class="pageNav-jump pageNav-jump--next"]'
+    next_page_tag: str = 'a[class="pageNav-jump pageNav-jump--next"]'
     next_page_attribute: str = "href"
 
     def __post_init__(self):
         if self.domain in ("simpcity", "xbunker", "socialmediagirls"):
-            self.title_clutter_element = "a" if self.domain in ("simpcity", "xbunker") else "span"
-            self.posts_number_element = "li[class=u-concealed] a"
-            self.images_element = "div[class*=bbImage]"
+            self.title_clutter_tag = "a" if self.domain in ("simpcity", "xbunker") else "span"
+            self.posts_number_tag = "li[class=u-concealed] a"
+            self.images_tag = "div[class*=bbImage]"
             self.images_attribute = "data-src"
 
         elif self.domain == "nudostar":
-            self.title_clutter_element = "span"
-            self.posts_number_element = "a[class=u-concealed]"
-            self.images_element = "img[class*=bbImage]"
+            self.title_clutter_tag = "span"
+            self.posts_number_tag = "a[class=u-concealed]"
+            self.images_tag = "img[class*=bbImage]"
             self.images_attribute = "src"
 
 
@@ -82,7 +83,7 @@ class ForumLogin:
     async def login(self, session: ScrapeSession, url: URL, quiet: bool):
         """Handles forum logging in"""
         if not self.username or not self.password:
-            await log(f"Login wasn't provided for {self.name}", quiet=quiet, style="red")
+            log(f"Login wasn't provided for {self.name}", quiet=quiet, style="red")
             raise FailedLoginFailure()
         attempt = 0
         while True:
@@ -92,6 +93,7 @@ class ForumLogin:
                 if attempt == 5:
                     raise FailedLoginFailure()
 
+                assert url.host is not None
                 domain = URL("https://" + url.host) / "forum/login" if "nudostar" in url.host else \
                     URL("https://" + url.host) / "login"
 
@@ -105,6 +107,8 @@ class ForumLogin:
                     for elem in inputs
                     if elem.get('name') and elem.get('value')
                 }
+
+                assert url.host is not None
                 data.update({
                     "login": self.username,
                     "password": self.password,
@@ -151,14 +155,15 @@ class XenforoCrawler:
         self.scraping_mapper = scraping_mapper
         self.SQL_Helper = SQL_Helper
 
-    async def fetch(self, session: ScrapeSession, url: URL):
+    async def fetch(self, session: ScrapeSession, url: URL) -> tuple[CascadeItem, str]:
         """Xenforo forum director"""
-        await log(f"Starting: {str(url)}", quiet=self.quiet, style="green")
+        log(f"Starting: {str(url)}", quiet=self.quiet, style="green")
         cascade = CascadeItem({})
 
         scrape_url, post_num = await self.get_thread_url_and_post_num(url)
-        title = None
+        title = ""
         try:
+            assert url.host is not None
             if "simpcity" in url.host:
                 await self.simpcity.login(session, url, self.quiet)
             elif "socialmediagirls" in url.host:
@@ -173,12 +178,12 @@ class XenforoCrawler:
                 title = await self.parse_forum(session, scrape_url, ParseSpec(domain), cascade, "", post_num)
         except Exception as e:
             logger.debug("Error encountered while handling %s", str(url), exc_info=True)
-            await log(f"Error: {str(url)}", quiet=self.quiet, style="red")
+            log(f"Error: {str(url)}", quiet=self.quiet, style="red")
             logger.debug(e)
             return cascade, ""
 
         await self.SQL_Helper.insert_cascade(cascade)
-        await log(f"Finished: {str(url)}", quiet=self.quiet, style="green")
+        log(f"Finished: {str(url)}", quiet=self.quiet, style="green")
         return cascade, title
 
     async def get_thread_url_and_post_num(self, url: URL):
@@ -234,6 +239,7 @@ class XenforoCrawler:
     async def filter_content_links(self, cascade: CascadeItem, content_links: list, url: URL, domain: str):
         """Splits given links into direct links and external links,
         returns external links, adds internal to the cascade"""
+        assert url.host is not None
         forum_direct_urls = [x for x in content_links if x[0].host.replace(".st", ".su") in url.host]
         forum_direct_urls.extend([x for x in content_links if url.host in x[0].host.replace(".st", ".su")])
         forum_direct_urls.extend([x for x in content_links if "smgmedia" in x[0].host])
@@ -268,12 +274,13 @@ class XenforoCrawler:
         """Parses forum threads"""
         soup = await session.get_BS4(url)
 
+        assert url.host is not None
         domain = URL("https://" + url.host)
-        post_num_str = None
+        post_num_str = ""
         content_links = []
 
-        title_block = soup.select_one(spec.title_block_element)
-        for elem in title_block.find_all(spec.title_clutter_element):
+        title_block = soup.select_one(spec.title_block_tag)
+        for elem in title_block.find_all(spec.title_clutter_tag):
             elem.decompose()
 
         if title:
@@ -282,48 +289,48 @@ class XenforoCrawler:
             title = title_block.text
             title = await make_title_safe(title.replace("\n", "").strip())
 
-        posts = soup.select(spec.posts_block_element)
+        posts = soup.select(spec.posts_block_tag)
 
         for post in posts:
-            post_num_str = post.select_one(spec.posts_number_element).get(spec.posts_number_attribute).split('/')[-1]
+            post_num_str = post.select_one(spec.posts_number_tag).get(spec.posts_number_attribute).split('/')[-1]
             post_num_int = int(post_num_str.split('post-')[-1])
             if post_number > post_num_int:
                 continue
 
             temp_title = title + "/" + post_num_str if self.separate_posts else title
 
-            for elem in post.find_all(spec.block_quote_element):
+            for elem in post.find_all(spec.block_quote_tag):
                 elem.decompose()
-            post_content = post.select_one(spec.post_content_element)
+            post_content = post.select_one(spec.post_content_tag)
 
             # Get Links
-            content_links.extend(await self.get_links(post_content, spec.links_element, spec.links_attribute, domain,
+            content_links.extend(await self.get_links(post_content, spec.links_tag, spec.links_attribute, domain,
                                                       temp_title))
 
             # Get Images
-            content_links.extend(await self.get_links(post_content, spec.images_element, spec.images_attribute, domain,
+            content_links.extend(await self.get_links(post_content, spec.images_tag, spec.images_attribute, domain,
                                                       temp_title))
 
             # Get Videos:
-            content_links.extend(await self.get_links(post_content, spec.video_element, spec.video_attribute, domain,
+            content_links.extend(await self.get_links(post_content, spec.video_tag, spec.video_attribute, domain,
                                                       temp_title))
-            content_links.extend(await self.get_links(post_content, spec.saint_iframe_element,
+            content_links.extend(await self.get_links(post_content, spec.saint_iframe_tag,
                                                       spec.saint_iframe_attribute, domain, temp_title))
 
             # Get Other Embedded Content
-            content_links.extend(await self.get_embedded(post_content, spec.embedded_content_element,
+            content_links.extend(await self.get_embedded(post_content, spec.embedded_content_tag,
                                                          spec.embedded_content_attribute, temp_title))
 
             # Get Attachments
-            attachments_block = post.select_one(spec.attachment_block_element)
-            content_links.extend(await self.get_links(attachments_block, spec.attachment_element,
+            attachments_block = post.select_one(spec.attachment_block_tag)
+            content_links.extend(await self.get_links(attachments_block, spec.attachment_tag,
                                                       spec.attachment_attribute, domain, temp_title))
 
         # Handle links
         content_links = await self.filter_content_links(cascade, content_links, url, spec.domain)
         await self.handle_external_links(content_links, url)
 
-        next_page = soup.select_one(spec.next_page_element)
+        next_page = soup.select_one(spec.next_page_tag)
         if next_page is not None:
             next_page = next_page.get(spec.next_page_attribute)
             if next_page is not None:
@@ -332,6 +339,7 @@ class XenforoCrawler:
                 next_page = URL(next_page)
                 await self.parse_forum(session, next_page, spec, cascade, title, post_number)
         elif self.output_last:
+            assert url.raw_name is not None
             if 'page-' in url.raw_name or 'post-' in url.raw_name:
                 last_post_url = url.parent / post_num_str
             else:

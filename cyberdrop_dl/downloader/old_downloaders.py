@@ -4,6 +4,7 @@ import asyncio
 import itertools
 import logging
 from http import HTTPStatus
+from pathlib import Path
 from random import gauss
 
 import aiofiles
@@ -40,15 +41,15 @@ class Files:
         self.skipped_files = 0
         self.failed_files = 0
 
-    async def add_completed(self):
+    async def add_completed(self) -> None:
         self.completed_files += 1
         self.progress.update(1)
 
-    async def add_skipped(self):
+    async def add_skipped(self) -> None:
         self.skipped_files += 1
         self.progress.update(1)
 
-    async def add_failed(self):
+    async def add_failed(self) -> None:
         self.failed_files += 1
         self.progress.update(1)
 
@@ -71,7 +72,7 @@ class Old_Downloader:
 
         self.files = files
 
-        self.current_attempt = {}
+        self.current_attempt: dict[str, int] = {}
         max_workers = get_threads_number(args, domain)
         self._semaphore = asyncio.Semaphore(max_workers)
         self.delay = {'cyberfile': 1, 'anonfiles': 1, "coomer": 0.2, "kemono": 0.2}
@@ -91,13 +92,13 @@ class Old_Downloader:
         self.proxy = args["Runtime"]["proxy"]
         self.required_free_space = args["Runtime"]["required_free_space"]
 
-    async def start_domain(self):
+    async def start_domain(self) -> None:
         """Handler for domains and the progress bars for it"""
         for album, album_obj in self.domain_obj.albums.items():
             await self.start_album(album, album_obj)
         await self.download_session.exit_handler()
 
-    async def start_album(self, album: str, album_obj: AlbumItem):
+    async def start_album(self, album: str, album_obj: AlbumItem) -> None:
         """Handler for albums and the progress bars for it"""
         if await album_obj.is_empty():
             return
@@ -106,10 +107,10 @@ class Old_Downloader:
             download_tasks.append(self.start_file(album, media))
         await asyncio.gather(*download_tasks)
 
-    async def start_file(self, album: str, media: MediaItem):
+    async def start_file(self, album: str, media: MediaItem) -> None:
         """Handler for files and the progress bars for it"""
         if media.complete or await self.SQL_Helper.check_complete_singular(self.domain, media.url):
-            await log(f"Previously Downloaded: {media.filename}", quiet=True)
+            log(f"Previously Downloaded: {media.filename}", quiet=True)
             await self.files.add_skipped()
             return
         async with self._semaphore:
@@ -120,13 +121,13 @@ class Old_Downloader:
     async def download_file(self, album: str, media: MediaItem, url_path: str) -> None:
         """File downloader"""
         if not await check_free_space(self.required_free_space, self.download_dir):
-            await log("We've run out of free space.", quiet=True)
+            log("We've run out of free space.", quiet=True)
             await self.files.add_skipped()
             return
 
         if not await allowed_filetype(media, self.exclude_images, self.exclude_videos, self.exclude_audio,
                                       self.exclude_other):
-            await log(f"Blocked by file extension: {media.filename}", quiet=True)
+            log(f"Blocked by file extension: {media.filename}", quiet=True)
             await self.files.add_skipped()
             return
 
@@ -166,6 +167,7 @@ class Old_Downloader:
                 resume_point = partial_file.stat().st_size
                 range_num = f'bytes={resume_point}-'
 
+            assert media.url.host is not None
             for key, value in self.delay.items():
                 if key in media.url.host:
                     current_throttle = value
@@ -189,7 +191,7 @@ class Old_Downloader:
             else:
                 await self.files.add_completed()
 
-            await log(f"Completed Download: {media.filename} from {media.referer}", quiet=True)
+            log(f"Completed Download: {media.filename} from {media.referer}", quiet=True)
             await self.File_Lock.remove_lock(original_filename)
             return
 
@@ -206,7 +208,7 @@ class Old_Downloader:
             if hasattr(e, "code"):
                 if await is_4xx_client_error(e.code) and e.code != HTTPStatus.TOO_MANY_REQUESTS:
                     logger.debug("We ran into a 400 level error: %s", str(e.code))
-                    await log(f"Failed Download: {media.filename}", quiet=True)
+                    log(f"Failed Download: {media.filename}", quiet=True)
                     await self.files.add_failed()
                     if url_path in self.current_attempt:
                         self.current_attempt.pop(url_path)
@@ -217,7 +219,7 @@ class Old_Downloader:
                         if not e.message:
                             e.message = "Web server is down"
                         logging.debug(f"\n{media.url} ({e.message})")
-                    await log(f"Failed Download: {media.filename}", quiet=True)
+                    log(f"Failed Download: {media.filename}", quiet=True)
                     await self.files.add_failed()
                     if url_path in self.current_attempt:
                         self.current_attempt.pop(url_path)
@@ -227,13 +229,13 @@ class Old_Downloader:
 
             raise DownloadFailure(code=getattr(e, "code", 1), message=repr(e))
 
-    async def output_failed(self, media, e):
+    async def output_failed(self, media, e) -> None:
         if self.errored_output:
             async with aiofiles.open(self.errored_file, mode='a') as file:
                 await file.write(f"{media.url},{media.referer},{e.message}\n")
 
     async def check_file_exists(self, complete_file, partial_file, media, album, url_path, original_filename,
-                                current_throttle):
+                                current_throttle) -> tuple[Path, Path, bool]:
         """Complicated checker for if a file already exists, and was already downloaded"""
         expected_size = None
         proceed = True
@@ -288,7 +290,7 @@ async def old_download_cascade(args: dict, Cascade: CascadeItem, SQL_Helper: SQL
         await asyncio.gather(*tasks)
 
     await clear()
-    await log(f"| [green]Files Complete: {files.completed_files}[/green] - [yellow]Files Skipped: "
+    log(f"| [green]Files Complete: {files.completed_files}[/green] - [yellow]Files Skipped: "
               f"{files.skipped_files}[/yellow] - [red]Files Failed: {files.failed_files}[/red] |")
 
 
@@ -306,5 +308,5 @@ async def old_download_forums(args: dict, Forums: ForumItem, SQL_Helper: SQLHelp
             await asyncio.gather(*tasks)
 
     await clear()
-    await log(f"| [green]Files Complete: {files.completed_files}[/green] - [yellow]Files Skipped: "
+    log(f"| [green]Files Complete: {files.completed_files}[/green] - [yellow]Files Skipped: "
               f"{files.skipped_files}[/yellow] - [red]Files Failed: {files.failed_files}[/red] |")

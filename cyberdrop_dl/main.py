@@ -20,7 +20,7 @@ from cyberdrop_dl.downloader.old_downloaders import old_download_cascade, old_do
 from cyberdrop_dl.scraper.Scraper import ScrapeMapper
 
 from . import __version__ as VERSION
-from .base_functions.data_classes import CascadeItem, SkipData
+from .base_functions.data_classes import CascadeItem, ForumItem, SkipData
 
 
 def parse_args() -> argparse.Namespace:
@@ -197,13 +197,13 @@ async def consolidate_links(args: dict, links: list) -> list:
     links = list(filter(None, links))
 
     if not links:
-        await log("No valid links found.", style="red")
+        log("No valid links found.", style="red")
     return links
 
 
-async def scrape_links(scraper: ScrapeMapper, links: list, quiet=False) -> CascadeItem:
+async def scrape_links(scraper: ScrapeMapper, links: list, quiet=False) -> tuple[CascadeItem, ForumItem]:
     """Maps links from URLs.txt or command to the scraper class"""
-    await log("Starting Scrape", quiet=quiet, style="green")
+    log("Starting Scrape", quiet=quiet, style="green")
     tasks = []
 
     for link in links:
@@ -215,8 +215,8 @@ async def scrape_links(scraper: ScrapeMapper, links: list, quiet=False) -> Casca
     Forums = scraper.Forums
     await Forums.dedupe()
 
-    await log("", quiet=quiet)
-    await log("Finished Scrape", quiet=quiet, style="green")
+    log("", quiet=quiet)
+    log("Finished Scrape", quiet=quiet, style="green")
     return Cascade, Forums
 
 
@@ -225,10 +225,10 @@ async def director(args: dict, links: list) -> None:
     await clear()
     await document_args(args)
     await file_management(args, links)
-    await log(f"We are running version {VERSION} of Cyberdrop Downloader")
+    log(f"We are running version {VERSION} of Cyberdrop Downloader")
 
     if not await check_free_space(args['Runtime']['required_free_space'], args['Files']['output_folder']):
-        await log("Not enough free space to continue. You can change the required space required using --required-free-space.", style="red")
+        log("Not enough free space to continue. You can change the required space required using --required-free-space.", style="red")
         exit(1)
 
     links = await consolidate_links(args, links)
@@ -258,29 +258,29 @@ async def director(args: dict, links: list) -> None:
 
     if args['Files']['output_folder'].is_dir():
         if args['Sorting']['sort_downloads']:
-            await log("")
-            await log("Sorting Downloads")
+            log("")
+            log("Sorting Downloads")
             sorter = Sorter(args['Files']['output_folder'], args['Sorting']['sort_directory'],
                             args['Sorting']['sorted_audio'], args['Sorting']['sorted_images'],
                             args['Sorting']['sorted_videos'], args['Sorting']['sorted_others'],)
             await sorter.sort()
 
-        await log("")
-        await log("Checking for incomplete downloads")
+        log("")
+        log("Checking for incomplete downloads")
         partial_downloads = any(f.is_file() for f in args['Files']['output_folder'].rglob("*.part"))
         temp_downloads = any(Path(f).is_file() for f in await SQL_Helper.get_temp_names())
 
-        await log('Purging empty directories')
+        log('Purging empty directories')
         await purge_dir(args['Files']['output_folder'])
 
-        await log('Finished downloading. Enjoy :)')
+        log('Finished downloading. Enjoy :)')
         if partial_downloads:
-            await log('There are partial downloads in the downloads folder.', style="yellow")
+            log('There are partial downloads in the downloads folder.', style="yellow")
         if temp_downloads:
-            await log('There are partial downloads from this run, please re-run the program.', style="yellow")
+            log('There are partial downloads from this run, please re-run the program.', style="yellow")
 
-    await log('')
-    await log("If you enjoy using this program, please consider buying the developer a coffee :)\nhttps://www.buymeacoffee.com/juleswinnft", style="green")
+    log('')
+    log("If you enjoy using this program, please consider buying the developer a coffee :)\nhttps://www.buymeacoffee.com/juleswinnft", style="green")
 
 
 def main(args=None):

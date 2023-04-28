@@ -21,14 +21,14 @@ class FapelloCrawler:
 
     async def fetch(self, session: ScrapeSession, url: URL) -> Optional[AlbumItem]:
         """Basic director for fapello"""
-        await log(f"Starting: {str(url)}", quiet=self.quiet, style="green")
+        log(f"Starting: {str(url)}", quiet=self.quiet, style="green")
 
         if not str(url).endswith("/"):
             url = url / ""
 
         album_obj = await self.parse_profile(session, url)
 
-        await log(f"Finished: {str(url)}", quiet=self.quiet, style="green")
+        log(f"Finished: {str(url)}", quiet=self.quiet, style="green")
         return album_obj
 
     async def parse_profile(self, session: ScrapeSession, url: URL) -> Optional[AlbumItem]:
@@ -64,7 +64,7 @@ class FapelloCrawler:
 
         except Exception as e:
             logger.debug("Error encountered while handling %s", str(url), exc_info=True)
-            await log(f"Error: {str(url)}", quiet=self.quiet, style="red")
+            log(f"Error: {str(url)}", quiet=self.quiet, style="red")
             logger.debug(e)
             return None
 
@@ -97,7 +97,7 @@ class FapelloCrawler:
                 results.append(media_item)
         except Exception as e:
             logger.debug("Error encountered while handling %s", str(url), exc_info=True)
-            await log(f"Error: {str(url)}", quiet=self.quiet, style="red")
+            log(f"Error: {str(url)}", quiet=self.quiet, style="red")
             logger.debug(e)
 
         return results

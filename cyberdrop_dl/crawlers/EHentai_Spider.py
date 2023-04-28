@@ -21,12 +21,12 @@ class EHentaiCrawler:
         """Director for E-Hentai"""
         album_obj = AlbumItem("Loose EHentai Files", [])
 
-        await log(f"Starting: {str(url)}", quiet=self.quiet, style="green")
+        log(f"Starting: {str(url)}", quiet=self.quiet, style="green")
         if "g" in url.parts:
             await self.get_album(session, url, album_obj)
         elif "s" in url.parts:
             await self.get_image(session, url, album_obj)
-        await log(f"Finished: {str(url)}", quiet=self.quiet, style="green")
+        log(f"Finished: {str(url)}", quiet=self.quiet, style="green")
         await self.SQL_Helper.insert_album("e-hentai", url, album_obj)
         return album_obj
 
@@ -56,7 +56,7 @@ class EHentaiCrawler:
 
         except Exception as e:
             logger.debug("Error encountered while handling %s", str(url), exc_info=True)
-            await log(f"Error: {str(url)}", quiet=self.quiet, style="red")
+            log(f"Error: {str(url)}", quiet=self.quiet, style="red")
             logger.debug(e)
 
     async def get_image(self, session: ScrapeSession, url: URL, album_obj: AlbumItem):
@@ -70,6 +70,6 @@ class EHentaiCrawler:
             await album_obj.add_media(media_item)
         except Exception as e:
             logger.debug("Error encountered while handling %s", str(url), exc_info=True)
-            await log(f"Error: {str(url)}", quiet=self.quiet, style="red")
+            log(f"Error: {str(url)}", quiet=self.quiet, style="red")
             logger.debug(e)
 

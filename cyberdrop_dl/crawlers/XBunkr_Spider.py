@@ -23,6 +23,7 @@ class XBunkrCrawler:
         album_obj = AlbumItem("Loose XBunkr Files", [])
 
         try:
+            assert url.host is not None
             if "media" in url.host:
                 media_item = await create_media_item(url, url, self.SQL_Helper, "xbunkr")
                 await album_obj.add_media(media_item)
@@ -44,9 +45,9 @@ class XBunkrCrawler:
 
         except Exception as e:
             logger.debug("Error encountered while handling %s", str(url), exc_info=True)
-            await log("Error scraping " + str(url), quiet=self.quiet)
+            log("Error scraping " + str(url), quiet=self.quiet)
             logger.debug(e)
 
         await self.SQL_Helper.insert_album("xbunkr", URL(""), album_obj)
-        await log(f"Finished: {str(url)}", quiet=self.quiet, style="green")
+        log(f"Finished: {str(url)}", quiet=self.quiet, style="green")
         return album_obj

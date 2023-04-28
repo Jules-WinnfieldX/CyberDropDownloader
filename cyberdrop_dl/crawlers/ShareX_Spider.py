@@ -29,9 +29,10 @@ class ShareXCrawler:
 
     async def fetch(self, session: ScrapeSession, url: URL) -> DomainItem:
         """Director for ShareX scraper"""
+        assert url.host is not None
         domain_obj = DomainItem(url.host.lower(), {})
 
-        await log(f"Starting: {str(url)}", quiet=self.quiet, style="green")
+        log(f"Starting: {str(url)}", quiet=self.quiet, style="green")
 
         if await check_direct(url):
             url = url.with_name(url.name.replace('.md.', '.').replace('.th.', '.'))
@@ -48,7 +49,7 @@ class ShareXCrawler:
             await self.parse_profile(session, url, domain_obj)
 
         await self.SQL_Helper.insert_domain("sharex", url, domain_obj)
-        await log(f"Finished: {str(url)}", quiet=self.quiet, style="green")
+        log(f"Finished: {str(url)}", quiet=self.quiet, style="green")
         return domain_obj
 
     async def jpg_fish_from_church(self, url: URL) -> URL:
@@ -75,7 +76,7 @@ class ShareXCrawler:
 
         except Exception as e:
             logger.debug("Error encountered while handling %s", str(url), exc_info=True)
-            await log(f"Error: {str(url)}", quiet=self.quiet, style="red")
+            log(f"Error: {str(url)}", quiet=self.quiet, style="red")
             logger.debug(e)
 
     async def get_singular(self, session: ScrapeSession, url: URL, domain_obj: DomainItem):
@@ -91,7 +92,7 @@ class ShareXCrawler:
             await domain_obj.add_media("Loose ShareX Files", media_item)
         except Exception as e:
             logger.debug("Error encountered while handling %s", str(url), exc_info=True)
-            await log(f"Error: {str(url)}", quiet=self.quiet, style="red")
+            log(f"Error: {str(url)}", quiet=self.quiet, style="red")
             logger.debug(e)
 
     async def get_sub_album_links(self, session: ScrapeSession, url: URL, og_title: str, domain_obj: DomainItem):
@@ -105,7 +106,7 @@ class ShareXCrawler:
                     await self.parse(session=session, url=album_url, og_title=og_title, domain_obj=domain_obj)
         except Exception as e:
             logger.debug("Error encountered while handling %s", str(url), exc_info=True)
-            await log(f"Error: {str(url)}", quiet=self.quiet, style="red")
+            log(f"Error: {str(url)}", quiet=self.quiet, style="red")
             logger.debug(e)
 
     async def parse_profile(self, session: ScrapeSession, url: URL, domain_obj: DomainItem):
@@ -123,13 +124,14 @@ class ShareXCrawler:
 
         except Exception as e:
             logger.debug("Error encountered while handling %s", str(url), exc_info=True)
-            await log(f"Error: {str(url)}", quiet=self.quiet, style="red")
+            log(f"Error: {str(url)}", quiet=self.quiet, style="red")
             logger.debug(e)
 
     async def get_list_links(self, session: ScrapeSession, url: URL, title: str, domain_obj: DomainItem):
         """Gets final links and adds to domain_obj"""
         try:
             soup = await session.get_BS4(url)
+            assert url.host is not None
             if 'jpg.fish' in url.host or 'jpg.church' in url.host:
                 links = soup.select("a[href*=img] img")
             else:
@@ -156,7 +158,7 @@ class ShareXCrawler:
                     await self.get_list_links(session, next_page, title, domain_obj)
         except Exception as e:
             logger.debug("Error encountered while handling %s", str(url), exc_info=True)
-            await log(f"Error: {str(url)}", quiet=self.quiet, style="red")
+            log(f"Error: {str(url)}", quiet=self.quiet, style="red")
             logger.debug(e)
 
     async def parse(self, *, session: ScrapeSession, url: URL, og_title=None, domain_obj: DomainItem):
@@ -183,5 +185,5 @@ class ShareXCrawler:
 
         except Exception as e:
             logger.debug("Error encountered while handling %s", str(url), exc_info=True)
-            await log(f"Error: {str(url)}", quiet=self.quiet, style="red")
+            log(f"Error: {str(url)}", quiet=self.quiet, style="red")
             logger.debug(e)

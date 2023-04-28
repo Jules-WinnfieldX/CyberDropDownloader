@@ -24,7 +24,7 @@ class NSFWXXXCrawler:
         """Director for NSFW.XXX scraping"""
         domain_obj = DomainItem("nsfw.xxx", {})
 
-        await log(f"Starting: {str(url)}", quiet=self.quiet, style="green")
+        log(f"Starting: {str(url)}", quiet=self.quiet, style="green")
         if "user" in url.parts:
             await self.get_user(session, url, domain_obj)
         else:
@@ -37,8 +37,8 @@ class NSFWXXXCrawler:
         try:
             model = url.name + " (NSFW.XXX)"
             for page in itertools.count(1):
-                model_name = url.path.split("/")
-                model_name = list(filter(None, model_name))[-1]
+                model_name_parts = url.path.split("/")
+                model_name = list(filter(None, model_name_parts))[-1]
                 page_url = URL(f"https://nsfw.xxx/page/{page}?nsfw[]=0&types[]=image&types[]=video&types[]=gallery&slider=1&jsload=1&user={model_name}")
                 page_soup = await session.get_BS4(page_url)
 
@@ -55,7 +55,7 @@ class NSFWXXXCrawler:
 
         except Exception as e:
             logger.debug("Error encountered while handling %s", str(url), exc_info=True)
-            await log(f"Error: {str(url)}", quiet=self.quiet, style="red")
+            log(f"Error: {str(url)}", quiet=self.quiet, style="red")
             logger.debug(e)
 
     async def get_post_hrefs(self, posts):
@@ -94,5 +94,5 @@ class NSFWXXXCrawler:
 
         except Exception as e:
             logger.debug("Error encountered while handling %s", str(url), exc_info=True)
-            await log(f"Error: {str(url)}", quiet=self.quiet, style="red")
+            log(f"Error: {str(url)}", quiet=self.quiet, style="red")
             logger.debug(e)

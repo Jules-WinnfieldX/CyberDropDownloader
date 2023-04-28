@@ -21,14 +21,14 @@ class EromeCrawler:
 
     async def fetch(self, session: ScrapeSession, url: URL) -> DomainItem:
         """Director function for Erome scraping"""
-        await log(f"Starting: {str(url)}", quiet=self.quiet, style="green")
+        log(f"Starting: {str(url)}", quiet=self.quiet, style="green")
 
         if 'a' in url.parts:
             domain_obj = await self.handle_album(session, url)
         else:
             domain_obj = await self.handle_profile(session, url)
 
-        await log(f"Finished: {str(url)}", quiet=self.quiet, style="green")
+        log(f"Finished: {str(url)}", quiet=self.quiet, style="green")
 
         return domain_obj
 
@@ -67,7 +67,7 @@ class EromeCrawler:
             await self.SQL_Helper.insert_domain("erome", url, domain_obj)
         except Exception as e:
             logger.debug("Error encountered while handling %s", str(url), exc_info=True)
-            await log(f"Error: {str(url)}", quiet=self.quiet, style="red")
+            log(f"Error: {str(url)}", quiet=self.quiet, style="red")
             logger.debug(e)
 
         return domain_obj
@@ -97,7 +97,7 @@ class EromeCrawler:
 
         except Exception as e:
             logger.debug("Error encountered while handling %s", str(url), exc_info=True)
-            await log(f"Error: {str(url)}", quiet=self.quiet, style="red")
+            log(f"Error: {str(url)}", quiet=self.quiet, style="red")
             logger.debug(e)
 
         return domain_obj

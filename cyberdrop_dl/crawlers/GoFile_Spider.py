@@ -20,7 +20,7 @@ class GoFileCrawler:
         self.SQL_Helper = SQL_Helper
 
         self.api_address = URL("https://api.gofile.io")
-        self.token = None
+        self.token = ""
 
     async def get_token(self, session: ScrapeSession, api_token=None):
         """Creates an anon gofile account to use."""
@@ -41,13 +41,13 @@ class GoFileCrawler:
                 raise
         except Exception as e:
             logger.debug("Error encountered while getting GoFile token", exc_info=True)
-            await log("Error: Couldn't generate GoFile token", quiet=self.quiet, style="red")
+            log("Error: Couldn't generate GoFile token", quiet=self.quiet, style="red")
             logger.debug(e)
 
     async def set_cookie(self, session: ScrapeSession):
         """Sets the given token as a cookie into the session (and client)"""
         client_token = self.token
-        morsel = http.cookies.Morsel()
+        morsel: http.cookies.Morsel = http.cookies.Morsel()
         morsel['domain'] = 'gofile.io'
         morsel.set('accountToken', client_token, client_token)
         session.client_session.cookie_jar.update_cookies({'gofile.io': morsel})
@@ -56,24 +56,24 @@ class GoFileCrawler:
         """Basic director for actual scraping"""
         domain_obj = DomainItem("gofile", {})
         try:
-            await log(f"Starting: {str(url)}", quiet=self.quiet, style="green")
+            log(f"Starting: {str(url)}", quiet=self.quiet, style="green")
             content_id = url.name
             results = await self.get_links(session, url, content_id, None)
             for title, media_item in results:
                 await domain_obj.add_media(title, media_item)
 
             await self.SQL_Helper.insert_domain("gofile", url, domain_obj)
-            await log(f"Finished: {str(url)}", quiet=self.quiet, style="green")
+            log(f"Finished: {str(url)}", quiet=self.quiet, style="green")
         except Exception as e:
             logger.debug("Error encountered while handling %s", str(url), exc_info=True)
-            await log(f"Error: {str(url)}", quiet=self.quiet, style="red")
+            log(f"Error: {str(url)}", quiet=self.quiet, style="red")
             logger.debug(e)
 
         return domain_obj
 
-    async def get_links(self, session: ScrapeSession, url: URL, content_id: str, title=None):
+    async def get_links(self, session: ScrapeSession, url: URL, content_id: str, title=None) -> list[list]:
         """Gets links from the given url, creates media_items"""
-        results = []
+        results: list[list] = []
         params = {
             "token": self.token,
             "contentId": content_id,
@@ -81,8 +81,8 @@ class GoFileCrawler:
         }
         content = await session.get_json(self.api_address / "getContent", params)
         if content["status"] != "ok":
-            logger.debug("Error encountered while handling %s", str(url), exc_info=True)
-            await log(f"Error: {str(url)}", quiet=self.quiet, style="red")
+            logger.debug("Error encountered while handling %s", str(url))
+            log(f"Error: {str(url)}", quiet=self.quiet, style="red")
             return results
 
         content = content['data']
@@ -97,7 +97,13 @@ class GoFileCrawler:
             if val["type"] == "folder":
                 sub_folders.append(val['code'])
             else:
-                link = URL(val["link"]) if val["link"] != "overloaded" else URL(val["directLink"])
+                assert isinstance(val['name'], str)
+                if val["link"] == "overloaded":
+                    assert isinstance(val["directLink"], str)
+                    link = URL(val["directLink"])
+                else:
+                    assert isinstance(val["link"], str)
+                    link = URL(val["link"])
                 try:
                     filename, ext = await get_filename_and_ext(val['name'])
                 except NoExtensionFailure:
@@ -107,5 +113,6 @@ class GoFileCrawler:
                 media_item = MediaItem(link, url, complete, filename, ext, filename)
                 results.append([title, media_item])
         for sub_folder in sub_folders:
+            assert isinstance(sub_folder, str)
             results.extend(await self.get_links(session, url, sub_folder, title))
         return results

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import copy
 from pathlib import Path
+from typing import Optional
 
 import yaml
 
@@ -13,9 +14,9 @@ def _to_config_value(value):
     return str(value) if isinstance(value, Path) else value
 
 
-def _create_config(config: Path, passed_args: dict = None, enabled=False) -> dict:
+def _create_config(config: Path, passed_args: Optional[dict] = None, enabled=False) -> dict:
     """Creates the default config file, or remakes it with passed arguments"""
-    config_data = config_default
+    config_data: dict = config_default
     if passed_args:
         config_data["Apply_Config"] = enabled
         for group in config_data["Configuration"].values():
@@ -37,7 +38,7 @@ def _validate_config(config: Path) -> dict:
         data = config_data["Configuration"]
         enabled = config_data["Apply_Config"]
 
-        config_groups = config_default["Configuration"]
+        config_groups: dict = config_default["Configuration"]
         if all(set(group) <= set(data[group_name]) for group_name, group in config_groups.items()):
             return config_data
 
@@ -65,7 +66,7 @@ def run_args(config: Path, cmd_arg: dict) -> dict:
         data['Sorting']['sort_directory'] = Path(data['Sorting']['sort_directory'])
         return data
 
-    config_data = config_default["Configuration"]
+    config_data: dict = config_default["Configuration"]
     for group in config_data.values():
         for arg in group:
             if arg in cmd_arg:
@@ -73,7 +74,7 @@ def run_args(config: Path, cmd_arg: dict) -> dict:
     return config_data
 
 
-async def document_args(args: dict):
+async def document_args(args: dict) -> None:
     """We document the runtime arguments for debugging and troubleshooting, redacting sensitive information"""
     print_args = copy.deepcopy(args)
     print_args['Authentication']['xbunker_password'] = '!REDACTED!' if args['Authentication']['xbunker_password'] is not None else None
@@ -82,13 +83,13 @@ async def document_args(args: dict):
     print_args['Authentication']['pixeldrain_api_key'] = '!REDACTED!' if args['Authentication']['pixeldrain_api_key'] is not None else None
     print_args['JDownloader']['jdownloader_password'] = '!REDACTED!' if args['JDownloader']['jdownloader_password'] is not None else None
 
-    await log("Starting Cyberdrop-DL")
-    await log(f"Using authentication arguments: {print_args['Authentication']}", quiet=True)
-    await log(f"Using file arguments: {print_args['Files']}", quiet=True)
-    await log(f"Using forum option arguments: {print_args['Forum_Options']}", quiet=True)
-    await log(f"Using ignore arguments: {print_args['Ignore']}", quiet=True)
-    await log(f"Using jdownloader arguments: {print_args['JDownloader']}", quiet=True)
-    await log(f"Using progress option arguments: {print_args['Progress_Options']}", quiet=True)
-    await log(f"Using ratelimiting arguments: {print_args['Ratelimiting']}", quiet=True)
-    await log(f"Using runtime arguments: {print_args['Runtime']}", quiet=True)
-    await log(f"Using sorting arguments: {print_args['Sorting']}", quiet=True)
+    log("Starting Cyberdrop-DL")
+    log(f"Using authentication arguments: {print_args['Authentication']}", quiet=True)
+    log(f"Using file arguments: {print_args['Files']}", quiet=True)
+    log(f"Using forum option arguments: {print_args['Forum_Options']}", quiet=True)
+    log(f"Using ignore arguments: {print_args['Ignore']}", quiet=True)
+    log(f"Using jdownloader arguments: {print_args['JDownloader']}", quiet=True)
+    log(f"Using progress option arguments: {print_args['Progress_Options']}", quiet=True)
+    log(f"Using ratelimiting arguments: {print_args['Ratelimiting']}", quiet=True)
+    log(f"Using runtime arguments: {print_args['Runtime']}", quiet=True)
+    log(f"Using sorting arguments: {print_args['Sorting']}", quiet=True)

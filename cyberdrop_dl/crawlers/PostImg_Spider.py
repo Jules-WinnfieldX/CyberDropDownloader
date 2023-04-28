@@ -23,7 +23,7 @@ class PostImgCrawler:
     async def fetch(self, session: ScrapeSession, url: URL) -> AlbumItem:
         """Director for PostImg scraping"""
         album_obj = AlbumItem("Loose PostImg Files", [])
-        await log(f"Starting: {str(url)}", quiet=self.quiet, style="green")
+        log(f"Starting: {str(url)}", quiet=self.quiet, style="green")
 
         try:
             if "gallery" in url.parts:
@@ -36,17 +36,17 @@ class PostImgCrawler:
 
         except Exception as e:
             logger.debug("Error encountered while handling %s", str(url), exc_info=True)
-            await log(f"Error: {str(url)}", quiet=self.quiet, style="red")
+            log(f"Error: {str(url)}", quiet=self.quiet, style="red")
             logger.debug(e)
 
         await self.SQL_Helper.insert_album("postimg", url, album_obj)
-        await log(f"Finished: {str(url)}", quiet=self.quiet, style="green")
+        log(f"Finished: {str(url)}", quiet=self.quiet, style="green")
         return album_obj
 
     async def get_folder(self, session: ScrapeSession, url: URL):
         """Handles folder scraping"""
         album = url.raw_name
-        data = {"action": "list", "album": album}
+        data = {"action": "list", "album": album, "page": 0}
         content = []
         for i in itertools.count(1):
             data["page"] = i

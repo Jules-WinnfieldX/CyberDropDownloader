@@ -1,4 +1,6 @@
-config_default = {
+from __future__ import annotations
+
+config_default: dict = {
     "Apply_Config": False,
     "Configuration": {
         "Authentication": {

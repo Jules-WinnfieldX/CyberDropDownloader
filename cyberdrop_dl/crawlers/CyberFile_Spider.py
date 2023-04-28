@@ -24,7 +24,7 @@ class CyberFileCrawler:
 
     async def fetch(self, session: ScrapeSession, url: URL) -> DomainItem:
         """Director for cyberfile scraping"""
-        await log(f"Starting: {str(url)}", quiet=self.quiet, style="green")
+        log(f"Starting: {str(url)}", quiet=self.quiet, style="green")
         domain_obj = DomainItem("cyberfile", {})
 
         download_links = []
@@ -48,7 +48,7 @@ class CyberFileCrawler:
         for title, media_item in download_links:
             await domain_obj.add_media(title, media_item)
         await self.SQL_Helper.insert_domain("cyberfile", url, domain_obj)
-        await log(f"Finished: {str(url)}", quiet=self.quiet, style="green")
+        log(f"Finished: {str(url)}", quiet=self.quiet, style="green")
         return domain_obj
 
     async def get_folder_id(self, session: ScrapeSession, url: URL):
@@ -63,7 +63,7 @@ class CyberFileCrawler:
 
         except Exception as e:
             logger.debug("Error encountered while handling %s", str(url), exc_info=True)
-            await log(f"Error: {str(url)}", quiet=self.quiet, style="red")
+            log(f"Error: {str(url)}", quiet=self.quiet, style="red")
             logger.debug(e)
             return 0
 
@@ -82,16 +82,23 @@ class CyberFileCrawler:
                 title = content['page_title']
                 title = await make_title_safe(title)
 
-
             soup = BeautifulSoup(text.replace("\\", ""), 'html.parser')
-            total_pages = int(soup.select("a[onclick*=loadImages]")[-1].get('onclick').split(',')[2])
+            pages_tag = soup.select("a[onclick*=loadImages]")[-1]
+            assert pages_tag is not None
+            pages_str = pages_tag.get('onclick')
+            assert isinstance(pages_str, str)
+            total_pages = int(pages_str.split(',')[2])
             listings = soup.select("div[class=fileListing] div")
             for listing in listings:
                 with contextlib.suppress(TypeError):
-                    nodes.append(int(listing.get('folderid')))
+                    folder_id = listing.get('folderid')
+                    assert isinstance(folder_id, str)
+                    nodes.append(int(folder_id))
 
                 with contextlib.suppress(TypeError):
-                    contents.append((title, int(listing.get('fileid'))))
+                    file_id = listing.get('fileid')
+                    assert isinstance(file_id, str)
+                    contents.append((title, int(file_id)))
 
             if page < total_pages:
                 contents.extend(await self.get_folder_content(session, url, nodeId, page+1, original_title))
@@ -100,7 +107,7 @@ class CyberFileCrawler:
             return contents
 
         except Exception as e:
-            await log(f"Error: {str(url)}", quiet=self.quiet, style="red")
+            log(f"Error: {str(url)}", quiet=self.quiet, style="red")
             logger.debug(e)
             return []
 
@@ -121,7 +128,7 @@ class CyberFileCrawler:
 
         except Exception as e:
             logger.debug("Error encountered while handling %s", str(url), exc_info=True)
-            await log(f"Error: {str(url)}", quiet=self.quiet, style="red")
+            log(f"Error: {str(url)}", quiet=self.quiet, style="red")
             logger.debug(e)
             return 0
 
@@ -139,16 +146,28 @@ class CyberFileCrawler:
             content = await session.post(self.load_files, data)
             text = content['html']
             soup = BeautifulSoup(text.replace("\\", ""), 'html.parser')
-            total_pages = int(soup.select_one('input[id=rspTotalPages]').get('value'))
+            page_tag = soup.select_one('input[id=rspTotalPages]')
+            assert page_tag is not None
+            page_str = page_tag.get('value')
+            assert isinstance(page_str, str)
+            total_pages = int()
             listings = soup.select("div[class=fileListing] div")
             for listing in listings:
                 title = await make_title_safe(content['page_title'])
-                with contextlib.suppress(TypeError, AttributeError):
-                    title = title + '/' + await make_title_safe(listing.select_one('span[class=filename]').text)
-                    nodes.append((title, int(listing.get('folderid'))))
+                with contextlib.suppress(TypeError, AttributeError, AssertionError):
+                    folder_tag = listing.select_one('span[class=filename]')
+                    assert folder_tag is not None
+                    folder_name = folder_tag.text
+                    assert isinstance(folder_name, str)
+                    title = title + '/' + await make_title_safe(folder_name)
+                    folder_id = listing.get('folderid')
+                    assert isinstance(folder_id, str)
+                    nodes.append((title, int(folder_id)))
 
-                with contextlib.suppress(TypeError):
-                    contents.append((title, int(listing.get('fileid'))))
+                with contextlib.suppress(TypeError, AttributeError, AssertionError):
+                    file_id = listing.get('fileid')
+                    assert isinstance(file_id, str)
+                    contents.append((title, int(file_id)))
 
             if page < total_pages:
                 nodes_temp, content_temp = await self.get_shared_ids_and_content(session, url, page + 1)
@@ -158,7 +177,7 @@ class CyberFileCrawler:
 
         except Exception as e:
             logger.debug("Error encountered while handling %s", str(url), exc_info=True)
-            await log(f"Error: {str(url)}", quiet=self.quiet, style="red")
+            log(f"Error: {str(url)}", quiet=self.quiet, style="red")
             logger.debug(e)
             return []
 
@@ -173,18 +192,27 @@ class CyberFileCrawler:
             text = content['html']
 
             title = title if title else content['page_title']
-
             soup = BeautifulSoup(text.replace("\\", ""), 'html.parser')
-            total_pages = int(soup.select("a[onclick*=loadImages]")[-1].get('onclick').split(',')[2])
+
+            page_ref = soup.select("a[onclick*=loadImages]")[-1].get('onclick')
+            assert isinstance(page_ref, str)
+            total_pages = int(page_ref.split(',')[2])
+
             listings = soup.select("div[class=fileListing] div")
             for listing in listings:
                 with contextlib.suppress(TypeError, AttributeError):
                     filename = listing.select_one('span[class=filename]')
+                    assert filename is not None
                     temp_title = title + '/' + await make_title_safe(filename.text)
-                    nodes.append((temp_title, int(listing.get('folderid'))))
+
+                    folder_id = listing.get('folderid')
+                    assert isinstance(folder_id, str)
+                    nodes.append((temp_title, int(folder_id)))
 
                 with contextlib.suppress(TypeError):
-                    contents.append((title, int(listing.get('fileid'))))
+                    file_id = listing.get('fileid')
+                    assert isinstance(file_id, str)
+                    contents.append((title, int(file_id)))
 
             if page < total_pages:
                 contents.extend(await self.get_shared_content(session, url, nodeId, page + 1, title))
@@ -194,7 +222,7 @@ class CyberFileCrawler:
 
         except Exception as e:
             logger.debug("Error encountered while handling %s", str(url), exc_info=True)
-            await log(f"Error: {str(url)}", quiet=self.quiet, style="red")
+            log(f"Error: {str(url)}", quiet=self.quiet, style="red")
             logger.debug(e)
             return []
 
@@ -227,6 +255,6 @@ class CyberFileCrawler:
 
         except Exception as e:
             logger.debug("Error encountered while handling %s", str(url), exc_info=True)
-            await log(f"Error: {str(url)}", quiet=self.quiet, style="red")
+            log(f"Error: {str(url)}", quiet=self.quiet, style="red")
             logger.debug(e)
             return []

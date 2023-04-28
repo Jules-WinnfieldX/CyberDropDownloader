@@ -3,7 +3,7 @@ from __future__ import annotations
 import atexit
 import logging
 import sqlite3
-from typing import TYPE_CHECKING, List, Optional
+from typing import TYPE_CHECKING, Optional
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -18,7 +18,7 @@ if TYPE_CHECKING:
     )
 
 
-async def get_db_path(url: URL, referer: str = None) -> str:
+async def get_db_path(url: URL, referer: str = "") -> str:
     """Gets the URL path to be put into the DB and checked from the DB"""
     url_path = url.path
 
@@ -41,8 +41,8 @@ class SQLHelper:
         self.ignore_history = ignore_history
         self.ignore_cache = ignore_cache
         self.download_history = download_history
-        self.conn = None
-        self.curs = None
+        self.conn = sqlite3.connect(self.download_history)
+        self.curs = self.conn.cursor()
 
         self.old_history = False
         # Close the sql connection when the program exits
@@ -50,11 +50,7 @@ class SQLHelper:
 
     async def sql_initialize(self) -> None:
         """Initializes the SQL connection, and makes sure necessary tables exist"""
-        self.conn = sqlite3.connect(self.download_history)
-        self.curs = self.conn.cursor()
-
         await self._check_old_history()
-
         await self._pre_allocate()
         await self._create_media_history()
         await self._create_coomeno_history()
@@ -124,7 +120,7 @@ class SQLHelper:
 
     """Temp Table Operations"""
 
-    async def get_temp_names(self) -> List[str]:
+    async def get_temp_names(self) -> list[str]:
         """Gets the list of temp filenames"""
         self.curs.execute("SELECT downloaded_filename FROM downloads_temp;")
         filenames = self.curs.fetchall()

@@ -16,7 +16,7 @@ class Sorter:
         self.video_dir = video_dir
         self.other_dir = other_dir
 
-    async def find_files_in_dir(self, directory: Path):
+    async def find_files_in_dir(self, directory: Path) -> list:
         file_list = []
         for x in directory.iterdir():
             if x.is_file():
@@ -25,7 +25,7 @@ class Sorter:
                 file_list.extend(await self.find_files_in_dir(x))
         return file_list
 
-    async def sort(self):
+    async def sort(self) -> None:
         audio_count = 0
         image_count = 0
         video_count = 0
@@ -63,12 +63,13 @@ class Sorter:
                     other_count += 1
         await asyncio.sleep(5)
         await purge_dir(self.download_dir)
-        await log(f"Organized: {audio_count} Audio Files", style="green")
-        await log(f"Organized: {image_count} Image Files", style="green")
-        await log(f"Organized: {video_count} Video Files", style="green")
-        await log(f"Organized: {other_count} Other Files", style="green")
 
-    async def move_cd(self, file: Path, dest: Path):
+        log(f"Organized: {audio_count} Audio Files", style="green")
+        log(f"Organized: {image_count} Image Files", style="green")
+        log(f"Organized: {video_count} Video Files", style="green")
+        log(f"Organized: {other_count} Other Files", style="green")
+
+    async def move_cd(self, file: Path, dest: Path) -> None:
         try:
             dest_file = dest / file.name
             file.rename(dest_file)
