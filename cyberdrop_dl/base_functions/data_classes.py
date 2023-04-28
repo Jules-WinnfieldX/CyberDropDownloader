@@ -217,7 +217,7 @@ class ForumItem:
 @dataclass
 class FileLock:
     """Rudimentary file lock system"""
-    locked_files: List[str] = field(default_factory=List)
+    locked_files: List[str] = field(default_factory=list)
 
     async def check_lock(self, filename: str) -> bool:
         await asyncio.sleep(.1)
