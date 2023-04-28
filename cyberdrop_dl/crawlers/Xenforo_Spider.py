@@ -3,7 +3,7 @@ from __future__ import annotations
 import asyncio
 import re
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Dict, Tuple, List
+from typing import TYPE_CHECKING, Dict, List, Tuple
 
 import aiofiles
 import bs4
@@ -28,7 +28,9 @@ if TYPE_CHECKING:
 class ParseSpec:
     """Class for specific selectors of supported domains"""
     domain: str
-    
+
+    login_path: str = field(init=False)
+
     title_block_tag: str = "h1[class=p-title-value]"
     title_clutter_tag: str = field(init=False)
 
@@ -61,13 +63,15 @@ class ParseSpec:
     next_page_attribute: str = "href"
 
     def __post_init__(self):
-        if self.domain in ("simpcity", "xbunker", "socialmediagirls"):
+        if self.domain in ("simpcity", "socialmediagirls", "xbunker"):
+            self.login_path = "login"
             self.title_clutter_tag = "a" if self.domain in ("simpcity", "xbunker") else "span"
             self.posts_number_tag = "li[class=u-concealed] a"
             self.images_tag = "div[class*=bbImage]"
             self.images_attribute = "data-src"
 
         elif self.domain == "nudostar":
+            self.login_path = "forum/login"
             self.title_clutter_tag = "span"
             self.posts_number_tag = "a[class=u-concealed]"
             self.images_tag = "img[class*=bbImage]"
@@ -81,7 +85,7 @@ class ForumLogin:
         self.username = username
         self.password = password
 
-    async def login(self, session: ScrapeSession, url: URL, quiet: bool) -> None:
+    async def login(self, session: ScrapeSession, url: URL, spec: ParseSpec, quiet: bool) -> None:
         """Handles forum logging in"""
         if not self.username or not self.password:
             log(f"Login wasn't provided for {self.name}", quiet=quiet, style="red")
@@ -95,8 +99,7 @@ class ForumLogin:
                     raise FailedLoginFailure()
 
                 assert url.host is not None
-                domain = URL("https://" + url.host) / "forum/login" if "nudostar" in url.host else \
-                    URL("https://" + url.host) / "login"
+                domain = URL("https://" + url.host) / spec.login_path
 
                 text = await session.get_text(domain)
                 await asyncio.sleep(5)
@@ -128,7 +131,12 @@ class ForumLogin:
 
 
 class XenforoCrawler:
-    domains = ("nudostar", "simpcity", "socialmediagirls", "xbunker")
+    domains = {
+        "nudostar": "NudoStar",
+        "simpcity": "SimpCity",
+        "socialmediagirls": "SocialMediaGirls",
+        "xbunker": "XBunker",
+    }
 
     def __init__(self, *, scraping_mapper, args: Dict, SQL_Helper: SQLHelper, quiet: bool):
         self.include_id = args["Runtime"]["include_id"]
@@ -137,21 +145,11 @@ class XenforoCrawler:
         self.output_last = args["Forum_Options"]["output_last_forum_post"]
         self.output_last_file = args["Files"]["output_last_forum_post_file"]
 
-        self.nudostar = ForumLogin("NudoStar",
-                                   args["Authentication"]["nudostar_username"],
-                                   args["Authentication"]["nudostar_password"])
-
-        self.simpcity = ForumLogin("SimpCity",
-                                   args["Authentication"]["simpcity_username"],
-                                   args["Authentication"]["simpcity_password"])
-
-        self.socialmediagirls = ForumLogin("SocialMediaGirls",
-                                           args["Authentication"]["socialmediagirls_username"],
-                                           args["Authentication"]["socialmediagirls_password"])
-
-        self.xbunker = ForumLogin("XBunker",
-                                  args["Authentication"]["xbunker_username"],
-                                  args["Authentication"]["xbunker_password"])
+        auth_args = args["Authentication"]
+        self.forums = {domain: ForumLogin(name,
+                                          auth_args[f"{domain}_username"],
+                                          auth_args[f"{domain}_password"])
+                       for domain, name in self.domains.items()}
 
         self.scraping_mapper = scraping_mapper
         self.SQL_Helper = SQL_Helper
@@ -165,18 +163,11 @@ class XenforoCrawler:
         title = ""
         try:
             assert url.host is not None
-            if "simpcity" in url.host:
-                await self.simpcity.login(session, url, self.quiet)
-            elif "socialmediagirls" in url.host:
-                await self.socialmediagirls.login(session, url, self.quiet)
-            elif "xbunker" in url.host:
-                await self.xbunker.login(session, url, self.quiet)
-            elif "nudostar" in url.host:
-                await self.nudostar.login(session, url, self.quiet)
-
             domain = next((domain for domain in self.domains if domain in url.host), None)
             if domain:
-                title = await self.parse_forum(session, scrape_url, ParseSpec(domain), cascade, "", post_num)
+                parse_spec = ParseSpec(domain)
+                await self.forums[domain].login(session, url, parse_spec, self.quiet)
+                title = await self.parse_forum(session, scrape_url, parse_spec, cascade, "", post_num)
         except Exception as e:
             logger.debug("Error encountered while handling %s", str(url), exc_info=True)
             log(f"Error: {str(url)}", quiet=self.quiet, style="red")
