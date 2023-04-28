@@ -51,7 +51,7 @@ class CyberFileCrawler:
         log(f"Finished: {str(url)}", quiet=self.quiet, style="green")
         return domain_obj
 
-    async def get_folder_id(self, session: ScrapeSession, url: URL):
+    async def get_folder_id(self, session: ScrapeSession, url: URL) -> int:
         """Gets the internal ID for a folder"""
         try:
             soup = await session.get_BS4(url)
@@ -92,11 +92,16 @@ class CyberFileCrawler:
             for listing in listings:
                 with contextlib.suppress(TypeError):
                     folder_id = listing.get('folderid')
+                    if not folder_id:
+                        continue
                     assert isinstance(folder_id, str)
                     nodes.append(int(folder_id))
 
+            for listing in listings:
                 with contextlib.suppress(TypeError):
                     file_id = listing.get('fileid')
+                    if not file_id:
+                        continue
                     assert isinstance(file_id, str)
                     contents.append((title, int(file_id)))
 
