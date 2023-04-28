@@ -79,7 +79,7 @@ class ScrapeMapper:
         self.quiet = quiet
         self.jdownloader = JDownloader(args['JDownloader'], quiet)
 
-        self.bunkr_limiter = AsyncRateLimiter(15)
+        self.bunkr_limiter = AsyncRateLimiter(10)
         self.coomer_limiter = AsyncRateLimiter(8)
         self.gofile_limiter = AsyncRateLimiter(max_calls=1, period=3)
         self.jpgfish_limiter = AsyncRateLimiter(10)
