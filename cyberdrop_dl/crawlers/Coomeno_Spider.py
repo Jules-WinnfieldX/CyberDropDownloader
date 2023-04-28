@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import asyncio
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Union
+from typing import TYPE_CHECKING, Union, List
 
 from bs4 import BeautifulSoup
 from yarl import URL
@@ -21,7 +21,7 @@ if TYPE_CHECKING:
 class ParseSpec:
     """Class for specific selectors of supported domains"""
     domain: str
-    posts_selectors: list[str] = field(init=False)
+    posts_selectors: List[str] = field(init=False)
     next_page_selector: str = field(init=False)
 
     def __post_init__(self):
@@ -82,7 +82,7 @@ class CoomenoCrawler:
 
         return title
 
-    async def map_links(self, text_content: list, title: str, referer: URL):
+    async def map_links(self, text_content: List, title: str, referer: URL):
         """Maps external links to other scrapers"""
         tasks = []
         for content in text_content:
@@ -167,7 +167,7 @@ class CoomenoCrawler:
 
     async def parse_tag(self, tag: Tag, url: URL, domain: str, title: str, cascade: CascadeItem):
         """Convert link from tag to MediaItem and add it to cascade"""
-        href: Union[str, list[str], None] = tag.get('href')
+        href: Union[str, List[str], None] = tag.get('href')
 
         assert url.host is not None and isinstance(href, str)
         if href.startswith("/"):

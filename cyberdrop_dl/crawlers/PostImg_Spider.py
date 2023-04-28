@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import itertools
 from http import HTTPStatus
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, List
 
 from yarl import URL
 
@@ -43,7 +43,7 @@ class PostImgCrawler:
         log(f"Finished: {str(url)}", quiet=self.quiet, style="green")
         return album_obj
 
-    async def get_folder(self, session: ScrapeSession, url: URL):
+    async def get_folder(self, session: ScrapeSession, url: URL) -> List:
         """Handles folder scraping"""
         album = url.raw_name
         data = {"action": "list", "album": album, "page": 0}

@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 import os
 import re
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Tuple
 
 import rich
 
@@ -96,7 +96,7 @@ async def check_direct(url: URL) -> bool:
     return any(re.search(domain, str(url)) for domain in mapping_direct)
 
 
-async def get_filename_and_ext(filename: str, forum: bool = False) -> tuple[str, str]:
+async def get_filename_and_ext(filename: str, forum: bool = False) -> Tuple[str, str]:
     """Returns the filename and extension of a given file, throws NoExtensionFailure if there is no extension"""
     filename_parts = filename.rsplit('.', 1)
     if len(filename_parts) == 1:

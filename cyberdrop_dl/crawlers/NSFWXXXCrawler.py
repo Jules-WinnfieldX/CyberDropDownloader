@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import itertools
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, List
 
 from yarl import URL
 
@@ -32,7 +32,7 @@ class NSFWXXXCrawler:
         await self.SQL_Helper.insert_domain("nsfw.xxx", url, domain_obj)
         return domain_obj
 
-    async def get_user(self, session: ScrapeSession, url: URL, domain_obj: DomainItem):
+    async def get_user(self, session: ScrapeSession, url: URL, domain_obj: DomainItem) -> None:
         """Gets posts for a user profile"""
         try:
             model = url.name + " (NSFW.XXX)"
@@ -58,7 +58,7 @@ class NSFWXXXCrawler:
             log(f"Error: {str(url)}", quiet=self.quiet, style="red")
             logger.debug(e)
 
-    async def get_post_hrefs(self, posts):
+    async def get_post_hrefs(self, posts) -> List:
         """Gets links from post objects"""
         posts_links = []
         for post in posts:
@@ -67,7 +67,7 @@ class NSFWXXXCrawler:
                 posts_links.append(url)
         return posts_links
 
-    async def get_post(self, session: ScrapeSession, url: URL, domain_obj: DomainItem, model=None):
+    async def get_post(self, session: ScrapeSession, url: URL, domain_obj: DomainItem, model=None) -> None:
         """Gets content for a given post url"""
         try:
             soup = await session.get_BS4(url)

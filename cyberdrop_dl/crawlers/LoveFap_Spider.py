@@ -52,7 +52,7 @@ class LoveFapCrawler:
         log(f"Finished: {str(url)}", quiet=self.quiet, style="green")
         return album_obj
 
-    async def fetch_album(self, session: ScrapeSession, url: URL, album_obj: AlbumItem):
+    async def fetch_album(self, session: ScrapeSession, url: URL, album_obj: AlbumItem) -> None:
         """Gets media_items for albums, and adds them to the Album_obj"""
         soup = await session.get_BS4(url)
 
@@ -80,7 +80,7 @@ class LoveFapCrawler:
 
                 await album_obj.add_media(media)
 
-    async def fetch_video(self, session: ScrapeSession, url: URL, album_obj: AlbumItem):
+    async def fetch_video(self, session: ScrapeSession, url: URL, album_obj: AlbumItem) -> None:
         """Gets media_items for video links"""
         soup = await session.get_BS4(url)
         video = soup.select_one("video[id=main-video] source")

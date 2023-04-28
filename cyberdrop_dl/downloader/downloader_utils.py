@@ -6,7 +6,7 @@ from base64 import b64encode
 from enum import IntEnum
 from functools import wraps
 from http import HTTPStatus
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Dict
 
 from cyberdrop_dl.base_functions.base_functions import FILE_FORMATS, logger
 from cyberdrop_dl.base_functions.error_classes import DownloadFailure
@@ -22,7 +22,8 @@ class CustomHTTPStatus(IntEnum):
     IM_A_TEAPOT = 418
 
 
-async def allowed_filetype(media: MediaItem, block_images: bool, block_video: bool, block_audio: bool, block_other: bool):
+async def allowed_filetype(media: MediaItem, block_images: bool, block_video: bool, block_audio: bool,
+                           block_other: bool):
     """Checks whether the enclosed file is allowed to be downloaded"""
     ext = media.ext
     if block_images and ext in FILE_FORMATS["Images"]:
@@ -48,7 +49,7 @@ async def check_free_space(required_space_gb: int, download_directory: Path) -> 
     return free_space_gb >= required_space_gb
 
 
-def get_threads_number(args: dict, domain: str) -> int:
+def get_threads_number(args: Dict, domain: str) -> int:
     threads = args["Runtime"]["simultaneous_downloads_per_domain"] or multiprocessing.cpu_count()
     if any(s in domain for s in ('anonfiles', 'bunkr', 'pixeldrain')):
         return min(threads, 2)

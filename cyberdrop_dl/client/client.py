@@ -6,7 +6,7 @@ import logging
 import ssl
 import time
 from http import HTTPStatus
-from typing import TYPE_CHECKING, Callable, Optional, Coroutine, Any
+from typing import TYPE_CHECKING, Callable, Optional, Coroutine, Any, Tuple, Dict
 
 import aiofiles
 import aiohttp
@@ -59,7 +59,8 @@ class ScrapeSession:
         self.client = client
         self.rate_limiter = AsyncRateLimiter(self.client.ratelimit)
         self.headers = {"user-agent": client.user_agent}
-        self.timeouts = aiohttp.ClientTimeout(total=5 * 60, connect=self.client.connect_timeout, sock_read=30)
+        self.timeouts = aiohttp.ClientTimeout(total=self.client.connect_timeout + 45,
+                                              connect=self.client.connect_timeout, sock_read=45)
         self.client_session = aiohttp.ClientSession(headers=self.headers, raise_for_status=True,
                                                     cookie_jar=self.client.cookies, timeout=self.timeouts)
 
@@ -74,14 +75,14 @@ class ScrapeSession:
             return BeautifulSoup(text, 'html.parser')
 
     @scrape_limit
-    async def get_BS4_and_url(self, url: URL) -> tuple[BeautifulSoup, URL]:
+    async def get_BS4_and_url(self, url: URL) -> Tuple[BeautifulSoup, URL]:
         async with self.client_session.get(url, ssl=self.client.ssl_context) as response:
             text = await response.text()
             soup = BeautifulSoup(text, 'html.parser')
             return soup, URL(response.url)
 
     @scrape_limit
-    async def get_json(self, url: URL, params: Optional[dict] = None) -> dict:
+    async def get_json(self, url: URL, params: Optional[Dict] = None) -> Dict:
         async with self.client_session.get(url, ssl=self.client.ssl_context, params=params) as response:
             return json.loads(await response.content.read())
 
@@ -91,17 +92,17 @@ class ScrapeSession:
             return await response.text()
 
     @scrape_limit
-    async def post(self, url: URL, data: dict) -> dict:
+    async def post(self, url: URL, data: Dict) -> Dict:
         async with self.client_session.post(url, data=data, headers=self.headers, ssl=self.client.ssl_context) as response:
             return json.loads(await response.content.read())
 
     @scrape_limit
-    async def get_no_resp(self, url: URL, headers: dict) -> None:
+    async def get_no_resp(self, url: URL, headers: Dict) -> None:
         async with self.client_session.get(url, headers=headers, ssl=self.client.ssl_context):
             pass
 
     @scrape_limit
-    async def post_data_no_resp(self, url: URL, data: dict) -> None:
+    async def post_data_no_resp(self, url: URL, data: Dict) -> None:
         async with self.client_session.post(url, data=data, headers=self.headers, ssl=self.client.ssl_context):
             pass
 
@@ -117,10 +118,10 @@ class DownloadSession:
     def __init__(self, client: Client):
         self.client = client
         self.headers = {"user-agent": client.user_agent}
-        self.timeouts = aiohttp.ClientTimeout(total=5 * 60, connect=self.client.connect_timeout)
-        self.client_session = aiohttp.ClientSession(headers=self.headers, raise_for_status=True, cookie_jar=self.client.cookies, timeout=self.timeouts)
-        self.throttle_times: dict[str, float] = {}
-
+        self.timeouts = aiohttp.ClientTimeout(total=None, connect=self.client.connect_timeout, sock_read=None)
+        self.client_session = aiohttp.ClientSession(headers=self.headers, raise_for_status=True,
+                                                    cookie_jar=self.client.cookies, timeout=self.timeouts)
+        self.throttle_times: Dict[str, float] = {}
         self.bunkr_maintenance = [URL("https://bnkr.b-cdn.net/maintenance-vid.mp4"), URL("https://bnkr.b-cdn.net/maintenance.mp4")]
 
     async def _append_content(self, file: Path, content: aiohttp.StreamReader,
@@ -132,7 +133,7 @@ class DownloadSession:
                 await f.write(chunk)
                 update_progress(len(chunk))
 
-    async def _download(self, media: MediaItem, current_throttle: float, proxy: str, headers: dict,
+    async def _download(self, media: MediaItem, current_throttle: float, proxy: str, headers: Dict,
                         save_content: Callable[[aiohttp.StreamReader, int], Coroutine[Any, Any, None]]) -> None:
         headers['Referer'] = str(media.referer)
         headers['user-agent'] = self.client.user_agent
@@ -173,7 +174,7 @@ class DownloadSession:
             await asyncio.sleep(remaining)
 
     async def download_file(self, media: MediaItem, file: Path, current_throttle: float, resume_point: int,
-                            proxy: str, headers: dict, file_task: TaskID) -> None:
+                            proxy: str, headers: Dict, file_task: TaskID) -> None:
 
         async def save_content(content: aiohttp.StreamReader, size: int) -> None:
             file_progress.update(file_task, total=size + resume_point)
@@ -183,7 +184,7 @@ class DownloadSession:
         await self._download(media, current_throttle, proxy, headers, save_content)
 
     async def old_download_file(self, media: MediaItem, file: Path, current_throttle: float, resume_point: int,
-                                proxy: str, headers: dict):
+                                proxy: str, headers: Dict):
 
         async def save_content(content: aiohttp.StreamReader, size: int) -> None:
             task_description = await adjust(f"{media.url.host}: {media.filename}")
@@ -193,7 +194,7 @@ class DownloadSession:
 
         await self._download(media, current_throttle, proxy, headers, save_content)
 
-    async def get_filesize(self, url: URL, referer: str, current_throttle: int) -> int:
+    async def get_filesize(self, url: URL, referer: str, current_throttle: float) -> int:
         headers = {'Referer': referer, 'user-agent': self.client.user_agent}
 
         assert url.host is not None

@@ -3,9 +3,10 @@ from __future__ import annotations
 import asyncio
 import re
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Dict, Tuple, List
 
 import aiofiles
+import bs4
 from bs4 import BeautifulSoup
 from yarl import URL
 
@@ -80,7 +81,7 @@ class ForumLogin:
         self.username = username
         self.password = password
 
-    async def login(self, session: ScrapeSession, url: URL, quiet: bool):
+    async def login(self, session: ScrapeSession, url: URL, quiet: bool) -> None:
         """Handles forum logging in"""
         if not self.username or not self.password:
             log(f"Login wasn't provided for {self.name}", quiet=quiet, style="red")
@@ -129,7 +130,7 @@ class ForumLogin:
 class XenforoCrawler:
     domains = ("nudostar", "simpcity", "socialmediagirls", "xbunker")
 
-    def __init__(self, *, scraping_mapper, args: dict, SQL_Helper: SQLHelper, quiet: bool):
+    def __init__(self, *, scraping_mapper, args: Dict, SQL_Helper: SQLHelper, quiet: bool):
         self.include_id = args["Runtime"]["include_id"]
         self.quiet = quiet
         self.separate_posts = args["Forum_Options"]["separate_posts"]
@@ -155,7 +156,7 @@ class XenforoCrawler:
         self.scraping_mapper = scraping_mapper
         self.SQL_Helper = SQL_Helper
 
-    async def fetch(self, session: ScrapeSession, url: URL) -> tuple[CascadeItem, str]:
+    async def fetch(self, session: ScrapeSession, url: URL) -> Tuple[CascadeItem, str]:
         """Xenforo forum director"""
         log(f"Starting: {str(url)}", quiet=self.quiet, style="green")
         cascade = CascadeItem({})
@@ -195,50 +196,53 @@ class XenforoCrawler:
             url = URL(post_number_parts[0].rstrip("#"))
         return url, post_number
 
-    async def get_links(self, post_content, selector, attribute, domain, temp_title):
+    async def get_links(self, post_content: bs4.Tag, selector: str, attribute: str, domain: URL,
+                        temp_title: str) -> List:
         """Grabs links from the post content based on the given selector and attribute"""
-        found_links = []
+        found_links: List = []
         if not post_content:
             return found_links
         links = post_content.select(selector)
-        for link in links:
-            link = link.get(attribute)
+        for link_tag in links:
+            link = link_tag.get(attribute)
             if not link:
                 continue
+            assert isinstance(link, str)
             if link.endswith("/"):
                 link = link[:-1]
             if link.startswith('//'):
                 link = "https:" + link
             elif link.startswith('/'):
-                link = domain / link[1:]
+                link = str(domain / link[1:])
             found_links.append([URL(link), temp_title])
         return found_links
 
-    async def get_embedded(self, post_content, selector, attribute, temp_title):
+    async def get_embedded(self, post_content: bs4.Tag, selector: str, attribute: str, temp_title: str) -> List:
         """Gets embedded media from post content based on selector and attribute provided"""
         found_links = []
         links = post_content.select(selector)
         for link in links:
             embed_data = link.get(attribute)
+            assert isinstance(embed_data, str)
             embed_data = embed_data.replace("\/\/", "https://www.")
             embed_data = embed_data.replace("\\", "")
 
-            embed_url = re.search(
+            embed = re.search(
                 r"https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,4}\\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)",
                 embed_data)
-            if embed_url:
-                embed_url = URL(embed_url.group(0).replace("www.", ""))
+            if embed:
+                embed_url = URL(embed.group(0).replace("www.", ""))
                 found_links.append([embed_url, temp_title])
 
-            embed_url = re.search(
+            embed = re.search(
                 r"https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,4}\/[-a-zA-Z0-9@:%._\+~#=]*\/[-a-zA-Z0-9@:?&%._\+~#=]*",
                 embed_data)
-            if embed_url:
-                embed_url = URL(embed_url.group(0).replace("www.", ""))
+            if embed:
+                embed_url = URL(embed.group(0).replace("www.", ""))
                 found_links.append([embed_url, temp_title])
         return found_links
 
-    async def filter_content_links(self, cascade: CascadeItem, content_links: list, url: URL, domain: str):
+    async def filter_content_links(self, cascade: CascadeItem, content_links: List, url: URL, domain: str):
         """Splits given links into direct links and external links,
         returns external links, adds internal to the cascade"""
         assert url.host is not None
@@ -261,7 +265,7 @@ class XenforoCrawler:
                 await cascade.add_to_album(domain, in_prog_title, media)
         return content_links
 
-    async def handle_external_links(self, content_links: list, referer: URL):
+    async def handle_external_links(self, content_links: List, referer: URL) -> None:
         """Maps external links to the scraper class"""
         tasks = []
         for link_title_bundle in content_links:
@@ -272,7 +276,7 @@ class XenforoCrawler:
             await asyncio.wait(tasks)
 
     async def parse_forum(self, session: ScrapeSession, url: URL, spec: ParseSpec, cascade: CascadeItem,
-                          title: str, post_number: int):
+                          title: str, post_number: int) -> str:
         """Parses forum threads"""
         soup = await session.get_BS4(url)
 

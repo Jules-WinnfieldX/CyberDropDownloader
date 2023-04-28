@@ -1,6 +1,8 @@
 from __future__ import annotations
 
-config_default: dict = {
+from typing import Dict
+
+config_default: Dict = {
     "Apply_Config": False,
     "Configuration": {
         "Authentication": {

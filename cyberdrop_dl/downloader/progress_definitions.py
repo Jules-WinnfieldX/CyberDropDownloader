@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Dict
+
 from rich.panel import Panel
 from rich.progress import Progress, BarColumn, SpinnerColumn, TransferSpeedColumn, DownloadColumn, TimeRemainingColumn
 from rich.table import Table
@@ -41,7 +43,7 @@ file_progress = Progress(SpinnerColumn(),
                          TimeRemainingColumn())
 
 
-async def get_forum_table(progress_options: dict) -> Table:
+async def get_forum_table(progress_options: Dict) -> Table:
     """Table creator for forum threads"""
     progress_table = Table.grid(expand=True)
     if not progress_options['hide_overall_progress']:
@@ -64,7 +66,7 @@ async def get_forum_table(progress_options: dict) -> Table:
     return progress_table
 
 
-async def get_cascade_table(progress_options: dict) -> Table:
+async def get_cascade_table(progress_options: Dict) -> Table:
     """Table creator for cascade objects"""
     progress_table = Table.grid(expand=True)
     if not progress_options['hide_overall_progress']:

@@ -6,6 +6,7 @@ import logging
 from http import HTTPStatus
 from pathlib import Path
 from random import gauss
+from typing import Dict, Any
 
 import aiofiles
 import aiohttp.client_exceptions
@@ -57,7 +58,7 @@ class Files:
 class Old_Downloader:
     """Downloader class, directs downloading for domain objects"""
 
-    def __init__(self, args: dict, client: Client, SQL_Helper: SQLHelper,
+    def __init__(self, args: Dict, client: Client, SQL_Helper: SQLHelper,
                  domain: str, domain_obj: DomainItem, files: Files):
         self.client = client
         self.download_session = DownloadSession(client)
@@ -72,7 +73,7 @@ class Old_Downloader:
 
         self.files = files
 
-        self.current_attempt: dict[str, int] = {}
+        self.current_attempt: Dict[str, int] = {}
         max_workers = get_threads_number(args, domain)
         self._semaphore = asyncio.Semaphore(max_workers)
         self.delay = {'cyberfile': 1, 'anonfiles': 1, "coomer": 0.2, "kemono": 0.2}
@@ -229,13 +230,14 @@ class Old_Downloader:
 
             raise DownloadFailure(code=getattr(e, "code", 1), message=repr(e))
 
-    async def output_failed(self, media, e) -> None:
+    async def output_failed(self, media: MediaItem, e: Any) -> None:
         if self.errored_output:
             async with aiofiles.open(self.errored_file, mode='a') as file:
                 await file.write(f"{media.url},{media.referer},{e.message}\n")
 
-    async def check_file_exists(self, complete_file, partial_file, media, album, url_path, original_filename,
-                                current_throttle) -> tuple[Path, Path, bool]:
+    async def check_file_exists(self, complete_file: Path, partial_file: Path, media: MediaItem, album: str,
+                                url_path: str, original_filename: str,
+                                current_throttle: float) -> tuple[Path, Path, bool]:
         """Complicated checker for if a file already exists, and was already downloaded"""
         expected_size = None
         proceed = True
@@ -294,7 +296,7 @@ async def old_download_cascade(args: dict, Cascade: CascadeItem, SQL_Helper: SQL
               f"{files.skipped_files}[/yellow] - [red]Files Failed: {files.failed_files}[/red] |")
 
 
-async def old_download_forums(args: dict, Forums: ForumItem, SQL_Helper: SQLHelper, client: Client) -> None:
+async def old_download_forums(args: Dict, Forums: ForumItem, SQL_Helper: SQLHelper, client: Client) -> None:
     """Handler for forum threads and the progress bars for it"""
     total_files = await Forums.get_total()
     with tqdm(total=total_files, unit_scale=True, unit='Files', leave=True, initial=0,

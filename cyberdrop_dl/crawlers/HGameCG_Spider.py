@@ -27,7 +27,7 @@ class HGameCGCrawler:
         await self.SQL_Helper.insert_album("hgamecg", url, album_obj)
         return album_obj
 
-    async def get_album(self, session: ScrapeSession, url: URL, album_obj: AlbumItem):
+    async def get_album(self, session: ScrapeSession, url: URL, album_obj: AlbumItem) -> None:
         """Handles album scraping, adds media items to the album_obj"""
         try:
             soup = await session.get_BS4(url)
@@ -57,7 +57,7 @@ class HGameCGCrawler:
             log(f"Error: {str(url)}", quiet=self.quiet, style="red")
             logger.debug(e)
 
-    async def get_image(self, session: ScrapeSession, url: URL):
+    async def get_image(self, session: ScrapeSession, url: URL) -> URL:
         """Gets image link from the given url."""
         try:
             soup = await session.get_BS4(url)
@@ -66,3 +66,4 @@ class HGameCGCrawler:
             return image
         except Exception:
             log(f"Error: {str(url)}", quiet=self.quiet, style="red")
+            return URL()

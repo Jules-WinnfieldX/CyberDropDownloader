@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import http
-from typing import TYPE_CHECKING, Union
+from typing import TYPE_CHECKING, Union, List, Dict
 
 from yarl import URL
 
@@ -71,9 +71,9 @@ class GoFileCrawler:
 
         return domain_obj
 
-    async def get_links(self, session: ScrapeSession, url: URL, content_id: str, title=None) -> list[list]:
+    async def get_links(self, session: ScrapeSession, url: URL, content_id: str, title=None) -> List[List]:
         """Gets links from the given url, creates media_items"""
-        results: list[list] = []
+        results: List[List] = []
         params = {
             "token": self.token,
             "contentId": content_id,
@@ -91,7 +91,7 @@ class GoFileCrawler:
         else:
             title = await make_title_safe(content["name"])
 
-        contents: dict[str, dict[str, Union[str, int]]] = content["contents"]
+        contents: Dict[str, Dict[str, Union[str, int]]] = content["contents"]
         sub_folders = []
         for val in contents.values():
             if val["type"] == "folder":

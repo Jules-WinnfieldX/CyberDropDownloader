@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, List
 
 from yarl import URL
 
@@ -41,7 +41,7 @@ class PixelDrainCrawler:
         log(f"Finished: {str(url)}", quiet=self.quiet, style="green")
         return album_obj
 
-    async def get_listings(self, session: ScrapeSession, identifier: str, url: URL) -> list[MediaItem]:
+    async def get_listings(self, session: ScrapeSession, identifier: str, url: URL) -> List[MediaItem]:
         """Handles album scraping"""
         media_items = []
         try:

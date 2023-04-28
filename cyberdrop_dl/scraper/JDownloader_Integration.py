@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Optional, Dict
 
 from myjdapi import myjdapi
 
@@ -14,7 +14,7 @@ if TYPE_CHECKING:
 
 class JDownloader:
     """Class that handles connecting and passing links to JDownloader"""
-    def __init__(self, jdownloader_args: dict, quiet: bool):
+    def __init__(self, jdownloader_args: Dict, quiet: bool):
         self.jdownloader_device = jdownloader_args['jdownloader_device']
         self.jdownloader_username = jdownloader_args['jdownloader_username']
         self.jdownloader_password = jdownloader_args['jdownloader_password']

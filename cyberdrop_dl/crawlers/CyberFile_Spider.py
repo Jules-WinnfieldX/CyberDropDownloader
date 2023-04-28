@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import contextlib
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional, Tuple, List
 
 from bs4 import BeautifulSoup
 from yarl import URL
@@ -67,7 +67,7 @@ class CyberFileCrawler:
             logger.debug(e)
             return 0
 
-    async def get_folder_content(self, session, url: URL, nodeId, page, title=None):
+    async def get_folder_content(self, session: ScrapeSession, url: URL, nodeId: int, page: int, title=None):
         """Gets the content id's encased in a folder"""
         data = {"pageType": "folder", "nodeId": nodeId, "pageStart": page, "perPage": 0, "filterOrderBy": ""}
         nodes = []
@@ -111,7 +111,7 @@ class CyberFileCrawler:
             logger.debug(e)
             return []
 
-    async def get_single_contentId(self, session: ScrapeSession, url: URL):
+    async def get_single_contentId(self, session: ScrapeSession, url: URL) -> int:
         """Gets an individual content id"""
         try:
             soup = await session.get_BS4(url)
@@ -124,7 +124,7 @@ class CyberFileCrawler:
                     part_b = part_a.split(");")[0]
                     contentId = int(part_b)
                     return contentId
-            return None
+            return 0
 
         except Exception as e:
             logger.debug("Error encountered while handling %s", str(url), exc_info=True)
@@ -132,7 +132,7 @@ class CyberFileCrawler:
             logger.debug(e)
             return 0
 
-    async def get_shared_ids_and_content(self, session: ScrapeSession, url: URL, page):
+    async def get_shared_ids_and_content(self, session: ScrapeSession, url: URL, page: int) -> Tuple[List, List]:
         """Gets folder id's and content id's from shared links"""
         try:
             # Initial page load to tell server, this is what we want.
@@ -179,9 +179,9 @@ class CyberFileCrawler:
             logger.debug("Error encountered while handling %s", str(url), exc_info=True)
             log(f"Error: {str(url)}", quiet=self.quiet, style="red")
             logger.debug(e)
-            return []
+            return [], []
 
-    async def get_shared_content(self, session, url: URL, nodeId, page, title=None):
+    async def get_shared_content(self, session, url: URL, nodeId: int, page: int, title=None) -> List:
         """Gets content from shared folders"""
         try:
             nodes = []
@@ -226,7 +226,7 @@ class CyberFileCrawler:
             logger.debug(e)
             return []
 
-    async def get_download_links(self, session, url, contentIds):
+    async def get_download_links(self, session: ScrapeSession, url: URL, contentIds: List) -> List:
         """Obtains download links from content ids"""
         download_links = []
         try:
@@ -240,10 +240,11 @@ class CyberFileCrawler:
 
                 if menu:
                     html_download_text = menu.get("onclick")
-                    link = URL(html_download_text.replace("openUrl('", "").replace("'); return false;", ""))
-                elif button:
+                else:
+                    assert button is not None
                     html_download_text = button.get("onclick")
-                    link = URL(html_download_text.replace("openUrl('", "").replace("'); return false;", ""))
+                assert isinstance(html_download_text, str)
+                link = URL(html_download_text.replace("openUrl('", "").replace("'); return false;", ""))
                 try:
                     media = await create_media_item(link, url, self.SQL_Helper, "cyberfile")
                 except NoExtensionFailure:

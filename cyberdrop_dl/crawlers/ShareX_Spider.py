@@ -56,7 +56,7 @@ class ShareXCrawler:
         pattern = r"simp([1-5])\.jpg\.church/"
         return URL(re.sub(pattern, r'simp\1.jpg.fish/', str(url)))
 
-    async def get_albums(self, session: ScrapeSession, url: URL, domain_obj: DomainItem):
+    async def get_albums(self, session: ScrapeSession, url: URL, domain_obj: DomainItem) -> None:
         """Handles scraping for Albums"""
         try:
             soup = await session.get_BS4(url)
@@ -79,7 +79,7 @@ class ShareXCrawler:
             log(f"Error: {str(url)}", quiet=self.quiet, style="red")
             logger.debug(e)
 
-    async def get_singular(self, session: ScrapeSession, url: URL, domain_obj: DomainItem):
+    async def get_singular(self, session: ScrapeSession, url: URL, domain_obj: DomainItem) -> None:
         """Handles scraping for singular files"""
         await asyncio.sleep(1)
         try:
@@ -95,7 +95,8 @@ class ShareXCrawler:
             log(f"Error: {str(url)}", quiet=self.quiet, style="red")
             logger.debug(e)
 
-    async def get_sub_album_links(self, session: ScrapeSession, url: URL, og_title: str, domain_obj: DomainItem):
+    async def get_sub_album_links(self, session: ScrapeSession, url: URL, og_title: str,
+                                  domain_obj: DomainItem) -> None:
         try:
             soup = await session.get_BS4(url)
             albums = soup.select("div[class=pad-content-listing] div")
@@ -109,7 +110,7 @@ class ShareXCrawler:
             log(f"Error: {str(url)}", quiet=self.quiet, style="red")
             logger.debug(e)
 
-    async def parse_profile(self, session: ScrapeSession, url: URL, domain_obj: DomainItem):
+    async def parse_profile(self, session: ScrapeSession, url: URL, domain_obj: DomainItem) -> None:
         """Handles scraping for profiles"""
         try:
             soup = await session.get_BS4(url)
@@ -127,7 +128,7 @@ class ShareXCrawler:
             log(f"Error: {str(url)}", quiet=self.quiet, style="red")
             logger.debug(e)
 
-    async def get_list_links(self, session: ScrapeSession, url: URL, title: str, domain_obj: DomainItem):
+    async def get_list_links(self, session: ScrapeSession, url: URL, title: str, domain_obj: DomainItem) -> None:
         """Gets final links and adds to domain_obj"""
         try:
             soup = await session.get_BS4(url)
@@ -161,7 +162,7 @@ class ShareXCrawler:
             log(f"Error: {str(url)}", quiet=self.quiet, style="red")
             logger.debug(e)
 
-    async def parse(self, *, session: ScrapeSession, url: URL, og_title=None, domain_obj: DomainItem):
+    async def parse(self, *, session: ScrapeSession, url: URL, og_title=None, domain_obj: DomainItem) -> None:
         try:
             soup = await session.get_BS4(url)
 

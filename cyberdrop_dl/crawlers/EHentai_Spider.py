@@ -50,7 +50,7 @@ class EHentaiCrawler:
                     next_page = maybe_next.select_one('a')
                     break
             if next_page is not None:
-                next_page = next_page.get('href')
+                next_page = URL(next_page.get('href'))
                 if next_page is not None:
                     await self.get_album(session, next_page, album_obj)
 

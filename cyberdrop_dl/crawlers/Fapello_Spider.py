@@ -48,7 +48,7 @@ class FapelloCrawler:
             content_section = soup.select_one("div[id=content]")
             posts = content_section.select("a")
             for post in posts:
-                link = post.get('href')
+                link = URL(post.get('href'))
                 if link:
                     media_items = await self.parse_post(session, link)
                     for media in media_items:

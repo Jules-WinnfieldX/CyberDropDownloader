@@ -4,6 +4,7 @@ import contextlib
 import logging
 import re
 from pathlib import Path
+from typing import Dict, List, Tuple
 
 import aiofiles
 from yarl import URL
@@ -142,7 +143,7 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-async def file_management(args: dict, links: list) -> None:
+async def file_management(args: Dict, links: List) -> None:
     """We handle file defaults here (resetting and creation)"""
     input_file = args['Files']['input_file']
     if not input_file.is_file() and not links:
@@ -173,7 +174,7 @@ async def file_management(args: dict, links: list) -> None:
                 await f.write("URL,REFERER,REASON\n")
 
 
-async def regex_links(urls: list) -> list:
+async def regex_links(urls: List) -> List:
     """Regex grab the links from the URLs.txt file"""
     """This allows code blocks or full paragraphs to be copy and pasted into the URLs.txt"""
     yarl_links = []
@@ -188,7 +189,7 @@ async def regex_links(urls: list) -> list:
     return yarl_links
 
 
-async def consolidate_links(args: dict, links: list) -> list:
+async def consolidate_links(args: Dict, links: List) -> List:
     """We consolidate links from command line and from URLs.txt into a singular list"""
     links = list(map(URL, links))
     if args["Files"]["input_file"].is_file():
@@ -201,7 +202,7 @@ async def consolidate_links(args: dict, links: list) -> list:
     return links
 
 
-async def scrape_links(scraper: ScrapeMapper, links: list, quiet=False) -> tuple[CascadeItem, ForumItem]:
+async def scrape_links(scraper: ScrapeMapper, links: List, quiet=False) -> Tuple[CascadeItem, ForumItem]:
     """Maps links from URLs.txt or command to the scraper class"""
     log("Starting Scrape", quiet=quiet, style="green")
     tasks = []
@@ -220,7 +221,7 @@ async def scrape_links(scraper: ScrapeMapper, links: list, quiet=False) -> tuple
     return Cascade, Forums
 
 
-async def director(args: dict, links: list) -> None:
+async def director(args: Dict, links: List) -> None:
     """This is the overarching director coordinator for CDL."""
     await clear()
     await document_args(args)

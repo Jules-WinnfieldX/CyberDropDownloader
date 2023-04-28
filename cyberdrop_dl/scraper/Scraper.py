@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import asyncio
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Optional, Dict
 
 import aiofiles
 from yarl import URL
@@ -39,7 +39,7 @@ if TYPE_CHECKING:
 
 class ScrapeMapper:
     """This class maps links to their respective handlers, or JDownloader if they are unsupported"""
-    def __init__(self, args: dict, client: Client, SQL_Helper: SQLHelper, quiet: bool):
+    def __init__(self, args: Dict, client: Client, SQL_Helper: SQLHelper, quiet: bool):
         self.args = args
         self.client = client
         self.SQL_Helper = SQL_Helper

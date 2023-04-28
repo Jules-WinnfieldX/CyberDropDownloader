@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import asyncio
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, ClassVar
+from typing import TYPE_CHECKING, ClassVar, List, Dict, Tuple
 
 if TYPE_CHECKING:
     from yarl import URL
@@ -28,7 +28,7 @@ class MediaItem:
 class AlbumItem:
     """Class for keeping track of download links for each album"""
     title: str
-    media: list[MediaItem]
+    media: List[MediaItem]
 
     async def add_media(self, media_item: MediaItem) -> None:
         self.media.append(media_item)
@@ -51,7 +51,7 @@ class AlbumItem:
 class DomainItem:
     """Class for keeping track of albums for each scraper type"""
     domain: str
-    albums: dict
+    albums: Dict
 
     async def add_to_album(self, title: str, media: MediaItem) -> None:
         if title in self.albums:
@@ -97,7 +97,7 @@ class DomainItem:
 @dataclass
 class CascadeItem:
     """Class for keeping track of domains for each scraper type"""
-    domains: dict
+    domains: Dict
 
     async def add_albums(self, domain_item: DomainItem) -> None:
         domain = domain_item.domain
@@ -164,7 +164,7 @@ class CascadeItem:
 @dataclass
 class ForumItem:
     """Class for keeping track of forum threads"""
-    threads: dict
+    threads: Dict
 
     async def add_album_to_thread(self, title: str, domain: str, album: AlbumItem) -> None:
         if title not in self.threads:
@@ -217,7 +217,7 @@ class ForumItem:
 @dataclass
 class FileLock:
     """Rudimentary file lock system"""
-    locked_files: list[str] = field(default_factory=list)
+    locked_files: List[str] = field(default_factory=List)
 
     async def check_lock(self, filename: str) -> bool:
         await asyncio.sleep(.1)
@@ -233,11 +233,11 @@ class FileLock:
 @dataclass
 class SkipData:
     """The allows optoins for domains to skip when scraping"""
-    supported_hosts: ClassVar[tuple[str, ...]] = ("anonfiles", "bayfiles", "bunkr", "coomer.party", "cyberdrop",
+    supported_hosts: ClassVar[Tuple[str, ...]] = ("anonfiles", "bayfiles", "bunkr", "coomer.party", "cyberdrop",
                                                   "cyberfile", "e-hentai", "erome", "fapello", "gfycat", "gofile",
                                                   "hgamecg", "img.kiwi", "imgbox", "jpg.church", "jpg.fish",
                                                   "gallery.deltaporno.com", "kemono.party",
                                                   "lovefap", "nsfw.xxx", "pimpandhost", "pixeldrain", "pixl.li",
                                                   "postimg", "saint", "nudostar", "simpcity", "socialmediagirls",
                                                   "xbunker", "xbunkr")
-    sites: list[str]
+    sites: List[str]

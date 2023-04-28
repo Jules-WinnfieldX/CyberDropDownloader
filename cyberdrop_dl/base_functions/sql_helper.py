@@ -3,7 +3,7 @@ from __future__ import annotations
 import atexit
 import logging
 import sqlite3
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Optional, List
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -120,7 +120,7 @@ class SQLHelper:
 
     """Temp Table Operations"""
 
-    async def get_temp_names(self) -> list[str]:
+    async def get_temp_names(self) -> List[str]:
         """Gets the list of temp filenames"""
         self.curs.execute("SELECT downloaded_filename FROM downloads_temp;")
         filenames = self.curs.fetchall()

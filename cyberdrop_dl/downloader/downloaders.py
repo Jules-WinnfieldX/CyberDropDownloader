@@ -5,8 +5,9 @@ import contextlib
 import itertools
 import logging
 from http import HTTPStatus
+from pathlib import Path
 from random import gauss
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Dict, Any, Tuple, Optional
 
 import aiofiles
 import aiohttp.client_exceptions
@@ -86,7 +87,7 @@ class Files:
 class Downloader:
     """Downloader class, directs downloading for domain objects"""
 
-    def __init__(self, args: dict, client: Client, SQL_Helper: SQLHelper,
+    def __init__(self, args: Dict, client: Client, SQL_Helper: SQLHelper,
                  domain: str, domain_obj: DomainItem, files: Files):
         self.client = client
         self.download_session = DownloadSession(client)
@@ -101,7 +102,7 @@ class Downloader:
 
         self.files = files
 
-        self.current_attempt: dict[str, int] = {}
+        self.current_attempt: Dict[str, int] = {}
         max_workers = get_threads_number(args, domain)
         self._semaphore = asyncio.Semaphore(max_workers)
         self.delay = {'cyberfile': 1.0, 'anonfiles': 1.0, "coomer": 0.2, "kemono": 0.2}
@@ -121,7 +122,7 @@ class Downloader:
         self.proxy = args["Runtime"]["proxy"]
         self.required_free_space = args["Runtime"]["required_free_space"]
 
-    async def start_domain(self, cascade_task: TaskID):
+    async def start_domain(self, cascade_task: TaskID) -> None:
         """Handler for domains and the progress bars for it"""
         domain_task = domain_progress.add_task("[light_pink3]" + self.domain.upper(), total=len(self.domain_obj.albums))
         for album, album_obj in self.domain_obj.albums.items():
@@ -130,7 +131,7 @@ class Downloader:
         domain_progress.update(domain_task, visible=False)
         await self.download_session.exit_handler()
 
-    async def start_album(self, domain_task: TaskID, album: str, album_obj: AlbumItem):
+    async def start_album(self, domain_task: TaskID, album: str, album_obj: AlbumItem) -> None:
         """Handler for albums and the progress bars for it"""
         if await album_obj.is_empty():
             return
@@ -145,7 +146,7 @@ class Downloader:
         album_progress.update(album_task, visible=False)
         domain_progress.advance(domain_task, 1)
 
-    async def start_file(self, album_task: TaskID, album: str, media: MediaItem):
+    async def start_file(self, album_task: TaskID, album: str, media: MediaItem) -> None:
         """Handler for files and the progress bars for it"""
         if media.complete or await self.SQL_Helper.check_complete_singular(self.domain, media.url):
             log(f"Previously Downloaded: {media.filename}", quiet=True)
@@ -284,13 +285,13 @@ class Downloader:
 
             raise DownloadFailure(code=getattr(e, "code", 1), message=repr(e))
 
-    async def output_failed(self, media, e):
+    async def output_failed(self, media: MediaItem, e: Any) -> None:
         if self.errored_output:
             async with aiofiles.open(self.errored_file, mode='a') as file:
                 await file.write(f"{media.url},{media.referer},{e.message}\n")
 
-    async def check_file_exists(self, complete_file, partial_file, media, album, url_path, original_filename,
-                                current_throttle):
+    async def check_file_exists(self, complete_file: Path, partial_file: Path, media: MediaItem, album: str,
+                                url_path: str, original_filename: str, current_throttle: float):
         """Complicated checker for if a file already exists, and was already downloaded"""
         expected_size = None
         proceed = True
@@ -328,7 +329,7 @@ class Downloader:
 
         return complete_file, partial_file, proceed
 
-    async def iterate_filename(self, complete_file, media, album):
+    async def iterate_filename(self, complete_file: Path, media: MediaItem, album: str) -> Tuple[Path, Path]:
         for iterations in itertools.count(1):
             filename = f"{complete_file.stem} ({iterations}){media.ext}"
             temp_complete_file = (self.download_dir / album / filename)
@@ -340,7 +341,7 @@ class Downloader:
         return complete_file, partial_file
 
 
-async def download_cascade(args: dict, Cascade: CascadeItem, SQL_Helper: SQLHelper, client: Client) -> None:
+async def download_cascade(args: Dict, Cascade: CascadeItem, SQL_Helper: SQLHelper, client: Client) -> None:
     """Handler for cascades and the progress bars for it"""
     progress_table = await get_cascade_table(args["Progress_Options"])
     total_files = await Cascade.get_total()
@@ -364,7 +365,7 @@ async def download_cascade(args: dict, Cascade: CascadeItem, SQL_Helper: SQLHelp
               f"{files.skipped_files}[/yellow] - [red]Files Failed: {files.failed_files}[/red] |")
 
 
-async def download_forums(args: dict, Forums: ForumItem, SQL_Helper: SQLHelper, client: Client) -> None:
+async def download_forums(args: Dict, Forums: ForumItem, SQL_Helper: SQLHelper, client: Client) -> None:
     """Handler for forum threads and the progress bars for it"""
     progress_table = await get_forum_table(args["Progress_Options"])
     total_files = await Forums.get_total()
