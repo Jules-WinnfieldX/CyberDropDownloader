@@ -187,8 +187,7 @@ class XenforoCrawler:
             url = URL(post_number_parts[0].rstrip("#"))
         return url, post_number
 
-    async def get_links(self, post_content: bs4.Tag, selector: str, attribute: str, domain: URL,
-                        temp_title: str) -> List:
+    async def get_links(self, post_content: bs4.Tag, selector: str, attribute: str, domain: URL) -> List[str]:
         """Grabs links from the post content based on the given selector and attribute"""
         found_links: List = []
         if not post_content:
@@ -205,15 +204,15 @@ class XenforoCrawler:
                 link = "https:" + link
             elif link.startswith('/'):
                 link = str(domain / link[1:])
-            found_links.append([URL(link), temp_title])
+            found_links.append(link)
         return found_links
 
-    async def get_embedded(self, post_content: bs4.Tag, selector: str, attribute: str, temp_title: str) -> List:
+    async def get_embedded(self, post_content: bs4.Tag, selector: str, attribute: str) -> List[str]:
         """Gets embedded media from post content based on selector and attribute provided"""
         found_links = []
         links = post_content.select(selector)
-        for link in links:
-            embed_data = link.get(attribute)
+        for link_tag in links:
+            embed_data = link_tag.get(attribute)
             assert isinstance(embed_data, str)
             embed_data = embed_data.replace("\/\/", "https://www.")
             embed_data = embed_data.replace("\\", "")
@@ -222,47 +221,35 @@ class XenforoCrawler:
                 r"https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,4}\\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)",
                 embed_data)
             if embed:
-                embed_url = URL(embed.group(0).replace("www.", ""))
-                found_links.append([embed_url, temp_title])
+                embed_link = embed.group(0).replace("www.", "")
+                found_links.append(embed_link)
 
             embed = re.search(
                 r"https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,4}\/[-a-zA-Z0-9@:%._\+~#=]*\/[-a-zA-Z0-9@:?&%._\+~#=]*",
                 embed_data)
             if embed:
-                embed_url = URL(embed.group(0).replace("www.", ""))
-                found_links.append([embed_url, temp_title])
+                embed_link = embed.group(0).replace("www.", "")
+                found_links.append(embed_link)
         return found_links
 
-    async def filter_content_links(self, cascade: CascadeItem, content_links: List, url: URL, domain: str):
-        """Splits given links into direct links and external links,
-        returns external links, adds internal to the cascade"""
-        assert url.host is not None
-        forum_direct_urls = [x for x in content_links if x[0].host.replace(".st", ".su") in url.host]
-        forum_direct_urls.extend([x for x in content_links if url.host in x[0].host.replace(".st", ".su")])
-        forum_direct_urls.extend([x for x in content_links if "smgmedia" in x[0].host])
-        content_links = [x for x in content_links if x not in forum_direct_urls]
-        for link_title_bundle in forum_direct_urls:
-            link, temp_title = link_title_bundle
-            in_prog_title = temp_title + "/Attachments"
+    async def handle_direct_links(self, cascade: CascadeItem, content_links: List, url: URL, domain: str):
+        """Adds given links to the cascade"""
+        for link, title in content_links:
             if str(link).endswith("/"):
                 link = URL(str(link)[:-1])
-            if 'attachments' in link.parts or 'content' in link.parts or 'data' in link.parts:
-                completed = await self.SQL_Helper.check_complete_singular(domain, link)
+            if any(s in link.parts for s in ('attachments', 'content', 'data')):
                 try:
                     filename, ext = await get_filename_and_ext(link.name, True)
                 except NoExtensionFailure:
                     continue
+                completed = await self.SQL_Helper.check_complete_singular(domain, link)
                 media = MediaItem(link, url, completed, filename, ext, filename)
-                await cascade.add_to_album(domain, in_prog_title, media)
-        return content_links
+                await cascade.add_to_album(domain, f"{title}/Attachments", media)
 
     async def handle_external_links(self, content_links: List, referer: URL) -> None:
         """Maps external links to the scraper class"""
-        tasks = []
-        for link_title_bundle in content_links:
-            link = link_title_bundle[0]
-            temp_title = link_title_bundle[1]
-            tasks.append(asyncio.create_task(self.scraping_mapper.map_url(link, temp_title, referer)))
+        tasks = [asyncio.create_task(self.scraping_mapper.map_url(link, title, referer))
+                 for link, title in content_links]
         if tasks:
             await asyncio.wait(tasks)
 
@@ -301,31 +288,33 @@ class XenforoCrawler:
             post_content = post.select_one(spec.post_content_tag)
 
             # Get Links
-            content_links.extend(await self.get_links(post_content, spec.links_tag, spec.links_attribute, domain,
-                                                      temp_title))
+            links = await self.get_links(post_content, spec.links_tag, spec.links_attribute, domain)
 
             # Get Images
-            content_links.extend(await self.get_links(post_content, spec.images_tag, spec.images_attribute, domain,
-                                                      temp_title))
+            links.extend(await self.get_links(post_content, spec.images_tag, spec.images_attribute, domain))
 
             # Get Videos:
-            content_links.extend(await self.get_links(post_content, spec.video_tag, spec.video_attribute, domain,
-                                                      temp_title))
-            content_links.extend(await self.get_links(post_content, spec.saint_iframe_tag,
-                                                      spec.saint_iframe_attribute, domain, temp_title))
+            links.extend(await self.get_links(post_content, spec.video_tag, spec.video_attribute, domain))
+            links.extend(await self.get_links(post_content, spec.saint_iframe_tag, spec.saint_iframe_attribute, domain))
 
             # Get Other Embedded Content
-            content_links.extend(await self.get_embedded(post_content, spec.embedded_content_tag,
-                                                         spec.embedded_content_attribute, temp_title))
+            links.extend(await self.get_embedded(post_content, spec.embedded_content_tag, spec.embedded_content_attribute))
 
             # Get Attachments
             attachments_block = post.select_one(spec.attachment_block_tag)
-            content_links.extend(await self.get_links(attachments_block, spec.attachment_tag,
-                                                      spec.attachment_attribute, domain, temp_title))
+            links.extend(await self.get_links(attachments_block, spec.attachment_tag, spec.attachment_attribute, domain))
+
+            content_links.extend([(URL(link), temp_title) for link in links])
 
         # Handle links
-        content_links = await self.filter_content_links(cascade, content_links, url, spec.domain)
-        await self.handle_external_links(content_links, url)
+        def is_direct_link(host: str) -> bool:
+            host_su = host.replace(".st", ".su")
+            return host_su in url.host or url.host in host_su or "smgmedia" in host
+
+        direct_links = [x for x in content_links if is_direct_link(x[0].host)]
+        external_links = [x for x in content_links if x not in direct_links]
+        await self.handle_direct_links(cascade, direct_links, url, spec.domain)
+        await self.handle_external_links(external_links, url)
 
         next_page = soup.select_one(spec.next_page_tag)
         if next_page is not None:
