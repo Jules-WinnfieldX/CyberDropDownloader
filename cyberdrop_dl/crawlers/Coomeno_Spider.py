@@ -43,7 +43,7 @@ class CoomenoCrawler:
 
     async def fetch(self, session: ScrapeSession, url: URL):
         """Director for Coomer/Kemono scraping"""
-        log(f"Starting: {str(url)}", quiet=self.quiet, style="green")
+        log(f"Starting: {url}", quiet=self.quiet, style="green")
         cascade = CascadeItem({})
         title = None
         try:
@@ -52,12 +52,12 @@ class CoomenoCrawler:
             if domain:
                 title = await self.handle_coomeno(session, url, domain, cascade)
         except Exception as e:
-            logger.debug("Error encountered while handling %s", str(url), exc_info=True)
-            log(f"Error: {str(url)}", quiet=self.quiet, style="red")
+            logger.debug("Error encountered while handling %s", url, exc_info=True)
+            log(f"Error: {url}", quiet=self.quiet, style="red")
             logger.debug(e)
 
         await self.SQL_Helper.insert_cascade(cascade)
-        log(f"Finished: {str(url)}", quiet=self.quiet, style="green")
+        log(f"Finished: {url}", quiet=self.quiet, style="green")
         return cascade, title
 
     async def handle_coomeno(self, session: ScrapeSession, url: URL, domain: str, cascade: CascadeItem) -> str:
@@ -116,8 +116,8 @@ class CoomenoCrawler:
                     await self.parse_profile(session, URL("https://" + url.host + next_page), spec, cascade)
 
         except Exception as e:
-            logger.debug("Error encountered while handling %s", str(url), exc_info=True)
-            log(f"Error: {str(url)}", quiet=self.quiet, style="red")
+            logger.debug("Error encountered while handling %s", url, exc_info=True)
+            log(f"Error: {url}", quiet=self.quiet, style="red")
             logger.debug(e)
 
         return title
@@ -137,7 +137,7 @@ class CoomenoCrawler:
                 post_tag = soup.select_one("h1[class=post__title]")
                 assert post_tag is not None
                 post_title = post_tag.text.replace('\n', '').replace("..", "")
-                prefix = f"{str(url.parts[-1])} - " if self.include_id else ""
+                prefix = f"{url.parts[-1]} - " if self.include_id else ""
                 if title:
                     title = title + '/' + await make_title_safe(prefix + post_title)
                 else:
@@ -159,8 +159,8 @@ class CoomenoCrawler:
             text_content = soup.select('div[class=post__content] a')
             await self.map_links(text_content, title, url)
         except Exception as e:
-            logger.debug("Error encountered while handling %s", str(url), exc_info=True)
-            log(f"Error: {str(url)}", quiet=self.quiet, style="red")
+            logger.debug("Error encountered while handling %s", url, exc_info=True)
+            log(f"Error: {url}", quiet=self.quiet, style="red")
             logger.debug(e)
 
         return title

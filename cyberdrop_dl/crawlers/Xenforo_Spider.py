@@ -156,7 +156,7 @@ class XenforoCrawler:
 
     async def fetch(self, session: ScrapeSession, url: URL) -> Tuple[CascadeItem, str]:
         """Xenforo forum director"""
-        log(f"Starting: {str(url)}", quiet=self.quiet, style="green")
+        log(f"Starting: {url}", quiet=self.quiet, style="green")
         cascade = CascadeItem({})
 
         scrape_url, post_num = await self.get_thread_url_and_post_num(url)
@@ -169,13 +169,13 @@ class XenforoCrawler:
                 await self.forums[domain].login(session, url, parse_spec, self.quiet)
                 title = await self.parse_forum(session, scrape_url, parse_spec, cascade, "", post_num)
         except Exception as e:
-            logger.debug("Error encountered while handling %s", str(url), exc_info=True)
-            log(f"Error: {str(url)}", quiet=self.quiet, style="red")
+            logger.debug("Error encountered while handling %s", url, exc_info=True)
+            log(f"Error: {url}", quiet=self.quiet, style="red")
             logger.debug(e)
             return cascade, ""
 
         await self.SQL_Helper.insert_cascade(cascade)
-        log(f"Finished: {str(url)}", quiet=self.quiet, style="green")
+        log(f"Finished: {url}", quiet=self.quiet, style="green")
         return cascade, title
 
     async def get_thread_url_and_post_num(self, url: URL):

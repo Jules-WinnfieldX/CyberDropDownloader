@@ -21,14 +21,14 @@ class EromeCrawler:
 
     async def fetch(self, session: ScrapeSession, url: URL) -> DomainItem:
         """Director function for Erome scraping"""
-        log(f"Starting: {str(url)}", quiet=self.quiet, style="green")
+        log(f"Starting: {url}", quiet=self.quiet, style="green")
 
         if 'a' in url.parts:
             domain_obj = await self.handle_album(session, url)
         else:
             domain_obj = await self.handle_profile(session, url)
 
-        log(f"Finished: {str(url)}", quiet=self.quiet, style="green")
+        log(f"Finished: {url}", quiet=self.quiet, style="green")
 
         return domain_obj
 
@@ -50,7 +50,7 @@ class EromeCrawler:
                 try:
                     media = await create_media_item(link, url, self.SQL_Helper, "erome")
                 except NoExtensionFailure:
-                    logger.debug("Couldn't get extension for %s", str(url))
+                    logger.debug("Couldn't get extension for %s", url)
                     continue
                 await domain_obj.add_media(title, media)
 
@@ -60,14 +60,14 @@ class EromeCrawler:
                 try:
                     media = await create_media_item(link, url, self.SQL_Helper, "erome")
                 except NoExtensionFailure:
-                    logger.debug("Couldn't get extension for %s", str(link))
+                    logger.debug("Couldn't get extension for %s", link)
                     continue
                 await domain_obj.add_media(title, media)
 
             await self.SQL_Helper.insert_domain("erome", url, domain_obj)
         except Exception as e:
-            logger.debug("Error encountered while handling %s", str(url), exc_info=True)
-            log(f"Error: {str(url)}", quiet=self.quiet, style="red")
+            logger.debug("Error encountered while handling %s", url, exc_info=True)
+            log(f"Error: {url}", quiet=self.quiet, style="red")
             logger.debug(e)
 
         return domain_obj
@@ -96,8 +96,8 @@ class EromeCrawler:
                 await domain_obj.extend(await self.handle_profile(session, next_page))
 
         except Exception as e:
-            logger.debug("Error encountered while handling %s", str(url), exc_info=True)
-            log(f"Error: {str(url)}", quiet=self.quiet, style="red")
+            logger.debug("Error encountered while handling %s", url, exc_info=True)
+            log(f"Error: {url}", quiet=self.quiet, style="red")
             logger.debug(e)
 
         return domain_obj

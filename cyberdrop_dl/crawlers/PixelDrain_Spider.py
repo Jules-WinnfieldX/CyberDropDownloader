@@ -21,7 +21,7 @@ class PixelDrainCrawler:
 
     async def fetch(self, session: ScrapeSession, url: URL) -> AlbumItem:
         """Director for pixeldrain scraping"""
-        log(f"Starting: {str(url)}", quiet=self.quiet, style="green")
+        log(f"Starting: {url}", quiet=self.quiet, style="green")
         album_obj = AlbumItem("Loose Pixeldrain Files", [])
 
         identifier = str(url).split('/')[-1]
@@ -38,7 +38,7 @@ class PixelDrainCrawler:
             await album_obj.add_media(media_item)
 
         await self.SQL_Helper.insert_album("pixeldrain", url, album_obj)
-        log(f"Finished: {str(url)}", quiet=self.quiet, style="green")
+        log(f"Finished: {url}", quiet=self.quiet, style="green")
         return album_obj
 
     async def get_listings(self, session: ScrapeSession, identifier: str, url: URL) -> List[MediaItem]:
@@ -51,14 +51,14 @@ class PixelDrainCrawler:
                 try:
                     filename, ext = await get_filename_and_ext(file['name'])
                 except NoExtensionFailure:
-                    logger.debug("Couldn't get extension for %s", str(link))
+                    logger.debug("Couldn't get extension for %s", link)
                     continue
                 complete = await self.SQL_Helper.check_complete_singular("pixeldrain", link)
                 media_item = MediaItem(link, url, complete, filename, ext, filename)
                 media_items.append(media_item)
         except Exception as e:
-            logger.debug("Error encountered while handling %s", str(url), exc_info=True)
-            log(f"Error: {str(url)}", quiet=self.quiet, style="red")
+            logger.debug("Error encountered while handling %s", url, exc_info=True)
+            log(f"Error: {url}", quiet=self.quiet, style="red")
             logger.debug(e)
 
         return media_items

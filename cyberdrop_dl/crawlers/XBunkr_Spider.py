@@ -39,15 +39,15 @@ class XBunkrCrawler:
                     try:
                         media_item = await create_media_item(link, url, self.SQL_Helper, "xbunkr")
                     except NoExtensionFailure:
-                        logger.debug("Couldn't get extension for %s", str(link))
+                        logger.debug("Couldn't get extension for %s", link)
                         continue
                     await album_obj.add_media(media_item)
 
         except Exception as e:
-            logger.debug("Error encountered while handling %s", str(url), exc_info=True)
-            log("Error scraping " + str(url), quiet=self.quiet)
+            logger.debug("Error encountered while handling %s", url, exc_info=True)
+            log(f"Error scraping {url}", quiet=self.quiet)
             logger.debug(e)
 
         await self.SQL_Helper.insert_album("xbunkr", URL(""), album_obj)
-        log(f"Finished: {str(url)}", quiet=self.quiet, style="green")
+        log(f"Finished: {url}", quiet=self.quiet, style="green")
         return album_obj

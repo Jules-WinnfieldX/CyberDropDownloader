@@ -24,7 +24,7 @@ class NSFWXXXCrawler:
         """Director for NSFW.XXX scraping"""
         domain_obj = DomainItem("nsfw.xxx", {})
 
-        log(f"Starting: {str(url)}", quiet=self.quiet, style="green")
+        log(f"Starting: {url}", quiet=self.quiet, style="green")
         if "user" in url.parts:
             await self.get_user(session, url, domain_obj)
         else:
@@ -54,8 +54,8 @@ class NSFWXXXCrawler:
                     await self.get_post(session, post, domain_obj, model)
 
         except Exception as e:
-            logger.debug("Error encountered while handling %s", str(url), exc_info=True)
-            log(f"Error: {str(url)}", quiet=self.quiet, style="red")
+            logger.debug("Error encountered while handling %s", url, exc_info=True)
+            log(f"Error: {url}", quiet=self.quiet, style="red")
             logger.debug(e)
 
     async def get_post_hrefs(self, posts) -> List:
@@ -86,13 +86,13 @@ class NSFWXXXCrawler:
                 try:
                     media = await create_media_item(link, url, self.SQL_Helper, "nsfw.xxx")
                 except NoExtensionFailure:
-                    logger.debug("Couldn't get extension for %s", str(link))
+                    logger.debug("Couldn't get extension for %s", link)
                     continue
 
                 title = f"{model}/{post_name}" if self.separate_posts else model
                 await domain_obj.add_media(title, media)
 
         except Exception as e:
-            logger.debug("Error encountered while handling %s", str(url), exc_info=True)
-            log(f"Error: {str(url)}", quiet=self.quiet, style="red")
+            logger.debug("Error encountered while handling %s", url, exc_info=True)
+            log(f"Error: {url}", quiet=self.quiet, style="red")
             logger.debug(e)

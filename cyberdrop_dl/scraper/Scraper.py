@@ -362,17 +362,17 @@ class ScrapeMapper:
             return not any(site in host for site in self.only_data.sites)
         return any(site in host for site in self.skip_data.sites)
 
-    async def map_url(self, url_to_map: URL, title=None, referer=None):
+    async def map_url(self, url_to_map: URL, title=None, referer: URL = None):
         if not url_to_map:
             return
         if not url_to_map.host:
-            log(f"Not Supported: {str(url_to_map)}", quiet=self.quiet, style="yellow")
+            log(f"Not Supported: {url_to_map}", quiet=self.quiet, style="yellow")
             return
 
         key = next((key for key in self.mapping if key in url_to_map.host), None)
         if key:
             if await self.is_skip_host(key):
-                log(f"Skipping: {str(url_to_map)}", quiet=self.quiet, style="yellow")
+                log(f"Skipping: {url_to_map}", quiet=self.quiet, style="yellow")
             else:
                 handler = self.mapping[key]
                 await handler(url=url_to_map, title=title)
@@ -382,9 +382,9 @@ class ScrapeMapper:
             await self.jdownloader.direct_unsupported_to_jdownloader(url_to_map, title)
 
         else:
-            log(f"Not Supported: {str(url_to_map)}", quiet=self.quiet, style="yellow")
+            log(f"Not Supported: {url_to_map}", quiet=self.quiet, style="yellow")
             if self.unsupported_output:
                 title = title.encode("ascii", "ignore")
                 title = title.decode().strip()
                 async with aiofiles.open(self.unsupported_file, mode='a') as f:
-                    await f.write(f"{str(url_to_map)},{str(referer)},{title}\n")
+                    await f.write(f"{url_to_map},{referer},{title}\n")

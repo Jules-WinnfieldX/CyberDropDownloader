@@ -149,7 +149,7 @@ class DownloadSession:
             if resp.url in self.bunkr_maintenance:
                 raise DownloadFailure(code=HTTPStatus.SERVICE_UNAVAILABLE, message="Bunkr under maintenance")
             if any(s in content_type.lower() for s in ('html', 'text')):
-                logger.debug("Server for %s is experiencing issues, you are being ratelimited, or cookies have expired", str(media.url))
+                logger.debug("Server for %s is experiencing issues, you are being ratelimited, or cookies have expired", media.url)
                 raise DownloadFailure(code=CustomHTTPStatus.IM_A_TEAPOT, message="Unexpectedly got text as response")
 
             size = int(resp.headers.get('Content-Length', '0'))
@@ -201,7 +201,7 @@ class DownloadSession:
         await self._throttle(current_throttle, url.host)
         async with self.client_session.get(url, headers=headers, ssl=self.client.ssl_context,
                                            raise_for_status=True) as resp:
-            return int(resp.headers.get('Content-Length', str(0)))
+            return int(resp.headers.get('Content-Length', '0'))
 
     async def exit_handler(self) -> None:
         try:

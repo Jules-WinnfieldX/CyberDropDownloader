@@ -23,7 +23,7 @@ class PostImgCrawler:
     async def fetch(self, session: ScrapeSession, url: URL) -> AlbumItem:
         """Director for PostImg scraping"""
         album_obj = AlbumItem("Loose PostImg Files", [])
-        log(f"Starting: {str(url)}", quiet=self.quiet, style="green")
+        log(f"Starting: {url}", quiet=self.quiet, style="green")
 
         try:
             if "gallery" in url.parts:
@@ -35,12 +35,12 @@ class PostImgCrawler:
                 await album_obj.add_media(media_item)
 
         except Exception as e:
-            logger.debug("Error encountered while handling %s", str(url), exc_info=True)
-            log(f"Error: {str(url)}", quiet=self.quiet, style="red")
+            logger.debug("Error encountered while handling %s", url, exc_info=True)
+            log(f"Error: {url}", quiet=self.quiet, style="red")
             logger.debug(e)
 
         await self.SQL_Helper.insert_album("postimg", url, album_obj)
-        log(f"Finished: {str(url)}", quiet=self.quiet, style="green")
+        log(f"Finished: {url}", quiet=self.quiet, style="green")
         return album_obj
 
     async def get_folder(self, session: ScrapeSession, url: URL) -> List:
@@ -60,7 +60,7 @@ class PostImgCrawler:
                 try:
                     media_item = await create_media_item(img, referer, self.SQL_Helper, "postimg")
                 except NoExtensionFailure:
-                    logger.debug("Couldn't get extension for %s", str(img))
+                    logger.debug("Couldn't get extension for %s", img)
                     continue
 
                 content.append(media_item)

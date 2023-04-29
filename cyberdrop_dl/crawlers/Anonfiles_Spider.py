@@ -26,7 +26,7 @@ class AnonfilesCrawler:
 
         album_obj = AlbumItem("Loose Anon Files", [])
 
-        log(f"Starting: {str(url)}", quiet=self.quiet, style="green")
+        log(f"Starting: {url}", quiet=self.quiet, style="green")
 
         try:
             json = await session.get_json(self.api_link/url.parts[1]/"info")
@@ -44,13 +44,13 @@ class AnonfilesCrawler:
                 if not complete:
                     await self.SQL_Helper.insert_media("anonfiles", "", media_item)
             else:
-                log(f"Dead: {str(url)}", quiet=self.quiet, style="red")
+                log(f"Dead: {url}", quiet=self.quiet, style="red")
 
         except Exception as e:
-            logger.debug("Error encountered while handling %s", str(url), exc_info=True)
-            log(f"Error: {str(url)}", quiet=self.quiet, style="red")
+            logger.debug("Error encountered while handling %s", url, exc_info=True)
+            log(f"Error: {url}", quiet=self.quiet, style="red")
             logger.debug(e)
             return album_obj
 
-        log(f"Finished: {str(url)}", quiet=self.quiet, style="green")
+        log(f"Finished: {url}", quiet=self.quiet, style="green")
         return album_obj
