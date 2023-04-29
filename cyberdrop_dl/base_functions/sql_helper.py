@@ -245,7 +245,14 @@ class SQLHelper:
         sql_res = self.curs.fetchall()
         for row in sql_res:
             if row[7] == 1:
-                complete_row = row
+                if complete_row:
+                    if row[6] == original_filename:
+                        await self._remove_entry(url_path, complete_row[6])
+                        complete_row = row
+                    else:
+                        await self._remove_entry(url_path, row[6])
+                else:
+                    complete_row = row
             else:
                 if len(sql_res) < 2:
                     await self._update_row_original_filename(url_path, original_filename)
