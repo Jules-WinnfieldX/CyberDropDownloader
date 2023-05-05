@@ -335,7 +335,7 @@ class DownloadDirector:
         log(f"| [green]Files Complete: {completed_files}[/green] - [yellow]Files Skipped:  {skipped_files}[/yellow] - [red]Files Failed: {failed_files}[/red] |")
 
         for downloader in self.Download_Manager.downloaders.values():
-            await downloader.close()
+            await downloader.download_session.exit_handler()
 
     async def start_cascade(self, forum_task: TaskID, title: str, Cascade: CascadeItem) -> None:
         cascade_task = self.Progress_Master.CascadeProgress.add_cascade(title, len(Cascade.domains))
