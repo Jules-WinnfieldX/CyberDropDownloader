@@ -41,11 +41,6 @@ logger = logging.getLogger(__name__)
 MAX_FILENAME_LENGTH = 95
 
 
-async def adjust(s: str, length: int = 40, placeholder: str = "...") -> str:
-    """Collapse and truncate or pad the given string to fit in the given length"""
-    return f"{s[:length - len(placeholder)]}{placeholder}" if len(s) >= length else s.ljust(length)
-
-
 async def clear() -> None:
     """Clears the terminal screen"""
     os.system('cls' if os.name == 'nt' else 'clear')

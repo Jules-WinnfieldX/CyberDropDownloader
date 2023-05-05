@@ -55,6 +55,10 @@ config_default: Dict = {
             "hide_album_progress": False,
             "hide_file_progress": False,
             "refresh_rate": 10,
+            "visible_rows_threads": 2,
+            "visible_rows_domains": 2,
+            "visible_rows_albums": 2,
+            "visible_rows_files": 10,
         },
         "Ratelimiting": {
             "connection_timeout": 15,

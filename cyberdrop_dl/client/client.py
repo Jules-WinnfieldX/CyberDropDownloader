@@ -15,10 +15,10 @@ from bs4 import BeautifulSoup
 from tqdm import tqdm
 from yarl import URL
 
-from ..base_functions.base_functions import adjust, logger
+from ..base_functions.base_functions import logger
 from ..base_functions.error_classes import DownloadFailure, InvalidContentTypeFailure
 from ..downloader.downloader_utils import CustomHTTPStatus
-from ..downloader.progress_definitions import file_progress
+from ..downloader.progress_definitions import ProgressMaster, adjust_title
 from .rate_limiting import AsyncRateLimiter
 
 if TYPE_CHECKING:
@@ -173,13 +173,14 @@ class DownloadSession:
             remaining = delay - elapsed + 0.1
             await asyncio.sleep(remaining)
 
-    async def download_file(self, media: MediaItem, file: Path, current_throttle: float, resume_point: int,
-                            proxy: str, headers: Dict, file_task: TaskID) -> None:
+    async def download_file(self, Progress_Master: ProgressMaster, media: MediaItem, file: Path,
+                            current_throttle: float, resume_point: int, proxy: str, headers: Dict,
+                            file_task: TaskID) -> None:
 
         async def save_content(content: aiohttp.StreamReader, size: int) -> None:
-            file_progress.update(file_task, total=size + resume_point)
-            file_progress.advance(file_task, resume_point)
-            await self._append_content(file, content, lambda chunk_len: file_progress.advance(file_task, chunk_len))
+            Progress_Master.FileProgress.update_file_length(file_task, size + resume_point)
+            Progress_Master.FileProgress.advance_file(file_task, resume_point)
+            await self._append_content(file, content, lambda chunk_len: Progress_Master.FileProgress.advance_file(file_task, chunk_len))
 
         await self._download(media, current_throttle, proxy, headers, save_content)
 
@@ -187,7 +188,7 @@ class DownloadSession:
                                 proxy: str, headers: Dict):
 
         async def save_content(content: aiohttp.StreamReader, size: int) -> None:
-            task_description = await adjust(f"{media.url.host}: {media.filename}")
+            task_description = adjust_title(f"{media.url.host}: {media.filename}")
             with tqdm(total=size + resume_point, unit_scale=True, unit='B', leave=False,
                       initial=resume_point, desc=task_description) as progress:
                 await self._append_content(file, content, lambda chunk_len: progress.update(chunk_len))

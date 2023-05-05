@@ -17,7 +17,7 @@ from cyberdrop_dl.base_functions.base_functions import (
     log,
     logger,
 )
-from cyberdrop_dl.base_functions.data_classes import AlbumItem, CascadeItem, DomainItem, FileLock, ForumItem, MediaItem
+from cyberdrop_dl.base_functions.data_classes import AlbumItem, DomainItem, FileLock, ForumItem, MediaItem
 from cyberdrop_dl.base_functions.error_classes import DownloadFailure
 from cyberdrop_dl.base_functions.sql_helper import SQLHelper, get_db_path
 from cyberdrop_dl.client.client import Client, DownloadSession
@@ -42,15 +42,15 @@ class Files:
         self.skipped_files = 0
         self.failed_files = 0
 
-    async def add_completed(self) -> None:
+    def add_completed(self) -> None:
         self.completed_files += 1
         self.progress.update(1)
 
-    async def add_skipped(self) -> None:
+    def add_skipped(self) -> None:
         self.skipped_files += 1
         self.progress.update(1)
 
-    async def add_failed(self) -> None:
+    def add_failed(self) -> None:
         self.failed_files += 1
         self.progress.update(1)
 
@@ -112,7 +112,7 @@ class Old_Downloader:
         """Handler for files and the progress bars for it"""
         if media.complete or await self.SQL_Helper.check_complete_singular(self.domain, media.url):
             log(f"Previously Downloaded: {media.filename}", quiet=True)
-            await self.files.add_skipped()
+            self.files.add_skipped()
             return
         async with self._semaphore:
             url_path = await get_db_path(media.url, self.domain)
@@ -123,13 +123,13 @@ class Old_Downloader:
         """File downloader"""
         if not await check_free_space(self.required_free_space, self.download_dir):
             log("We've run out of free space.", quiet=True)
-            await self.files.add_skipped()
+            self.files.add_skipped()
             return
 
         if not await allowed_filetype(media, self.exclude_images, self.exclude_videos, self.exclude_audio,
                                       self.exclude_other):
             log(f"Blocked by file extension: {media.filename}", quiet=True)
-            await self.files.add_skipped()
+            self.files.add_skipped()
             return
 
         if self.block_sub_folders:
@@ -188,9 +188,9 @@ class Old_Downloader:
                 self.current_attempt.pop(media.url.parts[-1])
 
             if fake_download:
-                await self.files.add_skipped()
+                self.files.add_skipped()
             else:
-                await self.files.add_completed()
+                self.files.add_completed()
 
             log(f"Completed Download: {media.filename} from {media.referer}", quiet=True)
             await self.File_Lock.remove_lock(original_filename)
@@ -210,7 +210,7 @@ class Old_Downloader:
                 if await is_4xx_client_error(e.code) and e.code != HTTPStatus.TOO_MANY_REQUESTS:
                     logger.debug("We ran into a 400 level error: %s", e.code)
                     log(f"Failed Download: {media.filename}", quiet=True)
-                    await self.files.add_failed()
+                    self.files.add_failed()
                     if url_path in self.current_attempt:
                         self.current_attempt.pop(url_path)
                     await self.output_failed(media, e)
@@ -221,7 +221,7 @@ class Old_Downloader:
                             e.message = "Web server is down"
                         logging.debug(f"\n{media.url} ({e.message})")
                     log(f"Failed Download: {media.filename}", quiet=True)
-                    await self.files.add_failed()
+                    self.files.add_failed()
                     if url_path in self.current_attempt:
                         self.current_attempt.pop(url_path)
                     await self.output_failed(media, e)
@@ -277,23 +277,6 @@ class Old_Downloader:
             partial_file = complete_file.with_suffix(complete_file.suffix + '.part')
 
         return complete_file, partial_file, proceed
-
-
-async def old_download_cascade(args: dict, Cascade: CascadeItem, SQL_Helper: SQLHelper, client: Client) -> None:
-    """Handler for cascades and the progress bars for it"""
-    total_files = await Cascade.get_total()
-    with tqdm(total=total_files, unit_scale=True, unit='Files', leave=True, initial=0,
-              desc="Files Downloaded") as progress:
-        files = Files(progress)
-        tasks = []
-        for domain, domain_obj in Cascade.domains.items():
-            downloader = Old_Downloader(args, client, SQL_Helper, domain, domain_obj, files)
-            tasks.append(downloader.start_domain())
-        await asyncio.gather(*tasks)
-
-    await clear()
-    log(f"| [green]Files Complete: {files.completed_files}[/green] - [yellow]Files Skipped: "
-              f"{files.skipped_files}[/yellow] - [red]Files Failed: {files.failed_files}[/red] |")
 
 
 async def old_download_forums(args: Dict, Forums: ForumItem, SQL_Helper: SQLHelper, client: Client) -> None:

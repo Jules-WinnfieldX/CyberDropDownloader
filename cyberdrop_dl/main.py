@@ -16,8 +16,8 @@ from cyberdrop_dl.base_functions.sorting_functions import Sorter
 from cyberdrop_dl.base_functions.sql_helper import SQLHelper
 from cyberdrop_dl.client.client import Client
 from cyberdrop_dl.downloader.downloader_utils import check_free_space
-from cyberdrop_dl.downloader.downloaders import download_cascade, download_forums
-from cyberdrop_dl.downloader.old_downloaders import old_download_cascade, old_download_forums
+from cyberdrop_dl.downloader.downloaders import DownloadDirector
+from cyberdrop_dl.downloader.old_downloaders import old_download_forums
 from cyberdrop_dl.scraper.Scraper import ScrapeMapper
 
 from . import __version__ as VERSION
@@ -137,6 +137,10 @@ def parse_args() -> argparse.Namespace:
     progress_opts.add_argument("--hide-album-progress", help="removes album progress section while downloading", action="store_true")
     progress_opts.add_argument("--hide-file-progress", help="removes file progress section while downloading", action="store_true")
     progress_opts.add_argument("--refresh-rate", type=int, help="refresh rate for the progress table (default: %(default)s)", default=config_group["refresh_rate"])
+    progress_opts.add_argument("--visible-rows-threads", type=int, help="number of visible rows to use for the threads table (default: %(default)s)", default=config_group["visible_rows_threads"])
+    progress_opts.add_argument("--visible-rows-domains", type=int, help="number of visible rows to use for the domains table (default: %(default)s)", default=config_group["visible_rows_domains"])
+    progress_opts.add_argument("--visible-rows-albums", type=int, help="number of visible rows to use for the albums table (default: %(default)s)", default=config_group["visible_rows_albums"])
+    progress_opts.add_argument("--visible-rows-files", type=int, help="number of visiblerows to use for the files table (default: %(default)s)", default=config_group["visible_rows_files"])
 
     # Links
     parser.add_argument("links", metavar="link", nargs="*", help="link to content to download (passing multiple links is supported)", default=[])
@@ -202,7 +206,7 @@ async def consolidate_links(args: Dict, links: List) -> List:
     return links
 
 
-async def scrape_links(scraper: ScrapeMapper, links: List, quiet=False) -> Tuple[CascadeItem, ForumItem]:
+async def scrape_links(scraper: ScrapeMapper, links: List, quiet=False) -> ForumItem:
     """Maps links from URLs.txt or command to the scraper class"""
     log("Starting Scrape", quiet=quiet, style="green")
     tasks = []
@@ -216,9 +220,12 @@ async def scrape_links(scraper: ScrapeMapper, links: List, quiet=False) -> Tuple
     Forums = scraper.Forums
     await Forums.dedupe()
 
+    if not await Cascade.is_empty():
+        await Forums.add_thread("Loose Files/Albums", Cascade)
+
     log("", quiet=quiet)
     log("Finished Scrape", quiet=quiet, style="green")
-    return Cascade, Forums
+    return Forums
 
 
 async def director(args: Dict, links: List) -> None:
@@ -242,20 +249,17 @@ async def director(args: Dict, links: List) -> None:
     await SQL_Helper.sql_initialize()
 
     if links:
-        Cascade, Forums = await scrape_links(Scraper, links)
+        Forums = await scrape_links(Scraper, links)
         await asyncio.sleep(5)
         await clear()
 
         if args['Progress_Options']['hide_new_progress']:
-            if not await Cascade.is_empty():
-                await old_download_cascade(args, Cascade, SQL_Helper, client)
             if not await Forums.is_empty():
                 await old_download_forums(args, Forums, SQL_Helper, client)
         else:
-            if not await Cascade.is_empty():
-                await download_cascade(args, Cascade, SQL_Helper, client)
             if not await Forums.is_empty():
-                await download_forums(args, Forums, SQL_Helper, client)
+                download_director = DownloadDirector(args, Forums, SQL_Helper, client)
+                await download_director.start()
 
     if args['Files']['output_folder'].is_dir():
         if args['Sorting']['sort_downloads']:
