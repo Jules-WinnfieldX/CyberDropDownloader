@@ -74,10 +74,8 @@ def parse_args() -> argparse.Namespace:
     runtime_opts.add_argument("--output-unsupported-urls", help="sets the unsupported urls to be output to the unsupported urls file", action="store_true")
     runtime_opts.add_argument("--proxy", help="HTTP/HTTPS proxy used for downloading, format [protocal]://[ip]:[port]", default=config_group["proxy"])
     runtime_opts.add_argument("--remove-bunkr-identifier", help="removes the bunkr added identifier from output filenames", action="store_true")
-    runtime_opts.add_argument("--required-free-space", type=int, default=config_group["required_free_space"],
-                              help="required free space (in gigabytes) for the program to run (default: %(default)s)")
-    runtime_opts.add_argument("--simultaneous-downloads-per-domain", type=int, default=config_group["simultaneous_downloads_per_domain"],
-                              help="Number of simultaneous downloads to use per domain (default: %(default)s)")
+    runtime_opts.add_argument("--required-free-space", type=int, default=config_group["required_free_space"], help="required free space (in gigabytes) for the program to run (default: %(default)s)")
+    runtime_opts.add_argument("--simultaneous-downloads-per-domain", type=int, default=config_group["simultaneous_downloads_per_domain"], help="Number of simultaneous downloads to use per domain (default: %(default)s)")
 
     # Sorting
     config_group = config_data["Sorting"]
@@ -92,12 +90,9 @@ def parse_args() -> argparse.Namespace:
     # Ratelimiting
     config_group = config_data["Ratelimiting"]
     ratelimit_opts = parser.add_argument_group("Ratelimiting options")
-    ratelimit_opts.add_argument("--connection-timeout", type=int, default=config_group["connection_timeout"],
-                                help="number of seconds to wait attempting to connect to a URL during the downloading phase (default: %(default)s)")
-    ratelimit_opts.add_argument("--ratelimit", type=int, default=config_group["ratelimit"],
-                                help="this applies to requests made in the program during scraping, the number you provide is in requests/seconds (default: %(default)s)")
-    ratelimit_opts.add_argument("--throttle", type=int, default=config_group["throttle"],
-                                help="this is a throttle between requests during the downloading phase, the number is in seconds (default: %(default)s)")
+    ratelimit_opts.add_argument("--connection-timeout", type=int, default=config_group["connection_timeout"], help="number of seconds to wait attempting to connect to a URL during the downloading phase (default: %(default)s)")
+    ratelimit_opts.add_argument("--ratelimit", type=int, default=config_group["ratelimit"], help="this applies to requests made in the program during scraping, the number you provide is in requests/seconds (default: %(default)s)")
+    ratelimit_opts.add_argument("--throttle", type=int, default=config_group["throttle"], help="this is a throttle between requests during the downloading phase, the number is in seconds (default: %(default)s)")
 
     # Forum Options
     forum_opts = parser.add_argument_group("Forum options")

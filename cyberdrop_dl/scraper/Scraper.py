@@ -79,12 +79,13 @@ class ScrapeMapper:
         self.quiet = quiet
         self.jdownloader = JDownloader(args['JDownloader'], quiet)
 
-        self.bunkr_limiter = AsyncRateLimiter(4)
+        self.bunkr_limiter = AsyncRateLimiter(max_calls=1, period=1)
         self.coomer_limiter = AsyncRateLimiter(8)
         self.gofile_limiter = AsyncRateLimiter(max_calls=1, period=3)
         self.jpgfish_limiter = AsyncRateLimiter(10)
         self.kemono_limiter = AsyncRateLimiter(8)
 
+        self.bunkr_semaphore = asyncio.Semaphore(2)
         self.coomer_semaphore = asyncio.Semaphore(1)
         self.cyberfile_semaphore = asyncio.Semaphore(2)
         self.gofile_semaphore = asyncio.Semaphore(1)
@@ -143,8 +144,9 @@ class ScrapeMapper:
         if not self.bunkr_crawler:
             self.bunkr_crawler = BunkrCrawler(quiet=self.quiet, SQL_Helper=self.SQL_Helper,
                                               remove_bunkr_id=self.remove_bunkr_id)
-        async with self.bunkr_limiter:
-            album_obj = await self.bunkr_crawler.fetch(bunkr_session, url)
+        async with self.bunkr_semaphore:
+            async with self.bunkr_limiter:
+                album_obj = await self.bunkr_crawler.fetch(bunkr_session, url)
         if not await album_obj.is_empty():
             await self._handle_album_additions("bunkr", album_obj, title)
         await bunkr_session.exit_handler()
