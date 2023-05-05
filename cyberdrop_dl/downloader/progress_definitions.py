@@ -222,7 +222,7 @@ class CascadeProgress:
         self.progress = _Progress(self.cascade_progress, progressions.cascade_progress_overflow, self.color, "Threads", visible_tasks_limit)
 
     def add_cascade(self, title: str, total_domains: int) -> TaskID:
-        task_id = self.progress.add_task(title, total_domains)
+        task_id = self.progress.add_task(title.upper(), total_domains)
         self.progress.redraw()
         return task_id
 
@@ -251,7 +251,7 @@ class DomainProgress:
             self.progress.redraw()
             return self.domains[domain]
         else:
-            task_id = self.progress.add_task(domain, total_albums)
+            task_id = self.progress.add_task(domain.upper(), total_albums)
             self.domains[domain] = task_id
             self.domain_totals[domain] = total_albums
             self.progress.redraw()
@@ -281,7 +281,7 @@ class AlbumProgress:
         task_description = task_description.encode("ascii", "ignore").decode().strip()
         task_description = adjust_title(task_description)
 
-        task_id = self.progress.add_task(task_description, total_files)
+        task_id = self.progress.add_task(task_description.upper(), total_files)
         self.progress.redraw()
         return task_id
 
@@ -305,7 +305,7 @@ class FileProgress:
         task_description = task_description.encode("ascii", "ignore").decode().strip()
         task_description = adjust_title(task_description)
 
-        task_id = self.progress.add_task(task_description, 0)
+        task_id = self.progress.add_task(task_description.upper(), 0)
         self.progress.redraw()
         return task_id
 
