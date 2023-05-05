@@ -3,7 +3,7 @@ from __future__ import annotations
 import asyncio
 import contextlib
 from functools import wraps
-from typing import Dict, Tuple
+from typing import Dict, Tuple, List
 
 from rich.console import Group
 from rich.panel import Panel
@@ -131,10 +131,10 @@ class _Progress:
 
         self.locked = False
 
-        self.visible_tasks = []
-        self.invisible_tasks = []
-        self.completed_tasks = []
-        self.uninitiated_tasks = []
+        self.visible_tasks: List[TaskID] = []
+        self.invisible_tasks: List[TaskID] = []
+        self.completed_tasks: List[TaskID] = []
+        self.uninitiated_tasks: List[TaskID] = []
         self.tasks_visibility_limit = visible_tasks_limit
 
     def redraw(self):
@@ -241,8 +241,8 @@ class DomainProgress:
         self.type_str = "Domains"
         self.progress = _Progress(self.domain_progress, progressions.domain_progress_overflow, self.color, "Domains", visible_tasks_limit)
 
-        self.domains = {}
-        self.domain_totals = {}
+        self.domains: Dict[str, TaskID] = {}
+        self.domain_totals: Dict[str, int] = {}
 
     def add_domain(self, domain: str, total_albums: int) -> TaskID:
         if domain in self.domains:

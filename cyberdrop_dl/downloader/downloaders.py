@@ -166,6 +166,7 @@ class Downloader:
                 resume_point = partial_file.stat().st_size
                 range_num = f'bytes={resume_point}-'
 
+            assert media.url.host is not None
             headers = {"Authorization": await basic_auth("Cyberdrop-DL", self.CDL_Helper.pixeldrain_api_key)} \
                 if (self.CDL_Helper.pixeldrain_api_key and "pixeldrain" in media.url.host) else {}
             if range_num:
@@ -291,7 +292,7 @@ class Downloader:
 
 class DownloadManager:
     def __init__(self, CDL_Helper: CDLHelper, Progress_Master: ProgressMaster):
-        self.downloaders = {}
+        self.downloaders: Dict[str, Downloader] = {}
         self.CDL_Helper = CDL_Helper
         self.Progress_Master = Progress_Master
 

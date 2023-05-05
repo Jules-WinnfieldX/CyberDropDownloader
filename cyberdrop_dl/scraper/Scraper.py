@@ -362,7 +362,7 @@ class ScrapeMapper:
             return not any(site in host for site in self.only_data.sites)
         return any(site in host for site in self.skip_data.sites)
 
-    async def map_url(self, url_to_map: URL, title=None, referer: URL = None):
+    async def map_url(self, url_to_map: URL, title=None, referer: Optional[URL] = None):
         if not url_to_map:
             return
         if not url_to_map.host:

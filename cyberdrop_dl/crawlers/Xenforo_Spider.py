@@ -308,6 +308,7 @@ class XenforoCrawler:
 
         # Handle links
         def is_direct_link(host: str) -> bool:
+            assert url.host is not None
             host_su = host.replace(".st", ".su")
             return host_su in url.host or url.host in host_su or "smgmedia" in host
 
