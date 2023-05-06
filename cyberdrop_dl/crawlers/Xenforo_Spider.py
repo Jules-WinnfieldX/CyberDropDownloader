@@ -6,7 +6,6 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Dict, List, Tuple
 
 import aiofiles
-import bs4
 from bs4 import BeautifulSoup
 from yarl import URL
 
@@ -20,6 +19,8 @@ from ..base_functions.data_classes import CascadeItem, MediaItem
 from ..base_functions.error_classes import FailedLoginFailure, NoExtensionFailure
 
 if TYPE_CHECKING:
+    import bs4
+
     from ..base_functions.sql_helper import SQLHelper
     from ..client.client import ScrapeSession
 
@@ -263,15 +264,11 @@ class XenforoCrawler:
         post_num_str = ""
         content_links = []
 
-        title_block = soup.select_one(spec.title_block_tag)
-        for elem in title_block.find_all(spec.title_clutter_tag):
-            elem.decompose()
-
-        if title:
-            pass
-        else:
-            title = title_block.text
-            title = await make_title_safe(title.replace("\n", "").strip())
+        if not title:
+            title_block = soup.select_one(spec.title_block_tag)
+            for elem in title_block.find_all(spec.title_clutter_tag):
+                elem.decompose()
+            title = await make_title_safe(title_block.text.replace("\n", "").strip())
 
         posts = soup.select(spec.posts_block_tag)
 
