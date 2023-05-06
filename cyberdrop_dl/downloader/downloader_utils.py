@@ -73,9 +73,8 @@ def retry(f):
                 media = args[1]
                 url_path = args[2]
                 if not self.disable_attempt_limit and self.current_attempt[url_path] >= self.allowed_attempts - 1:
-                    await self.output_failed(media, e)
                     logger.debug('Skipping %s...', media.url, exc_info=True)
-                    self.files.add_failed()
+                    await self.handle_failed(media, e)
                     return None
                 logger.debug(e.message)
                 logger.debug(f'Retrying ({self.current_attempt[url_path]}) {media.url}...')

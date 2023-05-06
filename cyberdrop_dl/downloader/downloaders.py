@@ -5,9 +5,8 @@ import contextlib
 import itertools
 import logging
 from http import HTTPStatus
-from pathlib import Path
 from random import gauss
-from typing import TYPE_CHECKING, Dict, Any, Tuple, Optional, Union
+from typing import TYPE_CHECKING, Any, Dict, Tuple
 
 import aiofiles
 import aiohttp.client_exceptions
@@ -40,10 +39,13 @@ from .downloader_utils import (
     retry,
 )
 from .progress_definitions import (
-    ProgressMaster, OverallFileProgress
+    OverallFileProgress,
+    ProgressMaster,
 )
 
 if TYPE_CHECKING:
+    from pathlib import Path
+
     from rich.progress import TaskID
 
 
@@ -104,7 +106,6 @@ class Downloader:
         self.download_session = DownloadSession(CDL_Helper.client)
 
         self.CDL_Helper = CDL_Helper
-        self.files = CDL_Helper.files
         self.Progress_Master = Progress_Master
         self.disable_attempt_limit = CDL_Helper.disable_attempt_limit
         self.allowed_attempts = CDL_Helper.allowed_attempts
@@ -211,10 +212,9 @@ class Downloader:
                 if await is_4xx_client_error(e.code) and e.code != HTTPStatus.TOO_MANY_REQUESTS:
                     logger.debug("We ran into a 400 level error: %s", e.code)
                     log(f"Failed Download: {media.filename}", quiet=True)
-                    self.CDL_Helper.files.add_failed()
                     if url_path in self.current_attempt:
                         self.current_attempt.pop(url_path)
-                    await self.output_failed(media, e)
+                    await self.handle_failed(media, e)
                     return
 
                 if e.code == HTTPStatus.SERVICE_UNAVAILABLE or e.code == HTTPStatus.BAD_GATEWAY \
@@ -224,17 +224,17 @@ class Downloader:
                             e.message = "Web server is down"
                         logging.debug(f"\n{media.url} ({e.message})")
                     log(f"Failed Download: {media.filename}", quiet=True)
-                    self.CDL_Helper.files.add_failed()
                     if url_path in self.current_attempt:
                         self.current_attempt.pop(url_path)
-                    await self.output_failed(media, e)
+                    await self.handle_failed(media, e)
                     return
 
                 logger.debug("Error status code: %s", e.code)
 
             raise DownloadFailure(code=getattr(e, "code", 1), message=repr(e))
 
-    async def output_failed(self, media: MediaItem, e: Any) -> None:
+    async def handle_failed(self, media: MediaItem, e: Any) -> None:
+        self.CDL_Helper.files.add_failed()
         if self.CDL_Helper.errored_output:
             async with aiofiles.open(self.CDL_Helper.errored_file, mode='a') as file:
                 await file.write(f"{media.url},{media.referer},{e.message}\n")
