@@ -228,6 +228,9 @@ class Old_Downloader:
 
             raise DownloadFailure(code=getattr(e, "code", 1), message=repr(e))
 
+    def can_retry(self, url_path: str) -> bool:
+        return self.disable_attempt_limit or self.current_attempt[url_path] < self.allowed_attempts - 1
+
     async def handle_failed(self, media: MediaItem, e: Any) -> None:
         self.files.add_failed()
         if self.errored_output:

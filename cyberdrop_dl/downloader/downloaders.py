@@ -107,8 +107,6 @@ class Downloader:
 
         self.CDL_Helper = CDL_Helper
         self.Progress_Master = Progress_Master
-        self.disable_attempt_limit = CDL_Helper.disable_attempt_limit
-        self.allowed_attempts = CDL_Helper.allowed_attempts
 
     async def download(self, album: str, media: MediaItem, url_path: str, album_task: TaskID) -> None:
         async with self._semaphore:
@@ -232,6 +230,9 @@ class Downloader:
                 logger.debug("Error status code: %s", e.code)
 
             raise DownloadFailure(code=getattr(e, "code", 1), message=repr(e))
+
+    def can_retry(self, url_path: str) -> bool:
+        return self.CDL_Helper.disable_attempt_limit or self.current_attempt[url_path] < self.CDL_Helper.allowed_attempts - 1
 
     async def handle_failed(self, media: MediaItem, e: Any) -> None:
         self.CDL_Helper.files.add_failed()
