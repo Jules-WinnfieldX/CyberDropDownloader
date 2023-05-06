@@ -210,10 +210,9 @@ class Old_Downloader:
                 if await is_4xx_client_error(e.code) and e.code != HTTPStatus.TOO_MANY_REQUESTS:
                     logger.debug("We ran into a 400 level error: %s", e.code)
                     log(f"Failed Download: {media.filename}", quiet=True)
-                    self.files.add_failed()
                     if url_path in self.current_attempt:
                         self.current_attempt.pop(url_path)
-                    await self.output_failed(media, e)
+                    await self.handle_failed(media, e)
                     return
                 if e.code == HTTPStatus.SERVICE_UNAVAILABLE or e.code == CustomHTTPStatus.WEB_SERVER_IS_DOWN:
                     if hasattr(e, "message"):
@@ -221,16 +220,16 @@ class Old_Downloader:
                             e.message = "Web server is down"
                         logging.debug(f"\n{media.url} ({e.message})")
                     log(f"Failed Download: {media.filename}", quiet=True)
-                    self.files.add_failed()
                     if url_path in self.current_attempt:
                         self.current_attempt.pop(url_path)
-                    await self.output_failed(media, e)
+                    await self.handle_failed(media, e)
                     return
                 logger.debug("Error status code: %s", e.code)
 
             raise DownloadFailure(code=getattr(e, "code", 1), message=repr(e))
 
-    async def output_failed(self, media: MediaItem, e: Any) -> None:
+    async def handle_failed(self, media: MediaItem, e: Any) -> None:
+        self.files.add_failed()
         if self.errored_output:
             async with aiofiles.open(self.errored_file, mode='a') as file:
                 await file.write(f"{media.url},{media.referer},{e.message}\n")
