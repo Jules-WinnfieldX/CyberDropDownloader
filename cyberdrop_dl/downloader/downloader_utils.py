@@ -72,7 +72,7 @@ def retry(f):
             except DownloadFailure as e:
                 media = args[1]
                 url_path = args[2]
-                if not self.disable_attempt_limit and self.current_attempt[url_path] >= self.allowed_attempts - 1:
+                if not self.can_retry(url_path):
                     logger.debug('Skipping %s...', media.url, exc_info=True)
                     await self.handle_failed(media, e)
                     return None
