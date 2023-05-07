@@ -4,6 +4,7 @@ import asyncio
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Union, List
 
+from aiolimiter import AsyncLimiter
 from bs4 import BeautifulSoup
 from yarl import URL
 
@@ -40,6 +41,7 @@ class CoomenoCrawler:
         self.scraping_mapper = scraping_mapper
         self.separate_posts = separate_posts
         self.SQL_Helper = SQL_Helper
+        self.limiter = AsyncLimiter(15, 1)
 
     async def fetch(self, session: ScrapeSession, url: URL):
         """Director for Coomer/Kemono scraping"""
@@ -95,7 +97,8 @@ class CoomenoCrawler:
         """Parses profiles with supplied selectors"""
         title = ""
         try:
-            soup = await session.get_BS4(url)
+            async with self.limiter:
+                soup = await session.get_BS4(url)
             title = await make_title_safe(soup.select_one("span[itemprop=name]").get_text())
             title = f"{title} ({url.host})"
 
@@ -128,7 +131,8 @@ class CoomenoCrawler:
         try:
             text = await self.SQL_Helper.get_blob(url)
             if not text:
-                text = await session.get_text(url)
+                async with self.limiter:
+                    text = await session.get_text(url)
                 assert text is not None
                 await self.SQL_Helper.insert_blob(text, url)
             soup = BeautifulSoup(text, 'html.parser')

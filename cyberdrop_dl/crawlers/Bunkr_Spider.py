@@ -3,6 +3,7 @@ from __future__ import annotations
 import re
 from typing import TYPE_CHECKING
 
+from aiolimiter import AsyncLimiter
 from yarl import URL
 
 from ..base_functions.base_functions import (
@@ -25,6 +26,7 @@ class BunkrCrawler:
         self.quiet = quiet
         self.SQL_Helper = SQL_Helper
         self.remove_bunkr_id = remove_bunkr_id
+        self.limiter = AsyncLimiter(20, 1)
 
     async def fetch(self, session: ScrapeSession, url: URL) -> AlbumItem:
         """Scraper for Bunkr"""
@@ -99,7 +101,8 @@ class BunkrCrawler:
         url = url.with_host("bunkr.la")
 
         try:
-            soup = await session.get_BS4(url)
+            async with self.limiter:
+                soup = await session.get_BS4(url)
             head = soup.select_one("head")
             scripts = head.select('script[type="text/javascript"]')
             link = None
@@ -136,7 +139,8 @@ class BunkrCrawler:
 
         album = AlbumItem(url.name, [])
         try:
-            soup = await session.get_BS4(url)
+            async with self.limiter:
+                soup = await session.get_BS4(url)
             title = soup.select_one('h1[class="text-[24px] font-bold text-dark dark:text-white"]')
             for elem in title.find_all("span"):
                 elem.decompose()

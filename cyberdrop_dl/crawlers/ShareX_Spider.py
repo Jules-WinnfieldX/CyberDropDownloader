@@ -4,6 +4,7 @@ import asyncio
 import re
 from typing import TYPE_CHECKING
 
+from aiolimiter import AsyncLimiter
 from yarl import URL
 
 from ..base_functions.base_functions import (
@@ -26,6 +27,7 @@ class ShareXCrawler:
         self.include_id = include_id
         self.quiet = quiet
         self.SQL_Helper = SQL_Helper
+        self.limiter = AsyncLimiter(20, 1)
 
     async def fetch(self, session: ScrapeSession, url: URL) -> DomainItem:
         """Director for ShareX scraper"""
@@ -59,7 +61,8 @@ class ShareXCrawler:
     async def get_albums(self, session: ScrapeSession, url: URL, domain_obj: DomainItem) -> None:
         """Handles scraping for Albums"""
         try:
-            soup = await session.get_BS4(url)
+            async with self.limiter:
+                soup = await session.get_BS4(url)
             albums = soup.select("a[class='image-container --media']")
             for album in albums:
                 album_url = URL(album.get('href'))
@@ -83,7 +86,8 @@ class ShareXCrawler:
         """Handles scraping for singular files"""
         await asyncio.sleep(1)
         try:
-            soup = await session.get_BS4(url)
+            async with self.limiter:
+                soup = await session.get_BS4(url)
             link = URL(soup.select_one("input[id=embed-code-2]").get('value'))
             link = link.with_name(link.name.replace('.md.', '.').replace('.th.', '.'))
             link = await self.jpg_fish_from_church(link)
@@ -98,7 +102,8 @@ class ShareXCrawler:
     async def get_sub_album_links(self, session: ScrapeSession, url: URL, og_title: str,
                                   domain_obj: DomainItem) -> None:
         try:
-            soup = await session.get_BS4(url)
+            async with self.limiter:
+                soup = await session.get_BS4(url)
             albums = soup.select("div[class=pad-content-listing] div")
             for album in albums:
                 album_url = album.get('data-url-short')
@@ -113,7 +118,8 @@ class ShareXCrawler:
     async def parse_profile(self, session: ScrapeSession, url: URL, domain_obj: DomainItem) -> None:
         """Handles scraping for profiles"""
         try:
-            soup = await session.get_BS4(url)
+            async with self.limiter:
+                soup = await session.get_BS4(url)
             title = soup.select_one("div[class=header] h1 strong").get_text()
             if title is None:
                 title = url.name
@@ -131,7 +137,8 @@ class ShareXCrawler:
     async def get_list_links(self, session: ScrapeSession, url: URL, title: str, domain_obj: DomainItem) -> None:
         """Gets final links and adds to domain_obj"""
         try:
-            soup = await session.get_BS4(url)
+            async with self.limiter:
+                soup = await session.get_BS4(url)
             assert url.host is not None
             if 'jpg.fish' in url.host or 'jpg.church' in url.host:
                 links = soup.select("a[href*=img] img")
@@ -164,7 +171,8 @@ class ShareXCrawler:
 
     async def parse(self, *, session: ScrapeSession, url: URL, og_title=None, domain_obj: DomainItem) -> None:
         try:
-            soup = await session.get_BS4(url)
+            async with self.limiter:
+                soup = await session.get_BS4(url)
 
             title = soup.select_one("a[data-text=album-name]").get_text()
             if title is None:

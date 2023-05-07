@@ -3,6 +3,7 @@ from __future__ import annotations
 import http
 from typing import TYPE_CHECKING, Union, List, Dict
 
+from aiolimiter import AsyncLimiter
 from yarl import URL
 
 from ..base_functions.base_functions import log, logger, make_title_safe, get_filename_and_ext
@@ -18,6 +19,7 @@ class GoFileCrawler:
     def __init__(self, quiet: bool, SQL_Helper: SQLHelper):
         self.quiet = quiet
         self.SQL_Helper = SQL_Helper
+        self.limiter = AsyncLimiter(1, 1)
 
         self.api_address = URL("https://api.gofile.io")
         self.token = ""
@@ -33,7 +35,8 @@ class GoFileCrawler:
             return
 
         try:
-            json_obj = await session.get_json(self.api_address / "createAccount")
+            async with self.limiter:
+                json_obj = await session.get_json(self.api_address / "createAccount")
             if json_obj["status"] == "ok":
                 self.token = json_obj["data"]["token"]
                 await self.set_cookie(session)
@@ -79,7 +82,10 @@ class GoFileCrawler:
             "contentId": content_id,
             "websiteToken": "12345",
         }
-        content = await session.get_json(self.api_address / "getContent", params)
+
+        async with self.limiter:
+            content = await session.get_json(self.api_address / "getContent", params)
+
         if content["status"] != "ok":
             logger.debug("Error encountered while handling %s", url)
             log(f"Error: {url}", quiet=self.quiet, style="red")

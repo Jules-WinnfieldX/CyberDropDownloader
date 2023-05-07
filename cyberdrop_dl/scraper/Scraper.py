@@ -4,12 +4,12 @@ import asyncio
 from typing import TYPE_CHECKING, Optional, Dict
 
 import aiofiles
+from aiolimiter import AsyncLimiter
 from yarl import URL
 
 from cyberdrop_dl.base_functions.base_functions import log
 from cyberdrop_dl.base_functions.data_classes import AlbumItem, CascadeItem, DomainItem, ForumItem, SkipData
 from cyberdrop_dl.client.client import Client, ScrapeSession
-from cyberdrop_dl.client.rate_limiting import AsyncRateLimiter
 from cyberdrop_dl.crawlers.Anonfiles_Spider import AnonfilesCrawler
 from cyberdrop_dl.crawlers.Bunkr_Spider import BunkrCrawler
 from cyberdrop_dl.crawlers.Coomeno_Spider import CoomenoCrawler
@@ -79,18 +79,6 @@ class ScrapeMapper:
         self.quiet = quiet
         self.jdownloader = JDownloader(args['JDownloader'], quiet)
 
-        self.bunkr_limiter = AsyncRateLimiter(max_calls=1, period=1)
-        self.coomer_limiter = AsyncRateLimiter(8)
-        self.gofile_limiter = AsyncRateLimiter(max_calls=1, period=3)
-        self.jpgfish_limiter = AsyncRateLimiter(10)
-        self.kemono_limiter = AsyncRateLimiter(8)
-
-        self.bunkr_semaphore = asyncio.Semaphore(2)
-        self.coomer_semaphore = asyncio.Semaphore(1)
-        self.cyberfile_semaphore = asyncio.Semaphore(2)
-        self.gofile_semaphore = asyncio.Semaphore(1)
-        self.jpgfish_semaphore = asyncio.Semaphore(5)
-        self.kemono_semaphore = asyncio.Semaphore(1)
         self.nudostar_semaphore = asyncio.Semaphore(1)
         self.simpcity_semaphore = asyncio.Semaphore(1)
         self.socialmediagirls_semaphore = asyncio.Semaphore(1)
@@ -144,9 +132,8 @@ class ScrapeMapper:
         if not self.bunkr_crawler:
             self.bunkr_crawler = BunkrCrawler(quiet=self.quiet, SQL_Helper=self.SQL_Helper,
                                               remove_bunkr_id=self.remove_bunkr_id)
-        async with self.bunkr_semaphore:
-            async with self.bunkr_limiter:
-                album_obj = await self.bunkr_crawler.fetch(bunkr_session, url)
+
+        album_obj = await self.bunkr_crawler.fetch(bunkr_session, url)
         if not await album_obj.is_empty():
             await self._handle_album_additions("bunkr", album_obj, title)
         await bunkr_session.exit_handler()
@@ -163,8 +150,8 @@ class ScrapeMapper:
         cyberfile_session = ScrapeSession(self.client)
         if not self.cyberfile_crawler:
             self.cyberfile_crawler = CyberFileCrawler(quiet=self.quiet, SQL_Helper=self.SQL_Helper)
-        async with self.cyberfile_semaphore:
-            domain_obj = await self.cyberfile_crawler.fetch(cyberfile_session, url)
+
+        domain_obj = await self.cyberfile_crawler.fetch(cyberfile_session, url)
         await self._handle_domain_additions("cyberfile", domain_obj, title)
         await cyberfile_session.exit_handler()
 
@@ -196,11 +183,10 @@ class ScrapeMapper:
         gofile_session = ScrapeSession(self.client)
         if not self.gofile_crawler:
             self.gofile_crawler = GoFileCrawler(quiet=self.quiet, SQL_Helper=self.SQL_Helper)
-        async with self.gofile_limiter:
-            async with self.gofile_semaphore:
-                await self.gofile_crawler.get_token(session=gofile_session,
-                                                    api_token=self.args['Authentication']['gofile_api_key'])
-            domain_obj = await self.gofile_crawler.fetch(gofile_session, url)
+
+        await self.gofile_crawler.get_token(session=gofile_session,
+                                            api_token=self.args['Authentication']['gofile_api_key'])
+        domain_obj = await self.gofile_crawler.fetch(gofile_session, url)
         await self._handle_domain_additions("gofile", domain_obj, title)
         await gofile_session.exit_handler()
 
@@ -264,12 +250,8 @@ class ScrapeMapper:
         sharex_session = ScrapeSession(self.client)
         if not self.sharex_crawler:
             self.sharex_crawler = ShareXCrawler(include_id=self.include_id, quiet=self.quiet, SQL_Helper=self.SQL_Helper)
-        if ("jpg.fish" in url.host or "jpg.church" in url.host or "img.kiwi" in url.host) and sharex_session.client.ratelimit > 19:
-            async with self.jpgfish_semaphore:
-                async with self.jpgfish_limiter:
-                    domain_obj = await self.sharex_crawler.fetch(sharex_session, url)
-        else:
-            domain_obj = await self.sharex_crawler.fetch(sharex_session, url)
+
+        domain_obj = await self.sharex_crawler.fetch(sharex_session, url)
         await self._handle_domain_additions("sharex", domain_obj, title)
         await sharex_session.exit_handler()
 
@@ -307,14 +289,8 @@ class ScrapeMapper:
                                                   separate_posts=self.separate_posts, SQL_Helper=self.SQL_Helper,
                                                   quiet=self.quiet)
         assert url.host is not None
-        if "coomer" in url.host:
-            async with self.coomer_semaphore:
-                async with self.coomer_limiter:
-                    cascade, new_title = await self.coomeno_crawler.fetch(coomeno_session, url)
-        elif "kemono" in url.host:
-            async with self.kemono_semaphore:
-                async with self.kemono_limiter:
-                    cascade, new_title = await self.coomeno_crawler.fetch(coomeno_session, url)
+        cascade, new_title = await self.coomeno_crawler.fetch(coomeno_session, url)
+
         if not new_title or await cascade.is_empty():
             await coomeno_session.exit_handler()
             return

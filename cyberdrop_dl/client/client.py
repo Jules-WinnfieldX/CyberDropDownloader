@@ -11,6 +11,7 @@ from typing import TYPE_CHECKING, Callable, Optional, Coroutine, Any, Tuple, Dic
 import aiofiles
 import aiohttp
 import certifi
+from aiolimiter import AsyncLimiter
 from bs4 import BeautifulSoup
 from tqdm import tqdm
 from yarl import URL
@@ -19,7 +20,6 @@ from ..base_functions.base_functions import logger
 from ..base_functions.error_classes import DownloadFailure, InvalidContentTypeFailure
 from ..downloader.downloader_utils import CustomHTTPStatus
 from ..downloader.progress_definitions import ProgressMaster, adjust_title
-from .rate_limiting import AsyncRateLimiter
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -57,7 +57,7 @@ class ScrapeSession:
     """AIOHTTP operations for scraping"""
     def __init__(self, client: Client) -> None:
         self.client = client
-        self.rate_limiter = AsyncRateLimiter(self.client.ratelimit)
+        self.rate_limiter = AsyncLimiter(self.client.ratelimit, 1)
         self.headers = {"user-agent": client.user_agent}
         self.timeouts = aiohttp.ClientTimeout(total=self.client.connect_timeout + 45,
                                               connect=self.client.connect_timeout, sock_read=45)

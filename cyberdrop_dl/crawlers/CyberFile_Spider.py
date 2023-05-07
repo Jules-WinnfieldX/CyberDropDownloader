@@ -3,6 +3,7 @@ from __future__ import annotations
 import contextlib
 from typing import TYPE_CHECKING, Optional, Tuple, List
 
+from aiolimiter import AsyncLimiter
 from bs4 import BeautifulSoup
 from yarl import URL
 
@@ -21,6 +22,7 @@ class CyberFileCrawler:
         self.SQL_Helper = SQL_Helper
         self.load_files = URL('https://cyberfile.me/account/ajax/load_files')
         self.file_details = URL('https://cyberfile.me/account/ajax/file_details')
+        self.limiter = AsyncLimiter(25, 10)
 
     async def fetch(self, session: ScrapeSession, url: URL) -> DomainItem:
         """Director for cyberfile scraping"""
@@ -54,7 +56,8 @@ class CyberFileCrawler:
     async def get_folder_id(self, session: ScrapeSession, url: URL) -> int:
         """Gets the internal ID for a folder"""
         try:
-            soup = await session.get_BS4(url)
+            async with self.limiter:
+                soup = await session.get_BS4(url)
             script_func = soup.select_one('div[class="page-container horizontal-menu with-sidebar fit-logo-with-sidebar logged-out clear-adblock"] script').text
             script_func = script_func.split('loadImages(')[-1]
             script_func = script_func.split(';')[0]
@@ -73,7 +76,8 @@ class CyberFileCrawler:
         nodes = []
         contents = []
         try:
-            content = await session.post(self.load_files, data)
+            async with self.limiter:
+                content = await session.post(self.load_files, data)
             text = content['html']
             original_title = title
             if title:
@@ -119,7 +123,8 @@ class CyberFileCrawler:
     async def get_single_contentId(self, session: ScrapeSession, url: URL) -> int:
         """Gets an individual content id"""
         try:
-            soup = await session.get_BS4(url)
+            async with self.limiter:
+                soup = await session.get_BS4(url)
             script_funcs = soup.select('script')
             for script in script_funcs:
                 script_text = script.text
@@ -141,14 +146,16 @@ class CyberFileCrawler:
         """Gets folder id's and content id's from shared links"""
         try:
             # Initial page load to tell server, this is what we want.
-            await session.get_no_resp(url, {'referer': str(url), "user-agent": session.client.user_agent})
+            async with self.limiter:
+                await session.get_no_resp(url, {'referer': str(url), "user-agent": session.client.user_agent})
 
             # get the content listings
             data = {"pageType": "nonaccountshared", "nodeId": '', "pageStart": page, "perPage": 0, "filterOrderBy": ""}
             nodes = []
             contents = []
 
-            content = await session.post(self.load_files, data)
+            async with self.limiter:
+                content = await session.post(self.load_files, data)
             text = content['html']
             soup = BeautifulSoup(text.replace("\\", ""), 'html.parser')
             page_tag = soup.select_one('input[id=rspTotalPages]')
@@ -193,9 +200,9 @@ class CyberFileCrawler:
             contents = []
             data = {"pageType": "nonaccountshared", "nodeId": nodeId, "pageStart": page, "perPage": 0, "filterOrderBy": ""}
 
-            content = await session.post(self.load_files, data)
+            async with self.limiter:
+                content = await session.post(self.load_files, data)
             text = content['html']
-
             title = title if title else content['page_title']
             soup = BeautifulSoup(text.replace("\\", ""), 'html.parser')
 
@@ -239,7 +246,8 @@ class CyberFileCrawler:
         try:
             for title, contentId in contentIds:
                 data = {"u": contentId}
-                content = await session.post(self.file_details, data)
+                async with self.limiter:
+                    content = await session.post(self.file_details, data)
                 text = content['html']
                 soup = BeautifulSoup(text.replace("\\", ""), 'html.parser')
                 menu = soup.select_one('ul[class="dropdown-menu dropdown-info account-dropdown-resize-menu"] li a')
