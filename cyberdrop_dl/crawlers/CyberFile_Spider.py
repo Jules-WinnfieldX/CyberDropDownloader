@@ -207,17 +207,19 @@ class CyberFileCrawler:
             for listing in listings:
                 with contextlib.suppress(TypeError, AttributeError):
                     filename = listing.select_one('span[class=filename]')
-                    assert filename is not None
-                    temp_title = title + '/' + await make_title_safe(filename.text)
+                    if filename:
+                        temp_title = title + '/' + await make_title_safe(filename.text)
 
                     folder_id = listing.get('folderid')
-                    assert isinstance(folder_id, str)
-                    nodes.append((temp_title, int(folder_id)))
+                    if folder_id:
+                        assert isinstance(folder_id, str)
+                        nodes.append((temp_title, int(folder_id)))
 
                 with contextlib.suppress(TypeError):
                     file_id = listing.get('fileid')
-                    assert isinstance(file_id, str)
-                    contents.append((title, int(file_id)))
+                    if file_id:
+                        assert isinstance(file_id, str)
+                        contents.append((title, int(file_id)))
 
             if page < total_pages:
                 contents.extend(await self.get_shared_content(session, url, nodeId, page + 1, title))
