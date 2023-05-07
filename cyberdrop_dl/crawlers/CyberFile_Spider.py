@@ -22,7 +22,7 @@ class CyberFileCrawler:
         self.SQL_Helper = SQL_Helper
         self.load_files = URL('https://cyberfile.me/account/ajax/load_files')
         self.file_details = URL('https://cyberfile.me/account/ajax/file_details')
-        self.limiter = AsyncLimiter(25, 10)
+        self.limiter = AsyncLimiter(10, 10)
 
     async def fetch(self, session: ScrapeSession, url: URL) -> DomainItem:
         """Director for cyberfile scraping"""
