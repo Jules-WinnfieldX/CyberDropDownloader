@@ -27,7 +27,7 @@ class ShareXCrawler:
         self.include_id = include_id
         self.quiet = quiet
         self.SQL_Helper = SQL_Helper
-        self.limiter = AsyncLimiter(20, 1)
+        self.limiter = AsyncLimiter(15, 1)
 
     async def fetch(self, session: ScrapeSession, url: URL) -> DomainItem:
         """Director for ShareX scraper"""
