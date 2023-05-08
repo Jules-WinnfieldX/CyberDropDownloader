@@ -79,6 +79,7 @@ class ScrapeMapper:
         self.quiet = quiet
         self.jdownloader = JDownloader(args['JDownloader'], quiet)
 
+        self.coomero_semaphore = asyncio.Semaphore(4)
         self.nudostar_semaphore = asyncio.Semaphore(1)
         self.simpcity_semaphore = asyncio.Semaphore(1)
         self.socialmediagirls_semaphore = asyncio.Semaphore(1)
@@ -289,7 +290,8 @@ class ScrapeMapper:
                                                   separate_posts=self.separate_posts, SQL_Helper=self.SQL_Helper,
                                                   quiet=self.quiet)
         assert url.host is not None
-        cascade, new_title = await self.coomeno_crawler.fetch(coomeno_session, url)
+        async with self.coomero_semaphore:
+            cascade, new_title = await self.coomeno_crawler.fetch(coomeno_session, url)
 
         if not new_title or await cascade.is_empty():
             await coomeno_session.exit_handler()
