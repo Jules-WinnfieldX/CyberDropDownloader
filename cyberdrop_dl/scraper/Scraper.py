@@ -23,7 +23,7 @@ from cyberdrop_dl.crawlers.GoFile_Spider import GoFileCrawler
 from cyberdrop_dl.crawlers.HGameCG_Spider import HGameCGCrawler
 from cyberdrop_dl.crawlers.ImgBox_Spider import ImgBoxCrawler
 from cyberdrop_dl.crawlers.LoveFap_Spider import LoveFapCrawler
-from cyberdrop_dl.crawlers.NSFWXXXCrawler import NSFWXXXCrawler
+from cyberdrop_dl.crawlers.NSFWXXX_Spider import NSFWXXXCrawler
 from cyberdrop_dl.crawlers.PimpAndHost_Spider import PimpAndHostCrawler
 from cyberdrop_dl.crawlers.PixelDrain_Spider import PixelDrainCrawler
 from cyberdrop_dl.crawlers.PostImg_Spider import PostImgCrawler
