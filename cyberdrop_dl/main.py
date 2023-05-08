@@ -98,6 +98,7 @@ def parse_args() -> argparse.Namespace:
     forum_opts = parser.add_argument_group("Forum options")
     forum_opts.add_argument("--output-last-forum-post", help="outputs the last post of a forum scrape to use as a starting point for future runs", action="store_true")
     forum_opts.add_argument("--separate-posts", help="separates forum scraping into folders by post number", action="store_true")
+    forum_opts.add_argument("--scrape-single-post", help="Scrapes only a single post from the given forum links", action="store_true")
 
     # Authentication details
     config_group = config_data["Authentication"]

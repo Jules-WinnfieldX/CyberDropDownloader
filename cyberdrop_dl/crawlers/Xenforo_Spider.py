@@ -142,6 +142,8 @@ class XenforoCrawler:
     def __init__(self, *, scraping_mapper, args: Dict, SQL_Helper: SQLHelper, quiet: bool):
         self.include_id = args["Runtime"]["include_id"]
         self.quiet = quiet
+
+        self.scrape_single_post = args["Forum_Options"]["scrape_single_post"]
         self.separate_posts = args["Forum_Options"]["separate_posts"]
         self.output_last = args["Forum_Options"]["output_last_forum_post"]
         self.output_last_file = args["Files"]["output_last_forum_post_file"]
@@ -258,6 +260,7 @@ class XenforoCrawler:
                           title: str, post_number: int) -> str:
         """Parses forum threads"""
         soup = await session.get_BS4(url)
+        continue_scrape = True
 
         assert url.host is not None
         domain = URL("https://" + url.host)
@@ -303,6 +306,10 @@ class XenforoCrawler:
 
             content_links.extend([(URL(link), temp_title) for link in links])
 
+            if self.scrape_single_post:
+                continue_scrape = False
+                break
+
         # Handle links
         def is_direct_link(host: str) -> bool:
             assert url.host is not None
@@ -315,7 +322,7 @@ class XenforoCrawler:
         await self.handle_external_links(external_links, url)
 
         next_page = soup.select_one(spec.next_page_tag)
-        if next_page is not None:
+        if next_page is not None and continue_scrape:
             next_page = next_page.get(spec.next_page_attribute)
             if next_page is not None:
                 if next_page.startswith('/'):

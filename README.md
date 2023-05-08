@@ -157,6 +157,7 @@ optional arguments:
 --throttle              this is a throttle between requests during the downloading phase, the number is in seconds
 
 --output-last-forum-post        outputs the last post of a forum scrape to use as a starting point for future runs
+--scrape-single-post            scrapes a single post from a forum thread
 --separate-posts                separates forum scraping into folders by post number
 
 --gofile-api-key                api key for premium gofile

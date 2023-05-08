@@ -28,6 +28,7 @@ config_default: Dict = {
         },
         "Forum_Options": {
             "output_last_forum_post": False,
+            "scrape_single_post": False,
             "separate_posts": False,
         },
         "Ignore": {
