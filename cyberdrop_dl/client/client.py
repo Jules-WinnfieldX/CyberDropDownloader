@@ -1,12 +1,13 @@
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import json
 import logging
 import ssl
 import time
 from http import HTTPStatus
-from typing import TYPE_CHECKING, Callable, Optional, Coroutine, Any, Tuple, Dict
+from typing import TYPE_CHECKING, Any, Callable, Coroutine, Dict, Optional, Tuple
 
 import aiofiles
 import aiohttp
@@ -153,6 +154,11 @@ class DownloadSession:
                 raise DownloadFailure(code=CustomHTTPStatus.IM_A_TEAPOT, message="Unexpectedly got text as response")
 
             size = int(resp.headers.get('Content-Length', '0'))
+            if not size:
+                content_range = resp.headers.get('Content-Range', '')  # <unit> <range-start>-<range-end>/<size>
+                if content_range:
+                    with contextlib.suppress(ValueError):
+                        size = int(content_range.split('/')[1])
             await save_content(resp.content, size)
 
     async def _throttle(self, delay: float, host: str) -> None:
@@ -178,7 +184,7 @@ class DownloadSession:
                             file_task: TaskID) -> None:
 
         async def save_content(content: aiohttp.StreamReader, size: int) -> None:
-            Progress_Master.FileProgress.update_file_length(file_task, size + resume_point)
+            Progress_Master.FileProgress.update_file_length(file_task, size)
             Progress_Master.FileProgress.advance_file(file_task, resume_point)
             await self._append_content(file, content, lambda chunk_len: Progress_Master.FileProgress.advance_file(file_task, chunk_len))
 
@@ -189,7 +195,7 @@ class DownloadSession:
 
         async def save_content(content: aiohttp.StreamReader, size: int) -> None:
             task_description = adjust_title(f"{media.url.host}: {media.filename}")
-            with tqdm(total=size + resume_point, unit_scale=True, unit='B', leave=False,
+            with tqdm(total=size, unit_scale=True, unit='B', leave=False,
                       initial=resume_point, desc=task_description) as progress:
                 await self._append_content(file, content, lambda chunk_len: progress.update(chunk_len))
 
