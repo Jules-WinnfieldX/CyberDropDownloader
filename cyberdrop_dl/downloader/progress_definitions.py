@@ -188,7 +188,7 @@ class _Progress:
 
     def update_total(self, task_id: TaskID, total: int) -> None:
         if task_id in self.invisible_tasks:
-            self.progress.update(task_id, visible=False)
+            self.progress.update(task_id, total=total, visible=False)
         elif task_id in self.visible_tasks:
             self.progress.update(task_id, total=total, visible=True)
         elif task_id in self.uninitiated_tasks:
