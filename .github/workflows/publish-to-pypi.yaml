@@ -27,7 +27,7 @@ jobs:
         password: ${{ secrets.PYPI_API_TOKEN }}
 
     - name: Publish to Test PyPI
-      uses: pypa/gh-action-pypi-publish@v1.5.0
+      uses: pypa/gh-action-pypi-publish@release/v1
       with:
         repository_url: https://test.pypi.org/legacy/
         password: ${{ secrets.TEST_PYPI_API_TOKEN }}
