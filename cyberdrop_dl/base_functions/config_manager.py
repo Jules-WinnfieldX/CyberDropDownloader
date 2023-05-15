@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import copy
 from pathlib import Path
-from typing import Optional, Union, Dict
+from typing import Dict, Optional, Union
 
 import yaml
 
@@ -77,13 +77,11 @@ def run_args(config: Path, cmd_arg: Dict) -> Dict:
 async def document_args(args: Dict) -> None:
     """We document the runtime arguments for debugging and troubleshooting, redacting sensitive information"""
     print_args = copy.deepcopy(args)
-    print_args['Authentication']['xbunker_password'] = '!REDACTED!' if args['Authentication']['xbunker_password'] is not None else None
-    print_args['Authentication']['socialmediagirls_password'] = '!REDACTED!' if args['Authentication']['socialmediagirls_password'] is not None else None
-    print_args['Authentication']['simpcity_password'] = '!REDACTED!' if args['Authentication']['simpcity_password'] is not None else None
-    print_args['Authentication']['nudostar_password'] = '!REDACTED!' if args['Authentication']['nudostar_password'] is not None else None
-    print_args['Authentication']['gofile_api_key'] = '!REDACTED!' if args['Authentication']['gofile_api_key'] is not None else None
-    print_args['Authentication']['pixeldrain_api_key'] = '!REDACTED!' if args['Authentication']['pixeldrain_api_key'] is not None else None
-    print_args['JDownloader']['jdownloader_password'] = '!REDACTED!' if args['JDownloader']['jdownloader_password'] is not None else None
+
+    for group in print_args.values():
+        for arg in group:
+            if group[arg] is not None and any(s in arg for s in ('api_key', 'password')):
+                group[arg] = '!REDACTED!'
 
     log("Starting Cyberdrop-DL")
     log(f"Using authentication arguments: {print_args['Authentication']}", quiet=True)
