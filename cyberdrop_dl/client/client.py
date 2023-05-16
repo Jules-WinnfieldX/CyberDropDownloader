@@ -184,7 +184,7 @@ class DownloadSession:
                             file_task: TaskID) -> None:
 
         async def save_content(content: aiohttp.StreamReader, size: int) -> None:
-            Progress_Master.FileProgress.update_file_length(file_task, size)
+            Progress_Master.FileProgress.update_file_length(file_task, size + resume_point)
             Progress_Master.FileProgress.advance_file(file_task, resume_point)
             await self._append_content(file, content, lambda chunk_len: Progress_Master.FileProgress.advance_file(file_task, chunk_len))
 
@@ -195,7 +195,7 @@ class DownloadSession:
 
         async def save_content(content: aiohttp.StreamReader, size: int) -> None:
             task_description = adjust_title(f"{media.url.host}: {media.filename}")
-            with tqdm(total=size, unit_scale=True, unit='B', leave=False,
+            with tqdm(total=size + resume_point, unit_scale=True, unit='B', leave=False,
                       initial=resume_point, desc=task_description) as progress:
                 await self._append_content(file, content, lambda chunk_len: progress.update(chunk_len))
 
