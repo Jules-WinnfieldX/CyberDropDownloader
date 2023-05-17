@@ -149,34 +149,26 @@ class Old_Downloader:
             complete_file = (self.download_dir / album / media.filename)
             partial_file = complete_file.with_suffix(complete_file.suffix + '.part')
 
-            fake_download = False
-            if self.mark_downloaded:
-                fake_download = True
-
             complete_file, partial_file, proceed = await self.check_file_exists(complete_file, partial_file, media,
                                                                                 album, url_path, original_filename,
                                                                                 current_throttle)
-            if not proceed:
-                fake_download = True
+            fake_download = self.mark_downloaded or not proceed
 
             await self.SQL_Helper.update_pre_download(complete_file, media.filename, url_path, original_filename)
 
-            resume_point = 0
             await self.SQL_Helper.sql_insert_temp(str(partial_file))
-            range_num = None
-            if partial_file.exists():
-                resume_point = partial_file.stat().st_size
-                range_num = f'bytes={resume_point}-'
+            resume_point = partial_file.stat().st_size if partial_file.exists() else 0
 
             assert media.url.host is not None
             for key, value in self.delay.items():
                 if key in media.url.host:
                     current_throttle = value
 
-            headers = {"Authorization": await basic_auth("Cyberdrop-DL", self.pixeldrain_api_key)} \
-                if (self.pixeldrain_api_key and "pixeldrain" in media.url.host) else {}
-            if range_num:
-                headers['Range'] = range_num
+            headers = {}
+            if self.pixeldrain_api_key and "pixeldrain" in media.url.host:
+                headers["Authorization"] = await basic_auth("Cyberdrop-DL", self.pixeldrain_api_key)
+            if resume_point:
+                headers['Range'] = f'bytes={resume_point}-'
 
             if not await self.SQL_Helper.sql_check_old_existing(url_path) and not fake_download:
                 await self.download_session.old_download_file(media, partial_file, current_throttle, resume_point,

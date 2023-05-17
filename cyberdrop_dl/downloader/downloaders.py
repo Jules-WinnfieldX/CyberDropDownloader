@@ -145,31 +145,23 @@ class Downloader:
             complete_file = (self.CDL_Helper.download_dir / album / media.filename)
             partial_file = complete_file.with_suffix(complete_file.suffix + '.part')
 
-            fake_download = False
-            if self.CDL_Helper.mark_downloaded:
-                fake_download = True
-
             complete_file, partial_file, proceed = await self.check_file_exists(complete_file, partial_file, media,
                                                                                 album, url_path, original_filename,
                                                                                 self.throttle)
-            if not proceed:
-                fake_download = True
+            fake_download = self.CDL_Helper.mark_downloaded or not proceed
 
             await self.CDL_Helper.SQL_Helper.update_pre_download(complete_file, media.filename, url_path,
                                                                  original_filename)
 
-            resume_point = 0
             await self.CDL_Helper.SQL_Helper.sql_insert_temp(str(partial_file))
-            range_num = None
-            if partial_file.exists():
-                resume_point = partial_file.stat().st_size
-                range_num = f'bytes={resume_point}-'
+            resume_point = partial_file.stat().st_size if partial_file.exists() else 0
 
             assert media.url.host is not None
-            headers = {"Authorization": await basic_auth("Cyberdrop-DL", self.CDL_Helper.pixeldrain_api_key)} \
-                if (self.CDL_Helper.pixeldrain_api_key and "pixeldrain" in media.url.host) else {}
-            if range_num:
-                headers['Range'] = range_num
+            headers = {}
+            if self.CDL_Helper.pixeldrain_api_key and "pixeldrain" in media.url.host:
+                headers["Authorization"] = await basic_auth("Cyberdrop-DL", self.CDL_Helper.pixeldrain_api_key)
+            if resume_point:
+                headers['Range'] = f'bytes={resume_point}-'
 
             file_task = self.Progress_Master.FileProgress.add_file(media.filename)
 
