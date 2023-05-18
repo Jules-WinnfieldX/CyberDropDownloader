@@ -38,7 +38,7 @@ class ShareXCrawler:
 
         if await check_direct(url):
             url = url.with_name(url.name.replace('.md.', '.').replace('.th.', '.'))
-            url = await self.jpg_fish_from_church(url)
+            url = await self.jpg_church_from_fish(url)
             media_item = await create_media_item(url, url, self.SQL_Helper, "sharex")
             await domain_obj.add_media("Loose ShareX Files", media_item)
         elif "album" in url.parts or "a" in url.parts:
@@ -54,9 +54,9 @@ class ShareXCrawler:
         log(f"Finished: {url}", quiet=self.quiet, style="green")
         return domain_obj
 
-    async def jpg_fish_from_church(self, url: URL) -> URL:
-        pattern2 = r"simp([1-5])\.jpg\.church/"
-        return URL(re.sub(pattern2, r'simp\1.jpg.fish/', str(url)))
+    async def jpg_church_from_fish(self, url: URL) -> URL:
+        pattern2 = r"simp([1-5])\.jpg\.fish/"
+        return URL(re.sub(pattern2, r'simp\1.jpg.church/', str(url)))
 
     async def get_albums(self, session: ScrapeSession, url: URL, domain_obj: DomainItem) -> None:
         """Handles scraping for Albums"""
@@ -90,7 +90,7 @@ class ShareXCrawler:
                 soup = await session.get_BS4(url)
             link = URL(soup.select_one("input[id=embed-code-2]").get('value'))
             link = link.with_name(link.name.replace('.md.', '.').replace('.th.', '.'))
-            link = await self.jpg_fish_from_church(link)
+            link = await self.jpg_church_from_fish(link)
 
             media_item = await create_media_item(link, url, self.SQL_Helper, "sharex")
             await domain_obj.add_media("Loose ShareX Files", media_item)
@@ -147,7 +147,7 @@ class ShareXCrawler:
             for link in links:
                 link = URL(link.get('src'))
                 link = link.with_name(link.name.replace('.md.', '.').replace('.th.', '.'))
-                link = await self.jpg_fish_from_church(link)
+                link = await self.jpg_church_from_fish(link)
 
                 try:
                     media_item = await create_media_item(link, url, self.SQL_Helper, "sharex")
