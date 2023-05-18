@@ -6,7 +6,7 @@ import itertools
 import logging
 from http import HTTPStatus
 from random import gauss
-from typing import TYPE_CHECKING, Any, Dict, Tuple
+from typing import TYPE_CHECKING, Any, Dict, Tuple, Coroutine, List, Optional
 
 import aiofiles
 import aiohttp.client_exceptions
@@ -49,6 +49,17 @@ if TYPE_CHECKING:
     from rich.progress import TaskID
 
 
+def _limit_concurrency(coroutines: List[Coroutine], semaphore: Optional[asyncio.Semaphore]) -> List[Coroutine]:
+    if not semaphore:
+        return coroutines
+
+    async def limit_concurrency(coroutine: Coroutine) -> Coroutine:
+        async with semaphore:
+            return await coroutine
+
+    return [limit_concurrency(coroutine) for coroutine in coroutines]
+
+
 class CDLHelper:
     def __init__(self, args: Dict, client: Client, files: OverallFileProgress, SQL_Helper: SQLHelper):
         self.args = args
@@ -76,6 +87,11 @@ class CDLHelper:
         self.mark_downloaded = args["Runtime"]["skip_download_mark_completed"]
         self.proxy = args["Runtime"]["proxy"]
         self.required_free_space = args["Runtime"]["required_free_space"]
+
+        # Concurrency Limits
+        self.threads_limit = asyncio.Semaphore(args["Runtime"]["max_concurrent_threads"]) if args["Runtime"]["max_concurrent_threads"] else None
+        self.domains_limit = asyncio.Semaphore(args["Runtime"]["max_concurrent_domains"]) if args["Runtime"]["max_concurrent_domains"] else None
+        self.albums_limit = asyncio.Semaphore(args["Runtime"]["max_concurrent_albums"]) if args["Runtime"]["max_concurrent_albums"] else None
 
         # Output Args
         self.errored_output = args['Runtime']['output_errored_urls']
@@ -321,7 +337,7 @@ class DownloadDirector:
             cascade_tasks = []
             for title, Cascade in self.Forums.threads.items():
                 cascade_tasks.append(self.start_cascade(forum_task, title, Cascade))
-            await asyncio.gather(*cascade_tasks)
+            await asyncio.gather(*_limit_concurrency(cascade_tasks, self.CDL_Helper.threads_limit))
 
         await clear()
         completed_files, skipped_files, failed_files = self.Progress_Master.OverallFileProgress.return_totals()
@@ -335,7 +351,7 @@ class DownloadDirector:
         domain_tasks = []
         for domain, domain_obj in Cascade.domains.items():
             domain_tasks.append(self.start_domain(cascade_task, title, domain, domain_obj))
-        await asyncio.gather(*domain_tasks)
+        await asyncio.gather(*_limit_concurrency(domain_tasks, self.CDL_Helper.domains_limit))
         self.Progress_Master.CascadeProgress.mark_cascade_completed(cascade_task)
         self.Progress_Master.ForumProgress.advance_forum(forum_task)
 
@@ -347,7 +363,7 @@ class DownloadDirector:
         album_tasks = []
         for album, album_obj in domain_obj.albums.items():
             album_tasks.append(self.start_album(downloader, domain_task, domain, album, album_obj))
-        await asyncio.gather(*album_tasks)
+        await asyncio.gather(*_limit_concurrency(album_tasks, self.CDL_Helper.albums_limit))
         self.Progress_Master.CascadeProgress.advance_cascade(cascade_task)
         self.Progress_Master.DomainProgress.mark_domain_completed(domain, domain_task)
 

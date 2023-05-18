@@ -137,13 +137,16 @@ optional arguments:
 --block-sub-folders                     block sub folders from being created
 --disable-attempt-limit                 disables the attempt limitation
 --include-id                            include the ID in the download folder name
+--max-concurrent-threads                number of threads to download simultaneously
+--max-concurrent-domains                number of domains to download simultaneously
+--max-concurrent-albums                 number of albums to download simultaneously
+--max-concurrent-downloads-per-domain   number of simultaneous downloads per domain
 --skip-download-mark-completed          sets the scraped files as downloaded without downloading
 --output-errored-urls                   sets the failed urls to be output to the errored urls file
 --output-unsupported-urls               sets the unsupported urls to be output to the unsupported urls file
 --proxy                                 HTTP/HTTPS proxy used for downloading, format [protocal]://[ip]:[port]
 --remove-bunkr-identifier               removes the bunkr added identifier from output filenames
 --required-free-space                   required free space (in gigabytes) for the program to run
---simultaneous-downloads-per-domain     number of simultaneous downloads to use per domain
 
 --sort-downloads        sorts downloaded files after downloads have finished
 --sort-directory        folder to download files to

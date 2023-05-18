@@ -69,13 +69,16 @@ def parse_args() -> argparse.Namespace:
     runtime_opts.add_argument("--block-sub-folders", help="block sub folders from being created", action="store_true")
     runtime_opts.add_argument("--disable-attempt-limit", help="disables the attempt limitation", action="store_true")
     runtime_opts.add_argument("--include-id", help="include the ID in the download folder name", action="store_true")
+    runtime_opts.add_argument("--max_concurrent-threads", type=int, default=config_group["max_concurrent_threads"], help="Number of threads to download simultaneously (default: %(default)s)")
+    runtime_opts.add_argument("--max_concurrent-domains", type=int, default=config_group["max_concurrent_domains"], help="Number of domains to download simultaneously (default: %(default)s)")
+    runtime_opts.add_argument("--max_concurrent-albums", type=int, default=config_group["max_concurrent_albums"], help="Number of albums to download simultaneously (default: %(default)s)")
+    runtime_opts.add_argument("--max_concurrent-downloads-per-domain", type=int, default=config_group["max_concurrent_downloads_per_domain"], help="Number of simultaneous downloads per domain (default: %(default)s)")
     runtime_opts.add_argument("--skip-download-mark-completed", help="sets the scraped files as downloaded without downloading", action="store_true")
     runtime_opts.add_argument("--output-errored-urls", help="sets the failed urls to be output to the errored urls file", action="store_true")
     runtime_opts.add_argument("--output-unsupported-urls", help="sets the unsupported urls to be output to the unsupported urls file", action="store_true")
     runtime_opts.add_argument("--proxy", help="HTTP/HTTPS proxy used for downloading, format [protocal]://[ip]:[port]", default=config_group["proxy"])
     runtime_opts.add_argument("--remove-bunkr-identifier", help="removes the bunkr added identifier from output filenames", action="store_true")
     runtime_opts.add_argument("--required-free-space", type=int, default=config_group["required_free_space"], help="required free space (in gigabytes) for the program to run (default: %(default)s)")
-    runtime_opts.add_argument("--simultaneous-downloads-per-domain", type=int, default=config_group["simultaneous_downloads_per_domain"], help="Number of simultaneous downloads to use per domain (default: %(default)s)")
 
     # Sorting
     config_group = config_data["Sorting"]
