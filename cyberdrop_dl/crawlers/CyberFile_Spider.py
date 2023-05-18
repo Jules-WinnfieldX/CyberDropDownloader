@@ -91,7 +91,7 @@ class CyberFileCrawler:
             assert pages_tag is not None
             pages_str = pages_tag.get('onclick')
             assert isinstance(pages_str, str)
-            total_pages = int(pages_str.split(',')[2])
+            total_pages = int(pages_str.split(',')[2].split(")")[0].strip())
             listings = soup.select("div[class=fileListing] div")
             for listing in listings:
                 with contextlib.suppress(TypeError):
@@ -208,7 +208,7 @@ class CyberFileCrawler:
 
             page_ref = soup.select("a[onclick*=loadImages]")[-1].get('onclick')
             assert isinstance(page_ref, str)
-            total_pages = int(page_ref.split(',')[2])
+            total_pages = int(page_ref.split(',')[2].split(")")[0].strip())
 
             listings = soup.select("div[class=fileListing] div")
             for listing in listings:
