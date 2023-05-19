@@ -6,9 +6,10 @@ import re
 from pathlib import Path
 from typing import Dict, List
 
+import aiofiles
 from yarl import URL
 
-from cyberdrop_dl.base_functions.base_functions import clear, log, purge_dir, ErrorFileWriter
+from cyberdrop_dl.base_functions.base_functions import ErrorFileWriter, clear, log, purge_dir
 from cyberdrop_dl.base_functions.config_manager import document_args, run_args
 from cyberdrop_dl.base_functions.config_schema import config_default
 from cyberdrop_dl.base_functions.sorting_functions import Sorter
@@ -202,8 +203,8 @@ async def consolidate_links(args: Dict, links: List) -> List:
     """We consolidate links from command line and from URLs.txt into a singular list"""
     links = list(map(URL, links))
     if args["Files"]["input_file"].is_file():
-        with open(args["Files"]["input_file"], "r", encoding="utf8") as f:
-            links += await regex_links([line.rstrip() for line in f])
+        async with aiofiles.open(args["Files"]["input_file"], "r", encoding="utf8") as f:
+            links += await regex_links([line.rstrip() async for line in f])
     links = list(filter(None, links))
 
     if not links:
@@ -258,11 +259,10 @@ async def director(args: Dict, links: List) -> None:
         await asyncio.sleep(5)
         await clear()
 
-        if args['Progress_Options']['hide_new_progress']:
-            if not await Forums.is_empty():
+        if not await Forums.is_empty():
+            if args['Progress_Options']['hide_new_progress']:
                 await old_download_forums(args, Forums, SQL_Helper, client)
-        else:
-            if not await Forums.is_empty():
+            else:
                 download_director = DownloadDirector(args, Forums, SQL_Helper, client, error_writer)
                 await download_director.start()
 
