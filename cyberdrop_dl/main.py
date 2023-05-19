@@ -39,7 +39,7 @@ def parse_args() -> argparse.Namespace:
     path_opts.add_argument("--config-file", type=Path, help="config file to read arguments from (default: %(default)s)", default="config.yaml")
     path_opts.add_argument("--db-file", type=Path, help="history database file to write to (default: %(default)s)", default=config_group["db_file"])
     path_opts.add_argument("--errored-download-urls-file", type=Path, default=config_group["errored_download_urls_file"], help="csv file to write failed download information to (default: %(default)s)")
-    path_opts.add_argument("--errored-scrape-urls-file", type=Path, default=config_group["errored_download_urls_file"], help="csv file to write failed download information to (default: %(default)s)")
+    path_opts.add_argument("--errored-scrape-urls-file", type=Path, default=config_group["errored_scrape_urls_file"], help="csv file to write failed scrape information to (default: %(default)s)")
     path_opts.add_argument("--log-file", type=Path, help="log file to write to (default: %(default)s)", default=config_group["log_file"])
     path_opts.add_argument("--output-last-forum-post-file", type=Path, default=config_group["output_last_forum_post_file"], help="the text file to output last scraped post from a forum thread for re-feeding into CDL (default: %(default)s)")
     path_opts.add_argument("--unsupported-urls-file", type=Path, default=config_group["unsupported_urls_file"], help="the csv file to output unsupported links into (default: %(default)s)")

@@ -118,7 +118,8 @@ optional arguments:
 
 --config-file                   config file to read arguments from
 --db-file                       history database file to write to
---errored-urls-file             csv file to write failed download information to
+--errored-download-urls-file    csv file to write failed download information to
+--errored-scrape-urls-file      csv file to write failed scrape information to
 --log-file                      log file to write to
 --output-last-forum-post-file   text file to output last scraped post from a forum thread for re-feeding into CDL
 --unsupported-urls-file         csv file to output unsupported links into
