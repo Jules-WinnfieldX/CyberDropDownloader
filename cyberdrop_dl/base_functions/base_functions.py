@@ -182,5 +182,5 @@ class ErrorFileWriter:
         if not self.output_last_post:
             return
 
-        async with aiofiles.open(self.last_post, 'w') as f:
+        async with aiofiles.open(self.last_post, 'a') as f:
             await f.write(f"{url}\n")

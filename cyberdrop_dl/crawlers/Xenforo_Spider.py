@@ -332,13 +332,11 @@ class XenforoCrawler:
                     next_page = domain / next_page[1:]
                 next_page = URL(next_page)
                 await self.parse_forum(session, next_page, spec, cascade, title, post_number)
-        elif self.output_last:
+        else:
             assert url.raw_name is not None
             if 'page-' in url.raw_name or 'post-' in url.raw_name:
                 last_post_url = url.parent / post_num_str
             else:
                 last_post_url = url / post_num_str
             await self.error_writer.write_last_post(last_post_url)
-            async with aiofiles.open(self.output_last_file, mode='a') as f:
-                await f.write(f'{last_post_url}\n')
         return title
