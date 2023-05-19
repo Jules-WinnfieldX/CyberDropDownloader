@@ -9,7 +9,7 @@ from typing import Dict, List, Tuple
 import aiofiles
 from yarl import URL
 
-from cyberdrop_dl.base_functions.base_functions import clear, log, purge_dir
+from cyberdrop_dl.base_functions.base_functions import clear, log, purge_dir, ErrorFileWriter
 from cyberdrop_dl.base_functions.config_manager import document_args, run_args
 from cyberdrop_dl.base_functions.config_schema import config_default
 from cyberdrop_dl.base_functions.sorting_functions import Sorter
@@ -39,13 +39,11 @@ def parse_args() -> argparse.Namespace:
 
     path_opts.add_argument("--config-file", type=Path, help="config file to read arguments from (default: %(default)s)", default="config.yaml")
     path_opts.add_argument("--db-file", type=Path, help="history database file to write to (default: %(default)s)", default=config_group["db_file"])
-    path_opts.add_argument("--errored-urls-file", type=Path, default=config_group["errored_urls_file"], 
-                           help="csv file to write failed download information to (default: %(default)s)")
+    path_opts.add_argument("--errored-download-urls-file", type=Path, default=config_group["errored_download_urls_file"], help="csv file to write failed download information to (default: %(default)s)")
+    path_opts.add_argument("--errored-scrape-urls-file", type=Path, default=config_group["errored_download_urls_file"], help="csv file to write failed download information to (default: %(default)s)")
     path_opts.add_argument("--log-file", type=Path, help="log file to write to (default: %(default)s)", default=config_group["log_file"])
-    path_opts.add_argument("--output-last-forum-post-file", type=Path, default=config_group["output_last_forum_post_file"],
-                           help="the text file to output last scraped post from a forum thread for re-feeding into CDL (default: %(default)s)")
-    path_opts.add_argument("--unsupported-urls-file", type=Path, default=config_group["unsupported_urls_file"],
-                           help="the csv file to output unsupported links into (default: %(default)s)")
+    path_opts.add_argument("--output-last-forum-post-file", type=Path, default=config_group["output_last_forum_post_file"], help="the text file to output last scraped post from a forum thread for re-feeding into CDL (default: %(default)s)")
+    path_opts.add_argument("--unsupported-urls-file", type=Path, default=config_group["unsupported_urls_file"], help="the csv file to output unsupported links into (default: %(default)s)")
 
     # Ignore
     config_group = config_data["Ignore"]
@@ -56,10 +54,8 @@ def parse_args() -> argparse.Namespace:
     ignore_opts.add_argument("--exclude-videos", help="skip downloading of video files", action="store_true")
     ignore_opts.add_argument("--ignore-cache", help="ignores previous runs cached scrape history", action="store_true")
     ignore_opts.add_argument("--ignore-history", help="ignores previous download history", action="store_true")
-    ignore_opts.add_argument("--skip-hosts", choices=SkipData.supported_hosts, action="append",
-                             help="removes host links from downloads", default=config_group["skip_hosts"])
-    ignore_opts.add_argument("--only-hosts", choices=SkipData.supported_hosts, action="append",
-                             help="only allows downloads from these hosts", default=config_group["only_hosts"])
+    ignore_opts.add_argument("--skip-hosts", choices=SkipData.supported_hosts, action="append", help="removes host links from downloads", default=config_group["skip_hosts"])
+    ignore_opts.add_argument("--only-hosts", choices=SkipData.supported_hosts, action="append", help="only allows downloads from these hosts", default=config_group["only_hosts"])
 
     # Runtime arguments
     config_group = config_data["Runtime"]
@@ -146,13 +142,18 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-async def file_management(args: Dict, links: List) -> None:
+async def file_management(args: Dict, links: List) -> ErrorFileWriter:
     """We handle file defaults here (resetting and creation)"""
     input_file = args['Files']['input_file']
     if not input_file.is_file() and not links:
         input_file.touch()
 
     Path(args['Files']['output_folder']).mkdir(parents=True, exist_ok=True)
+
+    error_writer = ErrorFileWriter(args['Runtime']['output_errored_urls'], args['Runtime']['output_unsupported_urls'],
+                                   args['Runtime']['output_last_forum_post'], args['Files']['errored_scrape_urls_file'],
+                                   args['Files']['errored_download_urls_file'], args['Files']['unsupported_urls_file'],
+                                   args['Files']['output_last_forum_post_file'])
 
     if args['Forum_Options']['output_last_forum_post']:
         output_url_file = args['Files']['output_last_forum_post_file']
@@ -165,16 +166,22 @@ async def file_management(args: Dict, links: List) -> None:
         if unsupported_urls.exists():
             unsupported_urls.unlink()
             unsupported_urls.touch()
-            async with aiofiles.open(unsupported_urls, mode='w') as f:
-                await f.write("URL,REFERER,TITLE\n")
+            await error_writer.write_unsupported_header()
 
     if args['Runtime']['output_errored_urls']:
-        errored_urls = args['Files']['errored_urls_file']
+        errored_urls = args['Files']['errored_download_urls_file']
         if errored_urls.exists():
             errored_urls.unlink()
             errored_urls.touch()
-            async with aiofiles.open(errored_urls, mode='w') as f:
-                await f.write("URL,REFERER,REASON\n")
+            await error_writer.write_errored_download_header()
+
+        errored_urls = args['Files']['errored_scrape_urls_file']
+        if errored_urls.exists():
+            errored_urls.unlink()
+            errored_urls.touch()
+            await error_writer.write_errored_scrape_header()
+
+    return error_writer
 
 
 async def regex_links(urls: List) -> List:
@@ -231,8 +238,8 @@ async def director(args: Dict, links: List) -> None:
     """This is the overarching director coordinator for CDL."""
     await clear()
     await document_args(args)
-    await file_management(args, links)
     log(f"We are running version {VERSION} of Cyberdrop Downloader")
+    error_writer = await file_management(args, links)
 
     if not await check_free_space(args['Runtime']['required_free_space'], args['Files']['output_folder']):
         log("Not enough free space to continue. You can change the required space required using --required-free-space.", style="red")
@@ -243,7 +250,7 @@ async def director(args: Dict, links: List) -> None:
                     args['Runtime']['allow_insecure_connections'], args["Ratelimiting"]["connection_timeout"],
                     args['Runtime']['user_agent'])
     SQL_Helper = SQLHelper(args['Ignore']['ignore_history'], args['Ignore']['ignore_cache'], args['Files']['db_file'])
-    Scraper = ScrapeMapper(args, client, SQL_Helper, False)
+    Scraper = ScrapeMapper(args, client, SQL_Helper, False, error_writer)
 
     await SQL_Helper.sql_initialize()
 
@@ -257,7 +264,7 @@ async def director(args: Dict, links: List) -> None:
                 await old_download_forums(args, Forums, SQL_Helper, client)
         else:
             if not await Forums.is_empty():
-                download_director = DownloadDirector(args, Forums, SQL_Helper, client)
+                download_director = DownloadDirector(args, Forums, SQL_Helper, client, error_writer)
                 await download_director.start()
 
     if args['Files']['output_folder'].is_dir():
@@ -266,7 +273,7 @@ async def director(args: Dict, links: List) -> None:
             log("Sorting Downloads")
             sorter = Sorter(args['Files']['output_folder'], args['Sorting']['sort_directory'],
                             args['Sorting']['sorted_audio'], args['Sorting']['sorted_images'],
-                            args['Sorting']['sorted_videos'], args['Sorting']['sorted_others'],)
+                            args['Sorting']['sorted_videos'], args['Sorting']['sorted_others'])
             await sorter.sort()
 
         log("")

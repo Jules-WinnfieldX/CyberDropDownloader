@@ -19,7 +19,8 @@ config_default: Dict = {
         },
         "Files": {
             "db_file": "download_history.sqlite",
-            "errored_urls_file": "Errored_URLs.csv",
+            "errored_download_urls_file": "Errored_Download_URLs.csv",
+            "errored_scrape_urls_file": "Errored_Scrape_URLs.csv",
             "input_file": "URLs.txt",
             "log_file": "downloader.log",
             "output_folder": "Downloads",

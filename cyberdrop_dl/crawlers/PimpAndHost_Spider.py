@@ -8,14 +8,17 @@ from ..base_functions.base_functions import create_media_item, log, logger, make
 from ..base_functions.data_classes import AlbumItem
 
 if TYPE_CHECKING:
+    from ..base_functions.base_functions import ErrorFileWriter
     from ..base_functions.sql_helper import SQLHelper
     from ..client.client import ScrapeSession
 
 
 class PimpAndHostCrawler:
-    def __init__(self, quiet: bool, SQL_Helper: SQLHelper):
+    def __init__(self, quiet: bool, SQL_Helper: SQLHelper, error_writer: ErrorFileWriter):
         self.quiet = quiet
         self.SQL_Helper = SQL_Helper
+
+        self.error_writer = error_writer
 
     async def fetch(self, session: ScrapeSession, url: URL) -> AlbumItem:
         """Director for pimpandhost scraping"""
@@ -47,14 +50,13 @@ class PimpAndHostCrawler:
             title = await make_title_safe(title.get_text())
 
             for file in soup.select('a[class*="image-wrapper center-cropped im-wr"]'):
-                link = file.get("href")
+                link = URL(file.get("href"))
                 media_items.append(await self.get_singular(session, link))
             return media_items, title
 
         except Exception as e:
             logger.debug("Error encountered while handling %s", url, exc_info=True)
-            log(f"Error: {url}", quiet=self.quiet, style="red")
-            logger.debug(e)
+            await self.error_writer.write_errored_scrape(url, e, self.quiet)
 
     async def get_singular(self, session: ScrapeSession, url: URL):
         """Handles singular files"""
@@ -67,5 +69,4 @@ class PimpAndHostCrawler:
             return await create_media_item(img, url, self.SQL_Helper, "pimpandhost")
         except Exception as e:
             logger.debug("Error encountered while handling %s", url, exc_info=True)
-            log(f"Error: {url}", quiet=self.quiet, style="red")
-            logger.debug(e)
+            await self.error_writer.write_errored_scrape(url, e, self.quiet)

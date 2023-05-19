@@ -5,6 +5,7 @@ import os
 import re
 from typing import TYPE_CHECKING, Tuple
 
+import aiofiles
 import rich
 
 from cyberdrop_dl.base_functions.data_classes import MediaItem
@@ -110,3 +111,76 @@ async def create_media_item(url: URL, referer: URL, sql_helper: SQLHelper, domai
     filename, ext = await get_filename_and_ext(url.name)
     complete = await sql_helper.check_complete_singular(domain, url)
     return MediaItem(url, referer, complete, filename, ext, filename)
+
+
+class ErrorFileWriter:
+    """Writes errors to a file"""
+    def __init__(self, output_errored: bool, output_unsupported: bool, output_last_post: bool, errored_scrapes: Path,
+                 errored_downloads: Path, unsupported: Path, last_post: Path):
+        self.output_errored = output_errored
+        self.output_unsupported = output_unsupported
+        self.output_last_post = output_last_post
+
+        self.errored_scrapes = errored_scrapes
+        self.errored_downloads = errored_downloads
+        self.unsupported = unsupported
+        self.last_post = last_post
+
+    async def write_errored_scrape(self, url: URL, e: Exception, quiet: bool) -> None:
+        """Writes to the error file"""
+        log(f"Error scraping {url}", quiet=quiet)
+        logger.debug(e)
+
+        if not self.output_errored:
+            return
+
+        async with aiofiles.open(self.errored_scrapes, 'a') as f:
+            await f.write(f"{url},{e}\n")
+
+    async def write_errored_scrape_header(self):
+        """Writes to the error file"""
+        if not self.output_errored:
+            return
+
+        async with aiofiles.open(self.errored_scrapes, 'a') as f:
+            await f.write(f"URL,Exception\n")
+
+    async def write_errored_download(self, url: URL, referer: URL, error_message: str) -> None:
+        """Writes to the error file"""
+        if not self.output_errored:
+            return
+
+        async with aiofiles.open(self.errored_downloads, 'a') as f:
+            await f.write(f"{url},{referer},{error_message}\n")
+
+    async def write_errored_download_header(self):
+        """Writes to the error file"""
+        if not self.output_errored:
+            return
+
+        async with aiofiles.open(self.errored_downloads, 'a') as f:
+            await f.write("URL,REFERER,REASON\n")
+
+    async def write_unsupported(self, text: str) -> None:
+        """Writes to the error file"""
+        if not self.output_unsupported:
+            return
+
+        async with aiofiles.open(self.unsupported, 'a') as f:
+            await f.write("URL,REFERER,REASON\n")
+
+    async def write_unsupported_header(self):
+        """Writes to the error file"""
+        if not self.output_unsupported:
+            return
+
+        async with aiofiles.open(self.unsupported, 'a') as f:
+            await f.write(f"URL,Exception\n")
+
+    async def write_last_post(self, url: URL) -> None:
+        """Writes to the error file"""
+        if not self.output_last_post:
+            return
+
+        async with aiofiles.open(self.last_post, 'w') as f:
+            await f.write(f"{url}\n")

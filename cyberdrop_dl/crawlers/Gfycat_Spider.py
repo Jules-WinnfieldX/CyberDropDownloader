@@ -8,14 +8,17 @@ from ..base_functions.base_functions import create_media_item, log, logger
 from ..base_functions.data_classes import AlbumItem
 
 if TYPE_CHECKING:
+    from ..base_functions.base_functions import ErrorFileWriter
     from ..base_functions.sql_helper import SQLHelper
     from ..client.client import ScrapeSession
 
 
 class GfycatCrawler:
-    def __init__(self, *, quiet: bool, SQL_Helper: SQLHelper):
+    def __init__(self, *, quiet: bool, SQL_Helper: SQLHelper, error_writer: ErrorFileWriter):
         self.quiet = quiet
         self.SQL_Helper = SQL_Helper
+
+        self.error_writer = error_writer
 
     async def fetch(self, session: ScrapeSession, url: URL) -> AlbumItem:
         """Basic scraper for gfycat"""
@@ -43,7 +46,6 @@ class GfycatCrawler:
             log(f"Finished: {url}", quiet=self.quiet, style="green")
         except Exception as e:
             logger.debug("Error encountered while handling %s", url, exc_info=True)
-            log(f"Error: {url}", quiet=self.quiet, style="red")
-            logger.debug(e)
+            await self.error_writer.write_errored_scrape(url, e, self.quiet)
 
         return album_obj

@@ -8,7 +8,6 @@ from http import HTTPStatus
 from random import gauss
 from typing import TYPE_CHECKING, Any, Dict, Tuple, Coroutine, List, Optional
 
-import aiofiles
 import aiohttp.client_exceptions
 from rich.live import Live
 
@@ -45,8 +44,9 @@ from .progress_definitions import (
 
 if TYPE_CHECKING:
     from pathlib import Path
-
     from rich.progress import TaskID
+
+    from cyberdrop_dl.base_functions.base_functions import ErrorFileWriter
 
 
 def _limit_concurrency(coroutines: List[Coroutine], semaphore: Optional[asyncio.Semaphore]) -> List[Coroutine]:
@@ -61,13 +61,15 @@ def _limit_concurrency(coroutines: List[Coroutine], semaphore: Optional[asyncio.
 
 
 class CDLHelper:
-    def __init__(self, args: Dict, client: Client, files: OverallFileProgress, SQL_Helper: SQLHelper):
+    def __init__(self, args: Dict, client: Client, files: OverallFileProgress, SQL_Helper: SQLHelper,
+                 error_writer: ErrorFileWriter):
         self.args = args
 
         # CDL Objects
         self.client = client
         self.files = files
         self.SQL_Helper = SQL_Helper
+        self.error_writer = error_writer
         self.File_Lock = FileLock()
 
         # Limits
@@ -92,10 +94,6 @@ class CDLHelper:
         self.threads_limit = asyncio.Semaphore(args["Runtime"]["max_concurrent_threads"]) if args["Runtime"]["max_concurrent_threads"] else None
         self.domains_limit = asyncio.Semaphore(args["Runtime"]["max_concurrent_domains"]) if args["Runtime"]["max_concurrent_domains"] else None
         self.albums_limit = asyncio.Semaphore(args["Runtime"]["max_concurrent_albums"]) if args["Runtime"]["max_concurrent_albums"] else None
-
-        # Output Args
-        self.errored_output = args['Runtime']['output_errored_urls']
-        self.errored_file = args['Files']['errored_urls_file']
 
         # API Keys
         self.pixeldrain_api_key = args["Authentication"]["pixeldrain_api_key"]
@@ -244,9 +242,7 @@ class Downloader:
 
     async def handle_failed(self, media: MediaItem, e: Any) -> None:
         self.CDL_Helper.files.add_failed()
-        if self.CDL_Helper.errored_output:
-            async with aiofiles.open(self.CDL_Helper.errored_file, mode='a') as file:
-                await file.write(f"{media.url},{media.referer},{e.message}\n")
+        await self.CDL_Helper.error_writer.write_errored_download(media.url, media.referer, e.message)
 
     async def check_file_exists(self, complete_file: Path, partial_file: Path, media: MediaItem, album: str,
                                 url_path: str, original_filename: str, current_throttle: float):
@@ -320,10 +316,10 @@ class DownloadManager:
 
 
 class DownloadDirector:
-    def __init__(self, args: Dict, Forums: ForumItem, SQL_Helper: SQLHelper, client: Client):
+    def __init__(self, args: Dict, Forums: ForumItem, SQL_Helper: SQLHelper, client: Client,
+                 error_writer: ErrorFileWriter):
         self.Progress_Master = ProgressMaster(args["Progress_Options"])
-        self.CDL_Helper = CDLHelper(args, client, self.Progress_Master.OverallFileProgress, SQL_Helper)
-
+        self.CDL_Helper = CDLHelper(args, client, self.Progress_Master.OverallFileProgress, SQL_Helper, error_writer)
         self.Download_Manager = DownloadManager(self.CDL_Helper, self.Progress_Master)
 
         self.Forums = Forums

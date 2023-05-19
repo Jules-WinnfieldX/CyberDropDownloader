@@ -3,11 +3,9 @@ from __future__ import annotations
 import asyncio
 from typing import TYPE_CHECKING, Optional, Dict
 
-import aiofiles
-from aiolimiter import AsyncLimiter
 from yarl import URL
 
-from cyberdrop_dl.base_functions.base_functions import log
+from cyberdrop_dl.base_functions.base_functions import log, file_writer
 from cyberdrop_dl.base_functions.data_classes import AlbumItem, CascadeItem, DomainItem, ForumItem, SkipData
 from cyberdrop_dl.client.client import Client, ScrapeSession
 from cyberdrop_dl.crawlers.Anonfiles_Spider import AnonfilesCrawler
@@ -34,12 +32,13 @@ from cyberdrop_dl.crawlers.Xenforo_Spider import XenforoCrawler
 from cyberdrop_dl.scraper.JDownloader_Integration import JDownloader
 
 if TYPE_CHECKING:
+    from cyberdrop_dl.base_functions.base_functions import ErrorFileWriter
     from cyberdrop_dl.base_functions.sql_helper import SQLHelper
 
 
 class ScrapeMapper:
     """This class maps links to their respective handlers, or JDownloader if they are unsupported"""
-    def __init__(self, args: Dict, client: Client, SQL_Helper: SQLHelper, quiet: bool):
+    def __init__(self, args: Dict, client: Client, SQL_Helper: SQLHelper, quiet: bool, error_writer: ErrorFileWriter):
         self.args = args
         self.client = client
         self.SQL_Helper = SQL_Helper
@@ -48,8 +47,7 @@ class ScrapeMapper:
         self.skip_data = SkipData(args['Ignore']['skip_hosts'])
         self.only_data = SkipData(args['Ignore']['only_hosts'])
 
-        self.unsupported_file = args["Files"]["unsupported_urls_file"]
-        self.unsupported_output = args['Runtime']['output_unsupported_urls']
+        self.error_writer = error_writer
 
         self.anonfiles_crawler: Optional[AnonfilesCrawler] = None
         self.bunkr_crawler: Optional[BunkrCrawler] = None
@@ -124,7 +122,8 @@ class ScrapeMapper:
     async def Anonfiles(self, url: URL, title=None):
         anonfiles_session = ScrapeSession(self.client)
         if not self.anonfiles_crawler:
-            self.anonfiles_crawler = AnonfilesCrawler(quiet=self.quiet, SQL_Helper=self.SQL_Helper)
+            self.anonfiles_crawler = AnonfilesCrawler(quiet=self.quiet, SQL_Helper=self.SQL_Helper,
+                                                      error_writer=self.error_writer)
         album_obj = await self.anonfiles_crawler.fetch(anonfiles_session, url)
         await self._handle_album_additions("anonfiles", album_obj, title)
         await anonfiles_session.exit_handler()
@@ -133,7 +132,7 @@ class ScrapeMapper:
         bunkr_session = ScrapeSession(self.client)
         if not self.bunkr_crawler:
             self.bunkr_crawler = BunkrCrawler(quiet=self.quiet, SQL_Helper=self.SQL_Helper,
-                                              remove_bunkr_id=self.remove_bunkr_id)
+                                              remove_bunkr_id=self.remove_bunkr_id, error_writer=self.error_writer)
 
         album_obj = await self.bunkr_crawler.fetch(bunkr_session, url)
         if not await album_obj.is_empty():
@@ -143,7 +142,8 @@ class ScrapeMapper:
     async def Cyberdrop(self, url: URL, title=None):
         cyberdrop_session = ScrapeSession(self.client)
         if not self.cyberdrop_crawler:
-            self.cyberdrop_crawler = CyberdropCrawler(include_id=self.include_id, quiet=self.quiet, SQL_Helper=self.SQL_Helper)
+            self.cyberdrop_crawler = CyberdropCrawler(include_id=self.include_id, quiet=self.quiet,
+                                                      SQL_Helper=self.SQL_Helper, error_writer=self.error_writer)
         album_obj = await self.cyberdrop_crawler.fetch(cyberdrop_session, url)
         await self._handle_album_additions("cyberdrop", album_obj, title)
         await cyberdrop_session.exit_handler()
@@ -151,7 +151,8 @@ class ScrapeMapper:
     async def CyberFile(self, url, title=None):
         cyberfile_session = ScrapeSession(self.client)
         if not self.cyberfile_crawler:
-            self.cyberfile_crawler = CyberFileCrawler(quiet=self.quiet, SQL_Helper=self.SQL_Helper)
+            self.cyberfile_crawler = CyberFileCrawler(quiet=self.quiet, SQL_Helper=self.SQL_Helper,
+                                                      error_writer=self.error_writer)
 
         domain_obj = await self.cyberfile_crawler.fetch(cyberfile_session, url)
         await self._handle_domain_additions("cyberfile", domain_obj, title)
@@ -160,7 +161,8 @@ class ScrapeMapper:
     async def EHentai(self, url, title=None):
         ehentai_session = ScrapeSession(self.client)
         if not self.ehentai_crawler:
-            self.ehentai_crawler = EHentaiCrawler(quiet=self.quiet, SQL_Helper=self.SQL_Helper)
+            self.ehentai_crawler = EHentaiCrawler(quiet=self.quiet, SQL_Helper=self.SQL_Helper,
+                                                  error_writer=self.error_writer)
         album_obj = await self.ehentai_crawler.fetch(ehentai_session, url)
         await self._handle_album_additions("e-hentai", album_obj, title)
         await ehentai_session.exit_handler()
@@ -168,7 +170,8 @@ class ScrapeMapper:
     async def Erome(self, url, title=None):
         erome_session = ScrapeSession(self.client)
         if not self.erome_crawler:
-            self.erome_crawler = EromeCrawler(include_id=self.include_id, quiet=self.quiet, SQL_Helper=self.SQL_Helper)
+            self.erome_crawler = EromeCrawler(include_id=self.include_id, quiet=self.quiet, SQL_Helper=self.SQL_Helper,
+                                              error_writer=self.error_writer)
         domain_obj = await self.erome_crawler.fetch(erome_session, url)
         await self._handle_domain_additions("erome", domain_obj, title)
         await erome_session.exit_handler()
@@ -176,7 +179,8 @@ class ScrapeMapper:
     async def Gfycat(self, url, title=None):
         gfycat_session = ScrapeSession(self.client)
         if not self.gfycat_crawler:
-            self.gfycat_crawler = GfycatCrawler(quiet=self.quiet, SQL_Helper=self.SQL_Helper)
+            self.gfycat_crawler = GfycatCrawler(quiet=self.quiet, SQL_Helper=self.SQL_Helper,
+                                                error_writer=self.error_writer)
         album_obj = await self.gfycat_crawler.fetch(gfycat_session, url)
         await self._handle_album_additions("gfycat", album_obj, title)
         await gfycat_session.exit_handler()
@@ -184,7 +188,8 @@ class ScrapeMapper:
     async def GoFile(self, url, title=None):
         gofile_session = ScrapeSession(self.client)
         if not self.gofile_crawler:
-            self.gofile_crawler = GoFileCrawler(quiet=self.quiet, SQL_Helper=self.SQL_Helper)
+            self.gofile_crawler = GoFileCrawler(quiet=self.quiet, SQL_Helper=self.SQL_Helper,
+                                                error_writer=self.error_writer)
 
         async with self.gofile_semaphore:
             await self.gofile_crawler.get_token(session=gofile_session,
@@ -196,7 +201,8 @@ class ScrapeMapper:
     async def HGameCG(self, url, title=None):
         hgamecg_session = ScrapeSession(self.client)
         if not self.hgamecg_crawler:
-            self.hgamecg_crawler = HGameCGCrawler(quiet=self.quiet, SQL_Helper=self.SQL_Helper)
+            self.hgamecg_crawler = HGameCGCrawler(quiet=self.quiet, SQL_Helper=self.SQL_Helper,
+                                                  error_writer=self.error_writer)
         album_obj = await self.hgamecg_crawler.fetch(hgamecg_session, url)
         await self._handle_album_additions("hgamecg", album_obj, title)
         await hgamecg_session.exit_handler()
@@ -204,7 +210,8 @@ class ScrapeMapper:
     async def ImgBox(self, url, title=None):
         imgbox_session = ScrapeSession(self.client)
         if not self.imgbox_crawler:
-            self.imgbox_crawler = ImgBoxCrawler(quiet=self.quiet, SQL_Helper=self.SQL_Helper)
+            self.imgbox_crawler = ImgBoxCrawler(quiet=self.quiet, SQL_Helper=self.SQL_Helper,
+                                                error_writer=self.error_writer)
         album_obj = await self.imgbox_crawler.fetch(imgbox_session, url)
         await self._handle_album_additions("imgbox", album_obj, title)
         await imgbox_session.exit_handler()
@@ -212,7 +219,8 @@ class ScrapeMapper:
     async def LoveFap(self, url: URL, title=None):
         lovefap_session = ScrapeSession(self.client)
         if not self.lovefap_crawler:
-            self.lovefap_crawler = LoveFapCrawler(quiet=self.quiet, SQL_Helper=self.SQL_Helper)
+            self.lovefap_crawler = LoveFapCrawler(quiet=self.quiet, SQL_Helper=self.SQL_Helper,
+                                                  error_writer=self.error_writer)
         album_obj = await self.lovefap_crawler.fetch(lovefap_session, url)
         await self._handle_album_additions("lovefap", album_obj, title)
         await lovefap_session.exit_handler()
@@ -220,7 +228,8 @@ class ScrapeMapper:
     async def PimpAndHost(self, url, title=None):
         pimpandhost_session = ScrapeSession(self.client)
         if not self.pimpandhost_crawler:
-            self.pimpandhost_crawler = PimpAndHostCrawler(quiet=self.quiet, SQL_Helper=self.SQL_Helper)
+            self.pimpandhost_crawler = PimpAndHostCrawler(quiet=self.quiet, SQL_Helper=self.SQL_Helper,
+                                                          error_writer=self.error_writer)
         album_obj = await self.pimpandhost_crawler.fetch(pimpandhost_session, url)
         await self._handle_album_additions("pimpandhost", album_obj, title)
         await pimpandhost_session.exit_handler()
@@ -228,7 +237,8 @@ class ScrapeMapper:
     async def PixelDrain(self, url, title=None):
         pixeldrain_session = ScrapeSession(self.client)
         if not self.pixeldrain_crawler:
-            self.pixeldrain_crawler = PixelDrainCrawler(quiet=self.quiet, SQL_Helper=self.SQL_Helper)
+            self.pixeldrain_crawler = PixelDrainCrawler(quiet=self.quiet, SQL_Helper=self.SQL_Helper,
+                                                        error_writer=self.error_writer)
         album_obj = await self.pixeldrain_crawler.fetch(pixeldrain_session, url)
         await self._handle_album_additions("pixeldrain", album_obj, title)
         await pixeldrain_session.exit_handler()
@@ -236,7 +246,8 @@ class ScrapeMapper:
     async def PostImg(self, url, title=None):
         postimg_session = ScrapeSession(self.client)
         if not self.postimg_crawler:
-            self.postimg_crawler = PostImgCrawler(quiet=self.quiet, SQL_Helper=self.SQL_Helper)
+            self.postimg_crawler = PostImgCrawler(quiet=self.quiet, SQL_Helper=self.SQL_Helper,
+                                                  error_writer=self.error_writer)
         album_obj = await self.postimg_crawler.fetch(postimg_session, url)
         await self._handle_album_additions("postimg", album_obj, title)
         await postimg_session.exit_handler()
@@ -244,7 +255,8 @@ class ScrapeMapper:
     async def Saint(self, url, title=None):
         saint_session = ScrapeSession(self.client)
         if not self.saint_crawler:
-            self.saint_crawler = SaintCrawler(quiet=self.quiet, SQL_Helper=self.SQL_Helper)
+            self.saint_crawler = SaintCrawler(quiet=self.quiet, SQL_Helper=self.SQL_Helper,
+                                              error_writer=self.error_writer)
         album_obj = await self.saint_crawler.fetch(saint_session, url)
         await self._handle_album_additions("saint", album_obj, title)
         await saint_session.exit_handler()
@@ -252,7 +264,8 @@ class ScrapeMapper:
     async def ShareX(self, url, title=None):
         sharex_session = ScrapeSession(self.client)
         if not self.sharex_crawler:
-            self.sharex_crawler = ShareXCrawler(include_id=self.include_id, quiet=self.quiet, SQL_Helper=self.SQL_Helper)
+            self.sharex_crawler = ShareXCrawler(include_id=self.include_id, quiet=self.quiet,
+                                                SQL_Helper=self.SQL_Helper, error_writer=self.error_writer)
 
         domain_obj = await self.sharex_crawler.fetch(sharex_session, url)
         await self._handle_domain_additions("sharex", domain_obj, title)
@@ -261,7 +274,8 @@ class ScrapeMapper:
     async def XBunkr(self, url, title=None):
         xbunkr_session = ScrapeSession(self.client)
         if not self.xbunkr_crawler:
-            self.xbunkr_crawler = XBunkrCrawler(quiet=self.quiet, SQL_Helper=self.SQL_Helper)
+            self.xbunkr_crawler = XBunkrCrawler(quiet=self.quiet, SQL_Helper=self.SQL_Helper,
+                                                error_writer=self.error_writer)
         album_obj = await self.xbunkr_crawler.fetch(xbunkr_session, url)
         await self._handle_album_additions("xbunkr", album_obj, title)
         await xbunkr_session.exit_handler()
@@ -271,7 +285,8 @@ class ScrapeMapper:
     async def Fapello(self, url, title=None):
         fapello_session = ScrapeSession(self.client)
         if not self.fapello_crawler:
-            self.fapello_crawler = FapelloCrawler(quiet=self.quiet, SQL_Helper=self.SQL_Helper)
+            self.fapello_crawler = FapelloCrawler(quiet=self.quiet, SQL_Helper=self.SQL_Helper,
+                                                  error_writer=self.error_writer)
         album_obj = await self.fapello_crawler.fetch(fapello_session, url)
         if album_obj:
             await self._handle_album_additions("fapello", album_obj, title)
@@ -280,7 +295,8 @@ class ScrapeMapper:
     async def NSFW_XXX(self, url, title=None):
         nsfwxxx_session = ScrapeSession(self.client)
         if not self.nsfwxxx_crawler:
-            self.nsfwxxx_crawler = NSFWXXXCrawler(separate_posts=self.separate_posts, quiet=self.quiet, SQL_Helper=self.SQL_Helper)
+            self.nsfwxxx_crawler = NSFWXXXCrawler(separate_posts=self.separate_posts, quiet=self.quiet,
+                                                  SQL_Helper=self.SQL_Helper, error_writer=self.error_writer)
         domain_obj = await self.nsfwxxx_crawler.fetch(nsfwxxx_session, url)
         await self._handle_domain_additions("nsfw.xxx", domain_obj, title)
         await nsfwxxx_session.exit_handler()
@@ -290,7 +306,7 @@ class ScrapeMapper:
         if not self.coomeno_crawler:
             self.coomeno_crawler = CoomenoCrawler(include_id=self.include_id, scraping_mapper=self,
                                                   separate_posts=self.separate_posts, SQL_Helper=self.SQL_Helper,
-                                                  quiet=self.quiet)
+                                                  quiet=self.quiet, error_writer=self.error_writer)
         assert url.host is not None
         async with self.coomero_semaphore:
             cascade, new_title = await self.coomeno_crawler.fetch(coomeno_session, url)
@@ -311,7 +327,7 @@ class ScrapeMapper:
         xenforo_session = ScrapeSession(self.client)
         if not self.xenforo_crawler:
             self.xenforo_crawler = XenforoCrawler(scraping_mapper=self, args=self.args, SQL_Helper=self.SQL_Helper,
-                                                  quiet=self.quiet)
+                                                  quiet=self.quiet, error_writer=self.error_writer)
         title = None
         cascade = None
 
@@ -365,8 +381,6 @@ class ScrapeMapper:
 
         else:
             log(f"Not Supported: {url_to_map}", quiet=self.quiet, style="yellow")
-            if self.unsupported_output:
-                title = title.encode("ascii", "ignore")
-                title = title.decode().strip()
-                async with aiofiles.open(self.unsupported_file, mode='a') as f:
-                    await f.write(f"{url_to_map},{referer},{title}\n")
+            title = title.encode("ascii", "ignore")
+            title = title.decode().strip()
+            await self.error_writer.write_unsupported(f"{url_to_map},{referer},{title}")

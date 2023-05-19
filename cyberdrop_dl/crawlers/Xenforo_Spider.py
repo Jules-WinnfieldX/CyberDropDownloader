@@ -21,6 +21,7 @@ from ..base_functions.error_classes import FailedLoginFailure, NoExtensionFailur
 if TYPE_CHECKING:
     import bs4
 
+    from ..base_functions.base_functions import ErrorFileWriter
     from ..base_functions.sql_helper import SQLHelper
     from ..client.client import ScrapeSession
 
@@ -139,7 +140,8 @@ class XenforoCrawler:
         "xbunker": "XBunker",
     }
 
-    def __init__(self, *, scraping_mapper, args: Dict, SQL_Helper: SQLHelper, quiet: bool):
+    def __init__(self, *, scraping_mapper, args: Dict, SQL_Helper: SQLHelper, quiet: bool,
+                 error_writer: ErrorFileWriter):
         self.include_id = args["Runtime"]["include_id"]
         self.quiet = quiet
 
@@ -157,6 +159,8 @@ class XenforoCrawler:
         self.scraping_mapper = scraping_mapper
         self.SQL_Helper = SQL_Helper
 
+        self.error_writer = error_writer
+
     async def fetch(self, session: ScrapeSession, url: URL) -> Tuple[CascadeItem, str]:
         """Xenforo forum director"""
         log(f"Starting: {url}", quiet=self.quiet, style="green")
@@ -173,8 +177,7 @@ class XenforoCrawler:
                 title = await self.parse_forum(session, scrape_url, parse_spec, cascade, "", post_num)
         except Exception as e:
             logger.debug("Error encountered while handling %s", url, exc_info=True)
-            log(f"Error: {url}", quiet=self.quiet, style="red")
-            logger.debug(e)
+            await self.error_writer.write_errored_scrape(url, e, self.quiet)
             return cascade, ""
 
         await self.SQL_Helper.insert_cascade(cascade)
@@ -335,6 +338,7 @@ class XenforoCrawler:
                 last_post_url = url.parent / post_num_str
             else:
                 last_post_url = url / post_num_str
+            await self.error_writer.write_last_post(last_post_url)
             async with aiofiles.open(self.output_last_file, mode='a') as f:
                 await f.write(f'{last_post_url}\n')
         return title

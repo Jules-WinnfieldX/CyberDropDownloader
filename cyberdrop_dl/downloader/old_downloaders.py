@@ -8,12 +8,12 @@ from pathlib import Path
 from random import gauss
 from typing import Dict, Any
 
-import aiofiles
 import aiohttp.client_exceptions
 from tqdm import tqdm
 
 from cyberdrop_dl.base_functions.base_functions import (
     clear,
+    ErrorFileWriter,
     log,
     logger,
 )
@@ -59,17 +59,15 @@ class Old_Downloader:
     """Downloader class, directs downloading for domain objects"""
 
     def __init__(self, args: Dict, client: Client, SQL_Helper: SQLHelper,
-                 domain: str, domain_obj: DomainItem, files: Files):
+                 domain: str, domain_obj: DomainItem, files: Files, error_writer: ErrorFileWriter):
         self.client = client
         self.download_session = DownloadSession(client)
+        self.error_writer = error_writer
         self.File_Lock = FileLock()
         self.SQL_Helper = SQL_Helper
 
         self.domain = domain
         self.domain_obj = domain_obj
-
-        self.errored_output = args['Runtime']['output_errored_urls']
-        self.errored_file = args['Files']['errored_urls_file']
 
         self.files = files
 
@@ -225,9 +223,7 @@ class Old_Downloader:
 
     async def handle_failed(self, media: MediaItem, e: Any) -> None:
         self.files.add_failed()
-        if self.errored_output:
-            async with aiofiles.open(self.errored_file, mode='a') as file:
-                await file.write(f"{media.url},{media.referer},{e.message}\n")
+        await self.error_writer.write_errored_download(media.url, media.referer, e.message)
 
     async def check_file_exists(self, complete_file: Path, partial_file: Path, media: MediaItem, album: str,
                                 url_path: str, original_filename: str,

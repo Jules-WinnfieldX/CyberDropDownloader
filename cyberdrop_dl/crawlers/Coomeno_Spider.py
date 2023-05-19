@@ -14,6 +14,7 @@ from ..base_functions.data_classes import CascadeItem
 if TYPE_CHECKING:
     from bs4 import Tag
 
+    from ..base_functions.base_functions import ErrorFileWriter
     from ..base_functions.sql_helper import SQLHelper
     from ..client.client import ScrapeSession
 
@@ -35,13 +36,16 @@ class ParseSpec:
 
 
 class CoomenoCrawler:
-    def __init__(self, *, include_id=False, scraping_mapper, separate_posts=False, quiet: bool, SQL_Helper: SQLHelper):
+    def __init__(self, *, include_id=False, scraping_mapper, separate_posts=False, quiet: bool, SQL_Helper: SQLHelper,
+                 error_writer: ErrorFileWriter):
         self.include_id = include_id
         self.quiet = quiet
         self.scraping_mapper = scraping_mapper
         self.separate_posts = separate_posts
         self.SQL_Helper = SQL_Helper
         self.limiter = AsyncLimiter(15, 1)
+
+        self.error_writer = error_writer
 
     async def fetch(self, session: ScrapeSession, url: URL):
         """Director for Coomer/Kemono scraping"""
@@ -55,8 +59,7 @@ class CoomenoCrawler:
                 title = await self.handle_coomeno(session, url, domain, cascade)
         except Exception as e:
             logger.debug("Error encountered while handling %s", url, exc_info=True)
-            log(f"Error: {url}", quiet=self.quiet, style="red")
-            logger.debug(e)
+            await self.error_writer.write_errored_scrape(url, e, self.quiet)
 
         await self.SQL_Helper.insert_cascade(cascade)
         log(f"Finished: {url}", quiet=self.quiet, style="green")
@@ -120,8 +123,7 @@ class CoomenoCrawler:
 
         except Exception as e:
             logger.debug("Error encountered while handling %s", url, exc_info=True)
-            log(f"Error: {url}", quiet=self.quiet, style="red")
-            logger.debug(e)
+            await self.error_writer.write_errored_scrape(url, e, self.quiet)
 
         return title
 
@@ -167,8 +169,7 @@ class CoomenoCrawler:
             await self.map_links(text_content, title, url)
         except Exception as e:
             logger.debug("Error encountered while handling %s", url, exc_info=True)
-            log(f"Error: {url}", quiet=self.quiet, style="red")
-            logger.debug(e)
+            await self.error_writer.write_errored_scrape(url, e, self.quiet)
 
         return title
 
