@@ -128,7 +128,7 @@ class ErrorFileWriter:
 
     async def write_errored_scrape(self, url: URL, e: Exception, quiet: bool) -> None:
         """Writes to the error file"""
-        log(f"Error scraping {url}", quiet=quiet)
+        log(f"Error: {url}", quiet=quiet, style="red")
         logger.debug(e)
 
         if not self.output_errored:

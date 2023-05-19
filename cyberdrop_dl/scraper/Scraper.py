@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Optional, Dict
 
 from yarl import URL
 
-from cyberdrop_dl.base_functions.base_functions import log, file_writer
+from cyberdrop_dl.base_functions.base_functions import log
 from cyberdrop_dl.base_functions.data_classes import AlbumItem, CascadeItem, DomainItem, ForumItem, SkipData
 from cyberdrop_dl.client.client import Client, ScrapeSession
 from cyberdrop_dl.crawlers.Anonfiles_Spider import AnonfilesCrawler

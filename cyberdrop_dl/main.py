@@ -150,7 +150,7 @@ async def file_management(args: Dict, links: List) -> ErrorFileWriter:
     Path(args['Files']['output_folder']).mkdir(parents=True, exist_ok=True)
 
     error_writer = ErrorFileWriter(args['Runtime']['output_errored_urls'], args['Runtime']['output_unsupported_urls'],
-                                   args['Runtime']['output_last_forum_post'], args['Files']['errored_scrape_urls_file'],
+                                   args['Forum_Options']['output_last_forum_post'], args['Files']['errored_scrape_urls_file'],
                                    args['Files']['errored_download_urls_file'], args['Files']['unsupported_urls_file'],
                                    args['Files']['output_last_forum_post_file'])
 
