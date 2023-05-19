@@ -4,9 +4,8 @@ import contextlib
 import logging
 import re
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Dict, List
 
-import aiofiles
 from yarl import URL
 
 from cyberdrop_dl.base_functions.base_functions import clear, log, purge_dir, ErrorFileWriter
@@ -21,7 +20,7 @@ from cyberdrop_dl.downloader.old_downloaders import old_download_forums
 from cyberdrop_dl.scraper.Scraper import ScrapeMapper
 
 from . import __version__ as VERSION
-from .base_functions.data_classes import CascadeItem, ForumItem, SkipData
+from .base_functions.data_classes import ForumItem, SkipData
 
 
 def parse_args() -> argparse.Namespace:
