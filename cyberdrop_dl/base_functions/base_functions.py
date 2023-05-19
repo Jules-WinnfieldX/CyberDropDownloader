@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import logging
 import os
 import re
@@ -44,7 +45,8 @@ MAX_FILENAME_LENGTH = 95
 
 async def clear() -> None:
     """Clears the terminal screen"""
-    os.system('cls' if os.name == 'nt' else 'clear')
+    clear_screen_proc = await asyncio.create_subprocess_shell('cls' if os.name == 'nt' else 'clear')
+    await clear_screen_proc.wait()
 
 
 def log(text: str, quiet: bool = False, style: str = "") -> None:
