@@ -261,7 +261,7 @@ async def director(args: Dict, links: List) -> None:
 
         if not await Forums.is_empty():
             if args['Progress_Options']['hide_new_progress']:
-                await old_download_forums(args, Forums, SQL_Helper, client)
+                await old_download_forums(args, Forums, SQL_Helper, client, error_writer)
             else:
                 download_director = DownloadDirector(args, Forums, SQL_Helper, client, error_writer)
                 await download_director.start()

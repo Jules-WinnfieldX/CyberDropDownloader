@@ -269,7 +269,8 @@ class Old_Downloader:
         return complete_file, partial_file, proceed
 
 
-async def old_download_forums(args: Dict, Forums: ForumItem, SQL_Helper: SQLHelper, client: Client) -> None:
+async def old_download_forums(args: Dict, Forums: ForumItem, SQL_Helper: SQLHelper, client: Client,
+                              error_writer: ErrorFileWriter) -> None:
     """Handler for forum threads and the progress bars for it"""
     total_files = await Forums.get_total()
     with tqdm(total=total_files, unit_scale=True, unit='Files', leave=True, initial=0,
@@ -278,7 +279,7 @@ async def old_download_forums(args: Dict, Forums: ForumItem, SQL_Helper: SQLHelp
         for title, Cascade in Forums.threads.items():
             tasks = []
             for domain, domain_obj in Cascade.domains.items():
-                downloader = Old_Downloader(args, client, SQL_Helper, domain, domain_obj, files)
+                downloader = Old_Downloader(args, client, SQL_Helper, domain, domain_obj, files, error_writer)
                 tasks.append(downloader.start_domain())
             await asyncio.gather(*tasks)
 
