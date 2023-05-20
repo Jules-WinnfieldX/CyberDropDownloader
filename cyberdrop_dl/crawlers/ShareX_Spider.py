@@ -28,7 +28,7 @@ class ShareXCrawler:
         self.include_id = include_id
         self.quiet = quiet
         self.SQL_Helper = SQL_Helper
-        self.limiter = AsyncLimiter(10, 1)
+        self.limiter = AsyncLimiter(8, 1)
 
         self.error_writer = error_writer
 
@@ -58,8 +58,13 @@ class ShareXCrawler:
         return domain_obj
 
     async def jpg_church_from_fish(self, url: URL) -> URL:
-        pattern2 = r"simp([1-5])\.jpg\.fish/"
-        return URL(re.sub(pattern2, r'simp\1.jpg.church/', str(url)))
+        pattern = r"simp([1-5])\.jpg\.fish/"
+        return_url = URL(re.sub(pattern, r'simp\1.jpg.church/', str(url)))
+        # The below is a makeshift fix until jpg.church has fully transitioned over to their new caching structure
+        # At the time of doing this, 2,4,6 are on the new structure, 1,3,5 are on the old
+        pattern2 = r"simp([1,3,5])\.jpg\.church/"
+        return_url = URL(re.sub(pattern2, r'simp\1.jpg.fish/', str(return_url)))
+        return return_url
 
     async def get_albums(self, session: ScrapeSession, url: URL, domain_obj: DomainItem) -> None:
         """Handles scraping for Albums"""
