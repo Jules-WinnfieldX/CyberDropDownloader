@@ -84,12 +84,6 @@ async def document_args(args: Dict) -> None:
                 group[arg] = '!REDACTED!'
 
     log("Starting Cyberdrop-DL")
-    log(f"Using authentication arguments: {print_args['Authentication']}", quiet=True)
-    log(f"Using file arguments: {print_args['Files']}", quiet=True)
-    log(f"Using forum option arguments: {print_args['Forum_Options']}", quiet=True)
-    log(f"Using ignore arguments: {print_args['Ignore']}", quiet=True)
-    log(f"Using jdownloader arguments: {print_args['JDownloader']}", quiet=True)
-    log(f"Using progress option arguments: {print_args['Progress_Options']}", quiet=True)
-    log(f"Using ratelimiting arguments: {print_args['Ratelimiting']}", quiet=True)
-    log(f"Using runtime arguments: {print_args['Runtime']}", quiet=True)
-    log(f"Using sorting arguments: {print_args['Sorting']}", quiet=True)
+    for group_name, group in print_args.items():
+        args_type = group_name.replace('_', ' ').lower()
+        log(f"Using {args_type} arguments: {group}", quiet=True)
