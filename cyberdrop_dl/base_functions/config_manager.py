@@ -78,12 +78,10 @@ async def document_args(args: Dict) -> None:
     """We document the runtime arguments for debugging and troubleshooting, redacting sensitive information"""
     print_args = copy.deepcopy(args)
 
-    for group in print_args.values():
-        for arg in group:
-            if group[arg] is not None and any(s in arg for s in ('api_key', 'password')):
-                group[arg] = '!REDACTED!'
-
     log("Starting Cyberdrop-DL")
     for group_name, group in print_args.items():
         args_type = group_name.replace('_', ' ').lower()
+        for arg in group:
+            if group[arg] is not None and any(s in arg for s in ('api_key', 'password')):
+                group[arg] = '!REDACTED!'
         log(f"Using {args_type} arguments: {group}", quiet=True)
