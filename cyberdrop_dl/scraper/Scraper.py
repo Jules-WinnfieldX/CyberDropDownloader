@@ -381,6 +381,10 @@ class ScrapeMapper:
 
         else:
             log(f"Not Supported: {url_to_map}", quiet=self.quiet, style="yellow")
+            if not referer:
+                referer = URL("")
+            if not title:
+                title = ""
             title = title.encode("ascii", "ignore")
             title = title.decode().strip()
-            await self.error_writer.write_unsupported(f"{url_to_map},{referer},{title}")
+            await self.error_writer.write_unsupported(url_to_map, referer, title)

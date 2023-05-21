@@ -159,27 +159,27 @@ async def file_management(args: Dict, links: List) -> ErrorFileWriter:
         output_url_file = args['Files']['output_last_forum_post_file']
         if output_url_file.exists():
             output_url_file.unlink()
-            output_url_file.touch()
+        output_url_file.touch()
 
     if args['Runtime']['output_unsupported_urls']:
         unsupported_urls = args['Files']['unsupported_urls_file']
         if unsupported_urls.exists():
             unsupported_urls.unlink()
-            unsupported_urls.touch()
-            await error_writer.write_unsupported_header()
+        unsupported_urls.touch()
+        await error_writer.write_unsupported_header()
 
     if args['Runtime']['output_errored_urls']:
         errored_urls = args['Files']['errored_download_urls_file']
         if errored_urls.exists():
             errored_urls.unlink()
-            errored_urls.touch()
-            await error_writer.write_errored_download_header()
+        errored_urls.touch()
+        await error_writer.write_errored_download_header()
 
         errored_urls = args['Files']['errored_scrape_urls_file']
         if errored_urls.exists():
             errored_urls.unlink()
-            errored_urls.touch()
-            await error_writer.write_errored_scrape_header()
+        errored_urls.touch()
+        await error_writer.write_errored_scrape_header()
 
     return error_writer
 
