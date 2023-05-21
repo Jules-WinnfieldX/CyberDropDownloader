@@ -31,10 +31,28 @@ class BunkrCrawler:
 
         self.error_writer = error_writer
 
+    async def get_stream_link(self, url: URL):
+        cdn_possibilities = r"(?:cdn.bunkr...|cdn..bunkr...|cdn...bunkr...|media-files.bunkr...|media-files..bunkr...|media-files...bunkr...)"
+        ext = '.' + url.parts[-1].split('.')[-1]
+        if ext:
+            ext = ext.lower()
+        else:
+            return url
+
+        if ext in FILE_FORMATS['Images']:
+            url = URL(str(url).replace("https://cdn", "https://i"))
+        elif ext in FILE_FORMATS['Videos']:
+            url = URL(re.sub(cdn_possibilities, "bunkr.la/v", str(url)))
+        else:
+            url = URL(re.sub(cdn_possibilities, "bunkr.la/d", str(url)))
+        return url
+
     async def fetch(self, session: ScrapeSession, url: URL) -> AlbumItem:
         """Scraper for Bunkr"""
         album_obj = AlbumItem("Loose Bunkr Files", [])
         log(f"Starting: {url}", quiet=self.quiet, style="green")
+
+        url = await self.get_stream_link(url)
 
         if "v" in url.parts or "d" in url.parts:
             media = await self.get_file(session, url)
@@ -46,7 +64,7 @@ class BunkrCrawler:
                 await self.SQL_Helper.insert_media("bunkr", "", media)
             return album_obj
 
-        if "a" in url.parts:
+        elif "a" in url.parts:
             album_obj = await self.get_album(session, url)
             await self.SQL_Helper.insert_album("bunkr", url, album_obj)
 
@@ -54,27 +72,22 @@ class BunkrCrawler:
                 log(f"Finished: {url}", quiet=self.quiet, style="green")
             return album_obj
 
-        cdn_possibilities = r"(?:cdn.bunkr...|cdn..bunkr...|cdn...bunkr...|media-files.bunkr...|media-files..bunkr...|media-files...bunkr...)"
-        ext = '.' + url.parts[-1].split('.')[-1]
-        if ext:
-            ext = ext.lower()
-        if ext in FILE_FORMATS['Images']:
-            filename, ext = await get_filename_and_ext(url.name)
-            original_filename, filename = await self.remove_id(filename, ext)
-
-            await self.SQL_Helper.fix_bunkr_entries(url, original_filename)
-            check_complete = await self.SQL_Helper.check_complete_singular("bunkr", url)
-
-            url = URL(str(url).replace("https://cdn", "https://i"))
-            media_item = MediaItem(url, url, check_complete, filename, ext, original_filename)
-            await album_obj.add_media(media_item)
         else:
-            if ext in FILE_FORMATS['Videos']:
-                referer = URL(re.sub(cdn_possibilities, "bunkr.la/v", str(url)))
+            ext = '.' + url.parts[-1].split('.')[-1]
+            if ext:
+                ext = ext.lower()
+            if ext in FILE_FORMATS['Images']:
+                filename, ext = await get_filename_and_ext(url.name)
+                original_filename, filename = await self.remove_id(filename, ext)
+
+                await self.SQL_Helper.fix_bunkr_entries(url, original_filename)
+                check_complete = await self.SQL_Helper.check_complete_singular("bunkr", url)
+
+                media_item = MediaItem(url, url, check_complete, filename, ext, original_filename)
+                await album_obj.add_media(media_item)
             else:
-                referer = URL(re.sub(cdn_possibilities, "bunkr.la/d", str(url)))
-            media_item = await self.get_file(session, referer)
-            await album_obj.add_media(media_item)
+                media_item = await self.get_file(session, url)
+                await album_obj.add_media(media_item)
 
         await self.SQL_Helper.insert_album("bunkr", url, album_obj)
         log(f"Finished: {url}", quiet=self.quiet, style="green")
@@ -158,6 +171,7 @@ class BunkrCrawler:
                 if link.startswith("/"):
                     link = URL("https://" + url.host + link)
                 link = URL(link)
+                referer = await self.get_stream_link(link)
 
                 try:
                     filename, ext = await get_filename_and_ext(link.name)
@@ -180,7 +194,7 @@ class BunkrCrawler:
 
                 await self.SQL_Helper.fix_bunkr_entries(link, original_filename)
                 complete = await self.SQL_Helper.check_complete_singular("bunkr", link)
-                media = MediaItem(link, url, complete, filename, ext, original_filename)
+                media = MediaItem(link, referer, complete, filename, ext, original_filename)
                 await album.add_media(media)
 
         except Exception as e:
