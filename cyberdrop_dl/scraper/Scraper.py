@@ -192,8 +192,9 @@ class ScrapeMapper:
                                                 error_writer=self.error_writer)
 
         async with self.gofile_semaphore:
-            await self.gofile_crawler.get_token(session=gofile_session,
-                                                api_token=self.args['Authentication']['gofile_api_key'])
+            await self.gofile_crawler.get_acct_token(session=gofile_session,
+                                                     api_token=self.args['Authentication']['gofile_api_key'])
+            await self.gofile_crawler.get_website_token(session=gofile_session)
         domain_obj = await self.gofile_crawler.fetch(gofile_session, url)
         await self._handle_domain_additions("gofile", domain_obj, title)
         await gofile_session.exit_handler()

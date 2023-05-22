@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import http
+import re
 from typing import TYPE_CHECKING, Union, List, Dict
 
 from aiolimiter import AsyncLimiter
@@ -25,9 +26,11 @@ class GoFileCrawler:
         self.error_writer = error_writer
 
         self.api_address = URL("https://api.gofile.io")
+        self.js_address = URL("https://gofile.io/dist/js/alljs.js")
         self.token = ""
+        self.websiteToken = ""
 
-    async def get_token(self, session: ScrapeSession, api_token=None):
+    async def get_acct_token(self, session: ScrapeSession, api_token=None):
         """Creates an anon gofile account to use."""
         if self.token:
             return
@@ -48,6 +51,20 @@ class GoFileCrawler:
         except Exception as e:
             logger.debug("Error encountered while getting GoFile token", exc_info=True)
             log("Error: Couldn't generate GoFile token", quiet=self.quiet, style="red")
+            logger.debug(e)
+
+    async def get_website_token(self, session: ScrapeSession):
+        """Creates an anon gofile account to use."""
+        if self.websiteToken:
+            return
+
+        try:
+            async with self.limiter:
+                js_obj = await session.get_text(self.js_address)
+            self.websiteToken = re.search(r'fetchData\.websiteToken\s*=\s*"(.*?)"', js_obj).group(1)
+        except Exception as e:
+            logger.debug("Error encountered while getting GoFile websiteToken", exc_info=True)
+            log("Error: Couldn't generate GoFile websiteToken", quiet=self.quiet, style="red")
             logger.debug(e)
 
     async def set_cookie(self, session: ScrapeSession):
