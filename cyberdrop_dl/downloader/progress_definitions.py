@@ -92,27 +92,27 @@ class OverallFileProgress:
         self.failed_files_task_id = overall_file_progress.add_task("[red]Failed", total=total_files)
         self.failed_files = 0
 
-    def update_total(self, total_files: int) -> None:
+    async def update_total(self, total_files: int) -> None:
         self.overall_file_progress.update(self.completed_files_task_id, total=total_files)
         self.overall_file_progress.update(self.skipped_files_task_id, total=total_files)
         self.overall_file_progress.update(self.failed_files_task_id, total=total_files)
 
-    def add_completed(self) -> None:
+    async def add_completed(self) -> None:
         self.overall_file_progress.advance(self.completed_files_task_id, 1)
         self.completed_files += 1
 
-    def add_skipped(self) -> None:
+    async def add_skipped(self) -> None:
         self.overall_file_progress.advance(self.skipped_files_task_id, 1)
         self.skipped_files += 1
 
-    def add_failed(self) -> None:
+    async def add_failed(self) -> None:
         self.overall_file_progress.advance(self.failed_files_task_id, 1)
         self.failed_files += 1
 
-    def return_totals(self) -> Tuple[int, int, int]:
+    async def return_totals(self) -> Tuple[int, int, int]:
         return self.completed_files, self.skipped_files, self.failed_files
 
-    def hide(self) -> None:
+    async def hide(self) -> None:
         self.overall_file_progress.update(self.completed_files_task_id, visible=False)
         self.overall_file_progress.update(self.skipped_files_task_id, visible=False)
         self.overall_file_progress.update(self.failed_files_task_id, visible=False)
@@ -137,7 +137,7 @@ class _Progress:
         self.uninitiated_tasks: List[TaskID] = []
         self.tasks_visibility_limit = visible_tasks_limit
 
-    def redraw(self):
+    async def redraw(self):
         while len(self.visible_tasks) > self.tasks_visibility_limit:
             task_id = self.visible_tasks.pop(0)
             self.invisible_tasks.append(task_id)
@@ -151,7 +151,7 @@ class _Progress:
         else:
             self.overflow.update(self.overflow_task_id, visible=False)
 
-    def add_task(self, description: str, total: int) -> TaskID:
+    async def add_task(self, description: str, total: int) -> TaskID:
         if total == 0:
             task_id = self.progress.add_task(self.progress_str.format(color=self.color, description=description), total=total, visible=False)
             self.uninitiated_tasks.append(task_id)
@@ -163,7 +163,7 @@ class _Progress:
             self.visible_tasks.append(task_id)
         return task_id
 
-    def remove_task(self, task_id: TaskID) -> None:
+    async def remove_task(self, task_id: TaskID) -> None:
         if task_id in self.visible_tasks:
             self.visible_tasks.remove(task_id)
             self.progress.update(task_id, visible=False)
@@ -174,19 +174,19 @@ class _Progress:
         else:
             raise ValueError("Task ID not found")
 
-    def mark_task_completed(self, task_id: TaskID) -> None:
+    async def mark_task_completed(self, task_id: TaskID) -> None:
         self.progress.update(task_id, visible=False)
         if task_id in self.visible_tasks:
             self.visible_tasks.remove(task_id)
         elif task_id in self.invisible_tasks:
             self.invisible_tasks.remove(task_id)
-        self.redraw()
+        await self.redraw()
         self.completed_tasks.append(task_id)
 
-    def advance_task(self, task_id: TaskID, amount: int) -> None:
+    async def advance_task(self, task_id: TaskID, amount: int) -> None:
         self.progress.advance(task_id, amount)
 
-    def update_total(self, task_id: TaskID, total: int) -> None:
+    async def update_total(self, task_id: TaskID, total: int) -> None:
         if task_id in self.invisible_tasks:
             self.progress.update(task_id, total=total, visible=False)
         elif task_id in self.visible_tasks:
@@ -195,7 +195,7 @@ class _Progress:
             self.progress.update(task_id, total=total, visible=False)
             self.uninitiated_tasks.remove(task_id)
             self.invisible_tasks.append(task_id)
-            self.redraw()
+            await self.redraw()
 
 
 class ForumProgress:
@@ -205,11 +205,11 @@ class ForumProgress:
         self.type_str = "Threads"
         self.progress = _Progress(self.forum_progress, progressions.forum_progress_overflow, self.color, "Threads", 5)
 
-    def add_forum(self, total_tasks: int) -> TaskID:
-        return self.progress.add_task("FORUM THREADS", total_tasks)
+    async def add_forum(self, total_tasks: int) -> TaskID:
+        return await self.progress.add_task("FORUM THREADS", total_tasks)
 
-    def advance_forum(self, task_id: TaskID) -> None:
-        self.progress.advance_task(task_id, 1)
+    async def advance_forum(self, task_id: TaskID) -> None:
+        await self.progress.advance_task(task_id, 1)
 
 
 class CascadeProgress:
@@ -221,17 +221,17 @@ class CascadeProgress:
         self.type_str = "Threads"
         self.progress = _Progress(self.cascade_progress, progressions.cascade_progress_overflow, self.color, "Threads", visible_tasks_limit)
 
-    def add_cascade(self, title: str, total_domains: int) -> TaskID:
-        task_id = self.progress.add_task(title.upper(), total_domains)
-        self.progress.redraw()
+    async def add_cascade(self, title: str, total_domains: int) -> TaskID:
+        task_id = await self.progress.add_task(title.upper(), total_domains)
+        await self.progress.redraw()
         return task_id
 
-    def advance_cascade(self, task_id: TaskID) -> None:
-        self.progress.advance_task(task_id, 1)
+    async def advance_cascade(self, task_id: TaskID) -> None:
+        await self.progress.advance_task(task_id, 1)
 
-    def mark_cascade_completed(self, task_id: TaskID) -> None:
-        self.progress.mark_task_completed(task_id)
-        self.progress.redraw()
+    async def mark_cascade_completed(self, task_id: TaskID) -> None:
+        await self.progress.mark_task_completed(task_id)
+        await self.progress.redraw()
 
 
 class DomainProgress:
@@ -244,29 +244,29 @@ class DomainProgress:
         self.domains: Dict[str, TaskID] = {}
         self.domain_totals: Dict[str, int] = {}
 
-    def add_domain(self, domain: str, total_albums: int) -> TaskID:
+    async def add_domain(self, domain: str, total_albums: int) -> TaskID:
         if domain in self.domains:
             self.domain_totals[domain] += total_albums
-            self.progress.update_total(self.domains[domain], self.domain_totals[domain])
-            self.progress.redraw()
+            await self.progress.update_total(self.domains[domain], self.domain_totals[domain])
+            await self.progress.redraw()
             return self.domains[domain]
         else:
-            task_id = self.progress.add_task(domain.upper(), total_albums)
+            task_id = await self.progress.add_task(domain.upper(), total_albums)
             self.domains[domain] = task_id
             self.domain_totals[domain] = total_albums
-            self.progress.redraw()
+            await self.progress.redraw()
             return task_id
 
-    def advance_domain(self, task_id: TaskID) -> None:
-        self.progress.advance_task(task_id, 1)
+    async def advance_domain(self, task_id: TaskID) -> None:
+        await self.progress.advance_task(task_id, 1)
 
-    def mark_domain_completed(self, domain: str, task_id: TaskID) -> None:
+    async def mark_domain_completed(self, domain: str, task_id: TaskID) -> None:
         task = [x for x in self.domain_progress.tasks if x.id == task_id][0]
         if task.finished:
             with contextlib.suppress(KeyError):
                 self.domains.pop(domain)
                 self.domain_totals.pop(domain)
-            self.progress.mark_task_completed(task_id)
+            await self.progress.mark_task_completed(task_id)
 
 
 class AlbumProgress:
@@ -276,21 +276,21 @@ class AlbumProgress:
         self.type_str = "Albums"
         self.progress = _Progress(self.album_progress, progressions.album_progress_overflow, self.color, "Albums", visible_tasks_limit)
 
-    def add_album(self, album: str, total_files: int) -> TaskID:
+    async def add_album(self, album: str, total_files: int) -> TaskID:
         task_description = album.split('/')[-1]
         task_description = task_description.encode("ascii", "ignore").decode().strip()
         task_description = adjust_title(task_description)
 
-        task_id = self.progress.add_task(task_description.upper(), total_files)
-        self.progress.redraw()
+        task_id = await self.progress.add_task(task_description.upper(), total_files)
+        await self.progress.redraw()
         return task_id
 
-    def advance_album(self, task_id: TaskID) -> None:
-        self.progress.advance_task(task_id, 1)
+    async def advance_album(self, task_id: TaskID) -> None:
+        await self.progress.advance_task(task_id, 1)
 
-    def mark_album_completed(self, task_id: TaskID) -> None:
-        self.progress.mark_task_completed(task_id)
-        self.progress.redraw()
+    async def mark_album_completed(self, task_id: TaskID) -> None:
+        await self.progress.mark_task_completed(task_id)
+        await self.progress.redraw()
 
 
 class FileProgress:
@@ -300,28 +300,28 @@ class FileProgress:
         self.type_str = "Files"
         self.progress = _Progress(self.file_progress, progressions.file_progress_overflow, self.color, "Files", visible_tasks_limit)
 
-    def add_file(self, file: str) -> TaskID:
+    async def add_file(self, file: str) -> TaskID:
         task_description = file.split('/')[-1]
         task_description = task_description.encode("ascii", "ignore").decode().strip()
         task_description = adjust_title(task_description)
 
-        task_id = self.progress.add_task(task_description.upper(), 0)
-        self.progress.redraw()
+        task_id = await self.progress.add_task(task_description.upper(), 0)
+        await self.progress.redraw()
         return task_id
 
-    def update_file_length(self, task_id: TaskID, length: int) -> None:
-        self.progress.update_total(task_id, length)
+    async def update_file_length(self, task_id: TaskID, length: int) -> None:
+        await self.progress.update_total(task_id, length)
 
-    def advance_file(self, task_id: TaskID, increment: int) -> None:
-        self.progress.advance_task(task_id, increment)
+    async def advance_file(self, task_id: TaskID, increment: int) -> None:
+        await self.progress.advance_task(task_id, increment)
 
-    def remove_file(self, task_id: TaskID) -> None:
-        self.progress.remove_task(task_id)
-        self.progress.redraw()
+    async def remove_file(self, task_id: TaskID) -> None:
+        await self.progress.remove_task(task_id)
+        await self.progress.redraw()
 
-    def mark_file_completed(self, task_id: TaskID) -> None:
-        self.progress.mark_task_completed(task_id)
-        self.progress.redraw()
+    async def mark_file_completed(self, task_id: TaskID) -> None:
+        await self.progress.mark_task_completed(task_id)
+        await self.progress.redraw()
 
 
 class ProgressMaster:

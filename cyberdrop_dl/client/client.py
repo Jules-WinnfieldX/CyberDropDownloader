@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
+import functools
 import json
 import logging
 import ssl
@@ -126,13 +127,16 @@ class DownloadSession:
         self.bunkr_maintenance = [URL("https://bnkr.b-cdn.net/maintenance-vid.mp4"), URL("https://bnkr.b-cdn.net/maintenance.mp4")]
 
     async def _append_content(self, file: Path, content: aiohttp.StreamReader,
-                              update_progress: Callable[[int], Optional[bool]]) -> None:
+                              update_progress: functools.partial | Callable[[int], Optional[bool]]) -> None:
         file.parent.mkdir(parents=True, exist_ok=True)
         async with aiofiles.open(file, mode='ab') as f:
             async for chunk, _ in content.iter_chunks():
                 await asyncio.sleep(0)
                 await f.write(chunk)
-                update_progress(len(chunk))
+                if isinstance(update_progress, functools.partial):
+                    await update_progress(len(chunk))
+                else:
+                    update_progress(len(chunk))
 
     async def _download(self, media: MediaItem, current_throttle: float, proxy: str, headers: Dict,
                         save_content: Callable[[aiohttp.StreamReader, int], Coroutine[Any, Any, None]]) -> None:
@@ -184,9 +188,9 @@ class DownloadSession:
                             file_task: TaskID) -> None:
 
         async def save_content(content: aiohttp.StreamReader, size: int) -> None:
-            Progress_Master.FileProgress.update_file_length(file_task, size + resume_point)
-            Progress_Master.FileProgress.advance_file(file_task, resume_point)
-            await self._append_content(file, content, lambda chunk_len: Progress_Master.FileProgress.advance_file(file_task, chunk_len))
+            await Progress_Master.FileProgress.update_file_length(file_task, size + resume_point)
+            await Progress_Master.FileProgress.advance_file(file_task, resume_point)
+            await self._append_content(file, content, functools.partial(Progress_Master.FileProgress.advance_file, file_task))
 
         await self._download(media, current_throttle, proxy, headers, save_content)
 

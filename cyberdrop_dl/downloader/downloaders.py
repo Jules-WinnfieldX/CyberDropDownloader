@@ -131,15 +131,15 @@ class Downloader:
         """File downloader"""
         if not await check_free_space(self.CDL_Helper.required_free_space, self.CDL_Helper.download_dir):
             log("We've run out of free space.", quiet=True)
-            self.CDL_Helper.files.add_skipped()
-            self.Progress_Master.AlbumProgress.advance_album(album_task)
+            await self.CDL_Helper.files.add_skipped()
+            await self.Progress_Master.AlbumProgress.advance_album(album_task)
             return
 
         if not await allowed_filetype(media, self.CDL_Helper.exclude_images, self.CDL_Helper.exclude_videos,
                                       self.CDL_Helper.exclude_audio, self.CDL_Helper.exclude_other):
             log(f"Blocked by file extension: {media.filename}", quiet=True)
-            self.CDL_Helper.files.add_skipped()
-            self.Progress_Master.AlbumProgress.advance_album(album_task)
+            await self.CDL_Helper.files.add_skipped()
+            await self.Progress_Master.AlbumProgress.advance_album(album_task)
             return
 
         if self.CDL_Helper.block_sub_folders:
@@ -177,7 +177,7 @@ class Downloader:
             if resume_point:
                 headers['Range'] = f'bytes={resume_point}-'
 
-            file_task = self.Progress_Master.FileProgress.add_file(media.filename)
+            file_task = await self.Progress_Master.FileProgress.add_file(media.filename)
 
             if not await self.CDL_Helper.SQL_Helper.sql_check_old_existing(url_path) and not fake_download:
                 await self.download_session.download_file(self.Progress_Master, media, partial_file, self.throttle,
@@ -190,10 +190,10 @@ class Downloader:
 
             if fake_download:
                 log(f"Already Downloaded: {media.filename} from {media.referer}", quiet=True)
-                self.CDL_Helper.files.add_skipped()
+                await self.CDL_Helper.files.add_skipped()
             else:
-                self.CDL_Helper.files.add_completed()
-            self.Progress_Master.FileProgress.mark_file_completed(file_task)
+                await self.CDL_Helper.files.add_completed()
+            await self.Progress_Master.FileProgress.mark_file_completed(file_task)
 
             log(f"Completed Download: {media.filename} from {media.referer}", quiet=True)
             await self.CDL_Helper.File_Lock.remove_lock(filename)
@@ -207,7 +207,7 @@ class Downloader:
                 await self.CDL_Helper.File_Lock.remove_lock(filename)
 
             with contextlib.suppress(Exception):
-                self.Progress_Master.FileProgress.remove_file(file_task)
+                await self.Progress_Master.FileProgress.remove_file(file_task)
 
             if hasattr(e, "message"):
                 logging.debug(f"\n{media.url} ({e.message})")
@@ -241,7 +241,7 @@ class Downloader:
         return self.CDL_Helper.disable_attempt_limit or self.current_attempt[url_path] < self.CDL_Helper.allowed_attempts - 1
 
     async def handle_failed(self, media: MediaItem, e: Any) -> None:
-        self.CDL_Helper.files.add_failed()
+        await self.CDL_Helper.files.add_failed()
         await self.CDL_Helper.error_writer.write_errored_download(media.url, media.referer, e.message)
 
     async def check_file_exists(self, complete_file: Path, partial_file: Path, media: MediaItem, album: str,
@@ -325,43 +325,43 @@ class DownloadDirector:
         self.Forums = Forums
 
     async def start(self):
-        self.CDL_Helper.files.update_total(await self.Forums.get_total())
+        await self.CDL_Helper.files.update_total(await self.Forums.get_total())
 
         progress_table = await self.Progress_Master.get_table()
         with Live(progress_table, refresh_per_second=self.Progress_Master.refresh_rate):
-            forum_task = self.Progress_Master.ForumProgress.add_forum(len(self.Forums.threads))
+            forum_task = await self.Progress_Master.ForumProgress.add_forum(len(self.Forums.threads))
             cascade_tasks = []
             for title, Cascade in self.Forums.threads.items():
                 cascade_tasks.append(self.start_cascade(forum_task, title, Cascade))
             await asyncio.gather(*_limit_concurrency(cascade_tasks, self.CDL_Helper.threads_limit))
 
         await clear()
-        completed_files, skipped_files, failed_files = self.Progress_Master.OverallFileProgress.return_totals()
+        completed_files, skipped_files, failed_files = await self.Progress_Master.OverallFileProgress.return_totals()
         log(f"| [green]Files Complete: {completed_files}[/green] - [yellow]Files Skipped:  {skipped_files}[/yellow] - [red]Files Failed: {failed_files}[/red] |")
 
         for downloader in self.Download_Manager.downloaders.values():
             await downloader.download_session.exit_handler()
 
     async def start_cascade(self, forum_task: TaskID, title: str, Cascade: CascadeItem) -> None:
-        cascade_task = self.Progress_Master.CascadeProgress.add_cascade(title, len(Cascade.domains))
+        cascade_task = await self.Progress_Master.CascadeProgress.add_cascade(title, len(Cascade.domains))
         domain_tasks = []
         for domain, domain_obj in Cascade.domains.items():
             domain_tasks.append(self.start_domain(cascade_task, title, domain, domain_obj))
         await asyncio.gather(*_limit_concurrency(domain_tasks, self.CDL_Helper.domains_limit))
-        self.Progress_Master.CascadeProgress.mark_cascade_completed(cascade_task)
-        self.Progress_Master.ForumProgress.advance_forum(forum_task)
+        await self.Progress_Master.CascadeProgress.mark_cascade_completed(cascade_task)
+        await self.Progress_Master.ForumProgress.advance_forum(forum_task)
 
     async def start_domain(self, cascade_task: TaskID, title: str, domain: str, domain_obj: DomainItem) -> None:
         """Handler for domains and the progress bars for it"""
         downloader = await self.Download_Manager.get_downloader(domain)
 
-        domain_task = self.Progress_Master.DomainProgress.add_domain(domain, len(domain_obj.albums))
+        domain_task = await self.Progress_Master.DomainProgress.add_domain(domain, len(domain_obj.albums))
         album_tasks = []
         for album, album_obj in domain_obj.albums.items():
             album_tasks.append(self.start_album(downloader, domain_task, domain, album, album_obj))
         await asyncio.gather(*_limit_concurrency(album_tasks, self.CDL_Helper.albums_limit))
-        self.Progress_Master.CascadeProgress.advance_cascade(cascade_task)
-        self.Progress_Master.DomainProgress.mark_domain_completed(domain, domain_task)
+        await self.Progress_Master.CascadeProgress.advance_cascade(cascade_task)
+        await self.Progress_Master.DomainProgress.mark_domain_completed(domain, domain_task)
 
     async def start_album(self, downloader: Downloader, domain_task: TaskID, domain: str, album: str,
                           album_obj: AlbumItem) -> None:
@@ -369,22 +369,22 @@ class DownloadDirector:
         if await album_obj.is_empty():
             return
 
-        album_task = self.Progress_Master.AlbumProgress.add_album(album, len(album_obj.media))
+        album_task = await self.Progress_Master.AlbumProgress.add_album(album, len(album_obj.media))
         download_tasks = []
         for media in album_obj.media:
             download_tasks.append(self.start_file(downloader, album_task, domain, album, media))
         await asyncio.gather(*download_tasks)
-        self.Progress_Master.DomainProgress.advance_domain(domain_task)
-        self.Progress_Master.AlbumProgress.mark_album_completed(album_task)
+        await self.Progress_Master.DomainProgress.advance_domain(domain_task)
+        await self.Progress_Master.AlbumProgress.mark_album_completed(album_task)
 
     async def start_file(self, downloader: Downloader, album_task: TaskID, domain: str, album: str, media: MediaItem) -> None:
         """Handler for files and the progress bars for it"""
         if media.complete or await self.CDL_Helper.SQL_Helper.check_complete_singular(domain, media.url):
             log(f"Previously Downloaded: {media.filename}", quiet=True)
-            self.CDL_Helper.files.add_skipped()
-            self.Progress_Master.AlbumProgress.advance_album(album_task)
+            await self.CDL_Helper.files.add_skipped()
+            await self.Progress_Master.AlbumProgress.advance_album(album_task)
             return
 
         url_path = await get_db_path(media.url, domain)
         await downloader.download(album, media, url_path, album_task)
-        self.Progress_Master.AlbumProgress.advance_album(album_task)
+        await self.Progress_Master.AlbumProgress.advance_album(album_task)
