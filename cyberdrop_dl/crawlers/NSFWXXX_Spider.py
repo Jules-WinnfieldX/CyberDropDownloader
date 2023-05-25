@@ -37,6 +37,9 @@ class NSFWXXXCrawler:
 
     async def get_user(self, session: ScrapeSession, url: URL, domain_obj: DomainItem) -> None:
         """Gets posts for a user profile"""
+        if str(url).endswith("/"):
+            url = url.parent
+
         try:
             model = url.name + " (NSFW.XXX)"
             for page in itertools.count(1):
