@@ -145,7 +145,7 @@ class ErrorFileWriter:
             return
 
         async with aiofiles.open(self.errored_scrapes, 'a') as f:
-            await f.write(f"URL,Exception\n")
+            await f.write("URL,Exception\n")
 
     async def write_errored_download(self, url: URL, referer: URL, error_message: str) -> None:
         """Writes to the error file"""
@@ -177,7 +177,7 @@ class ErrorFileWriter:
             return
 
         async with aiofiles.open(self.unsupported, 'a') as f:
-            await f.write(f"URL,REFERER,TITLE\n")
+            await f.write("URL,REFERER,TITLE\n")
 
     async def write_last_post(self, url: URL) -> None:
         """Writes to the error file"""

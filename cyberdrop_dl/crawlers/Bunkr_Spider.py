@@ -64,7 +64,7 @@ class BunkrCrawler:
                 await self.SQL_Helper.insert_media("bunkr", "", media)
             return album_obj
 
-        elif "a" in url.parts:
+        if "a" in url.parts:
             album_obj = await self.get_album(session, url)
             await self.SQL_Helper.insert_album("bunkr", url, album_obj)
 
@@ -72,22 +72,21 @@ class BunkrCrawler:
                 log(f"Finished: {url}", quiet=self.quiet, style="green")
             return album_obj
 
+        ext = '.' + url.parts[-1].split('.')[-1]
+        if ext:
+            ext = ext.lower()
+        if ext in FILE_FORMATS['Images']:
+            filename, ext = await get_filename_and_ext(url.name)
+            original_filename, filename = await self.remove_id(filename, ext)
+
+            await self.SQL_Helper.fix_bunkr_entries(url, original_filename)
+            check_complete = await self.SQL_Helper.check_complete_singular("bunkr", url)
+
+            media_item = MediaItem(url, url, check_complete, filename, ext, original_filename)
+            await album_obj.add_media(media_item)
         else:
-            ext = '.' + url.parts[-1].split('.')[-1]
-            if ext:
-                ext = ext.lower()
-            if ext in FILE_FORMATS['Images']:
-                filename, ext = await get_filename_and_ext(url.name)
-                original_filename, filename = await self.remove_id(filename, ext)
-
-                await self.SQL_Helper.fix_bunkr_entries(url, original_filename)
-                check_complete = await self.SQL_Helper.check_complete_singular("bunkr", url)
-
-                media_item = MediaItem(url, url, check_complete, filename, ext, original_filename)
-                await album_obj.add_media(media_item)
-            else:
-                media_item = await self.get_file(session, url)
-                await album_obj.add_media(media_item)
+            media_item = await self.get_file(session, url)
+            await album_obj.add_media(media_item)
 
         await self.SQL_Helper.insert_album("bunkr", url, album_obj)
         log(f"Finished: {url}", quiet=self.quiet, style="green")
