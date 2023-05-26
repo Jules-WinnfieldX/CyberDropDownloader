@@ -5,7 +5,6 @@ import re
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Dict, List, Tuple
 
-import aiofiles
 from bs4 import BeautifulSoup
 from yarl import URL
 

@@ -100,10 +100,7 @@ class CDLHelper:
 
     def get_throttle(self, domain: str) -> float:
         """Get the throttle for a domain"""
-        if domain in self.delay:
-            return self.delay[domain]
-        else:
-            return self.client.throttle
+        return self.delay.get(domain, self.client.throttle)
 
 
 class Downloader:
@@ -301,17 +298,9 @@ class DownloadManager:
         self.CDL_Helper = CDL_Helper
         self.Progress_Master = Progress_Master
 
-    async def create_downloader(self, domain: str):
-        if domain in self.downloaders:
-            return self.downloaders[domain]
-        else:
-            new_downloader = Downloader(domain, self.CDL_Helper, self.Progress_Master)
-            self.downloaders[domain] = new_downloader
-            return new_downloader
-
-    async def get_downloader(self, domain: str):
+    async def get_downloader(self, domain: str) -> Downloader:
         if domain not in self.downloaders:
-            return await self.create_downloader(domain)
+            self.downloaders[domain] = Downloader(domain, self.CDL_Helper, self.Progress_Master)
         return self.downloaders[domain]
 
 

@@ -1,14 +1,19 @@
 from __future__ import annotations
 
-import asyncio
 import contextlib
-from functools import wraps
-from typing import Dict, Tuple, List
+from typing import Dict, List, Tuple
 
 from rich.console import Group
 from rich.panel import Panel
-from rich.progress import Progress, BarColumn, SpinnerColumn, TransferSpeedColumn, DownloadColumn, TimeRemainingColumn, \
-    TaskID
+from rich.progress import (
+    BarColumn,
+    DownloadColumn,
+    Progress,
+    SpinnerColumn,
+    TaskID,
+    TimeRemainingColumn,
+    TransferSpeedColumn,
+)
 from rich.table import Table
 
 
@@ -248,14 +253,12 @@ class DomainProgress:
         if domain in self.domains:
             self.domain_totals[domain] += total_albums
             await self.progress.update_total(self.domains[domain], self.domain_totals[domain])
-            await self.progress.redraw()
-            return self.domains[domain]
         else:
-            task_id = await self.progress.add_task(domain.upper(), total_albums)
-            self.domains[domain] = task_id
+            self.domains[domain] = await self.progress.add_task(domain.upper(), total_albums)
             self.domain_totals[domain] = total_albums
-            await self.progress.redraw()
-            return task_id
+
+        await self.progress.redraw()
+        return self.domains[domain]
 
     async def advance_domain(self, task_id: TaskID) -> None:
         await self.progress.advance_task(task_id, 1)

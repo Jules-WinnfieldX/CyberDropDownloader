@@ -44,7 +44,7 @@ class AlbumItem:
         self.media.extend(album.media)
 
     async def is_empty(self) -> bool:
-        return True if not self.media else False
+        return not self.media
 
 
 @dataclass

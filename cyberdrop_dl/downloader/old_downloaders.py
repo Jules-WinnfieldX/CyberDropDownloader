@@ -4,16 +4,15 @@ import asyncio
 import itertools
 import logging
 from http import HTTPStatus
-from pathlib import Path
 from random import gauss
-from typing import Dict, Any
+from typing import TYPE_CHECKING, Any, Dict
 
 import aiohttp.client_exceptions
 from tqdm import tqdm
 
 from cyberdrop_dl.base_functions.base_functions import (
-    clear,
     ErrorFileWriter,
+    clear,
     log,
     logger,
 )
@@ -31,6 +30,9 @@ from .downloader_utils import (
     is_4xx_client_error,
     retry,
 )
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
 class Files:
