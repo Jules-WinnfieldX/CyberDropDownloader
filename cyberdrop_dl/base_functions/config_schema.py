@@ -7,6 +7,7 @@ config_default: Dict = {
     "Configuration": {
         "Authentication": {
             "gofile_api_key": "",
+            "gofile_website_token": "",
             "pixeldrain_api_key": "",
             "nudostar_username": "",
             "nudostar_password": "",
