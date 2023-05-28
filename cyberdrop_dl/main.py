@@ -72,7 +72,7 @@ def parse_args() -> argparse.Namespace:
     runtime_opts.add_argument("--skip-download-mark-completed", help="sets the scraped files as downloaded without downloading", action="store_true")
     runtime_opts.add_argument("--output-errored-urls", help="sets the failed urls to be output to the errored urls file", action="store_true")
     runtime_opts.add_argument("--output-unsupported-urls", help="sets the unsupported urls to be output to the unsupported urls file", action="store_true")
-    runtime_opts.add_argument("--proxy", help="HTTP/HTTPS proxy used for downloading, format [protocal]://[ip]:[port]", default=config_group["proxy"])
+    runtime_opts.add_argument("--proxy", help="HTTP/HTTPS proxy used for downloading, format [protocol]://[ip]:[port]", default=config_group["proxy"])
     runtime_opts.add_argument("--remove-bunkr-identifier", help="removes the bunkr added identifier from output filenames", action="store_true")
     runtime_opts.add_argument("--required-free-space", type=int, default=config_group["required_free_space"], help="required free space (in gigabytes) for the program to run (default: %(default)s)")
 
@@ -103,6 +103,7 @@ def parse_args() -> argparse.Namespace:
     config_group = config_data["Authentication"]
     auth_opts = parser.add_argument_group("Authentication options")
     auth_opts.add_argument("--gofile-api-key", help="api key for premium gofile", default=config_group["gofile_api_key"])
+    auth_opts.add_argument("--gofile-website-token", help="website token for gofile", default=config_group["gofile_website_token"])
     auth_opts.add_argument("--pixeldrain-api-key", help="api key for premium pixeldrain", default=config_group["pixeldrain_api_key"])
     auth_opts.add_argument("--nudostar-username", help="username to login to nudostar", default=config_group["nudostar_username"])
     auth_opts.add_argument("--nudostar-password", help="password to login to nudostar", default=config_group['nudostar_password'])

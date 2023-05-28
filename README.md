@@ -145,7 +145,7 @@ optional arguments:
 --skip-download-mark-completed          sets the scraped files as downloaded without downloading
 --output-errored-urls                   sets the failed urls to be output to the errored urls file
 --output-unsupported-urls               sets the unsupported urls to be output to the unsupported urls file
---proxy                                 HTTP/HTTPS proxy used for downloading, format [protocal]://[ip]:[port]
+--proxy                                 HTTP/HTTPS proxy used for downloading, format [protocol]://[ip]:[port]
 --remove-bunkr-identifier               removes the bunkr added identifier from output filenames
 --required-free-space                   required free space (in gigabytes) for the program to run
 
@@ -165,6 +165,7 @@ optional arguments:
 --separate-posts                separates forum scraping into folders by post number
 
 --gofile-api-key                api key for premium gofile
+--gofile-website-token          website token for gofile
 --pixeldrain-api-key            api key for premium pixeldrain
 --nudostar-username             username to login to nudostar
 --nudostar-password             password to login to nudostar

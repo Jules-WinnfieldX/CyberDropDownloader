@@ -2,12 +2,12 @@ from __future__ import annotations
 
 import http
 import re
-from typing import TYPE_CHECKING, Union, List, Dict
+from typing import TYPE_CHECKING, Dict, List, Union
 
 from aiolimiter import AsyncLimiter
 from yarl import URL
 
-from ..base_functions.base_functions import log, logger, make_title_safe, get_filename_and_ext
+from ..base_functions.base_functions import get_filename_and_ext, log, logger, make_title_safe
 from ..base_functions.data_classes import DomainItem, MediaItem
 from ..base_functions.error_classes import NoExtensionFailure
 
@@ -53,9 +53,13 @@ class GoFileCrawler:
             log("Error: Couldn't generate GoFile token", quiet=self.quiet, style="red")
             logger.debug(e)
 
-    async def get_website_token(self, session: ScrapeSession):
+    async def get_website_token(self, session: ScrapeSession, website_token: str = None):
         """Creates an anon gofile account to use."""
         if self.websiteToken:
+            return
+
+        if website_token:
+            self.websiteToken = website_token
             return
 
         try:

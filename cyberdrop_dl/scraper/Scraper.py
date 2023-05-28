@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import asyncio
-from typing import TYPE_CHECKING, Optional, Dict
+from typing import TYPE_CHECKING, Dict, Optional
 
 from yarl import URL
 
@@ -194,7 +194,8 @@ class ScrapeMapper:
         async with self.gofile_semaphore:
             await self.gofile_crawler.get_acct_token(session=gofile_session,
                                                      api_token=self.args['Authentication']['gofile_api_key'])
-            await self.gofile_crawler.get_website_token(session=gofile_session)
+            await self.gofile_crawler.get_website_token(session=gofile_session,
+                                                        website_token=self.args['Authentication']['gofile_website_token'])
         domain_obj = await self.gofile_crawler.fetch(gofile_session, url)
         await self._handle_domain_additions("gofile", domain_obj, title)
         await gofile_session.exit_handler()
