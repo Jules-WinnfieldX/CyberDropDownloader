@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 
 from yarl import URL
 
-from ..base_functions.base_functions import create_media_item, log, logger
+from ..base_functions.base_functions import create_media_item, log, logger, check_direct
 from ..base_functions.data_classes import AlbumItem
 
 if TYPE_CHECKING:
@@ -25,6 +25,13 @@ class GfycatCrawler:
         album_obj = AlbumItem("Gfycat", [])
         try:
             log(f"Starting: {url}", quiet=self.quiet, style="green")
+            if await check_direct(url):
+                media_item = await create_media_item(url, url, self.SQL_Helper, "gfycat")
+                await album_obj.add_media(media_item)
+                await self.SQL_Helper.insert_album("gfycat", url, album_obj)
+                log(f"Finished: {url}", quiet=self.quiet, style="green")
+                return album_obj
+
             soup = await session.get_BS4(url)
 
             video = soup.select_one("video[class='video media']")
