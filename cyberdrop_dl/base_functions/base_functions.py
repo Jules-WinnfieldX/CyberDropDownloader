@@ -89,7 +89,8 @@ async def make_title_safe(title: str) -> str:
 async def check_direct(url: URL) -> bool:
     """Checks whether the given url is a direct link to a content item"""
     mapping_direct = [r'i.pixl.li', r'i..pixl.li', r'img-...cyberdrop...', r'f.cyberdrop...',
-                      r'fs-...cyberdrop...', r'jpg.church/images/...', r'simp..jpg.church', r's..putmega.com',
+                      r'fs-...cyberdrop...', r'jpg.church/images/...', r'simp..jpg.church', r'jpg.fish/images/...',
+                      r'simp..jpg.fish', r'jpg.fishing/images/...', r'simp..jpg.fishing', r's..putmega.com',
                       r's..putme.ga', r'images..imgbox.com', r's..lovefap...', r'img.kiwi/images/']
     return any(re.search(domain, str(url)) for domain in mapping_direct)
 
