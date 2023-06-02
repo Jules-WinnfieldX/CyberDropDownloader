@@ -100,9 +100,12 @@ class CDLHelper:
         self.filesize_maximum_videos = args["Runtime"]["filesize_maximum_videos"]
 
         # Concurrency Limits
-        self.threads_limit = asyncio.Semaphore(args["Runtime"]["max_concurrent_threads"]) if args["Runtime"]["max_concurrent_threads"] else None
-        self.domains_limit = asyncio.Semaphore(args["Runtime"]["max_concurrent_domains"]) if args["Runtime"]["max_concurrent_domains"] else None
-        self.albums_limit = asyncio.Semaphore(args["Runtime"]["max_concurrent_albums"]) if args["Runtime"]["max_concurrent_albums"] else None
+        self.threads_limit = asyncio.Semaphore(args["Runtime"]["max_concurrent_threads"]) if args["Runtime"][
+            "max_concurrent_threads"] else None
+        self.domains_limit = asyncio.Semaphore(args["Runtime"]["max_concurrent_domains"]) if args["Runtime"][
+            "max_concurrent_domains"] else None
+        self.albums_limit = asyncio.Semaphore(args["Runtime"]["max_concurrent_albums"]) if args["Runtime"][
+            "max_concurrent_albums"] else None
 
         # API Keys
         self.pixeldrain_api_key = args["Authentication"]["pixeldrain_api_key"]
@@ -111,7 +114,7 @@ class CDLHelper:
         """Get the throttle for a domain"""
         return self.delay.get(domain, self.client.throttle)
 
-    def check_filesize_limits(self, media: MediaItem, content_size: int) -> bool:
+    async def check_filesize_limits(self, media: MediaItem, content_size: int) -> bool:
         if media.ext in FILE_FORMATS['Images']:
             if self.filesize_minimum_images and self.filesize_maximum_images:
                 if content_size < self.filesize_minimum_images or content_size > self.filesize_maximum_images:
@@ -192,9 +195,17 @@ class Downloader:
             complete_file = (self.CDL_Helper.download_dir / album / media.filename)
             partial_file = complete_file.with_suffix(complete_file.suffix + '.part')
 
-            complete_file, partial_file, proceed = await self.check_file_exists(complete_file, partial_file, media,
-                                                                                album, url_path, original_filename,
-                                                                                self.throttle)
+            complete_file, partial_file, proceed, expected_size = await self.check_file_exists(complete_file,
+                                                                                               partial_file, media,
+                                                                                               album, url_path,
+                                                                                               original_filename,
+                                                                                               self.throttle)
+            filesize_check = await self.CDL_Helper.check_filesize_limits(media, expected_size)
+            if not filesize_check:
+                log(f"Filesize out of specified range: {media.url}", quiet=True)
+                await self.CDL_Helper.files.add_skipped()
+                await self.Progress_Master.AlbumProgress.advance_album(album_task)
+                return
             fake_download = self.CDL_Helper.mark_downloaded or not proceed
 
             await self.CDL_Helper.SQL_Helper.update_pre_download(complete_file, media.filename, url_path,
@@ -207,10 +218,10 @@ class Downloader:
             headers = {}
             if self.CDL_Helper.pixeldrain_api_key and "pixeldrain" in media.url.host:
                 headers["Authorization"] = await basic_auth("Cyberdrop-DL", self.CDL_Helper.pixeldrain_api_key)
-            if resume_point:
-                headers['Range'] = f'bytes={resume_point}-'
 
-            file_task = await self.Progress_Master.FileProgress.add_file(media.filename)
+            headers['Range'] = f'bytes={resume_point}-'
+
+            file_task = await self.Progress_Master.FileProgress.add_file(media.filename, expected_size)
 
             if not await self.CDL_Helper.SQL_Helper.sql_check_old_existing(url_path) and not fake_download:
                 await self.download_session.download_file(self.Progress_Master, media, partial_file, self.throttle,
@@ -271,28 +282,25 @@ class Downloader:
             raise DownloadFailure(code=getattr(e, "code", 1), message=repr(e))
 
     def can_retry(self, url_path: str) -> bool:
-        return self.CDL_Helper.disable_attempt_limit or self.current_attempt[url_path] < self.CDL_Helper.allowed_attempts - 1
+        return self.CDL_Helper.disable_attempt_limit or self.current_attempt[
+            url_path] < self.CDL_Helper.allowed_attempts - 1
 
     async def handle_failed(self, media: MediaItem, e: Any) -> None:
         await self.CDL_Helper.files.add_failed()
         await self.CDL_Helper.error_writer.write_errored_download(media.url, media.referer, e.message)
 
     async def check_file_exists(self, complete_file: Path, partial_file: Path, media: MediaItem, album: str,
-                                url_path: str, original_filename: str, current_throttle: float):
+                                url_path: str, original_filename: str,
+                                current_throttle: float) -> tuple[Path, Path, bool, int]:
         """Complicated checker for if a file already exists, and was already downloaded"""
         expected_size = None
         proceed = True
         while True:
-            if not complete_file.exists() and not partial_file.exists():
-                break
-
             if not expected_size:
                 expected_size = await self.download_session.get_filesize(media.url, str(media.referer),
                                                                          current_throttle)
-                proceed = self.CDL_Helper.check_filesize_limits(media, expected_size)
-                if not proceed:
-                    log(f"Filesize outside limits: {media.url}", quiet=True)
-                    break
+            if not complete_file.exists() and not partial_file.exists():
+                break
 
             if complete_file.exists() and complete_file.stat().st_size == expected_size:
                 proceed = False
@@ -319,7 +327,7 @@ class Downloader:
             complete_file = (self.CDL_Helper.download_dir / album / media.filename)
             partial_file = complete_file.with_suffix(complete_file.suffix + '.part')
 
-        return complete_file, partial_file, proceed
+        return complete_file, partial_file, proceed, expected_size
 
     async def iterate_filename(self, complete_file: Path, media: MediaItem, album: str) -> Tuple[Path, Path]:
         for iterations in itertools.count(1):
@@ -407,7 +415,8 @@ class DownloadDirector:
         await self.Progress_Master.DomainProgress.advance_domain(domain_task)
         await self.Progress_Master.AlbumProgress.mark_album_completed(album_task)
 
-    async def start_file(self, downloader: Downloader, album_task: TaskID, domain: str, album: str, media: MediaItem) -> None:
+    async def start_file(self, downloader: Downloader, album_task: TaskID, domain: str, album: str,
+                         media: MediaItem) -> None:
         """Handler for files and the progress bars for it"""
         if media.complete or await self.CDL_Helper.SQL_Helper.check_complete_singular(domain, media.url):
             log(f"Previously Downloaded: {media.filename}", quiet=True)

@@ -139,7 +139,7 @@ class DownloadSession:
                     update_progress(len(chunk))
 
     async def _download(self, media: MediaItem, current_throttle: float, proxy: str, headers: Dict,
-                        save_content: Callable[[aiohttp.StreamReader, int], Coroutine[Any, Any, None]]) -> None:
+                        save_content: Callable[[aiohttp.StreamReader], Coroutine[Any, Any, None]], file: Path) -> None:
         headers['Referer'] = str(media.referer)
         headers['user-agent'] = self.client.user_agent
 
@@ -157,13 +157,11 @@ class DownloadSession:
                 logger.debug("Server for %s is experiencing issues, you are being ratelimited, or cookies have expired", media.url)
                 raise DownloadFailure(code=CustomHTTPStatus.IM_A_TEAPOT, message="Unexpectedly got text as response")
 
-            size = int(resp.headers.get('Content-Length', '0'))
-            if not size:
-                content_range = resp.headers.get('Content-Range', '')  # <unit> <range-start>-<range-end>/<size>
-                if content_range:
-                    with contextlib.suppress(ValueError):
-                        size = int(content_range.split('/')[1])
-            await save_content(resp.content, size)
+            if resp.status != HTTPStatus.PARTIAL_CONTENT:
+                if file.is_file():
+                    file.unlink()
+
+            await save_content(resp.content)
 
     async def _throttle(self, delay: float, host: str) -> None:
         """Throttles requests to domains by a parameter amount of time"""
@@ -187,23 +185,22 @@ class DownloadSession:
                             current_throttle: float, resume_point: int, proxy: str, headers: Dict,
                             file_task: TaskID) -> None:
 
-        async def save_content(content: aiohttp.StreamReader, size: int) -> None:
-            await Progress_Master.FileProgress.update_file_length(file_task, size + resume_point)
+        async def save_content(content: aiohttp.StreamReader) -> None:
             await Progress_Master.FileProgress.advance_file(file_task, resume_point)
             await self._append_content(file, content, functools.partial(Progress_Master.FileProgress.advance_file, file_task))
 
-        await self._download(media, current_throttle, proxy, headers, save_content)
+        await self._download(media, current_throttle, proxy, headers, save_content, file)
 
     async def old_download_file(self, media: MediaItem, file: Path, current_throttle: float, resume_point: int,
-                                proxy: str, headers: Dict):
+                                proxy: str, headers: Dict, size: int) -> None:
 
-        async def save_content(content: aiohttp.StreamReader, size: int) -> None:
+        async def save_content(content: aiohttp.StreamReader) -> None:
             task_description = adjust_title(f"{media.url.host}: {media.filename}")
             with tqdm(total=size + resume_point, unit_scale=True, unit='B', leave=False,
                       initial=resume_point, desc=task_description) as progress:
                 await self._append_content(file, content, lambda chunk_len: progress.update(chunk_len))
 
-        await self._download(media, current_throttle, proxy, headers, save_content)
+        await self._download(media, current_throttle, proxy, headers, save_content, file)
 
     async def get_filesize(self, url: URL, referer: str, current_throttle: float) -> int:
         headers = {'Referer': referer, 'user-agent': self.client.user_agent}

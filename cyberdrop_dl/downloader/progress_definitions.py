@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import contextlib
-from typing import Dict, List, Tuple
+from typing import Dict, List, Optional, Tuple
 
 from rich.console import Group
 from rich.panel import Panel
@@ -303,12 +303,12 @@ class FileProgress:
         self.type_str = "Files"
         self.progress = _Progress(self.file_progress, progressions.file_progress_overflow, self.color, "Files", visible_tasks_limit)
 
-    async def add_file(self, file: str) -> TaskID:
+    async def add_file(self, file: str, expected_size: Optional[int]) -> TaskID:
         task_description = file.split('/')[-1]
         task_description = task_description.encode("ascii", "ignore").decode().strip()
         task_description = adjust_title(task_description)
 
-        task_id = await self.progress.add_task(task_description.upper(), 0)
+        task_id = await self.progress.add_task(task_description.upper(), expected_size if expected_size else 0)
         await self.progress.redraw()
         return task_id
 

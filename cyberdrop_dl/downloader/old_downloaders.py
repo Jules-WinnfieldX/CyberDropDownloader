@@ -11,6 +11,7 @@ import aiohttp.client_exceptions
 from tqdm import tqdm
 
 from cyberdrop_dl.base_functions.base_functions import (
+    FILE_FORMATS,
     ErrorFileWriter,
     clear,
     log,
@@ -85,6 +86,13 @@ class Old_Downloader:
         self.exclude_videos = args["Ignore"]["exclude_videos"]
         self.exclude_other = args["Ignore"]["exclude_other"]
 
+        self.filesize_minimum_images = args["Ignore"]["filesize_minimum_images"]
+        self.filesize_minimum_videos = args["Ignore"]["filesize_minimum_videos"]
+        self.filesize_minimum_other = args["Ignore"]["filesize_minimum_other"]
+        self.filesize_maximum_images = args["Ignore"]["filesize_maximum_images"]
+        self.filesize_maximum_videos = args["Ignore"]["filesize_maximum_videos"]
+        self.filesize_maximum_other = args["Ignore"]["filesize_maximum_other"]
+
         self.block_sub_folders = args['Runtime']['block_sub_folders']
         self.allowed_attempts = args["Runtime"]["attempts"]
         self.disable_attempt_limit = args["Runtime"]["disable_attempt_limit"]
@@ -149,9 +157,11 @@ class Old_Downloader:
             complete_file = (self.download_dir / album / media.filename)
             partial_file = complete_file.with_suffix(complete_file.suffix + '.part')
 
-            complete_file, partial_file, proceed = await self.check_file_exists(complete_file, partial_file, media,
-                                                                                album, url_path, original_filename,
-                                                                                current_throttle)
+            complete_file, partial_file, proceed, expected_size = await self.check_file_exists(complete_file,
+                                                                                               partial_file, media,
+                                                                                               album, url_path,
+                                                                                               original_filename,
+                                                                                               current_throttle)
             fake_download = self.mark_downloaded or not proceed
 
             await self.SQL_Helper.update_pre_download(complete_file, media.filename, url_path, original_filename)
@@ -167,12 +177,12 @@ class Old_Downloader:
             headers = {}
             if self.pixeldrain_api_key and "pixeldrain" in media.url.host:
                 headers["Authorization"] = await basic_auth("Cyberdrop-DL", self.pixeldrain_api_key)
-            if resume_point:
-                headers['Range'] = f'bytes={resume_point}-'
+
+            headers['Range'] = f'bytes={resume_point}-'
 
             if not await self.SQL_Helper.sql_check_old_existing(url_path) and not fake_download:
                 await self.download_session.old_download_file(media, partial_file, current_throttle, resume_point,
-                                                              self.proxy, headers)
+                                                              self.proxy, headers, expected_size)
                 partial_file.rename(complete_file)
 
             await self.SQL_Helper.mark_complete(url_path, original_filename)
@@ -227,19 +237,47 @@ class Old_Downloader:
         self.files.add_failed()
         await self.error_writer.write_errored_download(media.url, media.referer, e.message)
 
+    async def check_filesize_limits(self, media: MediaItem, content_size: int) -> bool:
+        if media.ext in FILE_FORMATS['Images']:
+            if self.filesize_minimum_images and self.filesize_maximum_images:
+                if content_size < self.filesize_minimum_images or content_size > self.filesize_maximum_images:
+                    return False
+            if content_size < self.filesize_minimum_images:
+                return False
+            if self.filesize_maximum_images and content_size > self.filesize_maximum_images:
+                return False
+        elif media.ext in FILE_FORMATS['Videos']:
+            if self.filesize_minimum_videos and self.filesize_maximum_videos:
+                if content_size < self.filesize_minimum_videos or content_size > self.filesize_maximum_videos:
+                    return False
+            if content_size < self.filesize_minimum_videos:
+                return False
+            if self.filesize_maximum_videos and content_size > self.filesize_maximum_videos:
+                return False
+        else:
+            if self.filesize_minimum_other and self.filesize_maximum_other:
+                if content_size < self.filesize_minimum_other or content_size > self.filesize_maximum_other:
+                    return False
+            if content_size < self.filesize_minimum_other:
+                return False
+            if self.filesize_maximum_other and content_size > self.filesize_maximum_other:
+                return False
+        return True
+
     async def check_file_exists(self, complete_file: Path, partial_file: Path, media: MediaItem, album: str,
                                 url_path: str, original_filename: str,
-                                current_throttle: float) -> tuple[Path, Path, bool]:
+                                current_throttle: float) -> tuple[Path, Path, bool, int]:
         """Complicated checker for if a file already exists, and was already downloaded"""
         expected_size = None
         proceed = True
         while True:
-            if not complete_file.exists() and not partial_file.exists():
-                break
-
             if not expected_size:
                 expected_size = await self.download_session.get_filesize(media.url, str(media.referer),
                                                                          current_throttle)
+
+            if not complete_file.exists() and not partial_file.exists():
+                break
+
             if complete_file.exists() and complete_file.stat().st_size == expected_size:
                 proceed = False
                 break
@@ -268,7 +306,7 @@ class Old_Downloader:
             complete_file = (self.download_dir / album / media.filename)
             partial_file = complete_file.with_suffix(complete_file.suffix + '.part')
 
-        return complete_file, partial_file, proceed
+        return complete_file, partial_file, proceed, expected_size
 
 
 async def old_download_forums(args: Dict, Forums: ForumItem, SQL_Helper: SQLHelper, client: Client,
@@ -287,4 +325,4 @@ async def old_download_forums(args: Dict, Forums: ForumItem, SQL_Helper: SQLHelp
 
     await clear()
     log(f"| [green]Files Complete: {files.completed_files}[/green] - [yellow]Files Skipped: "
-              f"{files.skipped_files}[/yellow] - [red]Files Failed: {files.failed_files}[/red] |")
+        f"{files.skipped_files}[/yellow] - [red]Files Failed: {files.failed_files}[/red] |")
