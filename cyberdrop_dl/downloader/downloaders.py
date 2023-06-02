@@ -12,6 +12,7 @@ import aiohttp.client_exceptions
 from rich.live import Live
 
 from cyberdrop_dl.base_functions.base_functions import (
+    FILE_FORMATS,
     clear,
     log,
     logger,
@@ -90,6 +91,14 @@ class CDLHelper:
         self.proxy = args["Runtime"]["proxy"]
         self.required_free_space = args["Runtime"]["required_free_space"]
 
+        # Filesize limits
+        self.filesize_minimum_images = args["Runtime"]["filesize_minimum_images"]
+        self.filesize_minimum_other = args["Runtime"]["filesize_minimum_other"]
+        self.filesize_minimum_videos = args["Runtime"]["filesize_minimum_videos"]
+        self.filesize_maximum_images = args["Runtime"]["filesize_maximum_images"]
+        self.filesize_maximum_other = args["Runtime"]["filesize_maximum_other"]
+        self.filesize_maximum_videos = args["Runtime"]["filesize_maximum_videos"]
+
         # Concurrency Limits
         self.threads_limit = asyncio.Semaphore(args["Runtime"]["max_concurrent_threads"]) if args["Runtime"]["max_concurrent_threads"] else None
         self.domains_limit = asyncio.Semaphore(args["Runtime"]["max_concurrent_domains"]) if args["Runtime"]["max_concurrent_domains"] else None
@@ -101,6 +110,24 @@ class CDLHelper:
     def get_throttle(self, domain: str) -> float:
         """Get the throttle for a domain"""
         return self.delay.get(domain, self.client.throttle)
+
+    def check_filesize_limits(self, media: MediaItem, content_size: int) -> bool:
+        if media.ext in FILE_FORMATS['Images']:
+            if content_size < self.filesize_minimum_images:
+                return False
+            if self.filesize_maximum_images and content_size > self.filesize_maximum_images:
+                return False
+        elif media.ext in FILE_FORMATS['Videos']:
+            if content_size < self.filesize_minimum_videos:
+                return False
+            if self.filesize_maximum_videos and content_size > self.filesize_maximum_videos:
+                return False
+        else:
+            if content_size < self.filesize_minimum_other:
+                return False
+            if self.filesize_maximum_other and content_size > self.filesize_maximum_other:
+                return False
+        return True
 
 
 class Downloader:
@@ -253,6 +280,11 @@ class Downloader:
             if not expected_size:
                 expected_size = await self.download_session.get_filesize(media.url, str(media.referer),
                                                                          current_throttle)
+                proceed = self.CDL_Helper.check_filesize_limits(media, expected_size)
+                if not proceed:
+                    log(f"Filesize outside limits: {media.url}", quiet=True)
+                    break
+
             if complete_file.exists() and complete_file.stat().st_size == expected_size:
                 proceed = False
                 break
