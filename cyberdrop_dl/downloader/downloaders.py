@@ -113,16 +113,25 @@ class CDLHelper:
 
     def check_filesize_limits(self, media: MediaItem, content_size: int) -> bool:
         if media.ext in FILE_FORMATS['Images']:
+            if self.filesize_minimum_images and self.filesize_maximum_images:
+                if content_size < self.filesize_minimum_images or content_size > self.filesize_maximum_images:
+                    return False
             if content_size < self.filesize_minimum_images:
                 return False
             if self.filesize_maximum_images and content_size > self.filesize_maximum_images:
                 return False
         elif media.ext in FILE_FORMATS['Videos']:
+            if self.filesize_minimum_videos and self.filesize_maximum_videos:
+                if content_size < self.filesize_minimum_videos or content_size > self.filesize_maximum_videos:
+                    return False
             if content_size < self.filesize_minimum_videos:
                 return False
             if self.filesize_maximum_videos and content_size > self.filesize_maximum_videos:
                 return False
         else:
+            if self.filesize_minimum_other and self.filesize_maximum_other:
+                if content_size < self.filesize_minimum_other or content_size > self.filesize_maximum_other:
+                    return False
             if content_size < self.filesize_minimum_other:
                 return False
             if self.filesize_maximum_other and content_size > self.filesize_maximum_other:
