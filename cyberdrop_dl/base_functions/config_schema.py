@@ -72,6 +72,7 @@ config_default: Dict = {
             "allow_insecure_connections": False,
             "attempts": 10,
             "block_sub_folders": False,
+            "check_for_partial_files_and_empty_dirs": True,
             "disable_attempt_limit": False,
             "filesize_minimum_images": 0,
             "filesize_minimum_other": 0,

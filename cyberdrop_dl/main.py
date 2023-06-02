@@ -63,6 +63,7 @@ def parse_args() -> argparse.Namespace:
     runtime_opts.add_argument("--allow-insecure-connections", help="allows insecure connections from content hosts", action="store_true")
     runtime_opts.add_argument("--attempts", type=int, help="number of attempts to download each file (default: %(default)s)", default=config_group["attempts"])
     runtime_opts.add_argument("--block-sub-folders", help="block sub folders from being created", action="store_true")
+    runtime_opts.add_argument("--check-for-partial-files-and-empty-dirs", type=bool, default=config_group["check_for_partial_files_and_empty_dirs"], help="checks for partial files and empty directories after completing (default: %(default)s)")
     runtime_opts.add_argument("--disable-attempt-limit", help="disables the attempt limitation", action="store_true")
     runtime_opts.add_argument("--filesize_maximum_images", type=int, default=config_group["filesize_maximum_images"], help="maximum filesize for images (default: %(default)s)")
     runtime_opts.add_argument("--filesize_maximum_videos", type=int, default=config_group["filesize_maximum_videos"], help="maximum filesize for videos (default: %(default)s)")
@@ -283,18 +284,19 @@ async def director(args: Dict, links: List) -> None:
             await sorter.sort()
 
         log("")
-        log("Checking for incomplete downloads")
-        partial_downloads = any(f.is_file() for f in args['Files']['output_folder'].rglob("*.part"))
-        temp_downloads = any(Path(f).is_file() for f in await SQL_Helper.get_temp_names())
+        if args['Runtime']['check_for_partial_files_and_empty_dirs']:
+            log("Checking for incomplete downloads")
+            partial_downloads = any(f.is_file() for f in args['Files']['output_folder'].rglob("*.part"))
+            temp_downloads = any(Path(f).is_file() for f in await SQL_Helper.get_temp_names())
 
-        log('Purging empty directories')
-        await purge_dir(args['Files']['output_folder'])
+            log('Purging empty directories')
+            await purge_dir(args['Files']['output_folder'])
+            if partial_downloads:
+                log('There are partial downloads in the downloads folder.', style="yellow")
+            if temp_downloads:
+                log('There are partial downloads from this run, please re-run the program.', style="yellow")
 
         log('Finished downloading. Enjoy :)')
-        if partial_downloads:
-            log('There are partial downloads in the downloads folder.', style="yellow")
-        if temp_downloads:
-            log('There are partial downloads from this run, please re-run the program.', style="yellow")
 
     log('')
     log("If you enjoy using this program, please consider buying the developer a coffee :)\nhttps://www.buymeacoffee.com/juleswinnft", style="green")
