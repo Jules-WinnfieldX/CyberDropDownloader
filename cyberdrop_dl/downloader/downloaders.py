@@ -200,16 +200,18 @@ class Downloader:
                                                                                                album, url_path,
                                                                                                original_filename,
                                                                                                self.throttle)
+
+            fake_download = self.CDL_Helper.mark_downloaded or not proceed
+
+            await self.CDL_Helper.SQL_Helper.update_pre_download(complete_file, media.filename, url_path,
+                                                                 original_filename)
+
             filesize_check = await self.CDL_Helper.check_filesize_limits(media, expected_size)
             if not filesize_check:
                 log(f"Filesize out of specified range: {media.url}", quiet=True)
                 await self.CDL_Helper.files.add_skipped()
                 await self.Progress_Master.AlbumProgress.advance_album(album_task)
                 return
-            fake_download = self.CDL_Helper.mark_downloaded or not proceed
-
-            await self.CDL_Helper.SQL_Helper.update_pre_download(complete_file, media.filename, url_path,
-                                                                 original_filename)
 
             await self.CDL_Helper.SQL_Helper.sql_insert_temp(str(partial_file))
             resume_point = partial_file.stat().st_size if partial_file.exists() else 0

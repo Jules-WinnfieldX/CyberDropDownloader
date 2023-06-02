@@ -166,6 +166,12 @@ class Old_Downloader:
 
             await self.SQL_Helper.update_pre_download(complete_file, media.filename, url_path, original_filename)
 
+            filesize_check = await self.check_filesize_limits(media, expected_size)
+            if not filesize_check:
+                log(f"Filesize out of range: {media.filename}", quiet=True)
+                self.files.add_skipped()
+                return
+
             await self.SQL_Helper.sql_insert_temp(str(partial_file))
             resume_point = partial_file.stat().st_size if partial_file.exists() else 0
 
