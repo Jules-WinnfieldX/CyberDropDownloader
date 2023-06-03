@@ -29,7 +29,7 @@ class ParseSpec:
     def __post_init__(self):
         if self.domain == "coomer":
             self.posts_selectors = ['article[class=post-card ] a']
-            self.next_page_selector = 'a[title="Next page"]'
+            self.next_page_selector = 'a[class="next"]'
         elif self.domain == "kemono":
             self.posts_selectors = ['article[class="post-card post-card--preview"] a', 'article[class="post-card"] a']
             self.next_page_selector = 'a[class=next]'
