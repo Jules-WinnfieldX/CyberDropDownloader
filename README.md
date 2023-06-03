@@ -137,12 +137,12 @@ optional arguments:
 --attempts                              number of attempts to download each file
 --block-sub-folders                     block sub folders from being created
 --disable-attempt-limit                 disables the attempt limitation
---filesize-maximum-images               maximum filesize for images
---filesize-maximum-videos               maximum filesize for videos
---filesize-maximum-other                maximum filesize for other files
---filesize-minimum-images               minimum filesize for images
---filesize-minimum-videos               minimum filesize for videos
---filesize-minimum-other                minimum filesize for other files
+--filesize-maximum-images               maximum filesize for images (in bytes)
+--filesize-maximum-videos               maximum filesize for videos (in bytes)
+--filesize-maximum-other                maximum filesize for other files (in bytes)
+--filesize-minimum-images               minimum filesize for images (in bytes)
+--filesize-minimum-videos               minimum filesize for videos (in bytes)
+--filesize-minimum-other                minimum filesize for other files (in bytes)
 --include-id                            include the ID in the download folder name
 --max-concurrent-threads                number of threads to download simultaneously
 --max-concurrent-domains                number of domains to download simultaneously
