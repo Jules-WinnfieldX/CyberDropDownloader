@@ -86,12 +86,12 @@ class Old_Downloader:
         self.exclude_videos = args["Ignore"]["exclude_videos"]
         self.exclude_other = args["Ignore"]["exclude_other"]
 
-        self.filesize_minimum_images = args["Ignore"]["filesize_minimum_images"]
-        self.filesize_minimum_videos = args["Ignore"]["filesize_minimum_videos"]
-        self.filesize_minimum_other = args["Ignore"]["filesize_minimum_other"]
-        self.filesize_maximum_images = args["Ignore"]["filesize_maximum_images"]
-        self.filesize_maximum_videos = args["Ignore"]["filesize_maximum_videos"]
-        self.filesize_maximum_other = args["Ignore"]["filesize_maximum_other"]
+        self.filesize_minimum_images = args["Runtime"]["filesize_minimum_images"]
+        self.filesize_minimum_videos = args["Runtime"]["filesize_minimum_videos"]
+        self.filesize_minimum_other = args["Runtime"]["filesize_minimum_other"]
+        self.filesize_maximum_images = args["Runtime"]["filesize_maximum_images"]
+        self.filesize_maximum_videos = args["Runtime"]["filesize_maximum_videos"]
+        self.filesize_maximum_other = args["Runtime"]["filesize_maximum_other"]
 
         self.block_sub_folders = args['Runtime']['block_sub_folders']
         self.allowed_attempts = args["Runtime"]["attempts"]
