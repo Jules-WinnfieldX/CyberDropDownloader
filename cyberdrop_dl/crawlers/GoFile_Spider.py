@@ -12,17 +12,19 @@ from ..base_functions.data_classes import DomainItem, MediaItem
 from ..base_functions.error_classes import NoExtensionFailure
 
 if TYPE_CHECKING:
-    from ..base_functions.base_functions import ErrorFileWriter
+    from ..base_functions.base_functions import CacheManager, ErrorFileWriter
     from ..base_functions.sql_helper import SQLHelper
     from ..client.client import ScrapeSession
 
 
 class GoFileCrawler:
-    def __init__(self, quiet: bool, SQL_Helper: SQLHelper, error_writer: ErrorFileWriter):
+    def __init__(self, quiet: bool, SQL_Helper: SQLHelper, error_writer: ErrorFileWriter,
+                 cache_manager: CacheManager):
         self.quiet = quiet
         self.SQL_Helper = SQL_Helper
         self.limiter = AsyncLimiter(1, 1)
 
+        self.cache_manager = cache_manager
         self.error_writer = error_writer
 
         self.api_address = URL("https://api.gofile.io")
@@ -35,6 +37,9 @@ class GoFileCrawler:
         if self.token:
             return
 
+        if not api_token:
+            api_token = await self.cache_manager.get("gofile_api_key")
+
         if api_token:
             self.token = api_token
             await self.set_cookie(session)
@@ -46,6 +51,7 @@ class GoFileCrawler:
             if json_obj["status"] == "ok":
                 self.token = json_obj["data"]["token"]
                 await self.set_cookie(session)
+                await self.cache_manager.save("gofile_api_key", self.token)
             else:
                 raise
         except Exception as e:
@@ -58,6 +64,9 @@ class GoFileCrawler:
         if self.websiteToken:
             return
 
+        if not website_token:
+            website_token = await self.cache_manager.get("gofile_website_token")
+
         if website_token:
             self.websiteToken = website_token
             return
@@ -66,6 +75,7 @@ class GoFileCrawler:
             async with self.limiter:
                 js_obj = await session.get_text(self.js_address)
             self.websiteToken = re.search(r'fetchData\.websiteToken\s*=\s*"(.*?)"', js_obj).group(1)
+            await self.cache_manager.save("gofile_website_token", self.websiteToken)
         except Exception as e:
             logger.debug("Error encountered while getting GoFile websiteToken", exc_info=True)
             log("Error: Couldn't generate GoFile websiteToken", quiet=self.quiet, style="red")
