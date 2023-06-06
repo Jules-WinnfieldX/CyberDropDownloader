@@ -168,14 +168,12 @@ class Downloader:
         if not await check_free_space(self.CDL_Helper.required_free_space, self.CDL_Helper.download_dir):
             log("We've run out of free space.", quiet=True)
             await self.CDL_Helper.files.add_skipped()
-            await self.Progress_Master.AlbumProgress.advance_album(album_task)
             return
 
         if not await allowed_filetype(media, self.CDL_Helper.exclude_images, self.CDL_Helper.exclude_videos,
                                       self.CDL_Helper.exclude_audio, self.CDL_Helper.exclude_other):
             log(f"Blocked by file extension: {media.filename}", quiet=True)
             await self.CDL_Helper.files.add_skipped()
-            await self.Progress_Master.AlbumProgress.advance_album(album_task)
             return
 
         if self.CDL_Helper.block_sub_folders:
@@ -210,7 +208,6 @@ class Downloader:
             if not filesize_check:
                 log(f"Filesize out of specified range: {media.url}", quiet=True)
                 await self.CDL_Helper.files.add_skipped()
-                await self.Progress_Master.AlbumProgress.advance_album(album_task)
                 return
 
             await self.CDL_Helper.SQL_Helper.sql_insert_temp(str(partial_file))
