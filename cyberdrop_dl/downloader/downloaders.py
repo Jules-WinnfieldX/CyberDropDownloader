@@ -415,7 +415,7 @@ class DownloadDirector:
             download_tasks.append(self.start_file(downloader, album_task, domain, album, media))
         await asyncio.gather(*download_tasks)
         await self.Progress_Master.DomainProgress.advance_domain(domain_task)
-        await self.Progress_Master.AlbumProgress.mark_album_completed(album_task)
+        await self.Progress_Master.AlbumProgress.mark_album_completed(album, album_task)
 
     async def start_file(self, downloader: Downloader, album_task: TaskID, domain: str, album: str,
                          media: MediaItem) -> None:

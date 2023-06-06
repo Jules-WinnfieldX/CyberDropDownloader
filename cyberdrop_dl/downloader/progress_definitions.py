@@ -279,21 +279,38 @@ class AlbumProgress:
         self.type_str = "Albums"
         self.progress = _Progress(self.album_progress, progressions.album_progress_overflow, self.color, "Albums", visible_tasks_limit)
 
+        self.albums: Dict[str, TaskID] = {}
+        self.albums_totals: Dict[str, int] = {}
+
     async def add_album(self, album: str, total_files: int) -> TaskID:
         task_description = album.split('/')[-1]
         task_description = task_description.encode("ascii", "ignore").decode().strip()
-        task_description = adjust_title(task_description)
+        task_description = adjust_title(task_description).upper()
 
-        task_id = await self.progress.add_task(task_description.upper(), total_files)
+        if task_description in self.albums:
+            self.albums_totals[task_description] += total_files
+            await self.progress.update_total(self.albums[task_description], self.albums_totals[task_description])
+        else:
+            self.albums[task_description] = await self.progress.add_task(task_description, total_files)
+            self.albums_totals[task_description] = total_files
+
         await self.progress.redraw()
-        return task_id
+        return self.albums[task_description]
 
     async def advance_album(self, task_id: TaskID) -> None:
         await self.progress.advance_task(task_id, 1)
 
-    async def mark_album_completed(self, task_id: TaskID) -> None:
-        await self.progress.mark_task_completed(task_id)
-        await self.progress.redraw()
+    async def mark_album_completed(self, album: str, task_id: TaskID) -> None:
+        task_description = album.split('/')[-1]
+        task_description = task_description.encode("ascii", "ignore").decode().strip()
+        task_description = adjust_title(task_description).upper()
+
+        task = [x for x in self.album_progress.tasks if x.id == task_id][0]
+        if task.finished:
+            with contextlib.suppress(KeyError):
+                self.albums.pop(task_description)
+                self.albums_totals.pop(task_description)
+            await self.progress.mark_task_completed(task_id)
 
 
 class FileProgress:
