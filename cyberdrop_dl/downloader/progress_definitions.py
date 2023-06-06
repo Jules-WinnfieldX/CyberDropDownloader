@@ -285,7 +285,7 @@ class AlbumProgress:
     async def add_album(self, album: str, total_files: int) -> TaskID:
         task_description = album.split('/')[-1]
         task_description = task_description.encode("ascii", "ignore").decode().strip()
-        task_description = adjust_title(task_description).upper()
+        task_description = adjust_title(task_description).upper().strip()
 
         if task_description in self.albums:
             self.albums_totals[task_description] += total_files
