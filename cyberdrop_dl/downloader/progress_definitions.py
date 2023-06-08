@@ -156,8 +156,8 @@ class _Progress:
         else:
             self.overflow.update(self.overflow_task_id, visible=False)
 
-    async def add_task(self, description: str, total: int) -> TaskID:
-        if total == 0:
+    async def add_task(self, description: str, total: int, initiated: bool) -> TaskID:
+        if not initiated:
             task_id = self.progress.add_task(self.progress_str.format(color=self.color, description=description), total=total, visible=False)
             self.uninitiated_tasks.append(task_id)
         elif len(self.visible_tasks) >= self.tasks_visibility_limit:
@@ -189,6 +189,10 @@ class _Progress:
         self.completed_tasks.append(task_id)
 
     async def advance_task(self, task_id: TaskID, amount: int) -> None:
+        if task_id in self.uninitiated_tasks:
+            self.uninitiated_tasks.remove(task_id)
+            self.invisible_tasks.append(task_id)
+            await self.redraw()
         self.progress.advance(task_id, amount)
 
     async def update_total(self, task_id: TaskID, total: int) -> None:
@@ -211,7 +215,7 @@ class ForumProgress:
         self.progress = _Progress(self.forum_progress, progressions.forum_progress_overflow, self.color, "Threads", 5)
 
     async def add_forum(self, total_tasks: int) -> TaskID:
-        return await self.progress.add_task("FORUM THREADS", total_tasks)
+        return await self.progress.add_task("FORUM THREADS", total_tasks, True)
 
     async def advance_forum(self, task_id: TaskID) -> None:
         await self.progress.advance_task(task_id, 1)
@@ -227,7 +231,7 @@ class CascadeProgress:
         self.progress = _Progress(self.cascade_progress, progressions.cascade_progress_overflow, self.color, "Threads", visible_tasks_limit)
 
     async def add_cascade(self, title: str, total_domains: int) -> TaskID:
-        task_id = await self.progress.add_task(title.upper(), total_domains)
+        task_id = await self.progress.add_task(title.upper(), total_domains, True)
         await self.progress.redraw()
         return task_id
 
@@ -254,7 +258,7 @@ class DomainProgress:
             self.domain_totals[domain] += total_albums
             await self.progress.update_total(self.domains[domain], self.domain_totals[domain])
         else:
-            self.domains[domain] = await self.progress.add_task(domain.upper(), total_albums)
+            self.domains[domain] = await self.progress.add_task(domain.upper(), total_albums, True)
             self.domain_totals[domain] = total_albums
 
         await self.progress.redraw()
@@ -291,7 +295,7 @@ class AlbumProgress:
             self.albums_totals[task_description] += total_files
             await self.progress.update_total(self.albums[task_description], self.albums_totals[task_description])
         else:
-            self.albums[task_description] = await self.progress.add_task(task_description, total_files)
+            self.albums[task_description] = await self.progress.add_task(task_description, total_files, True)
             self.albums_totals[task_description] = total_files
 
         await self.progress.redraw()
@@ -325,7 +329,7 @@ class FileProgress:
         task_description = task_description.encode("ascii", "ignore").decode().strip()
         task_description = adjust_title(task_description)
 
-        task_id = await self.progress.add_task(task_description.upper(), expected_size if expected_size else 0)
+        task_id = await self.progress.add_task(task_description.upper(), expected_size if expected_size else 0, False)
         await self.progress.redraw()
         return task_id
 

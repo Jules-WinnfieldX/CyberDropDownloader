@@ -336,7 +336,17 @@ def main(args=None):
     )
 
     with contextlib.suppress(RuntimeError, asyncio.CancelledError):
-        aiorun.run(director(args, links), stop_on_unhandled_errors=True)
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+
+        def handler(loop, context):
+            # https://docs.python.org/3/library/asyncio-eventloop.html#asyncio.loop.call_exception_handler
+            log(f'Stopping loop due to error: {context["exception"]}', quiet=True)
+            loop.stop()
+
+        loop.set_exception_handler(handler)
+        loop.create_task(director(args, links))
+        aiorun.run(loop=loop)
 
 
 if __name__ == '__main__':
