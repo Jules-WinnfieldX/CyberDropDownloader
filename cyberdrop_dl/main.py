@@ -339,11 +339,6 @@ def main(args=None):
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
 
-        def handler(loop, context):
-            log(f'Stopping loop due to error: {context}', quiet=True)
-            loop.stop()
-
-        loop.set_exception_handler(handler)
         loop.create_task(director(args, links))
         aiorun.run(loop=loop)
 
