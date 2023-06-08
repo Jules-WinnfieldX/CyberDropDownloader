@@ -341,8 +341,7 @@ class FileProgress:
         await self.progress.advance_task(task_id, increment)
 
     async def remove_file(self, task_id: TaskID) -> None:
-        if task_id in self.file_progress.tasks:
-            await self.progress.remove_task(task_id)
+        await self.progress.remove_task(task_id)
         await self.progress.redraw()
 
     async def mark_file_completed(self, task_id: TaskID) -> None:
