@@ -174,10 +174,15 @@ class _Progress:
             self.progress.update(task_id, visible=False)
         elif task_id in self.invisible_tasks:
             self.invisible_tasks.remove(task_id)
+            self.progress.update(task_id, visible=False)
+        elif task_id in self.uninitiated_tasks:
+            self.uninitiated_tasks.remove(task_id)
+            self.progress.update(task_id, visible=False)
         elif task_id == self.overflow_task_id:
             self.overflow.update(task_id, visible=False)
         else:
             raise ValueError("Task ID not found")
+        await self.redraw()
 
     async def mark_task_completed(self, task_id: TaskID) -> None:
         self.progress.update(task_id, visible=False)
