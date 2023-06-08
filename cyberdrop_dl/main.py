@@ -1,9 +1,12 @@
 import argparse
 import asyncio
+import atexit
 import contextlib
 import logging
+import signal
 import re
 from pathlib import Path
+from time import sleep
 from typing import Dict, List
 
 import aiofiles
@@ -14,7 +17,7 @@ from cyberdrop_dl.base_functions.config_manager import document_args, run_args
 from cyberdrop_dl.base_functions.config_schema import config_default
 from cyberdrop_dl.base_functions.sorting_functions import Sorter
 from cyberdrop_dl.base_functions.sql_helper import SQLHelper
-from cyberdrop_dl.client.client import Client
+from cyberdrop_dl.client.client import Client, ScrapeSession
 from cyberdrop_dl.downloader.downloader_utils import check_free_space
 from cyberdrop_dl.downloader.downloaders import DownloadDirector
 from cyberdrop_dl.downloader.old_downloaders import old_download_forums
@@ -242,6 +245,19 @@ async def scrape_links(scraper: ScrapeMapper, links: List, quiet=False) -> Forum
     return Forums
 
 
+async def check_outdated(client: Client):
+    session = ScrapeSession(client)
+    url = URL('https://pypi.python.org/pypi/cyberdrop-dl/json')
+    try:
+        response = await session.get_json(url)
+        if response['info']['version'] != VERSION:
+            log(f"\nYour version of Cyberdrop Downloader is outdated. \nYou are running version {VERSION}."
+                f"\nPlease update to version {response['info']['version']}"
+                f"\nYou can find out how to do that here: https://github.com/Jules-WinnfieldX/CyberDropDownloader/wiki/Frequently-Asked-Questions#how-to-update", style="red")
+    except Exception as e:
+        pass
+
+
 async def director(args: Dict, links: List) -> None:
     """This is the overarching director coordinator for CDL."""
     await clear()
@@ -298,13 +314,16 @@ async def director(args: Dict, links: List) -> None:
 
         log('Finished downloading. Enjoy :)')
 
-    log('')
-    log("If you enjoy using this program, please consider buying the developer a coffee :)\nhttps://www.buymeacoffee.com/juleswinnft", style="green")
+    await check_outdated(client)
+
+    log("\nIf you enjoy using this program, please consider buying the developer a coffee :)\nhttps://www.buymeacoffee.com/juleswinnft", style="green")
 
 
 def main(args=None):
     if not args:
         args = parse_args()
+
+    atexit.register(lambda: print("\x1b[?25h"))
 
     links = args.links
     args = run_args(args.config_file, argparse.Namespace(**vars(args)).__dict__)
@@ -316,9 +335,18 @@ def main(args=None):
         filemode="w"
     )
 
+    loop = asyncio.get_event_loop()
+    main_task = asyncio.ensure_future(director(args, links))
+
     with contextlib.suppress(RuntimeError):
-        loop = asyncio.get_event_loop()
-        loop.run_until_complete(director(args, links))
+        try:
+            loop.run_until_complete(main_task)
+        except KeyboardInterrupt:
+            pending_tasks = [task for task in asyncio.Task.all_tasks() if not task.done()]
+            loop.run_until_complete(asyncio.gather(*pending_tasks))
+        finally:
+            loop.close()
+            raise SystemExit(1)
 
 
 if __name__ == '__main__':

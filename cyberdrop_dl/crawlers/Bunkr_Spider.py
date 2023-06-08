@@ -32,7 +32,7 @@ class BunkrCrawler:
         self.error_writer = error_writer
 
     async def get_stream_link(self, url: URL):
-        cdn_possibilities = r"(?:cdn.bunkr...|cdn..bunkr...|cdn...bunkr...|media-files.bunkr...|media-files..bunkr...|media-files...bunkr...)"
+        cdn_possibilities = r"(?:cdn.bunkrr...|media-files.bunkrr...|media-files..bunkrr...|media-files...bunkrr...|cdn.bunkr...|cdn..bunkr...|cdn...bunkr...|media-files.bunkr...|media-files..bunkr...|media-files...bunkr...)"
         ext = '.' + url.parts[-1].split('.')[-1]
         if ext:
             ext = ext.lower()
@@ -42,9 +42,9 @@ class BunkrCrawler:
         if ext in FILE_FORMATS['Images']:
             url = URL(str(url).replace("https://cdn", "https://i"))
         elif ext in FILE_FORMATS['Videos']:
-            url = URL(re.sub(cdn_possibilities, "bunkr.la/v", str(url)))
+            url = URL(re.sub(cdn_possibilities, "bunkrr.su/v", str(url)))
         else:
-            url = URL(re.sub(cdn_possibilities, "bunkr.la/d", str(url)))
+            url = URL(re.sub(cdn_possibilities, "bunkrr.su/d", str(url)))
         return url
 
     async def fetch(self, session: ScrapeSession, url: URL) -> AlbumItem:
@@ -113,7 +113,7 @@ class BunkrCrawler:
         """Gets the media item from the supplied url"""
 
         ### Temp Fix ###
-        url = url.with_host("bunkr.la")
+        url = url.with_host("bunkrr.su")
 
         try:
             async with self.limiter:
@@ -143,7 +143,7 @@ class BunkrCrawler:
         except Exception as e:
             logger.debug("Error encountered while handling %s", url, exc_info=True)
             log(f"Error: {url}", quiet=self.quiet, style="red")
-            await self.error_writer.write_errored_scrape(f"{url},{e}")
+            await self.error_writer.write_errored_scrape(url, e, self.quiet)
             logger.debug(e)
             return MediaItem(url, url, False, "", "", "")
 
@@ -151,7 +151,7 @@ class BunkrCrawler:
         """Iterates through an album and creates the media items"""
 
         ### Temp Fix ###
-        url = url.with_host("bunkr.la")
+        url = url.with_host("bunkrr.su")
 
         album = AlbumItem(url.name, [])
         try:
