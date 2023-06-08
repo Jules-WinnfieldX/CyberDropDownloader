@@ -208,6 +208,7 @@ class Downloader:
             if not filesize_check:
                 log(f"Filesize out of specified range: {media.url}", quiet=True)
                 await self.CDL_Helper.files.add_skipped()
+                await self.CDL_Helper.File_Lock.remove_lock(filename)
                 return
 
             await self.CDL_Helper.SQL_Helper.sql_insert_temp(str(partial_file))
