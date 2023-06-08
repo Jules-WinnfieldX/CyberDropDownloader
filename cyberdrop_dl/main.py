@@ -339,8 +339,7 @@ def main(args=None):
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
 
-        loop.create_task(director(args, links))
-        aiorun.run(loop=loop)
+        aiorun.run(director(args, links))
 
 
 if __name__ == '__main__':
