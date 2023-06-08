@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import asyncio
+import csv
+import io
 import logging
 import os
 import re
@@ -130,6 +132,12 @@ class ErrorFileWriter:
         self.unsupported = unsupported
         self.last_post = last_post
 
+    async def row_to_csv(self, row: list[str]) -> str:
+        output = io.StringIO()
+        writer = csv.writer(output, quoting=csv.QUOTE_MINIMAL, lineterminator="\n")
+        writer.writerow(row)
+        return output.getvalue()
+
     async def write_errored_scrape(self, url: URL, e: Exception, quiet: bool) -> None:
         """Writes to the error file"""
         log(f"Error: {url}", quiet=quiet, style="red")
@@ -139,7 +147,8 @@ class ErrorFileWriter:
             return
 
         async with aiofiles.open(self.errored_scrapes, 'a') as f:
-            await f.write(f"{url},{e}\n")
+            line = await self.row_to_csv([f"{url}", f"{e}"])
+            await f.write(line)
 
     async def write_errored_scrape_header(self):
         """Writes to the error file"""
@@ -155,7 +164,8 @@ class ErrorFileWriter:
             return
 
         async with aiofiles.open(self.errored_downloads, 'a') as f:
-            await f.write(f"{url},{referer},{error_message}\n")
+            line = await self.row_to_csv([f"{url}", f"{referer}", error_message])
+            await f.write(line)
 
     async def write_errored_download_header(self):
         """Writes to the error file"""
@@ -171,7 +181,8 @@ class ErrorFileWriter:
             return
 
         async with aiofiles.open(self.unsupported, 'a') as f:
-            await f.write(f"{url},{referer},{title}\n")
+            line = await self.row_to_csv([f"{url}", f"{referer}", title])
+            await f.write(line)
 
     async def write_unsupported_header(self):
         """Writes to the error file"""
@@ -187,4 +198,5 @@ class ErrorFileWriter:
             return
 
         async with aiofiles.open(self.last_post, 'a') as f:
-            await f.write(f"{url}\n")
+            line = await self.row_to_csv([f"{url}"])
+            await f.write(line)
