@@ -340,8 +340,7 @@ def main(args=None):
         asyncio.set_event_loop(loop)
 
         def handler(loop, context):
-            # https://docs.python.org/3/library/asyncio-eventloop.html#asyncio.loop.call_exception_handler
-            log(f'Stopping loop due to error: {context["exception"]}', quiet=True)
+            log(f'Stopping loop due to error: {context}', quiet=True)
             loop.stop()
 
         loop.set_exception_handler(handler)
