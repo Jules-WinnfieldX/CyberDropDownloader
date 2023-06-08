@@ -253,7 +253,8 @@ class Downloader:
             if await self.CDL_Helper.File_Lock.check_lock(filename):
                 await self.CDL_Helper.File_Lock.remove_lock(filename)
 
-            await self.Progress_Master.FileProgress.remove_file(file_task)
+            with contextlib.suppress(Exception):
+                await self.Progress_Master.FileProgress.remove_file(file_task)
 
             if hasattr(e, "message"):
                 logging.debug(f"\n{media.url} ({e.message})")
