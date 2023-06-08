@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "0cf554b6fdb6066c796d9362cc29fc266f4e90b19b68c6c9ca3a281966d36fd3"
+            "sha256": "09eb62d3bb53f287f1824f507267db53a2fa46d40c9409d5105d4ec87f5baf7f"
         },
         "pipfile-spec": 6,
         "requires": {},
@@ -122,6 +122,14 @@
             ],
             "index": "pypi",
             "version": "==1.1.0"
+        },
+        "aiorun": {
+            "hashes": [
+                "sha256:8fbfc2aab258021deef2b1f38284c652af9fd3710e94c7b0e736a55d161fa0cb",
+                "sha256:d820cebffdea82f9c1750cc396f3a58e4c0d277a2c51f11e86ed6ab7736dce59"
+            ],
+            "index": "pypi",
+            "version": "==2022.11.1"
         },
         "aiosignal": {
             "hashes": [
@@ -578,11 +586,11 @@
         },
         "urllib3": {
             "hashes": [
-                "sha256:61717a1095d7e155cdb737ac7bb2f4324a858a1e2e6466f6d03ff630ca68d3cc",
-                "sha256:d055c2f9d38dc53c808f6fdc8eab7360b6fdbbde02340ed25cfbcd817c62469e"
+                "sha256:48e7fafa40319d358848e1bc6809b208340fafe2096f1725d05d67443d0483d1",
+                "sha256:bee28b5e56addb8226c96f7f13ac28cb4c301dd5ea8a6ca179c0b9835e032825"
             ],
             "markers": "python_version >= '3.7'",
-            "version": "==2.0.2"
+            "version": "==2.0.3"
         },
         "yarl": {
             "hashes": [

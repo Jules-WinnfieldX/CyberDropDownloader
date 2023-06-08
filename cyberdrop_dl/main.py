@@ -3,13 +3,12 @@ import asyncio
 import atexit
 import contextlib
 import logging
-import signal
 import re
 from pathlib import Path
-from time import sleep
 from typing import Dict, List
 
 import aiofiles
+import aiorun as aiorun
 from yarl import URL
 
 from cyberdrop_dl.base_functions.base_functions import ErrorFileWriter, clear, log, purge_dir
@@ -315,8 +314,9 @@ async def director(args: Dict, links: List) -> None:
         log('Finished downloading. Enjoy :)')
 
     await check_outdated(client)
-
-    log("\nIf you enjoy using this program, please consider buying the developer a coffee :)\nhttps://www.buymeacoffee.com/juleswinnft", style="green")
+    log("\nIf you enjoy using this program, please consider buying the developer a coffee :)"
+        "\nhttps://www.buymeacoffee.com/juleswinnft", style="green")
+    asyncio.get_event_loop().stop()
 
 
 def main(args=None):
@@ -335,18 +335,8 @@ def main(args=None):
         filemode="w"
     )
 
-    loop = asyncio.get_event_loop()
-    main_task = asyncio.ensure_future(director(args, links))
-
-    with contextlib.suppress(RuntimeError):
-        try:
-            loop.run_until_complete(main_task)
-        except KeyboardInterrupt:
-            pending_tasks = [task for task in asyncio.Task.all_tasks() if not task.done()]
-            loop.run_until_complete(asyncio.gather(*pending_tasks))
-        finally:
-            loop.close()
-            raise SystemExit(1)
+    with contextlib.suppress(RuntimeError, asyncio.CancelledError):
+        aiorun.run(director(args, links), stop_on_unhandled_errors=True)
 
 
 if __name__ == '__main__':

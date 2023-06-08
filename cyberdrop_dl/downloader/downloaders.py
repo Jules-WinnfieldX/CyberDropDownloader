@@ -159,8 +159,11 @@ class Downloader:
         self.Progress_Master = Progress_Master
 
     async def download(self, album: str, media: MediaItem, url_path: str, album_task: TaskID) -> None:
-        async with self._semaphore:
-            await self.download_file(album, media, url_path, album_task)
+        try:
+            async with self._semaphore:
+                await self.download_file(album, media, url_path, album_task)
+        except RuntimeError as e:
+            return
 
     @retry
     async def download_file(self, album: str, media: MediaItem, url_path: str, album_task: TaskID) -> None:
@@ -250,8 +253,7 @@ class Downloader:
             if await self.CDL_Helper.File_Lock.check_lock(filename):
                 await self.CDL_Helper.File_Lock.remove_lock(filename)
 
-            with contextlib.suppress(Exception):
-                await self.Progress_Master.FileProgress.remove_file(file_task)
+            await self.Progress_Master.FileProgress.remove_file(file_task)
 
             if hasattr(e, "message"):
                 logging.debug(f"\n{media.url} ({e.message})")
