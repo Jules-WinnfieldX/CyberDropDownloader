@@ -4,6 +4,7 @@ import http
 import re
 from typing import TYPE_CHECKING, Dict, List, Union
 
+import aiohttp.client_exceptions
 from aiolimiter import AsyncLimiter
 from yarl import URL
 
@@ -116,8 +117,17 @@ class GoFileCrawler:
             "websiteToken": self.websiteToken,
         }
 
-        async with self.limiter:
-            content = await session.get_json(self.api_address / "getContent", params)
+        try:
+            async with self.limiter:
+                content = await session.get_json(self.api_address / "getContent", params)
+        except aiohttp.client_exceptions.ClientResponseError as e:
+            if e.code == http.HTTPStatus.UNAUTHORIZED:
+                self.websiteToken = ""
+                await self.cache_manager.remove("gofile_website_token")
+                await self.get_website_token(session)
+                params["websiteToken"] = self.websiteToken
+                async with self.limiter:
+                    content = await session.get_json(self.api_address / "getContent", params)
 
         if content["status"] != "ok":
             await self.error_writer.write_errored_scrape(url, Exception("Does Not Exist"), self.quiet)

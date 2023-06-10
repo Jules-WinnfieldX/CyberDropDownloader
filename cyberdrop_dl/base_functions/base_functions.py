@@ -139,7 +139,14 @@ class CacheManager:
 
     async def save(self, key: str, value: Any):
         self.cache[key] = value
+        await self._save()
 
+    async def remove(self, key: str):
+        if key in self.cache:
+            del self.cache[key]
+        await self._save()
+
+    async def _save(self):
         cache = yaml.dump(self.cache)
         async with aiofiles.open(self.cache_file, 'w') as cache_file:
             await cache_file.write(cache)
