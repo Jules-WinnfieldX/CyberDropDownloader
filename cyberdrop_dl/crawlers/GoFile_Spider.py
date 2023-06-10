@@ -38,9 +38,6 @@ class GoFileCrawler:
         if self.token:
             return
 
-        if not api_token:
-            api_token = await self.cache_manager.get("gofile_api_key")
-
         if api_token:
             self.token = api_token
             await self.set_cookie(session)
@@ -52,7 +49,6 @@ class GoFileCrawler:
             if json_obj["status"] == "ok":
                 self.token = json_obj["data"]["token"]
                 await self.set_cookie(session)
-                await self.cache_manager.save("gofile_api_key", self.token)
             else:
                 raise
         except Exception as e:
