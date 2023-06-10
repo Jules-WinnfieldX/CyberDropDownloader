@@ -144,7 +144,7 @@ class CacheManager:
     async def remove(self, key: str):
         if key in self.cache:
             del self.cache[key]
-        await self._save()
+            await self._save()
 
     async def _save(self):
         cache = yaml.dump(self.cache)
