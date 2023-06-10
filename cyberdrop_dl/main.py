@@ -316,7 +316,9 @@ async def director(args: Dict, links: List) -> None:
     await check_outdated(client)
     log("\nIf you enjoy using this program, please consider buying the developer a coffee :)"
         "\nhttps://www.buymeacoffee.com/juleswinnft", style="green")
-    asyncio.get_event_loop().stop()
+
+    with contextlib.suppress(RuntimeError):
+        asyncio.get_event_loop().stop()
 
 
 def main(args=None):
@@ -340,6 +342,7 @@ def main(args=None):
         asyncio.set_event_loop(loop)
 
         aiorun.run(director(args, links))
+        exit(0)
 
 
 if __name__ == '__main__':
