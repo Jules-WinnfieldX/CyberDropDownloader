@@ -44,8 +44,10 @@ def scrape_limit(func):
 
 class Client:
     """Creates a 'client' that can be referenced by scraping or download sessions"""
-    def __init__(self, ratelimit: int, throttle: float, secure: bool, connect_timeout: int, user_agent: str):
+    def __init__(self, ratelimit: int, throttle: float, secure: bool, connect_timeout: int, read_timeout: int,
+                 user_agent: str):
         self.connect_timeout = connect_timeout
+        self.read_timeout = read_timeout
         self.ratelimit = ratelimit
         self.throttle = throttle
         self.simultaneous_session_limit = asyncio.Semaphore(50)
@@ -120,8 +122,8 @@ class DownloadSession:
     def __init__(self, client: Client):
         self.client = client
         self.headers = {"user-agent": client.user_agent}
-        self.timeouts = aiohttp.ClientTimeout(total=300 + self.client.connect_timeout,
-                                              connect=self.client.connect_timeout, sock_read=300)
+        self.timeouts = aiohttp.ClientTimeout(total=self.client.read_timeout + self.client.connect_timeout,
+                                              connect=self.client.connect_timeout, sock_read=self.client.read_timeout)
         self.client_session = aiohttp.ClientSession(headers=self.headers, raise_for_status=True,
                                                     cookie_jar=self.client.cookies, timeout=self.timeouts)
         self.throttle_times: Dict[str, float] = {}

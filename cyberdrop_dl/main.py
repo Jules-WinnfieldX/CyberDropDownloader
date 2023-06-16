@@ -46,7 +46,7 @@ def parse_args() -> argparse.Namespace:
     path_opts.add_argument("-o", "--output-folder", type=Path, help="folder to download files to (default: %(default)s)", default=config_group["output_folder"])
 
     path_opts.add_argument("--config-file", type=Path, help="config file to read arguments from (default: %(default)s)", default="config.yaml")
-    path_opts.add_argument("--variable-cache-file", type=Path, help="variable cache file to read from and write to (default: %(default)s)", default=config_group["variable_cache_file"])
+    path_opts.add_argument("--variable-cache-file", type=Path, help="internal variable cache file to read from and write to (default: %(default)s)", default=config_group["variable_cache_file"])
     path_opts.add_argument("--db-file", type=Path, help="history database file to write to (default: %(default)s)", default=config_group["db_file"])
     path_opts.add_argument("--errored-download-urls-file", type=Path, default=config_group["errored_download_urls_file"], help="csv file to write failed download information to (default: %(default)s)")
     path_opts.add_argument("--errored-scrape-urls-file", type=Path, default=config_group["errored_scrape_urls_file"], help="csv file to write failed scrape information to (default: %(default)s)")
@@ -106,6 +106,7 @@ def parse_args() -> argparse.Namespace:
     config_group = config_data["Ratelimiting"]
     ratelimit_opts = parser.add_argument_group("Ratelimiting options")
     ratelimit_opts.add_argument("--connection-timeout", type=int, default=config_group["connection_timeout"], help="number of seconds to wait attempting to connect to a URL during the downloading phase (default: %(default)s)")
+    ratelimit_opts.add_argument("--read-timeout", type=int, default=config_group["read_timeout"], help="number of seconds to wait attempting to read all file data during the downloading phase (default: %(default)s)")
     ratelimit_opts.add_argument("--ratelimit", type=int, default=config_group["ratelimit"], help="this applies to requests made in the program during scraping, the number you provide is in requests/seconds (default: %(default)s)")
     ratelimit_opts.add_argument("--throttle", type=int, default=config_group["throttle"], help="this is a throttle between requests during the downloading phase, the number is in seconds (default: %(default)s)")
 
@@ -281,7 +282,7 @@ async def director(args: Dict, links: List) -> None:
     links = await consolidate_links(args, links)
     client = Client(args['Ratelimiting']['ratelimit'], args['Ratelimiting']['throttle'],
                     args['Runtime']['allow_insecure_connections'], args["Ratelimiting"]["connection_timeout"],
-                    args['Runtime']['user_agent'])
+                    args["Ratelimiting"]["read_timeout"], args['Runtime']['user_agent'])
     SQL_Helper = SQLHelper(args['Ignore']['ignore_history'], args['Ignore']['ignore_cache'], args['Files']['db_file'])
     Scraper = ScrapeMapper(args, client, SQL_Helper, False, error_writer, cache_manager)
 

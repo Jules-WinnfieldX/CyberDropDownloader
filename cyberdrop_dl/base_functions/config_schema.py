@@ -19,7 +19,7 @@ config_default: Dict = {
             "xbunker_password": "",
         },
         "Files": {
-            "variable_cache_file": "cache.yaml",
+            "variable_cache_file": "internal_variable_cache.yaml",
             "db_file": "download_history.sqlite",
             "errored_download_urls_file": "Errored_Download_URLs.csv",
             "errored_scrape_urls_file": "Errored_Scrape_URLs.csv",
@@ -66,6 +66,7 @@ config_default: Dict = {
         },
         "Ratelimiting": {
             "connection_timeout": 15,
+            "read_timeout": 300,
             "ratelimit": 50,
             "throttle": 0.5,
         },
