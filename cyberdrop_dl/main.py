@@ -46,7 +46,7 @@ def parse_args() -> argparse.Namespace:
     path_opts.add_argument("-o", "--output-folder", type=Path, help="folder to download files to (default: %(default)s)", default=config_group["output_folder"])
 
     path_opts.add_argument("--config-file", type=Path, help="config file to read arguments from (default: %(default)s)", default="config.yaml")
-    path_opts.add_argument("--cache-file", type=Path, help="cache file to read from and write to (default: %(default)s)", default=config_group["cache_file"])
+    path_opts.add_argument("--variable-cache-file", type=Path, help="variable cache file to read from and write to (default: %(default)s)", default=config_group["variable_cache_file"])
     path_opts.add_argument("--db-file", type=Path, help="history database file to write to (default: %(default)s)", default=config_group["db_file"])
     path_opts.add_argument("--errored-download-urls-file", type=Path, default=config_group["errored_download_urls_file"], help="csv file to write failed download information to (default: %(default)s)")
     path_opts.add_argument("--errored-scrape-urls-file", type=Path, default=config_group["errored_scrape_urls_file"], help="csv file to write failed scrape information to (default: %(default)s)")
@@ -198,7 +198,7 @@ async def file_management(args: Dict, links: List) -> Tuple[ErrorFileWriter, Cac
         errored_urls.touch()
         await error_writer.write_errored_scrape_header()
 
-    cache_manager = CacheManager(args['Files']['cache_file'])
+    cache_manager = CacheManager(args['Files']['variable_cache_file'])
     await cache_manager.load()
 
     return error_writer, cache_manager
