@@ -34,7 +34,7 @@ class JDownloader:
             jd.set_app_key("CYBERDROP-DL")
             jd.connect(self.jdownloader_username, self.jdownloader_password)
             return jd.get_device(self.jdownloader_device)
-        except JDownloaderFailure:
+        except (myjdapi.MYJDApiException, JDownloaderFailure) as e:
             log("Failed JDownloader setup", quiet=self.quiet, style="red")
             self.jdownloader_enable = False
             return None
