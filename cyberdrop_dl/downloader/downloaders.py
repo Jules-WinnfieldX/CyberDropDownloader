@@ -152,6 +152,7 @@ class Downloader:
         max_workers = get_threads_number(CDL_Helper.args, domain)
         self._semaphore = asyncio.Semaphore(max_workers)
         self.current_attempt: Dict[str, int] = {}
+        self.current_attempt_filesize: Dict[str, int] = {}
 
         self.download_session = DownloadSession(CDL_Helper.client)
 
@@ -246,10 +247,29 @@ class Downloader:
             await self.CDL_Helper.File_Lock.remove_lock(filename)
             return
 
+        except (aiohttp.client_exceptions.ServerDisconnectedError, asyncio.TimeoutError,
+                aiohttp.client_exceptions.ServerTimeoutError) as e:
+            if await self.CDL_Helper.File_Lock.check_lock(filename):
+                await self.CDL_Helper.File_Lock.remove_lock(filename)
+
+            with contextlib.suppress(Exception):
+                await self.Progress_Master.FileProgress.remove_file(file_task)
+
+            if partial_file.is_file():
+                size = partial_file.stat().st_size
+                if partial_file.name not in self.current_attempt_filesize:
+                    self.current_attempt_filesize[filename] = size
+                elif self.current_attempt_filesize[filename] > size:
+                    self.current_attempt_filesize[filename] = size
+                else:
+                    raise DownloadFailure(code=getattr(e, "code", 1), message="Download timeout reached, retrying")
+                raise DownloadFailure(code=999, message="Download timeout reached, retrying")
+
+            raise DownloadFailure(code=getattr(e, "code", 1), message=repr(e))
+
         except (aiohttp.client_exceptions.ClientPayloadError, aiohttp.client_exceptions.ClientOSError,
-                aiohttp.client_exceptions.ServerDisconnectedError, asyncio.TimeoutError,
-                aiohttp.client_exceptions.ClientResponseError, aiohttp.client_exceptions.ServerTimeoutError,
-                DownloadFailure, FileNotFoundError, PermissionError) as e:
+                aiohttp.client_exceptions.ClientResponseError, DownloadFailure, FileNotFoundError,
+                PermissionError) as e:
             if await self.CDL_Helper.File_Lock.check_lock(filename):
                 await self.CDL_Helper.File_Lock.remove_lock(filename)
 

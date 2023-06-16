@@ -120,7 +120,8 @@ class DownloadSession:
     def __init__(self, client: Client):
         self.client = client
         self.headers = {"user-agent": client.user_agent}
-        self.timeouts = aiohttp.ClientTimeout(total=None, connect=self.client.connect_timeout, sock_read=None)
+        self.timeouts = aiohttp.ClientTimeout(total=300 + self.client.connect_timeout,
+                                              connect=self.client.connect_timeout, sock_read=300)
         self.client_session = aiohttp.ClientSession(headers=self.headers, raise_for_status=True,
                                                     cookie_jar=self.client.cookies, timeout=self.timeouts)
         self.throttle_times: Dict[str, float] = {}

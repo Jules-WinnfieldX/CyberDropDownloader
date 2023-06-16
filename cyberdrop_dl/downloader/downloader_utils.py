@@ -80,6 +80,7 @@ def retry(f):
                     return None
                 logger.debug(e.message)
                 logger.debug(f'Retrying ({self.current_attempt[url_path]}) {media.url}...')
-                self.current_attempt[url_path] += 1
+                if e.code != 999:
+                    self.current_attempt[url_path] += 1
 
     return wrapper
