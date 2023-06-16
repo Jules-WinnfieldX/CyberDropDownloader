@@ -4,6 +4,7 @@ import http
 import re
 from typing import TYPE_CHECKING, Dict, List, Union
 
+import aiohttp.client_exceptions
 from aiolimiter import AsyncLimiter
 from yarl import URL
 
@@ -12,17 +13,19 @@ from ..base_functions.data_classes import DomainItem, MediaItem
 from ..base_functions.error_classes import NoExtensionFailure
 
 if TYPE_CHECKING:
-    from ..base_functions.base_functions import ErrorFileWriter
+    from ..base_functions.base_functions import CacheManager, ErrorFileWriter
     from ..base_functions.sql_helper import SQLHelper
     from ..client.client import ScrapeSession
 
 
 class GoFileCrawler:
-    def __init__(self, quiet: bool, SQL_Helper: SQLHelper, error_writer: ErrorFileWriter):
+    def __init__(self, quiet: bool, SQL_Helper: SQLHelper, error_writer: ErrorFileWriter,
+                 cache_manager: CacheManager):
         self.quiet = quiet
         self.SQL_Helper = SQL_Helper
         self.limiter = AsyncLimiter(1, 1)
 
+        self.cache_manager = cache_manager
         self.error_writer = error_writer
 
         self.api_address = URL("https://api.gofile.io")
@@ -58,6 +61,9 @@ class GoFileCrawler:
         if self.websiteToken:
             return
 
+        if not website_token:
+            website_token = await self.cache_manager.get("gofile_website_token")
+
         if website_token:
             self.websiteToken = website_token
             return
@@ -66,6 +72,7 @@ class GoFileCrawler:
             async with self.limiter:
                 js_obj = await session.get_text(self.js_address)
             self.websiteToken = re.search(r'fetchData\.websiteToken\s*=\s*"(.*?)"', js_obj).group(1)
+            await self.cache_manager.save("gofile_website_token", self.websiteToken)
         except Exception as e:
             logger.debug("Error encountered while getting GoFile websiteToken", exc_info=True)
             log("Error: Couldn't generate GoFile websiteToken", quiet=self.quiet, style="red")
@@ -106,8 +113,17 @@ class GoFileCrawler:
             "websiteToken": self.websiteToken,
         }
 
-        async with self.limiter:
-            content = await session.get_json(self.api_address / "getContent", params)
+        try:
+            async with self.limiter:
+                content = await session.get_json(self.api_address / "getContent", params)
+        except aiohttp.client_exceptions.ClientResponseError as e:
+            if e.code == http.HTTPStatus.UNAUTHORIZED:
+                self.websiteToken = ""
+                await self.cache_manager.remove("gofile_website_token")
+                await self.get_website_token(session)
+                params["websiteToken"] = self.websiteToken
+                async with self.limiter:
+                    content = await session.get_json(self.api_address / "getContent", params)
 
         if content["status"] != "ok":
             await self.error_writer.write_errored_scrape(url, Exception("Does Not Exist"), self.quiet)

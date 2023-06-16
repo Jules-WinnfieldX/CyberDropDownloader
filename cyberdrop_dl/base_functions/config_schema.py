@@ -19,6 +19,7 @@ config_default: Dict = {
             "xbunker_password": "",
         },
         "Files": {
+            "cache_file": "cache.yaml",
             "db_file": "download_history.sqlite",
             "errored_download_urls_file": "Errored_Download_URLs.csv",
             "errored_scrape_urls_file": "Errored_Scrape_URLs.csv",
