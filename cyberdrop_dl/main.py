@@ -5,13 +5,19 @@ import contextlib
 import logging
 import re
 from pathlib import Path
-from typing import Dict, List
+from typing import Dict, List, Tuple
 
 import aiofiles
 import aiorun as aiorun
 from yarl import URL
 
-from cyberdrop_dl.base_functions.base_functions import ErrorFileWriter, clear, log, purge_dir
+from cyberdrop_dl.base_functions.base_functions import (
+    CacheManager,
+    ErrorFileWriter,
+    clear,
+    log,
+    purge_dir,
+)
 from cyberdrop_dl.base_functions.config_manager import document_args, run_args
 from cyberdrop_dl.base_functions.config_schema import config_default
 from cyberdrop_dl.base_functions.sorting_functions import Sorter
@@ -40,6 +46,7 @@ def parse_args() -> argparse.Namespace:
     path_opts.add_argument("-o", "--output-folder", type=Path, help="folder to download files to (default: %(default)s)", default=config_group["output_folder"])
 
     path_opts.add_argument("--config-file", type=Path, help="config file to read arguments from (default: %(default)s)", default="config.yaml")
+    path_opts.add_argument("--cache-file", type=Path, help="cache file to read from and write to (default: %(default)s)", default=config_group["cache_file"])
     path_opts.add_argument("--db-file", type=Path, help="history database file to write to (default: %(default)s)", default=config_group["db_file"])
     path_opts.add_argument("--errored-download-urls-file", type=Path, default=config_group["errored_download_urls_file"], help="csv file to write failed download information to (default: %(default)s)")
     path_opts.add_argument("--errored-scrape-urls-file", type=Path, default=config_group["errored_scrape_urls_file"], help="csv file to write failed scrape information to (default: %(default)s)")
@@ -152,7 +159,7 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-async def file_management(args: Dict, links: List) -> ErrorFileWriter:
+async def file_management(args: Dict, links: List) -> Tuple[ErrorFileWriter, CacheManager]:
     """We handle file defaults here (resetting and creation)"""
     input_file = args['Files']['input_file']
     if not input_file.is_file() and not links:
@@ -191,7 +198,10 @@ async def file_management(args: Dict, links: List) -> ErrorFileWriter:
         errored_urls.touch()
         await error_writer.write_errored_scrape_header()
 
-    return error_writer
+    cache_manager = CacheManager(args['Files']['cache_file'])
+    await cache_manager.load()
+
+    return error_writer, cache_manager
 
 
 async def regex_links(urls: List) -> List:
@@ -262,7 +272,7 @@ async def director(args: Dict, links: List) -> None:
     await clear()
     await document_args(args)
     log(f"We are running version {VERSION} of Cyberdrop Downloader")
-    error_writer = await file_management(args, links)
+    error_writer, cache_manager = await file_management(args, links)
 
     if not await check_free_space(args['Runtime']['required_free_space'], args['Files']['output_folder']):
         log("Not enough free space to continue. You can change the required space required using --required-free-space.", style="red")
@@ -273,7 +283,7 @@ async def director(args: Dict, links: List) -> None:
                     args['Runtime']['allow_insecure_connections'], args["Ratelimiting"]["connection_timeout"],
                     args['Runtime']['user_agent'])
     SQL_Helper = SQLHelper(args['Ignore']['ignore_history'], args['Ignore']['ignore_cache'], args['Files']['db_file'])
-    Scraper = ScrapeMapper(args, client, SQL_Helper, False, error_writer)
+    Scraper = ScrapeMapper(args, client, SQL_Helper, False, error_writer, cache_manager)
 
     await SQL_Helper.sql_initialize()
 

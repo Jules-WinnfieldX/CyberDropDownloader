@@ -32,13 +32,14 @@ from cyberdrop_dl.crawlers.Xenforo_Spider import XenforoCrawler
 from cyberdrop_dl.scraper.JDownloader_Integration import JDownloader
 
 if TYPE_CHECKING:
-    from cyberdrop_dl.base_functions.base_functions import ErrorFileWriter
+    from cyberdrop_dl.base_functions.base_functions import CacheManager, ErrorFileWriter
     from cyberdrop_dl.base_functions.sql_helper import SQLHelper
 
 
 class ScrapeMapper:
     """This class maps links to their respective handlers, or JDownloader if they are unsupported"""
-    def __init__(self, args: Dict, client: Client, SQL_Helper: SQLHelper, quiet: bool, error_writer: ErrorFileWriter):
+    def __init__(self, args: Dict, client: Client, SQL_Helper: SQLHelper, quiet: bool, error_writer: ErrorFileWriter,
+                 cache_manager: CacheManager):
         self.args = args
         self.client = client
         self.SQL_Helper = SQL_Helper
@@ -47,6 +48,7 @@ class ScrapeMapper:
         self.skip_data = SkipData(args['Ignore']['skip_hosts'])
         self.only_data = SkipData(args['Ignore']['only_hosts'])
 
+        self.cache_manager = cache_manager
         self.error_writer = error_writer
 
         self.anonfiles_crawler: Optional[AnonfilesCrawler] = None
@@ -190,7 +192,7 @@ class ScrapeMapper:
         gofile_session = ScrapeSession(self.client)
         if not self.gofile_crawler:
             self.gofile_crawler = GoFileCrawler(quiet=self.quiet, SQL_Helper=self.SQL_Helper,
-                                                error_writer=self.error_writer)
+                                                error_writer=self.error_writer, cache_manager=self.cache_manager)
 
         async with self.gofile_semaphore:
             await self.gofile_crawler.get_acct_token(session=gofile_session,

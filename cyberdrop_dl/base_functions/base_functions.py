@@ -6,10 +6,11 @@ import io
 import logging
 import os
 import re
-from typing import TYPE_CHECKING, Tuple
+from typing import TYPE_CHECKING, Any, Tuple
 
 import aiofiles
 import rich
+import yaml
 
 from cyberdrop_dl.base_functions.data_classes import MediaItem
 from cyberdrop_dl.base_functions.error_classes import NoExtensionFailure
@@ -117,6 +118,38 @@ async def create_media_item(url: URL, referer: URL, sql_helper: SQLHelper, domai
     filename, ext = await get_filename_and_ext(url.name)
     complete = await sql_helper.check_complete_singular(domain, url)
     return MediaItem(url, referer, complete, filename, ext, filename)
+
+
+class CacheManager:
+    def __init__(self, cache_file: Path):
+        self.cache_file = cache_file
+        self.cache = {}
+
+    async def load(self):
+        if not self.cache_file.exists():
+            return
+
+        async with aiofiles.open(self.cache_file, 'r') as cache_file:
+            cache = yaml.load(await cache_file.read(), Loader=yaml.FullLoader)
+        if cache:
+            self.cache = cache
+
+    async def get(self, key: str) -> Any:
+        return self.cache.get(key, None)
+
+    async def save(self, key: str, value: Any):
+        self.cache[key] = value
+        await self._save()
+
+    async def remove(self, key: str):
+        if key in self.cache:
+            del self.cache[key]
+            await self._save()
+
+    async def _save(self):
+        cache = yaml.dump(self.cache)
+        async with aiofiles.open(self.cache_file, 'w') as cache_file:
+            await cache_file.write(cache)
 
 
 class ErrorFileWriter:
