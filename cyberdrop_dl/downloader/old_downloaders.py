@@ -143,7 +143,17 @@ class Old_Downloader:
         if self.block_sub_folders:
             album = album.split('/')[0]
 
+        original_filename = media.filename
+
         try:
+            if self.mark_downloaded:
+                complete_file = (self.download_dir / album / media.filename)
+                log(f"Skip Download Flag Set: {media.filename} from {media.referer}", quiet=True)
+                await self.SQL_Helper.update_pre_download(complete_file, media.filename, url_path, original_filename)
+                await self.SQL_Helper.mark_complete(url_path, original_filename)
+                self.files.add_skipped()
+                return
+
             while await self.File_Lock.check_lock(media.filename):
                 await asyncio.sleep(gauss(1, 1.5))
             await self.File_Lock.add_lock(media.filename)
@@ -153,7 +163,6 @@ class Old_Downloader:
 
             current_throttle = self.client.throttle
 
-            original_filename = media.filename
             complete_file = (self.download_dir / album / media.filename)
             partial_file = complete_file.with_suffix(complete_file.suffix + '.part')
 
@@ -162,7 +171,7 @@ class Old_Downloader:
                                                                                                album, url_path,
                                                                                                original_filename,
                                                                                                current_throttle)
-            fake_download = self.mark_downloaded or not proceed
+            download_bool = proceed
 
             await self.SQL_Helper.update_pre_download(complete_file, media.filename, url_path, original_filename)
 
@@ -186,7 +195,7 @@ class Old_Downloader:
 
             headers['Range'] = f'bytes={resume_point}-'
 
-            if not await self.SQL_Helper.sql_check_old_existing(url_path) and not fake_download:
+            if not await self.SQL_Helper.sql_check_old_existing(url_path) and download_bool:
                 await self.download_session.old_download_file(media, partial_file, current_throttle, resume_point,
                                                               self.proxy, headers, expected_size)
                 partial_file.rename(complete_file)
@@ -195,7 +204,7 @@ class Old_Downloader:
             if media.url.parts[-1] in self.current_attempt:
                 self.current_attempt.pop(media.url.parts[-1])
 
-            if fake_download:
+            if not download_bool:
                 self.files.add_skipped()
             else:
                 self.files.add_completed()
