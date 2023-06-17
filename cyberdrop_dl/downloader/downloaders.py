@@ -187,6 +187,14 @@ class Downloader:
         filename = media.filename
 
         try:
+            if self.CDL_Helper.mark_downloaded:
+                complete_file = (self.CDL_Helper.download_dir / album / media.filename)
+                log(f"Skip Download Flag Set: {media.filename} from {media.referer}", quiet=True)
+                await self.CDL_Helper.SQL_Helper.update_pre_download(complete_file, media.filename, url_path, original_filename)
+                await self.CDL_Helper.SQL_Helper.mark_complete(url_path, original_filename)
+                await self.CDL_Helper.files.add_skipped()
+                return
+
             while await self.CDL_Helper.File_Lock.check_lock(filename):
                 await asyncio.sleep(gauss(1, 1.5))
             await self.CDL_Helper.File_Lock.add_lock(filename)
@@ -203,10 +211,8 @@ class Downloader:
                                                                                                original_filename,
                                                                                                self.throttle)
 
-            fake_download = self.CDL_Helper.mark_downloaded or not proceed
-
-            await self.CDL_Helper.SQL_Helper.update_pre_download(complete_file, media.filename, url_path,
-                                                                 original_filename)
+            download_bool = proceed
+            await self.CDL_Helper.SQL_Helper.update_pre_download(complete_file, media.filename, url_path, original_filename)
 
             filesize_check = await self.CDL_Helper.check_filesize_limits(media, expected_size)
             if not filesize_check:
@@ -227,7 +233,7 @@ class Downloader:
 
             file_task = await self.Progress_Master.FileProgress.add_file(media.filename, expected_size)
 
-            if not await self.CDL_Helper.SQL_Helper.sql_check_old_existing(url_path) and not fake_download:
+            if not await self.CDL_Helper.SQL_Helper.sql_check_old_existing(url_path) and download_bool:
                 await self.download_session.download_file(self.Progress_Master, media, partial_file, self.throttle,
                                                           resume_point, self.CDL_Helper.proxy, headers, file_task)
                 partial_file.rename(complete_file)
@@ -236,7 +242,7 @@ class Downloader:
             if media.url.parts[-1] in self.current_attempt:
                 self.current_attempt.pop(media.url.parts[-1])
 
-            if fake_download:
+            if not download_bool:
                 log(f"Already Downloaded: {media.filename} from {media.referer}", quiet=True)
                 await self.CDL_Helper.files.add_skipped()
             else:
