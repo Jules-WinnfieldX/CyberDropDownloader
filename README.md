@@ -88,6 +88,8 @@ Run `pip3 install cyberdrop-dl` in command prompt/terminal
 
 Advanced users may want to use virtual environments (via `pipx`), but it's **NOT** required.
 
+**pipx is now required for some linux distros.**
+
 1. Run `cyberdrop-dl` once to generate an empty `URLs.txt` file.
 2. Copy and paste your links into `URLs.txt`.
 Each link you add has to go on its own line (paste link, press enter, repeat).
@@ -123,6 +125,7 @@ optional arguments:
 --log-file                      log file to write to
 --output-last-forum-post-file   text file to output last scraped post from a forum thread for re-feeding into CDL
 --unsupported-urls-file         csv file to output unsupported links into
+--variable-cache-file           internal variables for CDL are stored here
 
 --exclude-audio         skip downloading of audio files
 --exclude-images        skip downloading of image files
@@ -164,6 +167,7 @@ optional arguments:
 
 --connection-timeout    number of seconds to wait attempting to connect to a URL during the downloading phase
 --ratelimit             this applies to requests made in the program during scraping, the number you provide is in requests/seconds
+--read-timeout          number of seconds to wait for data to be read from a URL during the downloading phase
 --throttle              this is a throttle between requests during the downloading phase, the number is in seconds
 
 --output-last-forum-post        outputs the last post of a forum scrape to use as a starting point for future runs
