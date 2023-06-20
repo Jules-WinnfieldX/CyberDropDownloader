@@ -70,7 +70,7 @@ class CoomenoCrawler:
         title = f"Loose {domain.capitalize()} Files"
         if "thumbnail" in url.parts:
             parts = [x for x in url.parts if x not in ("thumbnail", "/")]
-            link = URL(f"https://{domain}.party/{'/'.join(parts)}")
+            link = URL(f"https://{url.host}/{'/'.join(parts)}")
 
             media_item = await create_media_item(link, url, self.SQL_Helper, domain)
             await cascade.add_to_album(domain, title, media_item)

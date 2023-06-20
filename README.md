@@ -205,4 +205,4 @@ optional arguments:
 --visible-rows-files            number of visible rows to use for the files table
 ```
 
-`--only-hosts` and `--skip-hosts` can use: `"anonfiles", "bayfiles", "bunkr", "coomer.party", "cyberdrop", "cyberfile", "e-hentai", "erome", "fapello", "gfycat", "gallery.deltaporno.com", "gofile", "hgamecg", "img.kiwi", "imgbox", "jpg.church", "jpg.fish", "kemono.party", "lovefap", "nsfw.xxx", "nudostar", "pimpandhost", "pixeldrain", "pixl.li", "postimg", "saint", "simpcity", "socialmediagirls", "xbunker", "xbunkr"`
+`--only-hosts` and `--skip-hosts` can use: `"anonfiles", "bayfiles", "bunkr", "coomer.party", "coomer.su", "cyberdrop", "cyberfile", "e-hentai", "erome", "fapello", "gfycat", "gallery.deltaporno.com", "gofile", "hgamecg", "img.kiwi", "imgbox", "jpg.church", "jpg.fish", "jpg.fishing", "jpg.pet", "kemono.party", "lovefap", "nsfw.xxx", "nudostar", "pimpandhost", "pixeldrain", "pixl.li", "postimg", "saint", "simpcity", "socialmediagirls", "xbunker", "xbunkr"`
