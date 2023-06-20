@@ -87,6 +87,8 @@ config_default: Dict = {
             "max_concurrent_domains": 0,
             "max_concurrent_albums": 0,
             "max_concurrent_downloads_per_domain": 4,
+            "max_filename_length": 95,
+            "max_folder_name_length": 60,
             "output_errored_urls": False,
             "output_unsupported_urls": False,
             "proxy": "",

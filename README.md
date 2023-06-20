@@ -151,6 +151,8 @@ optional arguments:
 --max-concurrent-domains                number of domains to download simultaneously
 --max-concurrent-albums                 number of albums to download simultaneously
 --max-concurrent-downloads-per-domain   number of simultaneous downloads per domain
+--max-filename-length                   maximum filename length
+--max-folder-name-length                maximum folder name length
 --skip-download-mark-completed          sets the scraped files as downloaded without downloading
 --output-errored-urls                   sets the failed urls to be output to the errored urls file
 --output-unsupported-urls               sets the unsupported urls to be output to the unsupported urls file

@@ -43,8 +43,7 @@ FILE_FORMATS = {
 }
 
 logger = logging.getLogger(__name__)
-MAX_FILENAME_LENGTH = 95
-
+MAX_NAME_LENGTHS = {"FILE": 95, "FOLDER": 60}
 
 async def clear() -> None:
     """Clears the terminal screen"""
@@ -85,7 +84,7 @@ async def make_title_safe(title: str) -> str:
     title = title.replace("\t", "").strip()
     title = re.sub(' +', ' ', title)
     title = re.sub(r'[\\*?:"<>|./]', "-", title)
-    title = title[:60].strip()
+    title = title[:MAX_NAME_LENGTHS['FOLDER']].strip()
     return title
 
 
@@ -107,7 +106,7 @@ async def get_filename_and_ext(filename: str, forum: bool = False) -> Tuple[str,
     if filename_parts[-1].isnumeric() and forum:
         filename_parts = filename_parts[0].rsplit('-', 1)
     ext = "." + filename_parts[-1].lower()
-    filename = filename_parts[0][:MAX_FILENAME_LENGTH] if len(filename_parts[0]) > MAX_FILENAME_LENGTH else filename_parts[0]
+    filename = filename_parts[0][:MAX_NAME_LENGTHS['FILE']] if len(filename_parts[0]) > MAX_NAME_LENGTHS['FILE'] else filename_parts[0]
     filename = filename.strip()
     filename = await sanitize(filename + ext)
     return filename, ext

@@ -29,6 +29,7 @@ from cyberdrop_dl.downloader.old_downloaders import old_download_forums
 from cyberdrop_dl.scraper.Scraper import ScrapeMapper
 
 from . import __version__ as VERSION
+from .base_functions.base_functions import MAX_NAME_LENGTHS
 from .base_functions.data_classes import ForumItem, SkipData
 
 
@@ -85,6 +86,8 @@ def parse_args() -> argparse.Namespace:
     runtime_opts.add_argument("--max-concurrent-domains", type=int, default=config_group["max_concurrent_domains"], help="Number of domains to download simultaneously (default: %(default)s)")
     runtime_opts.add_argument("--max-concurrent-albums", type=int, default=config_group["max_concurrent_albums"], help="Number of albums to download simultaneously (default: %(default)s)")
     runtime_opts.add_argument("--max-concurrent-downloads-per-domain", type=int, default=config_group["max_concurrent_downloads_per_domain"], help="Number of simultaneous downloads per domain (default: %(default)s)")
+    runtime_opts.add_argument("--max-filename-length", type=int, default=config_group["max_filename_length"], help="maximum filename length (default: %(default)s)")
+    runtime_opts.add_argument("--max-folder-name-length", type=int, default=config_group["max_folder_name_length"], help="maximum folder name length (default: %(default)s)")
     runtime_opts.add_argument("--skip-download-mark-completed", help="sets the scraped files as downloaded without downloading", action="store_true")
     runtime_opts.add_argument("--output-errored-urls", help="sets the failed urls to be output to the errored urls file", action="store_true")
     runtime_opts.add_argument("--output-unsupported-urls", help="sets the unsupported urls to be output to the unsupported urls file", action="store_true")
@@ -274,6 +277,9 @@ async def director(args: Dict, links: List) -> None:
     await document_args(args)
     log(f"We are running version {VERSION} of Cyberdrop Downloader")
     error_writer, cache_manager = await file_management(args, links)
+
+    MAX_NAME_LENGTHS["FILE"] = args["Runtime"]["max_filename_length"]
+    MAX_NAME_LENGTHS["FOLDER"] = args["Runtime"]["max_folder_name_length"]
 
     if not await check_free_space(args['Runtime']['required_free_space'], args['Files']['output_folder']):
         log("Not enough free space to continue. You can change the required space required using --required-free-space.", style="red")
