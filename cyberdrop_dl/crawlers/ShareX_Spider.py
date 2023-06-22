@@ -28,7 +28,8 @@ class ShareXCrawler:
         self.include_id = include_id
         self.quiet = quiet
         self.SQL_Helper = SQL_Helper
-        self.limiter = AsyncLimiter(3, 1)
+        self.limiter = AsyncLimiter(8, 1)
+        self.semaphore = asyncio.Semaphore(4)
 
         self.error_writer = error_writer
 
@@ -37,21 +38,21 @@ class ShareXCrawler:
         assert url.host is not None
         domain_obj = DomainItem(url.host.lower(), {})
 
-        log(f"Starting: {url}", quiet=self.quiet, style="green")
-
-        if await check_direct(url):
-            url = url.with_name(url.name.replace('.md.', '.').replace('.th.', '.'))
-            url = await self.jpg_church_from_fish(url)
-            media_item = await create_media_item(url, url, self.SQL_Helper, "sharex")
-            await domain_obj.add_media("Loose ShareX Files", media_item)
-        elif "album" in url.parts or "a" in url.parts:
-            await self.parse(session=session, url=url, domain_obj=domain_obj)
-        elif "albums" in url.parts:
-            await self.get_albums(session, url, domain_obj)
-        elif 'image' in url.parts or 'img' in url.parts or 'images' in url.parts:
-            await self.get_singular(session, url, domain_obj)
-        else:
-            await self.parse_profile(session, url, domain_obj)
+        async with self.semaphore:
+            log(f"Starting: {url}", quiet=self.quiet, style="green")
+            if await check_direct(url):
+                url = url.with_name(url.name.replace('.md.', '.').replace('.th.', '.'))
+                url = await self.jpg_church_from_fish(url)
+                media_item = await create_media_item(url, url, self.SQL_Helper, "sharex")
+                await domain_obj.add_media("Loose ShareX Files", media_item)
+            elif "album" in url.parts or "a" in url.parts:
+                await self.parse(session=session, url=url, domain_obj=domain_obj)
+            elif "albums" in url.parts:
+                await self.get_albums(session, url, domain_obj)
+            elif 'image' in url.parts or 'img' in url.parts or 'images' in url.parts:
+                await self.get_singular(session, url, domain_obj)
+            else:
+                await self.parse_profile(session, url, domain_obj)
 
         await self.SQL_Helper.insert_domain("sharex", url, domain_obj)
         log(f"Finished: {url}", quiet=self.quiet, style="green")
