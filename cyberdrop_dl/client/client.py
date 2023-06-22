@@ -62,8 +62,8 @@ class ScrapeSession:
         self.client = client
         self.rate_limiter = AsyncLimiter(self.client.ratelimit, 1)
         self.headers = {"user-agent": client.user_agent}
-        self.timeouts = aiohttp.ClientTimeout(total=self.client.connect_timeout + 45,
-                                              connect=self.client.connect_timeout, sock_read=45)
+        self.timeouts = aiohttp.ClientTimeout(total=self.client.connect_timeout + 60,
+                                              connect=self.client.connect_timeout)
         self.client_session = aiohttp.ClientSession(headers=self.headers, raise_for_status=True,
                                                     cookie_jar=self.client.cookies, timeout=self.timeouts)
 
