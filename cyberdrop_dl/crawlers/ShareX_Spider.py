@@ -28,7 +28,7 @@ class ShareXCrawler:
         self.include_id = include_id
         self.quiet = quiet
         self.SQL_Helper = SQL_Helper
-        self.limiter = AsyncLimiter(8, 1)
+        self.limiter = AsyncLimiter(3, 1)
 
         self.error_writer = error_writer
 
