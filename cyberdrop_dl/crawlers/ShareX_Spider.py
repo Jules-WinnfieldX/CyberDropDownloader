@@ -29,7 +29,7 @@ class ShareXCrawler:
         self.quiet = quiet
         self.SQL_Helper = SQL_Helper
         self.limiter = AsyncLimiter(8, 1)
-        self.semaphore = asyncio.Semaphore(6)
+        self.semaphore = asyncio.Semaphore(4)
 
         self.error_writer = error_writer
 
