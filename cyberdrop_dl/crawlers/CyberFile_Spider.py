@@ -32,6 +32,9 @@ class CyberFileCrawler:
         log(f"Starting: {url}", quiet=self.quiet, style="green")
         domain_obj = DomainItem("cyberfile", {})
 
+        # temporary fix for cyberfile.is links
+        url = url.with_host("cyberfile.me")
+
         download_links = []
         if 'folder' in url.parts:
             Folder_ID = await self.get_folder_id(session, url)
