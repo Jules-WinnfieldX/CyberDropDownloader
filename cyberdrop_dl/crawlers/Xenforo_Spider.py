@@ -200,6 +200,9 @@ class XenforoCrawler:
         links = post_content.select(selector)
         for link_tag in links:
             link = link_tag.get(attribute)
+            test_for_img = link_tag.select_one("img")
+            if test_for_img:
+                link = test_for_img.get("src")
             if not link:
                 continue
             assert isinstance(link, str)
