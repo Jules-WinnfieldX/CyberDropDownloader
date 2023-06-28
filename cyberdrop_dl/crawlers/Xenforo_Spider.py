@@ -3,7 +3,7 @@ from __future__ import annotations
 import asyncio
 import re
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Dict, List, Tuple
+from typing import TYPE_CHECKING, Dict, List, Tuple, Optional
 
 from bs4 import BeautifulSoup
 from yarl import URL
@@ -60,6 +60,9 @@ class ParseSpec:
     attachment_tag: str = "a"
     attachment_attribute: str = "href"
 
+    extra_images_tag: Optional[str] = field(init=False)
+    extra_images_attribute: Optional[str] = field(init=False)
+
     next_page_tag: str = 'a[class="pageNav-jump pageNav-jump--next"]'
     next_page_attribute: str = "href"
 
@@ -78,6 +81,13 @@ class ParseSpec:
             self.images_attribute = "src"
         if self.domain in ("xbunker", "socialmediagirls"):
             self.images_attribute = "data-src"
+
+        if self.domain in ("simpcity", "nudostar", "socialmediagirls"):
+            self.extra_images_tag = None
+            self.extra_images_attribute = None
+        if self.domain == "xbunker":
+            self.extra_images_tag = "a[class*=js-lbImage]"
+            self.extra_images_attribute = "href"
 
 
 class ForumLogin:
@@ -309,6 +319,10 @@ class XenforoCrawler:
             # Get Attachments
             attachments_block = post.select_one(spec.attachment_block_tag)
             links.extend(await self.get_links(attachments_block, spec.attachment_tag, spec.attachment_attribute, domain))
+
+            # Get extras
+            if spec.extra_images_tag:
+                links.extend(await self.get_links(post_content, spec.extra_images_tag, spec.extra_images_attribute, domain))
 
             content_links.extend([(URL(link), temp_title) for link in links])
 
