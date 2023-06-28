@@ -45,7 +45,7 @@ class ParseSpec:
     links_tag: str = "a"
     links_attribute: str = "href"
 
-    images_tag: str = field(init=False)
+    images_tag: str = "img[class*=bbImage]"
     images_attribute: str = field(init=False)
 
     video_tag: str = "video source"
@@ -68,17 +68,15 @@ class ParseSpec:
             self.login_path = "login"
             self.title_clutter_tag = "a" if self.domain in ("simpcity", "xbunker") else "span"
             self.posts_number_tag = "li[class=u-concealed] a"
-            self.images_tag = "div[class*=bbImage]"
 
         if self.domain == "nudostar":
             self.login_path = "forum/login"
             self.title_clutter_tag = "span"
             self.posts_number_tag = "a[class=u-concealed]"
-            self.images_tag = "img[class*=bbImage]"
 
         if self.domain in ("simpcity", "nudostar"):
             self.images_attribute = "src"
-        if self.domain == ("xbunker", "socialmediagirls"):
+        if self.domain in ("xbunker", "socialmediagirls"):
             self.images_attribute = "data-src"
 
 
