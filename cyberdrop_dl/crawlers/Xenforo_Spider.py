@@ -69,14 +69,17 @@ class ParseSpec:
             self.title_clutter_tag = "a" if self.domain in ("simpcity", "xbunker") else "span"
             self.posts_number_tag = "li[class=u-concealed] a"
             self.images_tag = "div[class*=bbImage]"
-            self.images_attribute = "data-src"
 
-        elif self.domain == "nudostar":
+        if self.domain == "nudostar":
             self.login_path = "forum/login"
             self.title_clutter_tag = "span"
             self.posts_number_tag = "a[class=u-concealed]"
             self.images_tag = "img[class*=bbImage]"
-            self.images_attribute = "src"
+
+        if self.domain in ("simpcity", "nudostar"):
+            self.image_attribute = "src"
+        if self.domain == ("xbunker", "socialmediagirls"):
+            self.image_attribute = "data-src"
 
 
 class ForumLogin:
@@ -202,7 +205,7 @@ class XenforoCrawler:
             link = link_tag.get(attribute)
             test_for_img = link_tag.select_one("img")
             if test_for_img:
-                link = test_for_img.get("src")
+                continue
             if not link:
                 continue
             assert isinstance(link, str)
