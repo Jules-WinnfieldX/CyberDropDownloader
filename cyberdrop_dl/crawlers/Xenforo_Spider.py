@@ -77,9 +77,9 @@ class ParseSpec:
             self.images_tag = "img[class*=bbImage]"
 
         if self.domain in ("simpcity", "nudostar"):
-            self.image_attribute = "src"
+            self.images_attribute = "src"
         if self.domain == ("xbunker", "socialmediagirls"):
-            self.image_attribute = "data-src"
+            self.images_attribute = "data-src"
 
 
 class ForumLogin:
