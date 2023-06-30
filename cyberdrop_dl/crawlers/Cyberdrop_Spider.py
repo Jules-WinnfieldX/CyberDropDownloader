@@ -62,6 +62,8 @@ class CyberdropCrawler:
             links = soup.select('div[class="image-container column"] a')
             for link in links:
                 link = URL(link.get('href'))
+                if link.host.count(".") == 2:
+                    link = link.with_host(link.host.split(".", 1)[-1])
                 try:
                     media = await create_media_item(link, url, self.SQL_Helper, "cyberdrop")
                 except NoExtensionFailure:
