@@ -5,6 +5,8 @@ Downloads/
 config.yaml
 Unsupported_Urls.txt
 URLs_last_post.txt
+internal_variable_cache.yaml
+URLs.txt
 
 # Python stuff
 .venv/

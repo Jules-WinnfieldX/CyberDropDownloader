@@ -32,7 +32,7 @@ class BunkrCrawler:
         self.error_writer = error_writer
 
     async def get_stream_link(self, url: URL):
-        cdn_possibilities = r"(?:cdn.bunkrr...|media-files.bunkrr...|media-files..bunkrr...|media-files...bunkrr...|cdn.bunkr...|cdn..bunkr...|cdn...bunkr...|media-files.bunkr...|media-files..bunkr...|media-files...bunkr...)"
+        cdn_possibilities = r"(?:cdn.bunkrr...|c..bunkr...|media-files.bunkrr...|media-files..bunkrr...|media-files...bunkrr...|cdn.bunkr...|cdn..bunkr...|cdn...bunkr...|media-files.bunkr...|media-files..bunkr...|media-files...bunkr...)"
         ext = '.' + url.parts[-1].split('.')[-1]
         if ext:
             ext = ext.lower()
