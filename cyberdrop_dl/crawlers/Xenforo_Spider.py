@@ -331,12 +331,18 @@ class XenforoCrawler:
                 break
 
         # Handle links
-        def is_direct_link(host: str) -> bool:
-            assert url.host is not None
-            host_su = host.replace(".st", ".su")
-            return host_su in url.host or url.host in host_su or "smgmedia" in host
+        async def is_direct_link(url_to_check: URL) -> bool:
+            host = url_to_check.host
+            try:
+                assert url.host is not None
+                host_su = host.replace(".st", ".su")
+                return host_su in url.host or url.host in host_su or "smgmedia" in host
+            except AttributeError as e:
+                logger.debug("Error encountered while handling %s", url_to_check, exc_info=True)
+                await self.error_writer.write_errored_scrape(url_to_check, e, self.quiet)
+                return False
 
-        direct_links = [x for x in content_links if is_direct_link(x[0].host)]
+        direct_links = [x for x in content_links if await is_direct_link(x[0])]
         external_links = [x for x in content_links if x not in direct_links]
         await self.handle_direct_links(cascade, direct_links, url, spec.domain)
         await self.handle_external_links(external_links, url)
