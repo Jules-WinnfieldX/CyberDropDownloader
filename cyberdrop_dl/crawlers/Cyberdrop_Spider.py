@@ -35,7 +35,7 @@ class CyberdropCrawler:
         log(f"Starting: {url}", quiet=self.quiet, style="green")
         if await check_direct(url):
             if url.host.count(".") == 2:
-                url = url.with_host(url.host.split(".", 1)[-1])
+                url = url.with_host(url.host.replace("cyberdrop.to", "cyberdrop.me"))
             media = await create_media_item(url, url, self.SQL_Helper, "cyberdrop")
             await album_obj.add_media(media)
             await self.SQL_Helper.insert_album("cyberdrop", URL(""), album_obj)
@@ -65,7 +65,7 @@ class CyberdropCrawler:
             for link in links:
                 link = URL(link.get('href'))
                 if link.host.count(".") == 2:
-                    link = link.with_host(link.host.split(".", 1)[-1])
+                    link = link.with_host(link.host.replace("cyberdrop.to", "cyberdrop.me"))
                 try:
                     media = await create_media_item(link, url, self.SQL_Helper, "cyberdrop")
                 except NoExtensionFailure:
