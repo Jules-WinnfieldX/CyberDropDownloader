@@ -45,6 +45,7 @@ class ScrapeMapper:
         self.SQL_Helper = SQL_Helper
         self.Cascade = CascadeItem({})
         self.Forums = ForumItem({})
+        self.skip_coomer_ads = args['Ignore']['skip_coomer_ads']
         self.skip_data = SkipData(args['Ignore']['skip_hosts'])
         self.only_data = SkipData(args['Ignore']['only_hosts'])
 
@@ -310,7 +311,8 @@ class ScrapeMapper:
         coomeno_session = ScrapeSession(self.client)
         if not self.coomeno_crawler:
             self.coomeno_crawler = CoomenoCrawler(include_id=self.include_id, scraping_mapper=self,
-                                                  separate_posts=self.separate_posts, SQL_Helper=self.SQL_Helper,
+                                                  separate_posts=self.separate_posts,
+                                                  skip_coomer_ads=self.skip_coomer_ads, SQL_Helper=self.SQL_Helper,
                                                   quiet=self.quiet, error_writer=self.error_writer)
         assert url.host is not None
         async with self.coomero_semaphore:

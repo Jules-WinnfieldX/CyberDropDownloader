@@ -41,6 +41,7 @@ config_default: Dict = {
             "exclude_other": False,
             "ignore_cache": False,
             "ignore_history": False,
+            "skip_coomer_ads": False,
             "skip_hosts": [],
             "only_hosts": [],
         },

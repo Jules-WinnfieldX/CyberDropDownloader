@@ -134,6 +134,7 @@ optional arguments:
 --ignore-cache          ignores previous runs cached scrape history
 --ignore-history        ignores previous download history
 --only-hosts            only allows downloads and scraping from these hosts
+--skip-coomer-ads       enabling this, will remove advertisements for other models pages from scrapes of a profile.
 --skip-hosts            doesn't allow downloads and scraping from these hosts
 
 --allow-insecure-connections            allows insecure connections from content hosts

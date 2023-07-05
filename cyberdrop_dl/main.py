@@ -64,6 +64,8 @@ def parse_args() -> argparse.Namespace:
     ignore_opts.add_argument("--exclude-videos", help="skip downloading of video files", action="store_true")
     ignore_opts.add_argument("--ignore-cache", help="ignores previous runs cached scrape history", action="store_true")
     ignore_opts.add_argument("--ignore-history", help="ignores previous download history", action="store_true")
+    ignore_opts.add_argument("--ignore-input-file", help="ignores the input file and scrapes the input url instead", action="store_true")
+    ignore_opts.add_argument("--skip-coomer-ads", help="skips downloading of model advertisements on other models pages", action="store_true")
     ignore_opts.add_argument("--skip-hosts", choices=SkipData.supported_hosts, action="append", help="removes host links from downloads", default=config_group["skip_hosts"])
     ignore_opts.add_argument("--only-hosts", choices=SkipData.supported_hosts, action="append", help="only allows downloads from these hosts", default=config_group["only_hosts"])
 

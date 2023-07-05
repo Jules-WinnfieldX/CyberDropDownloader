@@ -36,11 +36,12 @@ class ParseSpec:
 
 
 class CoomenoCrawler:
-    def __init__(self, *, include_id=False, scraping_mapper, separate_posts=False, quiet: bool, SQL_Helper: SQLHelper,
-                 error_writer: ErrorFileWriter):
+    def __init__(self, *, include_id=False, scraping_mapper, separate_posts=False, skip_coomer_ads: bool, quiet: bool,
+                 SQL_Helper: SQLHelper, error_writer: ErrorFileWriter):
         self.include_id = include_id
         self.quiet = quiet
         self.scraping_mapper = scraping_mapper
+        self.skip_coomer_ads = skip_coomer_ads
         self.separate_posts = separate_posts
         self.SQL_Helper = SQL_Helper
         self.limiter = AsyncLimiter(15, 1)
@@ -156,6 +157,10 @@ class CoomenoCrawler:
                 assert post_tag is not None
                 post_title = post_tag.text.replace('\n', '').replace("..", "")
                 title = await make_title_safe(post_title)
+
+            text_block = soup.select_one('div[class=post__content]')
+            if "#AD" in text_block.text and self.skip_coomer_ads:
+                return title
 
             images = soup.select('a[class="fileThumb"]')
             for image in images:
