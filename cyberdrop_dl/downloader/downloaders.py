@@ -205,11 +205,15 @@ class Downloader:
             complete_file = (self.CDL_Helper.download_dir / album / media.filename)
             partial_file = complete_file.with_suffix(complete_file.suffix + '.part')
 
+            headers = {}
+            if self.CDL_Helper.pixeldrain_api_key and "pixeldrain" in media.url.host:
+                headers["Authorization"] = await basic_auth("Cyberdrop-DL", self.CDL_Helper.pixeldrain_api_key)
+
             complete_file, partial_file, proceed, expected_size = await self.check_file_exists(complete_file,
                                                                                                partial_file, media,
                                                                                                album, url_path,
                                                                                                original_filename,
-                                                                                               self.throttle)
+                                                                                               self.throttle, headers)
 
             download_bool = proceed
             await self.CDL_Helper.SQL_Helper.update_pre_download(complete_file, media.filename, url_path, original_filename)
@@ -225,9 +229,6 @@ class Downloader:
             resume_point = partial_file.stat().st_size if partial_file.exists() else 0
 
             assert media.url.host is not None
-            headers = {}
-            if self.CDL_Helper.pixeldrain_api_key and "pixeldrain" in media.url.host:
-                headers["Authorization"] = await basic_auth("Cyberdrop-DL", self.CDL_Helper.pixeldrain_api_key)
 
             headers['Range'] = f'bytes={resume_point}-'
 
@@ -320,14 +321,14 @@ class Downloader:
 
     async def check_file_exists(self, complete_file: Path, partial_file: Path, media: MediaItem, album: str,
                                 url_path: str, original_filename: str,
-                                current_throttle: float) -> tuple[Path, Path, bool, int]:
+                                current_throttle: float, headers: Dict) -> tuple[Path, Path, bool, int]:
         """Complicated checker for if a file already exists, and was already downloaded"""
         expected_size = None
         proceed = True
         while True:
             if not expected_size:
                 expected_size = await self.download_session.get_filesize(media.url, str(media.referer),
-                                                                         current_throttle)
+                                                                         current_throttle, headers)
             if not complete_file.exists() and not partial_file.exists():
                 break
 

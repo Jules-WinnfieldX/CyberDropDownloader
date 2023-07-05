@@ -204,8 +204,9 @@ class DownloadSession:
 
         await self._download(media, current_throttle, proxy, headers, save_content, file)
 
-    async def get_filesize(self, url: URL, referer: str, current_throttle: float) -> int:
-        headers = {'Referer': referer, 'user-agent': self.client.user_agent}
+    async def get_filesize(self, url: URL, referer: str, current_throttle: float, headers: Dict) -> int:
+        headers['Referer'] = referer
+        headers['user-agent'] = self.client.user_agent
 
         assert url.host is not None
         await self._throttle(current_throttle, url.host)
