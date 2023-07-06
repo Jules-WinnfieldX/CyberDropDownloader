@@ -50,6 +50,15 @@ class PimpAndHostCrawler:
             for file in soup.select('a[class*="image-wrapper center-cropped im-wr"]'):
                 link = URL(file.get("href"))
                 media_items.append(await self.get_singular(session, link))
+
+            next_page = soup.select_one("li[class=next] a")
+            if next_page:
+                next_page = next_page.get("href")
+                if next_page.startswith("/"):
+                    next_page = URL("https://pimpandhost.com" + next_page)
+                next_page = URL(next_page)
+                media_items_extended, throw = await self.get_listings(session, next_page)
+                media_items.extend(media_items_extended)
             return media_items, title
 
         except Exception as e:
