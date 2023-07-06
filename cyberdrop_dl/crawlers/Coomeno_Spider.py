@@ -159,8 +159,9 @@ class CoomenoCrawler:
                 title = await make_title_safe(post_title)
 
             text_block = soup.select_one('div[class=post__content]')
-            if "#AD" in text_block.text and self.skip_coomer_ads:
-                return title
+            if text_block:
+                if "#AD" in text_block.text and self.skip_coomer_ads:
+                    return title
 
             images = soup.select('a[class="fileThumb"]')
             for image in images:
