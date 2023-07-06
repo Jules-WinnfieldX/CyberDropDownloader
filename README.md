@@ -185,8 +185,6 @@ optional arguments:
 --pixeldrain-api-key            api key for premium pixeldrain
 --reddit-personal-use-script    client id for reddit
 --reddit-secret                 client secret for reddit
---reddit-username               username to login to reddit
---reddit-password               password to login to reddit
 --nudostar-username             username to login to nudostar
 --nudostar-password             password to login to nudostar
 --simpcity-username             username to login to simpcity

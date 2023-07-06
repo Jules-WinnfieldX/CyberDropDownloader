@@ -12,8 +12,6 @@ config_default: Dict = {
             "pixeldrain_api_key": "",
             "reddit_personal_use_script": "",
             "reddit_secret": "",
-            "reddit_username": "",
-            "reddit_password": "",
             "nudostar_username": "",
             "nudostar_password": "",
             "simpcity_username": "",

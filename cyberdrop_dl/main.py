@@ -130,8 +130,6 @@ def parse_args() -> argparse.Namespace:
     auth_opts.add_argument("--pixeldrain-api-key", help="api key for premium pixeldrain", default=config_group["pixeldrain_api_key"])
     auth_opts.add_argument("--reddit-personal-use-script", help="personal use script for reddit (https://www.reddit.com/prefs/apps)", default=config_group["reddit_personal_use_script"])
     auth_opts.add_argument("--reddit-secret", help="secret key for reddit (https://www.reddit.com/prefs/apps)", default=config_group["reddit_secret"])
-    auth_opts.add_argument("--reddit-username", help="username to login to reddit", default=config_group["reddit_username"])
-    auth_opts.add_argument("--reddit-password", help="password to login to reddit", default=config_group["reddit_password"])
     auth_opts.add_argument("--nudostar-username", help="username to login to nudostar", default=config_group["nudostar_username"])
     auth_opts.add_argument("--nudostar-password", help="password to login to nudostar", default=config_group['nudostar_password'])
     auth_opts.add_argument("--simpcity-username", help="username to login to simpcity", default=config_group["simpcity_username"])
