@@ -21,7 +21,7 @@ class ImgurCrawler:
         self.separate_posts = separate_posts
         self.quiet = quiet
         self.SQL_Helper = SQL_Helper
-        self.limiter = AsyncLimiter(1, 1)
+        self.limiter = AsyncLimiter(10, 1)
 
         self.error_writer = error_writer
 

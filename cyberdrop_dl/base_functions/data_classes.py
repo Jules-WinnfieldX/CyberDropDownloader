@@ -238,6 +238,6 @@ class SkipData:
                                                   "gofile", "hgamecg", "img.kiwi", "imgbox", "jpg.church", "jpg.fish",
                                                   "jpg.fishing", "jpg.pet", "gallery.deltaporno.com", "kemono.party",
                                                   "kemono.su", "lovefap", "nsfw.xxx", "pimpandhost", "pixeldrain",
-                                                  "pixl.li", "postimg", "saint", "nudostar", "simpcity",
-                                                  "socialmediagirls", "xbunker", "xbunkr")
+                                                  "pixl.li", "postimg", "saint", "nudostar", "reddit", "simpcity",
+                                                  "socialmediagirls", "xbunker", "xbunkr", "imgur")
     sites: List[str]

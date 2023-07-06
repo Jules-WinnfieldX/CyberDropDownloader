@@ -85,9 +85,16 @@ class ScrapeSession:
             return soup, URL(response.url)
 
     @scrape_limit
-    async def get_json(self, url: URL, params: Optional[Dict] = None) -> Dict:
-        async with self.client_session.get(url, ssl=self.client.ssl_context, params=params) as response:
+    async def get_json(self, url: URL, params: Optional[Dict] = None, headers_inc: Optional[Dict] = None) -> Dict:
+        headers = {**self.headers, **headers_inc} if headers_inc else self.headers
+        async with self.client_session.get(url, ssl=self.client.ssl_context, params=params, headers=headers) as response:
             return json.loads(await response.content.read())
+
+    async def get_json_with_headers(self, url: URL, params: Optional[Dict] = None, headers_inc: Optional[Dict] = None) -> Dict:
+        headers = {**self.headers, **headers_inc} if headers_inc else self.headers
+        async with self.client_session.get(url, ssl=self.client.ssl_context, params=params, headers=headers) as response:
+            content = await response.content.read()
+            return json.loads(content), response.headers
 
     @scrape_limit
     async def get_text(self, url: URL) -> str:
@@ -97,6 +104,11 @@ class ScrapeSession:
     @scrape_limit
     async def post(self, url: URL, data: Dict) -> Dict:
         async with self.client_session.post(url, data=data, headers=self.headers, ssl=self.client.ssl_context) as response:
+            return json.loads(await response.content.read())
+
+    @scrape_limit
+    async def post_with_auth(self, url: URL, data: Dict, auth: aiohttp.BasicAuth) -> Dict:
+        async with self.client_session.post(url, data=data, headers=self.headers, ssl=self.client.ssl_context, auth=auth) as response:
             return json.loads(await response.content.read())
 
     @scrape_limit

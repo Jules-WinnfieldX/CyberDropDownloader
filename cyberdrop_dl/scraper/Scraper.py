@@ -20,11 +20,13 @@ from cyberdrop_dl.crawlers.Gfycat_Spider import GfycatCrawler
 from cyberdrop_dl.crawlers.GoFile_Spider import GoFileCrawler
 from cyberdrop_dl.crawlers.HGameCG_Spider import HGameCGCrawler
 from cyberdrop_dl.crawlers.ImgBox_Spider import ImgBoxCrawler
+from cyberdrop_dl.crawlers.Imgur_Spider import ImgurCrawler
 from cyberdrop_dl.crawlers.LoveFap_Spider import LoveFapCrawler
 from cyberdrop_dl.crawlers.NSFWXXX_Spider import NSFWXXXCrawler
 from cyberdrop_dl.crawlers.PimpAndHost_Spider import PimpAndHostCrawler
 from cyberdrop_dl.crawlers.PixelDrain_Spider import PixelDrainCrawler
 from cyberdrop_dl.crawlers.PostImg_Spider import PostImgCrawler
+from cyberdrop_dl.crawlers.Reddit_Spider import RedditCrawler
 from cyberdrop_dl.crawlers.Saint_Spider import SaintCrawler
 from cyberdrop_dl.crawlers.ShareX_Spider import ShareXCrawler
 from cyberdrop_dl.crawlers.XBunkr_Spider import XBunkrCrawler
@@ -63,12 +65,14 @@ class ScrapeMapper:
         self.gfycat_crawler: Optional[GfycatCrawler] = None
         self.gofile_crawler: Optional[GoFileCrawler] = None
         self.hgamecg_crawler: Optional[HGameCGCrawler] = None
+        self.imgur_crawler: Optional[ImgurCrawler] = None
         self.imgbox_crawler: Optional[ImgBoxCrawler] = None
         self.lovefap_crawler: Optional[LoveFapCrawler] = None
         self.nsfwxxx_crawler: Optional[NSFWXXXCrawler] = None
         self.pimpandhost_crawler: Optional[PimpAndHostCrawler] = None
         self.pixeldrain_crawler: Optional[PixelDrainCrawler] = None
         self.postimg_crawler: Optional[PostImgCrawler] = None
+        self.reddit_crawler: Optional[RedditCrawler] = None
         self.saint_crawler: Optional[SaintCrawler] = None
         self.sharex_crawler: Optional[ShareXCrawler] = None
         self.xbunkr_crawler: Optional[XBunkrCrawler] = None
@@ -91,13 +95,14 @@ class ScrapeMapper:
                         "bunkr": self.Bunkr, "cyberdrop": self.Cyberdrop, "cyberfile": self.CyberFile,
                         "erome": self.Erome, "fapello": self.Fapello, "gfycat": self.Gfycat, "gofile": self.GoFile,
                         "hgamecg": self.HGameCG, "imgbox": self.ImgBox, "pixeldrain": self.PixelDrain,
-                        "postimg": self.PostImg, "saint": self.Saint, "img.kiwi": self.ShareX,
+                        "postimg": self.PostImg, "saint": self.Saint, "img.kiwi": self.ShareX, "imgur": self.Imgur,
                         "jpg.church": self.ShareX, "jpg.fish": self.ShareX, "jpg.pet": self.ShareX,
                         "pixl.li": self.ShareX, "nsfw.xxx": self.NSFW_XXX, "pimpandhost": self.PimpAndHost,
                         "lovefap": self.LoveFap, "e-hentai": self.EHentai, "gallery.deltaporno": self.ShareX,
                         "vk.com": self.vk_redirect, "coomer.party": self.Coomeno, "coomer.su": self.Coomeno,
                         "kemono.party": self.Coomeno, "kemono.su": self.Coomeno, "nudostar": self.Xenforo,
-                        "simpcity": self.Xenforo, "socialmediagirls": self.Xenforo, "xbunker": self.Xenforo}
+                        "simpcity": self.Xenforo, "socialmediagirls": self.Xenforo, "xbunker": self.Xenforo,
+                        "reddit": self.Reddit}
 
     async def _handle_album_additions(self, domain: str, album_obj: AlbumItem, title=None) -> None:
         if title:
@@ -222,6 +227,16 @@ class ScrapeMapper:
         await self._handle_album_additions("imgbox", album_obj, title)
         await imgbox_session.exit_handler()
 
+    async def Imgur(self, url, title=None):
+        imgur_session = ScrapeSession(self.client)
+        if not self.imgur_crawler:
+            self.imgur_crawler = ImgurCrawler(quiet=self.quiet, SQL_Helper=self.SQL_Helper,
+                                              separate_posts=self.separate_posts, error_writer=self.error_writer,
+                                              args=self.args)
+        domain_obj = await self.imgur_crawler.fetch(imgur_session, url)
+        await self._handle_domain_additions("reddit", domain_obj, title)
+        await imgur_session.exit_handler()
+
     async def LoveFap(self, url: URL, title=None):
         lovefap_session = ScrapeSession(self.client)
         if not self.lovefap_crawler:
@@ -257,6 +272,16 @@ class ScrapeMapper:
         album_obj = await self.postimg_crawler.fetch(postimg_session, url)
         await self._handle_album_additions("postimg", album_obj, title)
         await postimg_session.exit_handler()
+
+    async def Reddit(self, url, title=None):
+        reddit_session = ScrapeSession(self.client)
+        if not self.reddit_crawler:
+            self.reddit_crawler = RedditCrawler(session=reddit_session, quiet=self.quiet, SQL_Helper=self.SQL_Helper,
+                                                separate_posts=self.separate_posts, error_writer=self.error_writer,
+                                                args=self.args, scraping_mapper=self)
+        domain_obj = await self.reddit_crawler.fetch(url)
+        await self._handle_domain_additions("reddit", domain_obj, title)
+        await reddit_session.exit_handler()
 
     async def Saint(self, url, title=None):
         saint_session = ScrapeSession(self.client)

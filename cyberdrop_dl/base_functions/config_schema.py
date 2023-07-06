@@ -8,7 +8,12 @@ config_default: Dict = {
         "Authentication": {
             "gofile_api_key": "",
             "gofile_website_token": "",
+            "imgur_client_id": "",
             "pixeldrain_api_key": "",
+            "reddit_personal_use_script": "",
+            "reddit_secret": "",
+            "reddit_username": "",
+            "reddit_password": "",
             "nudostar_username": "",
             "nudostar_password": "",
             "simpcity_username": "",
