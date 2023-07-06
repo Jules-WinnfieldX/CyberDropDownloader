@@ -48,6 +48,15 @@ class RedditCrawler:
                 await self.get_user(url, domain_obj)
             elif "r" in url.parts:
                 await self.get_subreddit(url, domain_obj)
+            elif "i.redd.it" in url.host:
+                try:
+                    filename, ext = await get_filename_and_ext(url.name, True)
+                except NoExtensionFailure:
+                    return domain_obj
+
+                completed = await self.SQL_Helper.check_complete_singular("reddit", url)
+                media_item = MediaItem(url, url, completed, filename, ext, filename)
+                await domain_obj.add_media("Loose Reddit Files", media_item)
 
             await self.SQL_Helper.insert_domain("reddit", url, domain_obj)
             log(f"Finished: {url}", quiet=self.quiet, style="green")
