@@ -44,9 +44,7 @@ class PimpAndHostCrawler:
         media_items = []
         try:
             soup = await session.get_BS4(url)
-            title = soup.select_one("div[class=image-header]")
-            user_link = title.select_one("span[class=details]")
-            user_link.decompose()
+            title = soup.select_one("span[class=author-header__album-name]")
             title = await make_title_safe(title.get_text())
 
             for file in soup.select('a[class*="image-wrapper center-cropped im-wr"]'):
