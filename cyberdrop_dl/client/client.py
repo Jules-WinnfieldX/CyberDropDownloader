@@ -14,6 +14,7 @@ import aiohttp
 import certifi
 from aiolimiter import AsyncLimiter
 from bs4 import BeautifulSoup
+from multidict import CIMultiDictProxy
 from tqdm import tqdm
 from yarl import URL
 
@@ -90,7 +91,9 @@ class ScrapeSession:
         async with self.client_session.get(url, ssl=self.client.ssl_context, params=params, headers=headers) as response:
             return json.loads(await response.content.read())
 
-    async def get_json_with_headers(self, url: URL, params: Optional[Dict] = None, headers_inc: Optional[Dict] = None) -> Dict:
+    @scrape_limit
+    async def get_json_with_headers(self, url: URL, params: Optional[Dict] = None,
+                                    headers_inc: Optional[Dict] = None) -> tuple[Any, CIMultiDictProxy[str]]:
         headers = {**self.headers, **headers_inc} if headers_inc else self.headers
         async with self.client_session.get(url, ssl=self.client.ssl_context, params=params, headers=headers) as response:
             content = await response.content.read()

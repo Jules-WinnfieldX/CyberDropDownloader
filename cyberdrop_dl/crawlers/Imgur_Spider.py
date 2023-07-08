@@ -63,10 +63,10 @@ class ImgurCrawler:
         except NoExtensionFailure:
             return domain_obj
 
-        if ext.lower() == ".gifv":
+        if ext.lower() == ".gifv" or ext.lower() == ".mp4":
             filename = filename.replace(ext, ".mp4")
             ext = ".mp4"
-            url = URL(str(url).lower().replace(".gifv", ".mp4"))
+            url = URL("https://imgur.com/download") / filename.replace(ext, "")
 
         completed = await self.SQL_Helper.check_complete_singular("imgur", url)
         media_item = MediaItem(url, referer, completed, filename, ext, filename)
