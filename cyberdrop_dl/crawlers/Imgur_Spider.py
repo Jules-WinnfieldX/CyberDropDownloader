@@ -47,14 +47,7 @@ class ImgurCrawler:
 
                 await self.get_album(session, url, domain_obj)
             elif "i.imgur.com" in url.host:
-                try:
-                    filename, ext = await get_filename_and_ext(url.name, True)
-                except NoExtensionFailure:
-                    return domain_obj
-
-                completed = await self.SQL_Helper.check_complete_singular("imgur", url)
-                media_item = MediaItem(url, url, completed, filename, ext, filename)
-                await domain_obj.add_media("Loose Imgur Files", media_item)
+                await self.get_image(url, url, "Loose Imgur Files", domain_obj)
 
             await self.SQL_Helper.insert_domain("imgur", url, domain_obj)
             log(f"Finished: {url}", quiet=self.quiet, style="green")
@@ -63,6 +56,21 @@ class ImgurCrawler:
             await self.error_writer.write_errored_scrape(url, e, self.quiet)
 
         return domain_obj
+
+    async def get_image(self, url: URL, referer: URL, title: str, domain_obj: DomainItem):
+        try:
+            filename, ext = await get_filename_and_ext(url.name, True)
+        except NoExtensionFailure:
+            return domain_obj
+
+        if ext.lower() == ".gifv":
+            filename = filename.replace(ext, ".mp4")
+            ext = ".mp4"
+            url = URL(str(url).lower().replace(".gifv", ".mp4"))
+
+        completed = await self.SQL_Helper.check_complete_singular("imgur", url)
+        media_item = MediaItem(url, referer, completed, filename, ext, filename)
+        await domain_obj.add_media(title, media_item)
 
     async def get_album(self, session: ScrapeSession, url: URL, domain_obj: DomainItem):
         album_id = url.parts[-1] if url.parts[-1] != "" else url.parts[-2]
@@ -84,12 +92,4 @@ class ImgurCrawler:
             raise Exception("Imgur API rate limit reached")
         for image in images_info['data']:
             media_url = URL(image['link'])
-            try:
-                filename, ext = await get_filename_and_ext(media_url.name, True)
-            except NoExtensionFailure:
-                continue
-
-            completed = await self.SQL_Helper.check_complete_singular("imgur", media_url)
-            media_item = MediaItem(media_url, url, completed, filename, ext, filename)
-            await domain_obj.add_media(title, media_item)
-
+            await self.get_image(media_url, url, title, domain_obj)
