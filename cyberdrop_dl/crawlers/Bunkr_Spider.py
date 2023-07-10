@@ -171,26 +171,17 @@ class BunkrCrawler:
                 link = URL(link)
                 referer = await self.get_stream_link(link)
 
-                if "v" in link.parts or "d" in link.parts:
-                    media = await self.get_file(session, link)
-                    link = media.url
-                else:
-                    try:
-                        filename, ext = await get_filename_and_ext(link.name)
-                    except NoExtensionFailure:
-                        logger.debug("Couldn't get extension for %s", link)
-                        continue
-
-                    if ext in FILE_FORMATS["Images"]:
-                        link = URL(str(link).replace("https://cdn", "https://i"))
-                    else:
-                        link = URL(f"https://media-files{media_loc}.bunkr.ru" + link.path)
-
                 try:
                     filename, ext = await get_filename_and_ext(link.name)
                 except NoExtensionFailure:
                     logger.debug("Couldn't get extension for %s", link)
                     continue
+
+                if ext in FILE_FORMATS["Images"]:
+                    link = URL(str(link).replace("https://cdn", "https://i"))
+                else:
+                    media = await self.get_file(session, referer)
+                    link = media.url
 
                 if ext not in FILE_FORMATS['Images']:
                     link = await self.check_for_la(link)
