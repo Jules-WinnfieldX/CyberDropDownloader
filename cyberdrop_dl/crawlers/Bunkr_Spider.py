@@ -129,7 +129,10 @@ class BunkrCrawler:
             if not link:
                 raise
             link = URL(link)
-            filename, ext = await get_filename_and_ext(link.name)
+            try:
+                filename, ext = await get_filename_and_ext(link.name)
+            except NoExtensionFailure:
+                filename, ext = await get_filename_and_ext(url.name)
             if ext not in FILE_FORMATS['Images']:
                 link = await self.check_for_la(link)
 
