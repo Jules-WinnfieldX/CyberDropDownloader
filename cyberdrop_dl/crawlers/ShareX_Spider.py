@@ -147,7 +147,7 @@ class ShareXCrawler:
             async with self.limiter:
                 soup = await session.get_BS4(url)
             assert url.host is not None
-            if 'jpg.fish' in url.host or 'jpg.church' in url.host or 'jpg.pet' in url.host:
+            if 'jpg.fish' in url.host or 'jpg.church' in url.host or 'jpg.pet' in url.host or 'jpeg.pet' in url.host:
                 links = soup.select("a[href*=img] img")
             else:
                 links = soup.select("a[href*=image] img")

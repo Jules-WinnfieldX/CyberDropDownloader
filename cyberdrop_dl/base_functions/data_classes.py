@@ -239,5 +239,6 @@ class SkipData:
                                                   "jpg.fishing", "jpg.pet", "gallery.deltaporno.com", "kemono.party",
                                                   "kemono.su", "lovefap", "nsfw.xxx", "pimpandhost", "pixeldrain",
                                                   "pixl.li", "postimg", "saint", "nudostar", "reddit", "simpcity",
-                                                  "socialmediagirls", "xbunker", "xbunkr", "imgur", "redd.it")
+                                                  "socialmediagirls", "xbunker", "xbunkr", "imgur", "redd.it",
+                                                  "jpeg.pet")
     sites: List[str]
