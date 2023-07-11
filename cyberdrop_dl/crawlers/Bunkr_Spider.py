@@ -32,12 +32,14 @@ class BunkrCrawler:
 
         self.error_writer = error_writer
 
+        self.primary_base_domain = URL("https://bunkrr.su")
+
     async def fetch(self, session: ScrapeSession, url: URL) -> AlbumItem:
         """Scraper for Bunkr"""
         album_obj = AlbumItem("Loose Bunkr Files", [])
         log(f"Starting: {url}", quiet=self.quiet, style="green")
 
-        url = BunkrCrawler.get_stream_link(url)
+        url = await self.get_stream_link(url)
 
         if "v" in url.parts or "d" in url.parts:
             media = await self.get_file(session, url)
@@ -77,6 +79,25 @@ class BunkrCrawler:
         log(f"Finished: {url}", quiet=self.quiet, style="green")
         return album_obj
 
+    async def get_stream_link(self, url: URL):
+        cdn_possibilities = r"^(?:media-files|cdn|c)[0-9]{0,2}\.bunkrr?\.[a-z]{2,3}$"
+
+        if not re.match(cdn_possibilities, url.host):
+            return url
+
+        ext = url.suffix.lower()
+        if ext == "":
+            return url
+
+        if ext in FILE_FORMATS['Images']:
+            url = url.with_host(re.sub(r"^cdn(\d*)\.", r"i\1.", url.host))
+        elif ext in FILE_FORMATS['Videos']:
+            url = self.primary_base_domain / "v" / url.parts[-1]
+        else:
+            url = self.primary_base_domain / "d" / url.parts[-1]
+
+        return url
+
     async def remove_id(self, filename: str, ext: str):
         """Removes the additional string bunkr adds to the end of every filename"""
         original_filename = filename
@@ -97,8 +118,7 @@ class BunkrCrawler:
     async def get_file(self, session: ScrapeSession, url: URL):
         """Gets the media item from the supplied url"""
 
-        ### Temp Fix ###
-        url = url.with_host("bunkrr.su")
+        url = self.primary_base_domain.with_path(url.path)
 
         try:
             async with self.limiter:
@@ -157,7 +177,7 @@ class BunkrCrawler:
                 if link.startswith("/"):
                     link = URL("https://" + url.host + link)
                 link = URL(link)
-                referer = BunkrCrawler.get_stream_link(link)
+                referer = await self.get_stream_link(link)
 
                 try:
                     filename, ext = await get_filename_and_ext(link.name)
@@ -186,25 +206,3 @@ class BunkrCrawler:
             await self.error_writer.write_errored_scrape(url, e, self.quiet)
 
         return album
-
-    @staticmethod
-    def get_stream_link(url: URL):
-        cdn_possibilities = r"^(?:media-files|cdn|c)[0-9]{0,2}\.bunkrr?\.[a-z]{2,3}$"
-
-        if not re.match(cdn_possibilities, url.host):
-            return url
-
-        ext = url.suffix.lower()
-        if ext == "":
-            return url
-
-        if ext in FILE_FORMATS['Images']:
-            url = url.with_host(re.sub(r"^cdn(\d*)\.", r"i\1.", url.host))
-        elif ext in FILE_FORMATS['Videos']:
-            url = url.with_host('bunkrr.su')
-            url = url.with_path(os.path.join('/v', url.path[1:]))
-        else:
-            url = url.with_host('bunkrr.su')
-            url = url.with_path(os.path.join('/d', url.path[1:]))
-
-        return url
