@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import re
+import os
 from typing import TYPE_CHECKING
 
 from aiolimiter import AsyncLimiter
@@ -31,28 +32,12 @@ class BunkrCrawler:
 
         self.error_writer = error_writer
 
-    async def get_stream_link(self, url: URL):
-        cdn_possibilities = r"(?:cdn.bunkrr...|c..bunkr...|media-files.bunkrr...|media-files..bunkrr...|media-files...bunkrr...|cdn.bunkr...|cdn..bunkr...|cdn...bunkr...|media-files.bunkr...|media-files..bunkr...|media-files...bunkr...)"
-        ext = '.' + url.parts[-1].split('.')[-1]
-        if ext:
-            ext = ext.lower()
-        else:
-            return url
-
-        if ext in FILE_FORMATS['Images']:
-            url = URL(str(url).replace("https://cdn", "https://i"))
-        elif ext in FILE_FORMATS['Videos']:
-            url = URL(re.sub(cdn_possibilities, "bunkrr.su/v", str(url)))
-        else:
-            url = URL(re.sub(cdn_possibilities, "bunkrr.su/d", str(url)))
-        return url
-
     async def fetch(self, session: ScrapeSession, url: URL) -> AlbumItem:
         """Scraper for Bunkr"""
         album_obj = AlbumItem("Loose Bunkr Files", [])
         log(f"Starting: {url}", quiet=self.quiet, style="green")
 
-        url = await self.get_stream_link(url)
+        url = BunkrCrawler.get_stream_link(url)
 
         if "v" in url.parts or "d" in url.parts:
             media = await self.get_file(session, url)
@@ -172,7 +157,7 @@ class BunkrCrawler:
                 if link.startswith("/"):
                     link = URL("https://" + url.host + link)
                 link = URL(link)
-                referer = await self.get_stream_link(link)
+                referer = BunkrCrawler.get_stream_link(link)
 
                 try:
                     filename, ext = await get_filename_and_ext(link.name)
@@ -201,3 +186,25 @@ class BunkrCrawler:
             await self.error_writer.write_errored_scrape(url, e, self.quiet)
 
         return album
+
+    @staticmethod
+    def get_stream_link(url: URL):
+        cdn_possibilities = r"^(?:media-files|cdn|c)[0-9]{0,2}\.bunkrr?\.[a-z]{2,3}$"
+
+        if not re.match(cdn_possibilities, url.host):
+            return url
+
+        ext = url.suffix.lower()
+        if ext == "":
+            return url
+
+        if ext in FILE_FORMATS['Images']:
+            url = url.with_host(re.sub(r"^cdn(\d*)\.", r"i\1.", url.host))
+        elif ext in FILE_FORMATS['Videos']:
+            url = url.with_host('bunkrr.su')
+            url = url.with_path(os.path.join('/v', url.path[1:]))
+        else:
+            url = url.with_host('bunkrr.su')
+            url = url.with_path(os.path.join('/d', url.path[1:]))
+
+        return url
