@@ -63,7 +63,7 @@ Read the [Wiki](https://github.com/Jules-WinnfieldX/CyberDropDownloader/wiki/)!
 | XBunker                                                          | Thread: xbunker.nu/threads/...  <br> Continue from (will download this post and after): xbunker.nu/threads/...post-NUMBER                                                                                                              |
 | XBunkr                                                           | Album: xbunkr.com/a/... <br> Direct Links: media.xbunkr.com/...                                                                                                                                                                        |
 
-Reminder to leave the link full (include the https://)
+Reminder to leave the link full (include the `https://`)
 
 ## Information
 
@@ -71,18 +71,18 @@ Reminder to leave the link full (include the https://)
 
 You can get Python from here: <https://www.python.org/downloads/>
 
-Make sure you tick the check box for "Add python to path"
+Make sure you tick the check box for "Add Python to PATH"
 ![alt text](https://simp2.jpg.church/PATHe426c23371048def.png)
 
-Mac users will also likely need to open terminal and execute the following command: `xcode-select --install`
+macOS users will also likely need to open terminal and execute the following command: `xcode-select --install`
 
 ## Script Method
 
 Go to the [releases page](https://github.com/Jules-WinnfieldX/CyberDropDownloader/releases) and download the Cyberdrop_DL.zip file. Extract it to wherever you want the program to be.
 
-Put the links in the URLs.txt file then run `Start Windows.bat` (Windows) or `Start Mac.command` (OS X) or `Start Linux.sh` (Linux).
+Put the links in the URLs.txt file then run `Start Windows.bat` (Windows) or `Start Mac.command` (macOS) or `Start Linux.sh` (Linux).
 
-** Mac users will need to run the command `chmod +x 'Start Mac.command'` to make the file executable.
+**macOS users will need to run the command `chmod +x 'Start Mac.command'` to make the file executable.**
 
 ## CLI Method
 
@@ -90,7 +90,7 @@ Run `pip3 install cyberdrop-dl` in command prompt/terminal
 
 Advanced users may want to use virtual environments (via `pipx`), but it's **NOT** required.
 
-**pipx is now required for some linux distros.**
+**pipx is now required for some Linux distros.**
 
 1. Run `cyberdrop-dl` once to generate an empty `URLs.txt` file.
 2. Copy and paste your links into `URLs.txt`.
@@ -139,29 +139,30 @@ optional arguments:
 --skip-coomer-ads       enabling this, will remove advertisements for other models pages from scrapes of a profile.
 --skip-hosts            doesn't allow downloads and scraping from these hosts
 
---allow-insecure-connections            allows insecure connections from content hosts
---attempts                              number of attempts to download each file
---block-sub-folders                     block sub folders from being created
---disable-attempt-limit                 disables the attempt limitation
---filesize-maximum-images               maximum filesize for images (in bytes)
---filesize-maximum-videos               maximum filesize for videos (in bytes)
---filesize-maximum-other                maximum filesize for other files (in bytes)
---filesize-minimum-images               minimum filesize for images (in bytes)
---filesize-minimum-videos               minimum filesize for videos (in bytes)
---filesize-minimum-other                minimum filesize for other files (in bytes)
---include-id                            include the ID in the download folder name
---max-concurrent-threads                number of threads to download simultaneously
---max-concurrent-domains                number of domains to download simultaneously
---max-concurrent-albums                 number of albums to download simultaneously
---max-concurrent-downloads-per-domain   number of simultaneous downloads per domain
---max-filename-length                   maximum filename length
---max-folder-name-length                maximum folder name length
---skip-download-mark-completed          sets the scraped files as downloaded without downloading
---output-errored-urls                   sets the failed urls to be output to the errored urls file
---output-unsupported-urls               sets the unsupported urls to be output to the unsupported urls file
---proxy                                 HTTP/HTTPS proxy used for downloading, format [protocol]://[ip]:[port]
---remove-bunkr-identifier               removes the bunkr added identifier from output filenames
---required-free-space                   required free space (in gigabytes) for the program to run
+--allow-insecure-connections                    allows insecure connections from content hosts
+--attempts                                      number of attempts to download each file
+--block-sub-folders                             block sub folders from being created
+--disable-attempt-limit                         disables the attempt limitation
+--filesize-maximum-images                       maximum filesize for images (in bytes)
+--filesize-maximum-videos                       maximum filesize for videos (in bytes)
+--filesize-maximum-other                        maximum filesize for other files (in bytes)
+--filesize-minimum-images                       minimum filesize for images (in bytes)
+--filesize-minimum-videos                       minimum filesize for videos (in bytes)
+--filesize-minimum-other                        minimum filesize for other files (in bytes)
+--include-id                                    include the ID in the download folder name
+--max-concurrent-threads                        number of threads to download simultaneously
+--max-concurrent-domains                        number of domains to download simultaneously
+--max-concurrent-albums                         number of albums to download simultaneously
+--max-concurrent-downloads-per-domain           number of simultaneous downloads per domain
+--max-filename-length                           maximum filename length
+--max-folder-name-length                        maximum folder name length
+--skip-check-for-partial-files-and-empty-dirs   skip checks for partial files and empty directories after completing
+--skip-download-mark-completed                  sets the scraped files as downloaded without downloading
+--output-errored-urls                           sets the failed urls to be output to the errored urls file
+--output-unsupported-urls                       sets the unsupported urls to be output to the unsupported urls file
+--proxy                                         HTTP/HTTPS proxy used for downloading, format [protocol]://[ip]:[port]
+--remove-bunkr-identifier                       removes the bunkr added identifier from output filenames
+--required-free-space                           required free space (in gigabytes) for the program to run
 
 --sort-downloads        sorts downloaded files after downloads have finished
 --sort-directory        folder to download files to

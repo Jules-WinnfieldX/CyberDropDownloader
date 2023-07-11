@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import Dict, List, Tuple
 
 import aiofiles
-import aiorun as aiorun
+import aiorun
 from yarl import URL
 
 from cyberdrop_dl.base_functions.base_functions import (
@@ -75,7 +75,6 @@ def parse_args() -> argparse.Namespace:
     runtime_opts.add_argument("--allow-insecure-connections", help="allows insecure connections from content hosts", action="store_true")
     runtime_opts.add_argument("--attempts", type=int, help="number of attempts to download each file (default: %(default)s)", default=config_group["attempts"])
     runtime_opts.add_argument("--block-sub-folders", help="block sub folders from being created", action="store_true")
-    runtime_opts.add_argument("--check-for-partial-files-and-empty-dirs", type=bool, default=config_group["check_for_partial_files_and_empty_dirs"], help="checks for partial files and empty directories after completing (default: %(default)s)")
     runtime_opts.add_argument("--disable-attempt-limit", help="disables the attempt limitation", action="store_true")
     runtime_opts.add_argument("--filesize-maximum-images", type=int, default=config_group["filesize_maximum_images"], help="maximum filesize for images (in bytes) (default: %(default)s)")
     runtime_opts.add_argument("--filesize-maximum-videos", type=int, default=config_group["filesize_maximum_videos"], help="maximum filesize for videos (in bytes) (default: %(default)s)")
@@ -90,6 +89,7 @@ def parse_args() -> argparse.Namespace:
     runtime_opts.add_argument("--max-concurrent-downloads-per-domain", type=int, default=config_group["max_concurrent_downloads_per_domain"], help="Number of simultaneous downloads per domain (default: %(default)s)")
     runtime_opts.add_argument("--max-filename-length", type=int, default=config_group["max_filename_length"], help="maximum filename length (default: %(default)s)")
     runtime_opts.add_argument("--max-folder-name-length", type=int, default=config_group["max_folder_name_length"], help="maximum folder name length (default: %(default)s)")
+    runtime_opts.add_argument("--skip-check-for-partial-files-and-empty-dirs", help="skip checks for partial files and empty directories after completing", action="store_true")
     runtime_opts.add_argument("--skip-download-mark-completed", help="sets the scraped files as downloaded without downloading", action="store_true")
     runtime_opts.add_argument("--output-errored-urls", help="sets the failed urls to be output to the errored urls file", action="store_true")
     runtime_opts.add_argument("--output-unsupported-urls", help="sets the unsupported urls to be output to the unsupported urls file", action="store_true")
@@ -266,14 +266,12 @@ async def scrape_links(scraper: ScrapeMapper, links: List, quiet=False) -> Forum
 async def check_outdated(client: Client):
     session = ScrapeSession(client)
     url = URL('https://pypi.python.org/pypi/cyberdrop-dl/json')
-    try:
+    with contextlib.suppress(Exception):
         response = await session.get_json(url)
         if response['info']['version'] != VERSION:
             log(f"\nYour version of Cyberdrop Downloader is outdated. \nYou are running version {VERSION}."
                 f"\nPlease update to version {response['info']['version']}"
                 f"\nYou can find out how to do that here: https://github.com/Jules-WinnfieldX/CyberDropDownloader/wiki/Frequently-Asked-Questions#how-to-update", style="red")
-    except Exception as e:
-        pass
 
 
 async def director(args: Dict, links: List) -> None:
@@ -321,7 +319,7 @@ async def director(args: Dict, links: List) -> None:
             await sorter.sort()
 
         log("")
-        if args['Runtime']['check_for_partial_files_and_empty_dirs']:
+        if not args['Runtime']['skip_check_for_partial_files_and_empty_dirs']:
             log("Checking for incomplete downloads")
             partial_downloads = any(f.is_file() for f in args['Files']['output_folder'].rglob("*.part"))
             temp_downloads = any(Path(f).is_file() for f in await SQL_Helper.get_temp_names())
