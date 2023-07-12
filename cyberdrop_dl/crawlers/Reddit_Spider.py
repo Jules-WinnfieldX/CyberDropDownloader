@@ -31,9 +31,10 @@ class RedditCrawler:
         self.reddit_personal_use_script = args["Authentication"]["reddit_personal_use_script"]
         self.reddit_secret = args["Authentication"]["reddit_secret"]
         self.reddit = asyncpraw.Reddit(client_id=self.reddit_personal_use_script,
-                                           client_secret=self.reddit_secret,
-                                           user_agent="CyberDrop-DL",
-                                           requestor_kwargs={"session": session.client_session})
+                                       client_secret=self.reddit_secret,
+                                       user_agent="CyberDrop-DL",
+                                       requestor_kwargs={"session": session.client_session},
+                                       check_for_updates=False)
 
     async def fetch(self, url: URL) -> DomainItem:
         """Basic director for actual scraping"""
