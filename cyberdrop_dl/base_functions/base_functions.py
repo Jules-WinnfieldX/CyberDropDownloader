@@ -39,6 +39,10 @@ FILE_FORMATS = {
     },
     'Audio': {
         '.mp3', '.flac', '.wav', '.m4a',
+    },
+    'Text': {
+        '.htm', '.html', '.md', '.nfo',
+        '.txt',
     }
 }
 

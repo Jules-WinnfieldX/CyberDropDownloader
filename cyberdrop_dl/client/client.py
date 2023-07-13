@@ -15,17 +15,16 @@ import certifi
 from aiolimiter import AsyncLimiter
 from bs4 import BeautifulSoup
 from multidict import CIMultiDictProxy
+from pathlib import Path
 from tqdm import tqdm
 from yarl import URL
 
-from ..base_functions.base_functions import logger
+from ..base_functions.base_functions import logger, FILE_FORMATS
 from ..base_functions.error_classes import DownloadFailure, InvalidContentTypeFailure
 from ..downloader.downloader_utils import CustomHTTPStatus
 from ..downloader.progress_definitions import ProgressMaster, adjust_title
 
 if TYPE_CHECKING:
-    from pathlib import Path
-
     from rich.progress import TaskID
 
     from ..base_functions.data_classes import MediaItem
@@ -170,7 +169,9 @@ class DownloadSession:
                 raise DownloadFailure(code=CustomHTTPStatus.IM_A_TEAPOT, message="No content-type in response header")
             if resp.url in self.bunkr_maintenance:
                 raise DownloadFailure(code=HTTPStatus.SERVICE_UNAVAILABLE, message="Bunkr under maintenance")
-            if any(s in content_type.lower() for s in ('html', 'text')):
+
+            extname = Path(media.filename).suffix.lower()
+            if any(s in content_type.lower() for s in ('html', 'text')) and extname not in FILE_FORMATS['Text']:
                 logger.debug("Server for %s is experiencing issues, you are being ratelimited, or cookies have expired", media.url)
                 raise DownloadFailure(code=CustomHTTPStatus.IM_A_TEAPOT, message="Unexpectedly got text as response")
 
