@@ -39,6 +39,7 @@ class RedGifsCrawler:
 
             async with self.limiter:
                 id = url.parts[-1] if url.parts[-1] != "" else url.parts[-2]
+                id = id.split(".")[0]
                 json_obj = await session.get_json(self.redgifs_api / "v2/gifs" / id, headers_inc=self.headers)
                 links = json_obj["gif"]["urls"]
                 if "hd" in links:
