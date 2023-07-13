@@ -28,7 +28,7 @@ from cyberdrop_dl.downloader.downloaders import DownloadDirector
 from cyberdrop_dl.downloader.old_downloaders import old_download_forums
 from cyberdrop_dl.scraper.Scraper import ScrapeMapper
 
-from . import __version__ as VERSION
+from .__init__ import __version__ as VERSION
 from .base_functions.base_functions import MAX_NAME_LENGTHS
 from .base_functions.data_classes import ForumItem, SkipData
 
