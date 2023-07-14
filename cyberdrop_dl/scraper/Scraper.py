@@ -278,7 +278,7 @@ class ScrapeMapper:
     async def Reddit(self, url, title=None):
         reddit_session = ScrapeSession(self.client)
         if not self.reddit_crawler:
-            self.reddit_crawler = RedditCrawler(session=reddit_session, quiet=self.quiet, SQL_Helper=self.SQL_Helper,
+            self.reddit_crawler = RedditCrawler(quiet=self.quiet, SQL_Helper=self.SQL_Helper,
                                                 separate_posts=self.separate_posts, error_writer=self.error_writer,
                                                 args=self.args, scraping_mapper=self)
         domain_obj = await self.reddit_crawler.fetch(url)

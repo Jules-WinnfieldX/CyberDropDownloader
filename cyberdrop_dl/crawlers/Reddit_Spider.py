@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 from typing import TYPE_CHECKING, Dict, List
 
+import aiohttp
 import asyncpraw
 from aiolimiter import AsyncLimiter
 from yarl import URL
@@ -18,33 +19,35 @@ if TYPE_CHECKING:
 
 
 class RedditCrawler:
-    def __init__(self, session: ScrapeSession, scraping_mapper, separate_posts: bool, quiet: bool, SQL_Helper: SQLHelper,
+    def __init__(self, scraping_mapper, separate_posts: bool, quiet: bool,
+                 SQL_Helper: SQLHelper,
                  error_writer: ErrorFileWriter, args: Dict[str, str]):
         self.separate_posts = separate_posts
         self.quiet = quiet
         self.SQL_Helper = SQL_Helper
-        self.limiter = AsyncLimiter(1, 1)
 
         self.scraping_mapper = scraping_mapper
         self.error_writer = error_writer
 
         self.reddit_personal_use_script = args["Authentication"]["reddit_personal_use_script"]
         self.reddit_secret = args["Authentication"]["reddit_secret"]
-        self.reddit = asyncpraw.Reddit(client_id=self.reddit_personal_use_script,
-                                       client_secret=self.reddit_secret,
-                                       user_agent="CyberDrop-DL",
-                                       requestor_kwargs={"session": session.client_session},
-                                       check_for_updates=False)
 
     async def fetch(self, url: URL) -> DomainItem:
         """Basic director for actual scraping"""
         domain_obj = DomainItem("reddit", {})
         try:
             log(f"Starting: {url}", quiet=self.quiet, style="green")
+
+            reddit = asyncpraw.Reddit(client_id=self.reddit_personal_use_script,
+                                      client_secret=self.reddit_secret,
+                                      user_agent="CyberDrop-DL",
+                                      requestor_kwargs={"session": aiohttp.ClientSession()},
+                                      check_for_updates=False)
+
             if "user" in url.parts or "u" in url.parts:
-                await self.get_user(url, domain_obj)
+                await self.get_user(url, domain_obj, reddit)
             elif "r" in url.parts:
-                await self.get_subreddit(url, domain_obj)
+                await self.get_subreddit(url, domain_obj, reddit)
             elif "i.redd.it" in url.host:
                 try:
                     media_item = await create_media_item(url, url, self.SQL_Helper, "reddit")
@@ -52,6 +55,9 @@ class RedditCrawler:
                     logger.debug("Couldn't get extension for %s", url)
                     return domain_obj
                 await domain_obj.add_media("Loose Reddit Files", media_item)
+            else:
+                logger.debug("Unknown URL type: %s", url)
+                raise ValueError(f"Unknown URL type: {url}")
 
             await self.SQL_Helper.insert_domain("reddit", url, domain_obj)
             log(f"Finished: {url}", quiet=self.quiet, style="green")
@@ -63,7 +69,8 @@ class RedditCrawler:
 
     async def handle_external_links(self, content_links: List, referer: URL) -> None:
         """Maps external links to the scraper class"""
-        tasks = [asyncio.create_task(self.scraping_mapper.map_url(link, title, referer)) for link, title in content_links]
+        tasks = [asyncio.create_task(self.scraping_mapper.map_url(link, title, referer)) for link, title in
+                 content_links]
         if tasks:
             await asyncio.wait(tasks)
 
@@ -86,7 +93,7 @@ class RedditCrawler:
             else:
                 temp_title = title
 
-            if "i.redd.it" in media_url.host:
+            if "i.redd.it" in media_url.host or "external-preview.redd.it" in media_url.host:
                 await self.handle_media(media_url, url, temp_title, domain_obj)
             elif "gallery" in media_url.parts:
                 links = await self.handle_gallery(submission, title, domain_obj)
@@ -104,18 +111,18 @@ class RedditCrawler:
             links.append(URL(item["s"]["u"]).with_host("i.redd.it").with_query(None))
         return links
 
-    async def get_user(self, url: URL, domain_obj: DomainItem):
+    async def get_user(self, url: URL, domain_obj: DomainItem, reddit: asyncpraw.Reddit):
         username = url.parts[-1] if url.parts[-1] != "" else url.parts[-2]
         title = await make_title_safe(username + " (Reddit)")
 
-        user = await self.reddit.redditor(username)
+        user = await reddit.redditor(username)
         submissions = user.submissions.new(limit=None)
         await self.get_posts(title, url, domain_obj, submissions)
 
-    async def get_subreddit(self, url: URL, domain_obj: DomainItem):
+    async def get_subreddit(self, url: URL, domain_obj: DomainItem, reddit: asyncpraw.Reddit):
         subreddit = url.parts[-1] if url.parts[-1] != "" else url.parts[-2]
         title = await make_title_safe(subreddit + " (Reddit)")
 
-        subreddit = await self.reddit.subreddit(subreddit)
+        subreddit = await reddit.subreddit(subreddit)
         submissions = subreddit.new(limit=None)
         await self.get_posts(title, url, domain_obj, submissions)

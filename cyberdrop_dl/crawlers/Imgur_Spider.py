@@ -40,7 +40,7 @@ class ImgurCrawler:
                 if self.imgur_client_id == "":
                     log(f"To scrape imgur content, you need to provide a client id", quiet=self.quiet, style="green")
                     raise Exception("No Imgur Client ID provided")
-                credits_obj = await session.get_json_with_headers(self.imgur_api / "credits", headers_inc=self.headers)
+                credits_obj, headers = await session.get_json_with_headers(self.imgur_api / "credits", headers_inc=self.headers)
                 self.imgur_client_remaining = credits_obj["data"]["ClientRemaining"]
                 if self.imgur_client_remaining < 100:
                     raise Exception("Imgur API rate limit reached")
