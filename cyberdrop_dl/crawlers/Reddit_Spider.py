@@ -35,13 +35,14 @@ class RedditCrawler:
     async def fetch(self, url: URL) -> DomainItem:
         """Basic director for actual scraping"""
         domain_obj = DomainItem("reddit", {})
+        session = aiohttp.ClientSession()
         try:
             log(f"Starting: {url}", quiet=self.quiet, style="green")
 
             reddit = asyncpraw.Reddit(client_id=self.reddit_personal_use_script,
                                       client_secret=self.reddit_secret,
                                       user_agent="CyberDrop-DL",
-                                      requestor_kwargs={"session": aiohttp.ClientSession()},
+                                      requestor_kwargs={"session": session},
                                       check_for_updates=False)
 
             if "user" in url.parts or "u" in url.parts:
@@ -65,6 +66,7 @@ class RedditCrawler:
             logger.debug("Error encountered while handling %s", url, exc_info=True)
             await self.error_writer.write_errored_scrape(url, e, self.quiet)
 
+        await session.close()
         return domain_obj
 
     async def handle_external_links(self, content_links: List, referer: URL) -> None:
