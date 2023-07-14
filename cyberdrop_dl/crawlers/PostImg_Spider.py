@@ -33,6 +33,10 @@ class PostImgCrawler:
                 content = await self.get_folder(session, url)
                 for media_item in content:
                     await album_obj.add_media(media_item)
+            elif url.host == "i.postimg.cc":
+                url = URL("https://postimg.cc/") / url.parts[1]
+                media_item = await self.get_singular(session, url)
+                await album_obj.add_media(media_item)
             else:
                 media_item = await self.get_singular(session, url)
                 await album_obj.add_media(media_item)
@@ -72,5 +76,4 @@ class PostImgCrawler:
         """Handles singular folder scraping"""
         soup = await session.get_BS4(url)
         link = URL(soup.select_one("a[id=download]").get('href').replace("?dl=1", ""))
-
         return await create_media_item(link, url, self.SQL_Helper, "postimg")

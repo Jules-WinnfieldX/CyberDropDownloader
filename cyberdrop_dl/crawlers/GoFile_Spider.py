@@ -8,7 +8,7 @@ import aiohttp.client_exceptions
 from aiolimiter import AsyncLimiter
 from yarl import URL
 
-from ..base_functions.base_functions import get_filename_and_ext, log, logger, make_title_safe
+from ..base_functions.base_functions import get_filename_and_ext, log, logger, make_title_safe, create_media_item
 from ..base_functions.data_classes import DomainItem, MediaItem
 from ..base_functions.error_classes import NoExtensionFailure
 
@@ -148,13 +148,12 @@ class GoFileCrawler:
                 else:
                     assert isinstance(val["link"], str)
                     link = URL(val["link"])
+
                 try:
-                    filename, ext = await get_filename_and_ext(val['name'])
+                    media_item = await create_media_item(link, url, self.SQL_Helper, "gofile")
                 except NoExtensionFailure:
                     logger.debug("Couldn't get extension for %s", link)
                     continue
-                complete = await self.SQL_Helper.check_complete_singular("gofile", link)
-                media_item = MediaItem(link, url, complete, filename, ext, filename)
                 results.append([title, media_item])
         for sub_folder in sub_folders:
             assert isinstance(sub_folder, str)

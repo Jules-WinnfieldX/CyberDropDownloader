@@ -7,7 +7,7 @@ import asyncpraw
 from aiolimiter import AsyncLimiter
 from yarl import URL
 
-from ..base_functions.base_functions import get_filename_and_ext, log, logger, make_title_safe
+from ..base_functions.base_functions import get_filename_and_ext, log, logger, make_title_safe, create_media_item
 from ..base_functions.data_classes import DomainItem, MediaItem
 from ..base_functions.error_classes import NoExtensionFailure
 
@@ -47,12 +47,10 @@ class RedditCrawler:
                 await self.get_subreddit(url, domain_obj)
             elif "i.redd.it" in url.host:
                 try:
-                    filename, ext = await get_filename_and_ext(url.name, True)
+                    media_item = await create_media_item(url, url, self.SQL_Helper, "reddit")
                 except NoExtensionFailure:
+                    logger.debug("Couldn't get extension for %s", url)
                     return domain_obj
-
-                completed = await self.SQL_Helper.check_complete_singular("reddit", url)
-                media_item = MediaItem(url, url, completed, filename, ext, filename)
                 await domain_obj.add_media("Loose Reddit Files", media_item)
 
             await self.SQL_Helper.insert_domain("reddit", url, domain_obj)
@@ -71,12 +69,10 @@ class RedditCrawler:
 
     async def handle_media(self, media_url: URL, referer: URL, title: str, domain_obj: DomainItem) -> None:
         try:
-            filename, ext = await get_filename_and_ext(media_url.name, True)
+            media_item = await create_media_item(media_url, referer, self.SQL_Helper, "reddit")
         except NoExtensionFailure:
+            logger.debug("Couldn't get extension for %s", media_url)
             return
-
-        completed = await self.SQL_Helper.check_complete_singular("reddit", media_url)
-        media_item = MediaItem(media_url, referer, completed, filename, ext, filename)
         await domain_obj.add_media(title, media_item)
 
     async def get_posts(self, title: str, url: URL, domain_obj: DomainItem, submissions):
@@ -107,8 +103,6 @@ class RedditCrawler:
         for item in items:
             links.append(URL(item["s"]["u"]).with_host("i.redd.it").with_query(None))
         return links
-
-
 
     async def get_user(self, url: URL, domain_obj: DomainItem):
         username = url.parts[-1] if url.parts[-1] != "" else url.parts[-2]

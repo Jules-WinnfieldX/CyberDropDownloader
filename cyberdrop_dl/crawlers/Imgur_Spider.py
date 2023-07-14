@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Dict
 from aiolimiter import AsyncLimiter
 from yarl import URL
 
-from ..base_functions.base_functions import get_filename_and_ext, log, logger, make_title_safe
+from ..base_functions.base_functions import get_filename_and_ext, log, logger, make_title_safe, create_media_item
 from ..base_functions.data_classes import DomainItem, MediaItem
 from ..base_functions.error_classes import NoExtensionFailure
 
@@ -61,15 +61,19 @@ class ImgurCrawler:
         try:
             filename, ext = await get_filename_and_ext(url.name, True)
         except NoExtensionFailure:
-            return domain_obj
+            logger.debug("Couldn't get extension for %s", url)
+            return
 
         if ext.lower() == ".gifv" or ext.lower() == ".mp4":
             filename = filename.replace(ext, ".mp4")
             ext = ".mp4"
             url = URL("https://imgur.com/download") / filename.replace(ext, "")
 
-        completed = await self.SQL_Helper.check_complete_singular("imgur", url)
-        media_item = MediaItem(url, referer, completed, filename, ext, filename)
+        try:
+            media_item = await create_media_item(url, referer, self.SQL_Helper, "imgur")
+        except NoExtensionFailure:
+            logger.debug("Couldn't get extension for %s", url)
+            return
         await domain_obj.add_media(title, media_item)
 
     async def get_album(self, session: ScrapeSession, url: URL, domain_obj: DomainItem):
