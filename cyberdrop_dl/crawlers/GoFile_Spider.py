@@ -117,7 +117,7 @@ class GoFileCrawler:
             async with self.limiter:
                 content = await session.get_json(self.api_address / "getContent", params)
         except aiohttp.client_exceptions.ClientResponseError as e:
-            if e.code == http.HTTPStatus.UNAUTHORIZED:
+            if e.status == http.HTTPStatus.UNAUTHORIZED:
                 self.websiteToken = ""
                 await self.cache_manager.remove("gofile_website_token")
                 await self.get_website_token(session)
