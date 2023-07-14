@@ -69,34 +69,46 @@ class RedditCrawler:
         if tasks:
             await asyncio.wait(tasks)
 
+    async def handle_media(self, media_url: URL, referer: URL, title: str, domain_obj: DomainItem) -> None:
+        try:
+            filename, ext = await get_filename_and_ext(media_url.name, True)
+        except NoExtensionFailure:
+            return
+
+        completed = await self.SQL_Helper.check_complete_singular("reddit", media_url)
+        media_item = MediaItem(media_url, referer, completed, filename, ext, filename)
+        await domain_obj.add_media(title, media_item)
+
     async def get_posts(self, title: str, url: URL, domain_obj: DomainItem, submissions):
         submissions = [submission async for submission in submissions]
 
         external_links = []
         for submission in submissions:
             media_url = URL(submission.url)
-            if "i.redd.it" in media_url.host:
-                if self.separate_posts:
-                    temp_title = title + "/" + await make_title_safe(submission.title)
-                else:
-                    temp_title = title
-
-                try:
-                    filename, ext = await get_filename_and_ext(media_url.name, True)
-                except NoExtensionFailure:
-                    continue
-
-                completed = await self.SQL_Helper.check_complete_singular("reddit", media_url)
-                media_item = MediaItem(media_url, url, completed, filename, ext, filename)
-                await domain_obj.add_media(temp_title, media_item)
+            if self.separate_posts:
+                temp_title = title + "/" + await make_title_safe(submission.title)
             else:
-                if self.separate_posts:
-                    temp_title = title + "/" + await make_title_safe(submission.title)
-                else:
-                    temp_title = title
+                temp_title = title
+
+            if "i.redd.it" in media_url.host:
+                await self.handle_media(media_url, url, temp_title, domain_obj)
+            elif "gallery" in media_url.parts:
+                links = await self.handle_gallery(submission, title, domain_obj)
+                for link in links:
+                    await self.handle_media(link, url, temp_title, domain_obj)
+            else:
                 if not "reddit.com" in media_url.host:
                     external_links.append((media_url, temp_title))
         await self.handle_external_links(external_links, url)
+
+    async def handle_gallery(self, submission, title: str, domain_obj: DomainItem):
+        items = [item for item in submission.media_metadata.values() if item["status"] == "valid"]
+        links = []
+        for item in items:
+            links.append(URL(item["s"]["u"]).with_host("i.redd.it").with_query(None))
+        return links
+
+
 
     async def get_user(self, url: URL, domain_obj: DomainItem):
         username = url.parts[-1] if url.parts[-1] != "" else url.parts[-2]
