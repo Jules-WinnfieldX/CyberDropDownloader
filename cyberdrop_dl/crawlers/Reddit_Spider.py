@@ -23,7 +23,7 @@ class RedditCrawler:
         self.separate_posts = separate_posts
         self.quiet = quiet
         self.SQL_Helper = SQL_Helper
-        self.limiter = AsyncLimiter(1, 1)
+        self.limiter = asyncio.Semaphore(1)
 
         self.scraping_mapper = scraping_mapper
         self.error_writer = error_writer
@@ -33,25 +33,26 @@ class RedditCrawler:
         self.reddit = asyncpraw.Reddit(client_id=self.reddit_personal_use_script,
                                        client_secret=self.reddit_secret,
                                        user_agent="CyberDrop-DL",
-                                       requestor_kwargs={"session": session.client_session},
                                        check_for_updates=False)
 
     async def fetch(self, url: URL) -> DomainItem:
         """Basic director for actual scraping"""
         domain_obj = DomainItem("reddit", {})
         try:
-            log(f"Starting: {url}", quiet=self.quiet, style="green")
-            if "user" in url.parts or "u" in url.parts:
-                await self.get_user(url, domain_obj)
-            elif "r" in url.parts:
-                await self.get_subreddit(url, domain_obj)
-            elif "i.redd.it" in url.host:
+            if "i.redd.it" in url.host:
                 try:
                     media_item = await create_media_item(url, url, self.SQL_Helper, "reddit")
                 except NoExtensionFailure:
                     logger.debug("Couldn't get extension for %s", url)
                     return domain_obj
                 await domain_obj.add_media("Loose Reddit Files", media_item)
+
+            async with self.limiter:
+                log(f"Starting: {url}", quiet=self.quiet, style="green")
+                if "user" in url.parts or "u" in url.parts:
+                    await self.get_user(url, domain_obj)
+                elif "r" in url.parts:
+                    await self.get_subreddit(url, domain_obj)
 
             await self.SQL_Helper.insert_domain("reddit", url, domain_obj)
             log(f"Finished: {url}", quiet=self.quiet, style="green")
