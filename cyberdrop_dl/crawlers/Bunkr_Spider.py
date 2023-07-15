@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import re
-import os
 from typing import TYPE_CHECKING
 
 from aiolimiter import AsyncLimiter
@@ -133,7 +132,7 @@ class BunkrCrawler:
                     break
             if not link:
                 raise
-            link = URL(link)
+            link = URL(link.replace("&#039;", "'"))
             try:
                 filename, ext = await get_filename_and_ext(link.name)
             except NoExtensionFailure:
