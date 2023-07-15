@@ -60,11 +60,14 @@ def run_args(config: Path, cmd_arg: Dict) -> Dict:
     """Returns the proper runtime arguments based on the config and command line arguments"""
     data = _validate_config(config) if config.is_file() else _create_config(config, cmd_arg)
     if data['Apply_Config']:
+        log("Running using config arguments")
         data = data["Configuration"]
         for file, path in data['Files'].items():
             data['Files'][file] = Path(path)
         data['Sorting']['sort_directory'] = Path(data['Sorting']['sort_directory'])
         return data
+    else:
+        log("Running using command line arguments. If you are trying to use the config file, change 'Apply_Config' to True")
 
     config_data: Dict = config_default["Configuration"]
     for group in config_data.values():
