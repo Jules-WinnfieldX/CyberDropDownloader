@@ -161,10 +161,10 @@ optional arguments:
 --skip-download-mark-completed                  sets the scraped files as downloaded without downloading
 --output-errored-urls                           sets the failed urls to be output to the errored urls file
 --output-unsupported-urls                       sets the unsupported urls to be output to the unsupported urls file
---portable                                      use current directory for application files
 --proxy                                         HTTP/HTTPS proxy used for downloading, format [protocol]://[ip]:[port]
 --remove-bunkr-identifier                       removes the bunkr added identifier from output filenames
 --required-free-space                           required free space (in gigabytes) for the program to run
+--use-sys-dirs                                  use default system directories for application files
 
 --sort-downloads        sorts downloaded files after downloads have finished
 --sort-directory        folder to download files to
