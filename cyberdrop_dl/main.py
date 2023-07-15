@@ -174,6 +174,7 @@ def get_app_file_path(app_file: Path, app_dir: Path) -> Path:
     """Adjust application file path according to OS settings"""
     if app_file.exists() or app_file.is_absolute():
         return app_file
+    app_dir.mkdir(parents=True, exist_ok=True)
     return app_dir / app_file
 
 
@@ -361,13 +362,11 @@ def main(args=None):
     portable = args.portable
 
     if not portable:
-        app_dirs.ensure_exists = True
         args.config_file = get_app_file_path(args.config_file, app_dirs.user_config_path)
 
     args = run_args(args.config_file, argparse.Namespace(**vars(args)).__dict__)
 
     if not portable:
-        app_dirs.user_log_path.mkdir(parents=True, exist_ok=True)  # workaround for https://github.com/platformdirs/platformdirs/issues/207
         args["Files"]["db_file"] = get_app_file_path(args["Files"]["db_file"], app_dirs.user_data_path)
         args["Files"]["errored_download_urls_file"] = get_app_file_path(args["Files"]["errored_download_urls_file"], app_dirs.user_log_path)
         args["Files"]["errored_scrape_urls_file"] = get_app_file_path(args["Files"]["errored_scrape_urls_file"], app_dirs.user_log_path)
