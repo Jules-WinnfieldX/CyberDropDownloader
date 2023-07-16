@@ -176,7 +176,15 @@ class BunkrCrawler:
                 if link.startswith("/"):
                     link = URL("https://" + url.host + link)
                 link = URL(link)
-                referer = await self.get_stream_link(link)
+
+                try:
+                    referer = await self.get_stream_link(link)
+                except Exception as e:
+                    logger.debug("Error encountered while handling %s", link, exc_info=True)
+                    log(f"Error: {link}", quiet=self.quiet, style="red")
+                    await self.error_writer.write_errored_scrape(link, e, self.quiet)
+                    logger.debug(e)
+                    continue
 
                 try:
                     filename, ext = await get_filename_and_ext(link.name)
