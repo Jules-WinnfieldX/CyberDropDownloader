@@ -48,7 +48,7 @@ class RedGifsCrawler:
                     await self.get_image(URL(links["sd"]), url, "Loose Redgif Files", domain_obj)
 
 
-            await self.SQL_Helper.insert_domain("imgur", url, domain_obj)
+            await self.SQL_Helper.insert_domain("redgifs", url, domain_obj)
             log(f"Finished: {url}", quiet=self.quiet, style="green")
         except Exception as e:
             logger.debug("Error encountered while handling %s", url, exc_info=True)
@@ -62,6 +62,6 @@ class RedGifsCrawler:
         except NoExtensionFailure:
             return domain_obj
 
-        completed = await self.SQL_Helper.check_complete_singular("imgur", url)
+        completed = await self.SQL_Helper.check_complete_singular("redgifs", url)
         media_item = MediaItem(url, referer, completed, filename, ext, filename)
         await domain_obj.add_media(title, media_item)
