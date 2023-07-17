@@ -83,6 +83,9 @@ class CoomenoCrawler:
         elif "post" in url.parts:
             title = await self.parse_post(session, url, domain, cascade)
 
+        elif "discord" in url.parts:
+            title = await self.parse_discord(session, url, domain, cascade)
+
         else:
             title = await self.parse_profile(session, url, ParseSpec(domain), cascade)
 
@@ -127,6 +130,49 @@ class CoomenoCrawler:
             await self.error_writer.write_errored_scrape(url, e, self.quiet)
 
         return title
+
+    async def parse_discord(self, session: ScrapeSession, url: URL, domain: str, cascade: CascadeItem) -> str:
+        title = ""
+        kemono_api = URL("https://kemono.party/api/discord/")
+        try:
+            discord_id = url.parts[-1] if url.parts[-1] != "" else url.parts[-2]
+            discord_lookup = (kemono_api / "channels/lookup").with_query(f"q={discord_id}")
+            title = f"{discord_id} (Kemono/Discord)"
+            async with self.limiter:
+                json_obj = await session.get_json(discord_lookup)
+            for channel in json_obj:
+                channel_id = channel.get('id')
+                channel_name = await make_title_safe(channel.get('name'))
+                temp_title = title + "/" + channel_name
+                skip = 0
+                while True:
+                    channel_lookup = (kemono_api / "channel" / channel_id).with_query(f"skip={skip}")
+                    async with self.limiter:
+                        json_obj = await session.get_json(channel_lookup)
+                        if not json_obj:
+                            return title
+                    for message in json_obj:
+                        if "attachments" in message:
+                            for attachment in message.get('attachments'):
+                                name = attachment.get('name')
+                                url_path = attachment.get('path')
+                                if url_path.startswith("/"):
+                                    link = URL("https://kemono.party" + url_path)
+                                else:
+                                    link = URL(url_path)
+                                media_item = await create_media_item(link, url, self.SQL_Helper, domain)
+                                media_item.filename = name
+                                temp_title_2 = temp_title
+                                if self.separate_posts:
+                                    time_str = message.get('published')
+                                    temp_title_2 = temp_title + "/" + time_str
+                                await cascade.add_to_album(domain, temp_title_2, media_item)
+                    skip += 50
+
+        except Exception as e:
+            logger.debug("Error encountered while handling %s", url, exc_info=True)
+            await self.error_writer.write_errored_scrape(url, e, self.quiet)
+            return title
 
     async def parse_post(self, session: ScrapeSession, url: URL, domain: str, cascade: CascadeItem,
                          title: str = "") -> str:
