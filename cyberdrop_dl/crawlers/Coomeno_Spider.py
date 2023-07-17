@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import urllib
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Union, List
 
@@ -234,4 +235,8 @@ class CoomenoCrawler:
             href = "https://" + url.host + href
         link = URL(href)
         media_item = await create_media_item(link, url, self.SQL_Helper, domain)
+        if "download" in tag.attrs:
+            filename = urllib.parse.unquote(tag.get('download'))
+            media_item.filename = filename
+
         await cascade.add_to_album(domain, title, media_item)
