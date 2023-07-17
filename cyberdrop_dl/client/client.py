@@ -166,14 +166,14 @@ class DownloadSession:
                                            raise_for_status=True, proxy=proxy) as resp:
             content_type = resp.headers.get('Content-Type')
             if not content_type:
-                raise DownloadFailure(code=CustomHTTPStatus.IM_A_TEAPOT, message="No content-type in response header")
+                raise DownloadFailure(status=CustomHTTPStatus.IM_A_TEAPOT, message="No content-type in response header")
             if resp.url in self.bunkr_maintenance:
-                raise DownloadFailure(code=HTTPStatus.SERVICE_UNAVAILABLE, message="Bunkr under maintenance")
+                raise DownloadFailure(status=HTTPStatus.SERVICE_UNAVAILABLE, message="Bunkr under maintenance")
 
             extname = Path(media.filename).suffix.lower()
             if any(s in content_type.lower() for s in ('html', 'text')) and extname not in FILE_FORMATS['Text']:
                 logger.debug("Server for %s is experiencing issues, you are being ratelimited, or cookies have expired", media.url)
-                raise DownloadFailure(code=CustomHTTPStatus.IM_A_TEAPOT, message="Unexpectedly got text as response")
+                raise DownloadFailure(status=CustomHTTPStatus.IM_A_TEAPOT, message="Unexpectedly got text as response")
 
             if resp.status != HTTPStatus.PARTIAL_CONTENT:
                 if file.is_file():

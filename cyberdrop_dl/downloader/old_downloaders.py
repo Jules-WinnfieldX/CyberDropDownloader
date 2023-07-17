@@ -223,15 +223,15 @@ class Old_Downloader:
             if hasattr(e, "message"):
                 logging.debug(f"\n{media.url} ({e.message})")
 
-            if hasattr(e, "code"):
-                if await is_4xx_client_error(e.code) and e.code != HTTPStatus.TOO_MANY_REQUESTS:
-                    logger.debug("We ran into a 400 level error: %s", e.code)
+            if hasattr(e, "status"):
+                if await is_4xx_client_error(e.status) and e.status != HTTPStatus.TOO_MANY_REQUESTS:
+                    logger.debug("We ran into a 400 level error: %s", e.status)
                     log(f"Failed Download: {media.filename}", quiet=True)
                     if url_path in self.current_attempt:
                         self.current_attempt.pop(url_path)
                     await self.handle_failed(media, e)
                     return
-                if e.code == HTTPStatus.SERVICE_UNAVAILABLE or e.code == CustomHTTPStatus.WEB_SERVER_IS_DOWN:
+                if e.status == HTTPStatus.SERVICE_UNAVAILABLE or e.status == CustomHTTPStatus.WEB_SERVER_IS_DOWN:
                     if hasattr(e, "message"):
                         if not e.message:
                             e.message = "Web server is down"
@@ -241,9 +241,9 @@ class Old_Downloader:
                         self.current_attempt.pop(url_path)
                     await self.handle_failed(media, e)
                     return
-                logger.debug("Error status code: %s", e.code)
+                logger.debug("Error status code: %s", e.status)
 
-            raise DownloadFailure(code=getattr(e, "code", 1), message=repr(e))
+            raise DownloadFailure(status=getattr(e, "status", 1), message=repr(e))
 
     def can_retry(self, url_path: str) -> bool:
         return self.disable_attempt_limit or self.current_attempt[url_path] < self.allowed_attempts - 1

@@ -27,8 +27,8 @@ class InvalidContentTypeFailure(Exception):
 
 class DownloadFailure(Exception):
     """This error will be thrown when a download fails"""
-    def __init__(self, code: int, message: str = "Something went wrong"):
-        self.code = code
+    def __init__(self, status: int, message: str = "Something went wrong"):
+        self.status = status
         self.message = message
         super().__init__(self.message)
-        super().__init__(self.code)
+        super().__init__(self.status)
