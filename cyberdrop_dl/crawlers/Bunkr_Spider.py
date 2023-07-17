@@ -156,8 +156,7 @@ class BunkrCrawler:
     async def get_album(self, session: ScrapeSession, url: URL):
         """Iterates through an album and creates the media items"""
 
-        ### Temp Fix ###
-        url = url.with_host("bunkrr.su")
+        url = self.primary_base_domain.with_path(url.path)
 
         album = AlbumItem(url.name, [])
         try:
@@ -193,6 +192,9 @@ class BunkrCrawler:
                     continue
 
                 if ext in FILE_FORMATS["Images"]:
+                    if "d" in link.parts:
+                        media = await self.get_file(session, referer)
+                        link = media.url
                     link = URL(str(link).replace("https://cdn", "https://i"))
                 else:
                     media = await self.get_file(session, referer)
