@@ -98,7 +98,7 @@ class RedditCrawler:
             if "i.redd.it" in media_url.host or "external-preview.redd.it" in media_url.host:
                 await self.handle_media(media_url, url, temp_title, domain_obj)
             elif "gallery" in media_url.parts:
-                links = await self.handle_gallery(submission, title, domain_obj)
+                links = await self.handle_gallery(submission)
                 for link in links:
                     await self.handle_media(link, url, temp_title, domain_obj)
             else:
@@ -106,7 +106,9 @@ class RedditCrawler:
                     external_links.append((media_url, temp_title))
         await self.handle_external_links(external_links, url)
 
-    async def handle_gallery(self, submission, title: str, domain_obj: DomainItem):
+    async def handle_gallery(self, submission):
+        if not submission.media_metadata:
+            return []
         items = [item for item in submission.media_metadata.values() if item["status"] == "valid"]
         links = []
         for item in items:
