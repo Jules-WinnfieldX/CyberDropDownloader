@@ -9,7 +9,7 @@ from aiolimiter import AsyncLimiter
 from bs4 import BeautifulSoup
 from yarl import URL
 
-from ..base_functions.base_functions import create_media_item, log, logger, make_title_safe
+from ..base_functions.base_functions import create_media_item, log, logger, make_title_safe, sanitize
 from ..base_functions.data_classes import CascadeItem
 
 if TYPE_CHECKING:
@@ -240,6 +240,6 @@ class CoomenoCrawler:
             if "http://" in filename or "https://" in filename:
                 pass
             else:
-                media_item.filename = filename
+                media_item.filename = await sanitize(filename)
 
         await cascade.add_to_album(domain, title, media_item)
