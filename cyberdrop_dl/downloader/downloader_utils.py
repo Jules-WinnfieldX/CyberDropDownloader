@@ -51,9 +51,7 @@ async def check_free_space(required_space_gb: int, download_directory: Path) -> 
 
 def get_threads_number(args: Dict, domain: str) -> int:
     threads = args["Runtime"]["max_concurrent_downloads_per_domain"] or multiprocessing.cpu_count()
-    if any(s in domain for s in ('cyberfile')):
-        return min(threads, 1)
-    if any(s in domain for s in ('anonfiles', 'bunkr', 'pixeldrain')):
+    if any(s in domain for s in ('anonfiles', 'bunkr', 'pixeldrain', 'cyberfile')):
         return min(threads, 2)
     if any(s in domain for s in ('coomer', 'kemono')):
         return min(threads, 8)

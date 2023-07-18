@@ -47,7 +47,6 @@ class RedGifsCrawler:
                 else:
                     await self.get_image(URL(links["sd"]), url, "Loose Redgif Files", domain_obj)
 
-
             await self.SQL_Helper.insert_domain("redgifs", url, domain_obj)
             log(f"Finished: {url}", quiet=self.quiet, style="green")
         except Exception as e:

@@ -24,7 +24,7 @@ class CyberFileCrawler:
         self.SQL_Helper = SQL_Helper
         self.load_files = URL('https://cyberfile.me/account/ajax/load_files')
         self.file_details = URL('https://cyberfile.me/account/ajax/file_details')
-        self.limiter = AsyncLimiter(2, 1)
+        self.limiter = AsyncLimiter(50, 1)
         self.semaphore = asyncio.Semaphore(1)
 
         self.error_writer = error_writer
