@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import contextlib
 from typing import TYPE_CHECKING, Tuple, List
 
@@ -23,35 +24,37 @@ class CyberFileCrawler:
         self.SQL_Helper = SQL_Helper
         self.load_files = URL('https://cyberfile.me/account/ajax/load_files')
         self.file_details = URL('https://cyberfile.me/account/ajax/file_details')
-        self.limiter = AsyncLimiter(1, 2)
+        self.limiter = AsyncLimiter(2, 1)
+        self.semaphore = asyncio.Semaphore(1)
 
         self.error_writer = error_writer
 
     async def fetch(self, session: ScrapeSession, url: URL) -> DomainItem:
         """Director for cyberfile scraping"""
-        log(f"Starting: {url}", quiet=self.quiet, style="green")
-        domain_obj = DomainItem("cyberfile", {})
+        async with self.semaphore:
+            log(f"Starting: {url}", quiet=self.quiet, style="green")
+            domain_obj = DomainItem("cyberfile", {})
 
-        # temporary fix for cyberfile.is links
-        url = url.with_host("cyberfile.me")
+            # temporary fix for cyberfile.is links
+            url = url.with_host("cyberfile.me")
 
-        download_links = []
-        if 'folder' in url.parts:
-            Folder_ID = await self.get_folder_id(session, url)
-            Content_IDs = None
-            if Folder_ID:
-                Content_IDs = await self.get_folder_content(session, url, Folder_ID, 1)
-            if Content_IDs:
+            download_links = []
+            if 'folder' in url.parts:
+                Folder_ID = await self.get_folder_id(session, url)
+                Content_IDs = None
+                if Folder_ID:
+                    Content_IDs = await self.get_folder_content(session, url, Folder_ID, 1)
+                if Content_IDs:
+                    download_links = await self.get_download_links(session, url, Content_IDs)
+            elif 'shared' in url.parts:
+                Node_IDs, Content_IDs = await self.get_shared_ids_and_content(session, url, 1)
+                for title, Node_ID in Node_IDs:
+                    Content_IDs.extend(await self.get_shared_content(session, url, Node_ID, 1, title))
                 download_links = await self.get_download_links(session, url, Content_IDs)
-        elif 'shared' in url.parts:
-            Node_IDs, Content_IDs = await self.get_shared_ids_and_content(session, url, 1)
-            for title, Node_ID in Node_IDs:
-                Content_IDs.extend(await self.get_shared_content(session, url, Node_ID, 1, title))
-            download_links = await self.get_download_links(session, url, Content_IDs)
-        else:
-            Content_ID = await self.get_single_contentId(session, url)
-            if Content_ID:
-                download_links = await self.get_download_links(session, url, [("Loose CyberFile Files", Content_ID)])
+            else:
+                Content_ID = await self.get_single_contentId(session, url)
+                if Content_ID:
+                    download_links = await self.get_download_links(session, url, [("Loose CyberFile Files", Content_ID)])
 
         for title, media_item in download_links:
             await domain_obj.add_media(title, media_item)
