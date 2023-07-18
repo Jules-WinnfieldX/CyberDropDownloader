@@ -237,6 +237,9 @@ class CoomenoCrawler:
         media_item = await create_media_item(link, url, self.SQL_Helper, domain)
         if "download" in tag.attrs:
             filename = urllib.parse.unquote(tag.get('download'))
-            media_item.filename = filename
+            if "http://" in filename or "https://" in filename:
+                pass
+            else:
+                media_item.filename = filename
 
         await cascade.add_to_album(domain, title, media_item)
