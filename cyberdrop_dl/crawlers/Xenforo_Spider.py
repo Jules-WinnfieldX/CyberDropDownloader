@@ -31,6 +31,7 @@ class ParseSpec:
     domain: str
 
     login_path: str = field(init=False)
+    login_wait: int = field(init=False)
 
     title_block_tag: str = "h1[class=p-title-value]"
     title_clutter_tag: str = field(init=False)
@@ -67,12 +68,17 @@ class ParseSpec:
     next_page_attribute: str = "href"
 
     def __post_init__(self):
+        if self.domain in ("simpcity", "nudostar", "xbunker"):
+            self.login_wait = 5
+        if self.domain in ("socialmediagirls"):
+            self.login_wait = 15
+
         if self.domain in ("simpcity", "socialmediagirls", "xbunker"):
             self.login_path = "login"
             self.title_clutter_tag = "a" if self.domain in ("simpcity", "xbunker") else "span"
             self.posts_number_tag = "li[class=u-concealed] a"
 
-        if self.domain == "nudostar":
+        if self.domain in ("nudostar"):
             self.login_path = "forum/login"
             self.title_clutter_tag = "span"
             self.posts_number_tag = "a[class=u-concealed]"
@@ -85,7 +91,7 @@ class ParseSpec:
         if self.domain in ("simpcity", "nudostar", "socialmediagirls"):
             self.extra_images_tag = None
             self.extra_images_attribute = None
-        if self.domain == "xbunker":
+        if self.domain in ("xbunker"):
             self.extra_images_tag = "a[class*=js-lbImage]"
             self.extra_images_attribute = "href"
 
@@ -114,7 +120,7 @@ class ForumLogin:
                 domain = URL("https://" + url.host) / spec.login_path
 
                 text = await session.get_text(domain)
-                await asyncio.sleep(5)
+                await asyncio.sleep(spec.login_wait)
                 soup = BeautifulSoup(text, 'html.parser')
 
                 inputs = soup.select('form input')
@@ -131,7 +137,7 @@ class ForumLogin:
                     "_xfRedirect": str(URL("https://" + url.host))
                 })
                 await session.post_data_no_resp(domain / "login", data=data)
-                await asyncio.sleep(5)
+                await asyncio.sleep(spec.login_wait)
                 text = await session.get_text(domain)
                 if "You are already logged in" not in text:
                     raise FailedLoginFailure()
