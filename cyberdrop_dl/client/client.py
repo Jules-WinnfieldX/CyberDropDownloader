@@ -227,7 +227,12 @@ class DownloadSession:
         assert url.host is not None
         await self._throttle(current_throttle, url.host)
         async with self.client_session.get(url, headers=headers, ssl=self.client.ssl_context,
-                                           raise_for_status=True) as resp:
+                                           raise_for_status=False) as resp:
+            if resp.status > 206:
+                if "Server" in resp.headers:
+                    if resp.headers["Server"] == "ddos-guard":
+                        raise DownloadFailure(status=CustomHTTPStatus.IM_A_TEAPOT, message="DDoS-Guard detected, unable to download")
+                raise DownloadFailure(status=resp.status, message=f"Unexpected status code {resp.status} from {url}")
             return int(resp.headers.get('Content-Length', '0'))
 
     async def exit_handler(self) -> None:

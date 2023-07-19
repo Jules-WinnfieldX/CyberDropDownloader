@@ -47,7 +47,7 @@ class RedditCrawler:
 
             if "user" in url.parts or "u" in url.parts:
                 await self.get_user(url, domain_obj, reddit)
-            elif "r" in url.parts:
+            elif "r" in url.parts and "comments" not in url.parts:
                 await self.get_subreddit(url, domain_obj, reddit)
             elif "i.redd.it" in url.host:
                 try:
