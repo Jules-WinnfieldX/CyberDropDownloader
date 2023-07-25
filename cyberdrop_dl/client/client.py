@@ -169,6 +169,8 @@ class DownloadSession:
                 raise DownloadFailure(status=CustomHTTPStatus.IM_A_TEAPOT, message="No content-type in response header")
             if resp.url in self.bunkr_maintenance:
                 raise DownloadFailure(status=HTTPStatus.SERVICE_UNAVAILABLE, message="Bunkr under maintenance")
+            if "imgur.com/removed" in str(resp.url):
+                raise DownloadFailure(status=HTTPStatus.NOT_FOUND, message="Imgur image has been removed")
 
             extname = Path(media.filename).suffix.lower()
             if any(s in content_type.lower() for s in ('html', 'text')) and extname not in FILE_FORMATS['Text']:
