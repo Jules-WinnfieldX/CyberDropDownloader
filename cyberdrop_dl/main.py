@@ -9,6 +9,7 @@ from typing import Dict, List, Tuple
 
 import aiofiles
 import aiorun
+from platformdirs import PlatformDirs
 from yarl import URL
 
 from cyberdrop_dl.base_functions.base_functions import (
@@ -33,7 +34,7 @@ from .base_functions.base_functions import MAX_NAME_LENGTHS
 from .base_functions.data_classes import ForumItem, SkipData
 
 
-def parse_args() -> argparse.Namespace:
+def parse_args(app_dirs: PlatformDirs) -> argparse.Namespace:
     """Parses the command line arguments passed into the program"""
     parser = argparse.ArgumentParser(description="Bulk downloader for multiple file hosts")
     parser.add_argument("-V", "--version", action="version", version=f"%(prog)s {VERSION}")
@@ -47,13 +48,13 @@ def parse_args() -> argparse.Namespace:
     path_opts.add_argument("-o", "--output-folder", type=Path, help="folder to download files to (default: %(default)s)", default=config_group["output_folder"])
 
     path_opts.add_argument("--config-file", type=Path, help="config file to read arguments from (default: %(default)s)", default="config.yaml")
-    path_opts.add_argument("--variable-cache-file", type=Path, help="internal variable cache file to read from and write to (default: %(default)s)", default=config_group["variable_cache_file"])
-    path_opts.add_argument("--db-file", type=Path, help="history database file to write to (default: %(default)s)", default=config_group["db_file"])
+    path_opts.add_argument("--db-file", type=Path, help=f"history database file to write to (default: {app_dirs.user_data_dir}/%(default)s)", default=config_group["db_file"])
     path_opts.add_argument("--errored-download-urls-file", type=Path, default=config_group["errored_download_urls_file"], help="csv file to write failed download information to (default: %(default)s)")
     path_opts.add_argument("--errored-scrape-urls-file", type=Path, default=config_group["errored_scrape_urls_file"], help="csv file to write failed scrape information to (default: %(default)s)")
     path_opts.add_argument("--log-file", type=Path, help="log file to write to (default: %(default)s)", default=config_group["log_file"])
     path_opts.add_argument("--output-last-forum-post-file", type=Path, default=config_group["output_last_forum_post_file"], help="the text file to output last scraped post from a forum thread for re-feeding into CDL (default: %(default)s)")
     path_opts.add_argument("--unsupported-urls-file", type=Path, default=config_group["unsupported_urls_file"], help="the csv file to output unsupported links into (default: %(default)s)")
+    path_opts.add_argument("--variable-cache-file", type=Path, help=f"internal variable cache file to read from and write to (default: {app_dirs.user_cache_dir}/%(default)s)", default=config_group["variable_cache_file"])
 
     # Ignore
     config_group = config_data["Ignore"]
@@ -96,6 +97,7 @@ def parse_args() -> argparse.Namespace:
     runtime_opts.add_argument("--proxy", help="HTTP/HTTPS proxy used for downloading, format [protocol]://[ip]:[port]", default=config_group["proxy"])
     runtime_opts.add_argument("--remove-bunkr-identifier", help="removes the bunkr added identifier from output filenames", action="store_true")
     runtime_opts.add_argument("--required-free-space", type=int, default=config_group["required_free_space"], help="required free space (in gigabytes) for the program to run (default: %(default)s)")
+    runtime_opts.add_argument("--use-sys-dirs", help="use default system directories for application files", action="store_true")
 
     # Sorting
     config_group = config_data["Sorting"]
@@ -166,6 +168,14 @@ def parse_args() -> argparse.Namespace:
     # Links
     parser.add_argument("links", metavar="link", nargs="*", help="link to content to download (passing multiple links is supported)", default=[])
     return parser.parse_args()
+
+
+def get_app_file_path(app_file: Path, app_dir: Path) -> Path:
+    """Adjust application file path according to OS settings"""
+    if app_file.exists() or app_file.is_absolute():
+        return app_file
+    app_dir.mkdir(parents=True, exist_ok=True)
+    return app_dir / app_file
 
 
 async def file_management(args: Dict, links: List) -> Tuple[ErrorFileWriter, CacheManager]:
@@ -342,13 +352,28 @@ async def director(args: Dict, links: List) -> None:
 
 
 def main(args=None):
+    app_dirs = PlatformDirs("Cyberdrop-DL")
     if not args:
-        args = parse_args()
+        args = parse_args(app_dirs)
 
     atexit.register(lambda: print("\x1b[?25h"))
 
     links = args.links
+    use_sys_dirs = args.use_sys_dirs
+
+    if use_sys_dirs:
+        args.config_file = get_app_file_path(args.config_file, app_dirs.user_config_path)
+
     args = run_args(args.config_file, argparse.Namespace(**vars(args)).__dict__)
+
+    args["Files"]["db_file"] = get_app_file_path(args["Files"]["db_file"], app_dirs.user_data_path)
+    args["Files"]["variable_cache_file"] = get_app_file_path(args["Files"]["variable_cache_file"], app_dirs.user_cache_path)
+    if use_sys_dirs:
+        args["Files"]["errored_download_urls_file"] = get_app_file_path(args["Files"]["errored_download_urls_file"], app_dirs.user_log_path)
+        args["Files"]["errored_scrape_urls_file"] = get_app_file_path(args["Files"]["errored_scrape_urls_file"], app_dirs.user_log_path)
+        args["Files"]["log_file"] = get_app_file_path(args["Files"]["log_file"], app_dirs.user_log_path)
+        args["Files"]["output_last_forum_post_file"] = get_app_file_path(args["Files"]["output_last_forum_post_file"], app_dirs.user_state_path)
+        args["Files"]["unsupported_urls_file"] = get_app_file_path(args["Files"]["unsupported_urls_file"], app_dirs.user_log_path)
 
     logging.basicConfig(
         filename=args["Files"]["log_file"],

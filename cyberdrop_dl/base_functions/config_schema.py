@@ -22,7 +22,6 @@ config_default: Dict = {
             "xbunker_password": "",
         },
         "Files": {
-            "variable_cache_file": "internal_variable_cache.yaml",
             "db_file": "download_history.sqlite",
             "errored_download_urls_file": "Errored_Download_URLs.csv",
             "errored_scrape_urls_file": "Errored_Scrape_URLs.csv",
@@ -31,6 +30,7 @@ config_default: Dict = {
             "output_folder": "Downloads",
             "output_last_forum_post_file": "URLs_last_post.txt",
             "unsupported_urls_file": "Unsupported_URLs.csv",
+            "variable_cache_file": "internal_variable_cache.yaml",
         },
         "Forum_Options": {
             "output_last_forum_post": False,

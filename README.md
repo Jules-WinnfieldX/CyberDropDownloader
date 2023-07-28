@@ -165,6 +165,7 @@ optional arguments:
 --proxy                                         HTTP/HTTPS proxy used for downloading, format [protocol]://[ip]:[port]
 --remove-bunkr-identifier                       removes the bunkr added identifier from output filenames
 --required-free-space                           required free space (in gigabytes) for the program to run
+--use-sys-dirs                                  use default system directories for application files
 
 --sort-downloads        sorts downloaded files after downloads have finished
 --sort-directory        folder to download files to
