@@ -69,8 +69,8 @@ class PimpAndHostCrawler:
         """Handles singular files"""
         try:
             soup = await session.get_BS4(url)
-            img = soup.select_one("a img")
-            img = img.get("src")
+            img = soup.select_one('.main-image-wrapper')
+            img = img.get('data-src')
             if img.startswith("//"):
                 img = URL("https:" + img)
             return await create_media_item(img, url, self.SQL_Helper, "pimpandhost")
