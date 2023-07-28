@@ -51,7 +51,7 @@ class EromeCrawler:
             for link in soup.select('img[class="img-front lasyload"]'):
                 link = URL(link['data-src'])
                 try:
-                    media = await create_media_item(link, url, self.SQL_Helper, "erome")
+                    media = await create_media_item(link, URL("https://www.erome.com"), self.SQL_Helper, "erome")
                 except NoExtensionFailure:
                     logger.debug("Couldn't get extension for %s", url)
                     continue
@@ -61,7 +61,7 @@ class EromeCrawler:
             for link in soup.select('div[class=media-group] div[class=video-lg] video source'):
                 link = URL(link['src'])
                 try:
-                    media = await create_media_item(link, url, self.SQL_Helper, "erome")
+                    media = await create_media_item(link, URL("https://www.erome.com"), self.SQL_Helper, "erome")
                 except NoExtensionFailure:
                     logger.debug("Couldn't get extension for %s", link)
                     continue
