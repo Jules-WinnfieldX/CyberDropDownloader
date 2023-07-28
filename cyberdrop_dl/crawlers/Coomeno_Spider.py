@@ -28,12 +28,8 @@ class ParseSpec:
     next_page_selector: str = field(init=False)
 
     def __post_init__(self):
-        if self.domain == "coomer":
-            self.posts_selectors = ['article[class=post-card ] a']
-            self.next_page_selector = 'a[class="next"]'
-        elif self.domain == "kemono":
-            self.posts_selectors = ['article[class="post-card post-card--preview"] a', 'article[class="post-card"] a']
-            self.next_page_selector = 'a[class=next]'
+        self.posts_selectors = ['article[class*=post-card] a']
+        self.next_page_selector = 'a[class="next"]'
 
 
 class CoomenoCrawler:
