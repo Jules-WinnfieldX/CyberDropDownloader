@@ -38,14 +38,10 @@ class RedGifsCrawler:
                 self.headers = {"Authorization": f"Bearer {self.token}"}
 
             async with self.limiter:
-                id = url.parts[-1] if url.parts[-1] != "" else url.parts[-2]
-                id = id.split(".")[0]
-                json_obj = await session.get_json(self.redgifs_api / "v2/gifs" / id, headers_inc=self.headers)
-                links = json_obj["gif"]["urls"]
-                if "hd" in links:
-                    await self.get_image(URL(links["hd"]), url, "Loose Redgif Files", domain_obj)
+                if "users" in url.parts:
+                    await self.get_user(session, url, domain_obj)
                 else:
-                    await self.get_image(URL(links["sd"]), url, "Loose Redgif Files", domain_obj)
+                    await self.get_individual(session, url, domain_obj)
 
             await self.SQL_Helper.insert_domain("redgifs", url, domain_obj)
             log(f"Finished: {url}", quiet=self.quiet, style="green")
@@ -54,6 +50,33 @@ class RedGifsCrawler:
             await self.error_writer.write_errored_scrape(url, e, self.quiet)
 
         return domain_obj
+
+    async def get_user(self, session: ScrapeSession, url: URL, domain_obj: DomainItem):
+        user_id = url.parts[-1] if url.parts[-1] != "" else url.parts[-2]
+        user_id = user_id.split(".")[0]
+        page = 1
+        total_pages = 1
+        while page <= total_pages:
+            json_obj = await session.get_json((self.redgifs_api / "v2/users" / user_id / "search").with_query(f"page={page}"), headers_inc=self.headers)
+            total_pages = json_obj["pages"]
+            gifs = json_obj["gifs"]
+            for gif in gifs:
+                links = gif["urls"]
+                if "hd" in links:
+                    await self.get_image(URL(links["hd"]), url, "Loose Redgif Files", domain_obj)
+                else:
+                    await self.get_image(URL(links["sd"]), url, "Loose Redgif Files", domain_obj)
+            page += 1
+
+    async def get_individual(self, session: ScrapeSession, url: URL, domain_obj: DomainItem):
+        source_id = url.parts[-1] if url.parts[-1] != "" else url.parts[-2]
+        source_id = source_id.split(".")[0]
+        json_obj = await session.get_json(self.redgifs_api / "v2/gifs" / source_id, headers_inc=self.headers)
+        links = json_obj["gif"]["urls"]
+        if "hd" in links:
+            await self.get_image(URL(links["hd"]), url, "Loose Redgif Files", domain_obj)
+        else:
+            await self.get_image(URL(links["sd"]), url, "Loose Redgif Files", domain_obj)
 
     async def get_image(self, url: URL, referer: URL, title: str, domain_obj: DomainItem):
         try:
