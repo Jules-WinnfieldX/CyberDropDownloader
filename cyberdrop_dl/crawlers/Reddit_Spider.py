@@ -107,7 +107,7 @@ class RedditCrawler:
         await self.handle_external_links(external_links, url)
 
     async def handle_gallery(self, submission):
-        if not submission.media_metadata:
+        if not hasattr(submission, "media_metadata"):
             return []
         items = [item for item in submission.media_metadata.values() if item["status"] == "valid"]
         links = []
