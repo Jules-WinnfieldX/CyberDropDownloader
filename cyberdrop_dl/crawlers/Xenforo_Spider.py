@@ -217,12 +217,13 @@ class XenforoCrawler:
         links = post_content.select(selector)
         for link_tag in links:
             link = link_tag.get(attribute)
-            # test_for_img = link_tag.select_one("img")
-            # if test_for_img:
-            #     continue
+            test_for_img = link_tag.select_one("img")
+            if test_for_img:
+                continue
             if not link:
                 continue
             assert isinstance(link, str)
+            link = link.replace(".th.", ".").replace(".md.", ".")
             if link.endswith("/"):
                 link = link[:-1]
             if link.startswith('//'):
