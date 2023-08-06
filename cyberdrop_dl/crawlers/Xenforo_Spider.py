@@ -217,6 +217,16 @@ class XenforoCrawler:
         links = post_content.select(selector)
         for link_tag in links:
             link = link_tag.get(attribute)
+
+            elem_style = link_tag.get("style")
+            parent_style = link_tag.parent.get("style")
+            if elem_style:
+                if "display:none" in elem_style:
+                    continue
+            if parent_style:
+                if "display:none" in parent_style:
+                    continue
+
             test_for_img = link_tag.select_one("img")
             if test_for_img:
                 continue
