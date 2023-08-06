@@ -5,6 +5,7 @@ import re
 import urllib
 from typing import TYPE_CHECKING
 
+from aiohttp import ClientResponseError
 from aiolimiter import AsyncLimiter
 from yarl import URL
 
@@ -34,6 +35,7 @@ class BunkrCrawler:
         self.error_writer = error_writer
 
         self.primary_base_domain = URL("https://bunkrr.su")
+        self.api_link = URL(f"https://api-v2.{self.primary_base_domain.host}")
 
     async def fetch(self, session: ScrapeSession, url: URL) -> AlbumItem:
         """Scraper for Bunkr"""
@@ -43,7 +45,10 @@ class BunkrCrawler:
         url = await self.get_stream_link(url)
 
         if "v" in url.parts or "d" in url.parts:
-            media = await self.get_file(session, url)
+            if "v" in url.parts:
+                media = await self.get_video(session, url)
+            else:
+                media = await self.get_file(session, url)
             if not media.filename:
                 return album_obj
             await album_obj.add_media(media)
@@ -116,6 +121,31 @@ class BunkrCrawler:
             url = url.with_host(url_host)
         return url
 
+    async def get_video(self, session: ScrapeSession, url: URL):
+        filename = url.parts[-1] if url.parts[-1] else url.parts[-2]
+        async with self.limiter:
+            json_obj = await session.post(self.api_link / "getToken", {})
+            if not json_obj:
+                raise Exception("No Token Object returned")
+            token = json_obj["token"]
+
+            queries = {"file_name": filename, "tkn": token}
+            link = (self.api_link / "getFile").with_query(queries)
+            headers_resp, link_resp = await session.head(link, {"Referer": str(url)})
+
+        try:
+            filename, ext = await get_filename_and_ext(link_resp.name)
+        except NoExtensionFailure:
+            filename, ext = await get_filename_and_ext(url.name)
+        if ext not in FILE_FORMATS['Images']:
+            link_resp = await self.check_for_la(link_resp)
+
+        original_filename, filename = await self.remove_id(filename, ext)
+
+        await self.SQL_Helper.fix_bunkr_entries(link_resp, original_filename)
+        complete = await self.SQL_Helper.check_complete_singular("bunkr", link_resp)
+        return MediaItem(link_resp, url, complete, filename, ext, original_filename)
+
     async def get_file(self, session: ScrapeSession, url: URL):
         """Gets the media item from the supplied url"""
 
@@ -174,7 +204,6 @@ class BunkrCrawler:
             await album.set_new_title(title)
             for file in soup.select('a[class*="grid-images_box-link"]'):
                 link = file.get("href")
-                media_loc = file.select_one("img").get("src").split("//i")[-1].split(".bunkr.")[0]
 
                 assert url.host is not None
                 if link.startswith("/"):
@@ -202,8 +231,16 @@ class BunkrCrawler:
                         link = media.url
                     link = URL(str(link).replace("https://cdn", "https://i"))
                 else:
-                    media = await self.get_file(session, referer)
-                    link = media.url
+                    try:
+                        if "v" in referer.parts:
+                            media = await self.get_video(session, referer)
+                        else:
+                            media = await self.get_file(session, referer)
+                        link = media.url
+                    except ClientResponseError as e:
+                        logger.debug("Error encountered while handling %s", referer, exc_info=True)
+                        await self.error_writer.write_errored_scrape(referer, e, self.quiet)
+                        continue
 
                 if ext not in FILE_FORMATS['Images']:
                     link = await self.check_for_la(link)

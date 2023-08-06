@@ -123,6 +123,12 @@ class ScrapeSession:
         async with self.client_session.post(url, data=data, headers=self.headers, ssl=self.client.ssl_context):
             pass
 
+    @scrape_limit
+    async def head(self, url: URL, headers_inc: Dict, allow_redirects=True) -> tuple[CIMultiDictProxy[str], URL]:
+        headers = {**self.headers, **headers_inc} if headers_inc else self.headers
+        async with self.client_session.head(url, headers=headers, ssl=self.client.ssl_context, allow_redirects=allow_redirects) as response:
+            return response.headers, response.url
+
     async def exit_handler(self) -> None:
         try:
             await self.client_session.close()
