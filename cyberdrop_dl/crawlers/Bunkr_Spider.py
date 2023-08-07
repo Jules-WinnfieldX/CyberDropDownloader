@@ -2,10 +2,8 @@ from __future__ import annotations
 
 import html
 import re
-import urllib
 from typing import TYPE_CHECKING
 
-from aiohttp import ClientResponseError
 from aiolimiter import AsyncLimiter
 from yarl import URL
 
@@ -31,6 +29,7 @@ class BunkrCrawler:
         self.SQL_Helper = SQL_Helper
         self.remove_bunkr_id = remove_bunkr_id
         self.limiter = AsyncLimiter(10, 1)
+        self.small_limiter = AsyncLimiter(1, 1)
 
         self.error_writer = error_writer
 
@@ -123,7 +122,7 @@ class BunkrCrawler:
 
     async def get_video(self, session: ScrapeSession, url: URL):
         filename = url.parts[-1] if url.parts[-1] else url.parts[-2]
-        async with self.limiter:
+        async with self.small_limiter:
             json_obj = await session.post(self.api_link / "getToken", {})
             if not json_obj:
                 raise Exception("No Token Object returned")
@@ -237,7 +236,7 @@ class BunkrCrawler:
                         else:
                             media = await self.get_file(session, referer)
                         link = media.url
-                    except ClientResponseError as e:
+                    except Exception as e:
                         logger.debug("Error encountered while handling %s", referer, exc_info=True)
                         await self.error_writer.write_errored_scrape(referer, e, self.quiet)
                         continue
