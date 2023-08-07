@@ -121,16 +121,21 @@ class BunkrCrawler:
         return url
 
     async def get_video(self, session: ScrapeSession, url: URL):
-        filename = url.parts[-1] if url.parts[-1] else url.parts[-2]
-        async with self.small_limiter:
-            json_obj = await session.post(self.api_link / "getToken", {})
-            if not json_obj:
-                raise Exception("No Token Object returned")
-            token = json_obj["token"]
+        # filename = url.parts[-1] if url.parts[-1] else url.parts[-2]
+        # async with self.small_limiter:
+        #     json_obj = await session.post(self.api_link / "getToken", {})
+        #     if not json_obj:
+        #         raise Exception("No Token Object returned")
+        #     token = json_obj["token"]
+        #
+        #     queries = {"file_name": filename, "tkn": token}
+        #     link = (self.api_link / "getFile").with_query(queries)
+        #     headers_resp, link_resp = await session.head(link, {"Referer": str(url)})
 
-            queries = {"file_name": filename, "tkn": token}
-            link = (self.api_link / "getFile").with_query(queries)
-            headers_resp, link_resp = await session.head(link, {"Referer": str(url)})
+        async with self.limiter:
+            soup = await session.get_BS4(url)
+            link = soup.select_one("a[class*=bg-blue-500]")
+            link_resp = URL(link.get("href"))
 
         try:
             filename, ext = await get_filename_and_ext(link_resp.name)
