@@ -97,18 +97,31 @@ class ParseSpec:
 
 
 class ForumLogin:
-    def __init__(self, name: str, username: str, password: str):
+    def __init__(self, name: str, username: Optional[str], password: Optional[str], xf_session: Optional[str]):
         self.name = name
         self.logged_in = False
         self.username = username
         self.password = password
+        self.xf_session = xf_session
 
     async def login(self, session: ScrapeSession, url: URL, spec: ParseSpec, quiet: bool) -> None:
         """Handles forum logging in"""
-        if not self.username or not self.password:
+        if (not self.username or not self.password) and not self.xf_session:
             log(f"Login wasn't provided for {self.name}", quiet=quiet, style="red")
             raise FailedLoginFailure()
         attempt = 0
+        if self.xf_session:
+            domain = URL("https://" + url.host) / spec.login_path
+
+            session.client_session.cookie_jar.update_cookies({"xf_session": self.xf_session}, response_url=URL("https://" + url.host))
+
+            text = await session.get_text(domain)
+            if "You are already logged in" not in text:
+                raise FailedLoginFailure()
+
+            self.logged_in = True
+            return
+
         while True:
             try:
                 if self.logged_in:
@@ -168,8 +181,9 @@ class XenforoCrawler:
 
         auth_args = args["Authentication"]
         self.forums = {domain: ForumLogin(name,
-                                          auth_args[f"{domain}_username"],
-                                          auth_args[f"{domain}_password"])
+                                          auth_args[f"{domain}_username"] if f"{domain}_username" in auth_args else None,
+                                          auth_args[f"{domain}_password"] if f"{domain}_username" in auth_args else None,
+                                          auth_args[f"{domain}_xf_session_cookie"] if f"{domain}_xf_session_cookie" in auth_args else None)
                        for domain, name in self.domains.items()}
 
         self.scraping_mapper = scraping_mapper
@@ -218,14 +232,11 @@ class XenforoCrawler:
         for link_tag in links:
             link = link_tag.get(attribute)
 
-            elem_style = link_tag.get("style")
-            parent_style = link_tag.parent.get("style")
-            if elem_style:
-                if "display:none" in elem_style:
-                    continue
-            if parent_style:
-                if "display:none" in parent_style:
-                    continue
+            if selector.startswith("img"):
+                parent_simp = link_tag.parent.get("data-simp")
+                if parent_simp:
+                    if "init" in parent_simp:
+                        continue
 
             test_for_img = link_tag.select_one("img")
             if test_for_img:
