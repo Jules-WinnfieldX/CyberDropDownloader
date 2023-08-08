@@ -85,6 +85,6 @@ async def document_args(args: Dict) -> None:
     for group_name, group in print_args.items():
         args_type = group_name.replace('_', ' ').lower()
         for arg in group:
-            if group[arg] is not None and any(s in arg for s in ('api_key', 'password', 'imgur', 'reddit')):
+            if group[arg] is not None and any(s in arg for s in ('api_key', 'password', 'imgur', 'reddit', 'cookie')):
                 group[arg] = '!REDACTED!'
         log(f"Using {args_type} arguments: {group}", quiet=True)
