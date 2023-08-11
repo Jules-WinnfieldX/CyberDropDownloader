@@ -191,7 +191,7 @@ optional arguments:
 --reddit-secret                 client secret for reddit
 --nudostar-username             username to login to nudostar
 --nudostar-password             password to login to nudostar
---simpcity-xf-session-cookie    password to login to simpcity
+--simpcity-xf-user-cookie       user cookie to login to simpcity
 --socialmediagirls-username     username to login to socialmediagirls
 --socialmediagirls-password     password to login to socialmediagirls
 --xbunker-username              username to login to xbunker

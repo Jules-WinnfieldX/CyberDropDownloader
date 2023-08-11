@@ -14,7 +14,7 @@ config_default: Dict = {
             "reddit_secret": "",
             "nudostar_username": "",
             "nudostar_password": "",
-            "simpcity_xf_session_cookie": "",
+            "simpcity_xf_user_cookie": "",
             "socialmediagirls_username": "",
             "socialmediagirls_password": "",
             "xbunker_username": "",

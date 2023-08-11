@@ -97,23 +97,23 @@ class ParseSpec:
 
 
 class ForumLogin:
-    def __init__(self, name: str, username: Optional[str], password: Optional[str], xf_session: Optional[str]):
+    def __init__(self, name: str, username: Optional[str], password: Optional[str], xf_user: Optional[str]):
         self.name = name
         self.logged_in = False
         self.username = username
         self.password = password
-        self.xf_session = xf_session
+        self.xf_user = xf_user
 
     async def login(self, session: ScrapeSession, url: URL, spec: ParseSpec, quiet: bool) -> None:
         """Handles forum logging in"""
-        if (not self.username or not self.password) and not self.xf_session:
+        if (not self.username or not self.password) and not self.xf_user:
             log(f"Login wasn't provided for {self.name}", quiet=quiet, style="red")
             raise FailedLoginFailure()
         attempt = 0
-        if self.xf_session:
+        if self.xf_user:
             domain = URL("https://" + url.host) / spec.login_path
 
-            session.client_session.cookie_jar.update_cookies({"xf_session": self.xf_session}, response_url=URL("https://" + url.host))
+            session.client_session.cookie_jar.update_cookies({"xf_user": self.xf_user}, response_url=URL("https://" + url.host))
 
             text = await session.get_text(domain)
             if "You are already logged in" not in text:
@@ -183,7 +183,7 @@ class XenforoCrawler:
         self.forums = {domain: ForumLogin(name,
                                           auth_args[f"{domain}_username"] if f"{domain}_username" in auth_args else None,
                                           auth_args[f"{domain}_password"] if f"{domain}_username" in auth_args else None,
-                                          auth_args[f"{domain}_xf_session_cookie"] if f"{domain}_xf_session_cookie" in auth_args else None)
+                                          auth_args[f"{domain}_xf_user_cookie"] if f"{domain}_xf_user_cookie" in auth_args else None)
                        for domain, name in self.domains.items()}
 
         self.scraping_mapper = scraping_mapper
