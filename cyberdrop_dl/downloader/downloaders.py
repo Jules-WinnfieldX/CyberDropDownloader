@@ -354,7 +354,7 @@ class Downloader:
                 break
 
             media.filename = downloaded_filename
-            complete_file = (self.CDL_Helper.download_dir / album / media.filename)
+            complete_file = (self.CDL_Helper.download_dir / album / media.filename.rstrip("."))
             partial_file = complete_file.with_suffix(complete_file.suffix + '.part')
 
         return complete_file, partial_file, proceed, expected_size
