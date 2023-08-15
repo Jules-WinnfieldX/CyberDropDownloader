@@ -2,6 +2,7 @@ from dataclasses import field
 from pathlib import Path
 
 from cyberdrop_dl.managers.args_manager import ArgsManager
+from cyberdrop_dl.managers.client_manager import ClientManager
 from cyberdrop_dl.managers.db_manager import DBManager
 from cyberdrop_dl.managers.cache_manager import CacheManager
 from cyberdrop_dl.managers.config_manager import ConfigManager
@@ -19,12 +20,13 @@ def make_portable() -> None:
 class Manager:
     def __init__(self):
         self.args_manager: ArgsManager = ArgsManager()
-        self.directory_manager: DirectoryManager = DirectoryManager()
         self.cache_manager: CacheManager = CacheManager()
+        self.directory_manager: DirectoryManager = DirectoryManager()
         self.config_manager: ConfigManager = ConfigManager(self)
         self.file_manager: FileManager = FileManager()
         self.queue_manager: QueueManager = QueueManager()
         self.db_manager: DBManager = field(init=False)
+        self.client_manager: ClientManager = field(init=False)
 
         self.cache_manager.startup(self.directory_manager.cache / "cache.yaml")
 
@@ -89,3 +91,15 @@ class Manager:
         self.file_manager.startup()
 
     """~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"""
+
+    async def async_startup(self) -> None:
+        """Async startup process for the manager"""
+        self.db_manager = DBManager(self.file_manager.history_db)
+        self.client_manager = ClientManager(self)
+
+        await self.db_manager.startup()
+
+    async def close(self):
+        """Closes the manager"""
+        await self.db_manager.close()
+        await self.client_manager.close()
