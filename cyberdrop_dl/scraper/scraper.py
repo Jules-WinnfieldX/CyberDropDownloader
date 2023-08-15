@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import asyncio
-from pathlib import Path
+from asyncio import Queue
 
 from yarl import URL
 
@@ -45,16 +45,17 @@ class ScrapeMapper:
         for task in self.existing_crawler_tasks.values():
             task.cancel()
 
-    async def map_url(self, url_to_map: URL, parent_title: str = ""):
-        scrape_item = ScrapeItem(url_to_map, parent_title)
+    async def map_urls(self):
+        while True:
+            scrape_item: ScrapeItem = await self.manager.queue_manager.urls_objects_to_map.get()
 
-        if not url_to_map:
-            return
-        if not url_to_map.host:
-            return
+            if not scrape_item.url:
+                return
+            if not scrape_item.url.host:
+                return
 
-        key = next((key for key in self.mapping if key in url_to_map.host), None)
-        if key:
-            handler = self.mapping[key]
-            await handler(scrape_item=scrape_item)
-            return
+            key = next((key for key in self.mapping if key in scrape_item.url.host), None)
+            if key:
+                handler = self.mapping[key]
+                await handler(scrape_item=scrape_item)
+                return
