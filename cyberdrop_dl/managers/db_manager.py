@@ -31,6 +31,10 @@ class DBManager:
         await self.history_table.startup()
         await self.temp_table.startup()
 
+    async def close(self) -> None:
+        """Close the DBManager"""
+        await self.db_conn.close()
+
     async def _pre_allocate(self) -> None:
         """We pre-allocate 100MB of space to the SQL file just in case the user runs out of disk space"""
         create_pre_allocation_table = "CREATE TABLE IF NOT EXISTS t(x);"
