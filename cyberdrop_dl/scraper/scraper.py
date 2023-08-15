@@ -1,8 +1,12 @@
 from __future__ import annotations
 
+import asyncio
+from pathlib import Path
+
 from yarl import URL
 
 from cyberdrop_dl.managers.manager import Manager
+from cyberdrop_dl.utils.dataclasses.url_objects import ScrapeItem
 
 
 class ScrapeMapper:
@@ -24,11 +28,26 @@ class ScrapeMapper:
         self.manager = manager
 
         self.existing_crawlers = {}
+        self.existing_crawler_tasks = {}
         self.mapping = {}
 
-    """URL to Function Mapper"""
+    async def bunkr(self, scrape_item: ScrapeItem):
+        if not self.existing_crawlers.get("bunkr"):
+            from cyberdrop_dl.scraper.crawlers.bunkr_crawler import BunkrCrawler
+            self.existing_crawlers["bunkr"] = BunkrCrawler(self.manager)
+            await self.existing_crawlers["bunkr"].startup()
+            self.existing_crawler_tasks["bunkr"] = asyncio.create_task(self.existing_crawlers["bunkr"].run_loop())
+        await self.existing_crawlers["bunkr"].add_to_queue(scrape_item)
 
-    async def map_url(self, url_to_map: URL):
+    """~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"""
+
+    async def close(self):
+        for task in self.existing_crawler_tasks.values():
+            task.cancel()
+
+    async def map_url(self, url_to_map: URL, parent_title: str = ""):
+        scrape_item = ScrapeItem(url_to_map, parent_title)
+
         if not url_to_map:
             return
         if not url_to_map.host:
@@ -37,5 +56,5 @@ class ScrapeMapper:
         key = next((key for key in self.mapping if key in url_to_map.host), None)
         if key:
             handler = self.mapping[key]
-            await handler(url=url_to_map)
+            await handler(scrape_item=scrape_item)
             return
