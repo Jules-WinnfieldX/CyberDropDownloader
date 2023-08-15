@@ -1,8 +1,12 @@
+import asyncio
+import contextlib
 import logging
 
+import aiorun
 from rich.logging import RichHandler
 
 from cyberdrop_dl.managers.manager import Manager
+from cyberdrop_dl.scraper.scraper import ScrapeMapper
 from cyberdrop_dl.ui.ui import program_ui
 
 
@@ -35,8 +39,24 @@ def startup():
         exit(0)
 
 
+async def director(manager: Manager):
+    await manager.async_startup()
+
+    # TODO Change to if TYPE_CHECKING for all files
+
+    scrape_mapper = ScrapeMapper(manager)
+    asyncio.create_task(scrape_mapper.map_urls())
+
+
 def main():
     manager = startup()
+
+    with contextlib.suppress(RuntimeError, asyncio.CancelledError):
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+
+        aiorun.run(director(manager))
+        exit(0)
 
 
 if __name__ == '__main__':
