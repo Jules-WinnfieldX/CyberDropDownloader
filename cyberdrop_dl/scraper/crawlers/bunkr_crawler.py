@@ -17,8 +17,11 @@ class BunkrCrawler:
         self.download_queue: Queue = field(init=False)
 
     async def startup(self):
+        download_limit = self.manager.config_manager.settings_data.get("max_simultaneous_downloads_per_domain")
+        download_limit = 2 if download_limit > 2 else download_limit
+
         self.scraper_queue = await self.manager.queue_manager.get_scraper_queue("bunkr")
-        self.download_queue = await self.manager.queue_manager.get_download_queue("bunkr", 2)
+        self.download_queue = await self.manager.queue_manager.get_download_queue("bunkr", download_limit)
 
         self.client = await self.manager.client_manager.get_scraper_session("bunkr")
 
