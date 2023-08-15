@@ -3,9 +3,9 @@ from pathlib import Path
 
 import aiosqlite
 
-from cyberdrop_dl.db.tables.cache_table import CacheTable
-from cyberdrop_dl.db.tables.history_table import HistoryTable
-from cyberdrop_dl.db.tables.temp_table import TempTable
+from cyberdrop_dl.utils.db.tables.cache_table import CacheTable
+from cyberdrop_dl.utils.db.tables.history_table import HistoryTable
+from cyberdrop_dl.utils.db.tables.temp_table import TempTable
 
 
 class DBManager:

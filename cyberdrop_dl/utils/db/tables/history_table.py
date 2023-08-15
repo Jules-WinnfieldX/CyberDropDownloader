@@ -1,13 +1,13 @@
 import aiosqlite
 
-from cyberdrop_dl.db.table_definitions import create_cache
+from cyberdrop_dl.utils.db.table_definitions import create_history
 
 
-class CacheTable:
+class HistoryTable:
     def __init__(self, db_conn: aiosqlite.Connection):
         self.db_conn: aiosqlite.Connection = db_conn
 
     async def startup(self) -> None:
-        """Startup process for the CacheTable"""
-        await self.db_conn.execute(create_cache)
+        """Startup process for the HistoryTable"""
+        await self.db_conn.execute(create_history)
         await self.db_conn.commit()

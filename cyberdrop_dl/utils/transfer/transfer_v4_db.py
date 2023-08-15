@@ -1,7 +1,7 @@
 import sqlite3
 from pathlib import Path
 
-from cyberdrop_dl.db.table_definitions import create_history, create_cache, create_temp
+from cyberdrop_dl.utils.db.table_definitions import create_history, create_cache, create_temp
 
 
 def transfer_v4_db(db_path: Path, new_db_path: Path) -> None:

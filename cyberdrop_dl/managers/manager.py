@@ -7,6 +7,7 @@ from cyberdrop_dl.managers.cache_manager import CacheManager
 from cyberdrop_dl.managers.config_manager import ConfigManager
 from cyberdrop_dl.managers.directory_manager import DirectoryManager, APP_STORAGE, DOWNLOAD_STORAGE
 from cyberdrop_dl.managers.file_manager import FileManager
+from cyberdrop_dl.managers.queue_manager import QueueManager
 
 
 def make_portable() -> None:
@@ -22,6 +23,7 @@ class Manager:
         self.cache_manager: CacheManager = CacheManager()
         self.config_manager: ConfigManager = ConfigManager(self)
         self.file_manager: FileManager = FileManager()
+        self.queue_manager: QueueManager = QueueManager()
         self.db_manager: DBManager = field(init=False)
 
         self.cache_manager.startup(self.directory_manager.cache / "cache.yaml")
