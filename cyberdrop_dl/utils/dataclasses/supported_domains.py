@@ -10,7 +10,9 @@ class SupportedDomains:
                                                   "gofile", "hgamecg", "img.kiwi", "imgbox", "jpg.church", "jpg.fish",
                                                   "jpg.fishing", "jpg.pet", "jpg1.su", "gallery.deltaporno.com",
                                                   "kemono.su", "lovefap", "nsfw.xxx", "pimpandhost", "pixeldrain",
-                                                  "pixl.li", "postimg", "saint", "nudostar", "reddit", "simpcity",
-                                                  "socialmediagirls", "xbunker", "xbunkr", "imgur", "redd.it",
+                                                  "pixl.li", "postimg", "saint", "reddit", "xbunkr", "imgur", "redd.it",
                                                   "jpeg.pet", "redgifs", "kemono.party")
+    supported_forums: ClassVar[Tuple[str, ...]] = ("nudostar.com", "simpcity.su", "forums.socialmediagirls.com",
+                                                   "xbunker.nu")
+
     sites: List[str]
