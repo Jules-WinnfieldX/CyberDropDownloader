@@ -1,7 +1,11 @@
+from __future__ import annotations
+
 import aiohttp
 from aiolimiter import AsyncLimiter
+from typing import TYPE_CHECKING
 
-from cyberdrop_dl.managers.client_manager import ClientManager
+if TYPE_CHECKING:
+    from cyberdrop_dl.managers.client_manager import ClientManager
 
 
 class ScraperClient:

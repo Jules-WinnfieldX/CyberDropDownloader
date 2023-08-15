@@ -1,9 +1,14 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from InquirerPy import inquirer
 from InquirerPy.base.control import Choice
 from InquirerPy.validator import EmptyInputValidator, NumberValidator
 from rich.console import Console
 
-from cyberdrop_dl.managers.manager import Manager
+if TYPE_CHECKING:
+    from cyberdrop_dl.managers.manager import Manager
 
 console = Console()
 

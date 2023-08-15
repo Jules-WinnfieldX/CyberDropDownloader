@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from cyberdrop_dl.utils.args.args import parse_args
 
 

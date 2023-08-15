@@ -2,12 +2,14 @@ import copy
 import shutil
 from dataclasses import field
 from pathlib import Path
-from typing import Dict, List
+from typing import Dict, List, TYPE_CHECKING
 
 import yaml
 
-from cyberdrop_dl.managers.manager import Manager
 from cyberdrop_dl.utils.args.config_definitions import authentication_settings, settings, global_settings
+
+if TYPE_CHECKING:
+    from cyberdrop_dl.managers.manager import Manager
 
 
 def _match_config_dicts(default: Dict, existing: Dict) -> Dict:
@@ -34,7 +36,7 @@ def _load_yaml(file: Path) -> Dict:
 
 
 class ConfigManager:
-    def __init__(self, manager: Manager):
+    def __init__(self, manager: 'Manager'):
         self.manager = manager
 
         self.authentication_settings: Path = field(init=False)

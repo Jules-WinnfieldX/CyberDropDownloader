@@ -1,9 +1,15 @@
-from typing import Dict
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 
 import browser_cookie3
 
-from cyberdrop_dl.managers.manager import Manager
 from cyberdrop_dl.utils.dataclasses.supported_domains import SupportedDomains
+
+if TYPE_CHECKING:
+    from typing import Dict
+
+    from cyberdrop_dl.managers.manager import Manager
 
 
 # noinspection PyProtectedMember

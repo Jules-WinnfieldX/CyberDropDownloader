@@ -1,12 +1,13 @@
 from __future__ import annotations
 
 import asyncio
-from asyncio import Queue
+from typing import TYPE_CHECKING
 
-from yarl import URL
 
-from cyberdrop_dl.managers.manager import Manager
-from cyberdrop_dl.utils.dataclasses.url_objects import ScrapeItem
+
+if TYPE_CHECKING:
+    from cyberdrop_dl.managers.manager import Manager
+    from cyberdrop_dl.utils.dataclasses.url_objects import ScrapeItem
 
 
 class ScrapeMapper:
@@ -47,7 +48,7 @@ class ScrapeMapper:
 
     async def map_urls(self):
         while True:
-            scrape_item: ScrapeItem = await self.manager.queue_manager.urls_objects_to_map.get()
+            scrape_item: ScrapeItem = await self.manager.queue_manager.url_objects_to_map.get()
 
             if not scrape_item.url:
                 return

@@ -1,10 +1,15 @@
-from typing import Dict
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 
 import aiohttp
 from aiolimiter import AsyncLimiter
 from yarl import URL
 
-from cyberdrop_dl.managers.client_manager import ClientManager
+if TYPE_CHECKING:
+    from typing import Dict
+
+    from cyberdrop_dl.managers.client_manager import ClientManager
 
 
 class DownloadClient:
@@ -17,4 +22,5 @@ class DownloadClient:
         self.client_session = aiohttp.ClientSession(headers=self.headers, raise_for_status=True,
                                                     cookie_jar=client_manager.cookies, timeout=self.timeouts)
         self.throttle_times: Dict[str, float] = {}
-        self.bunkr_maintenance = [URL("https://bnkr.b-cdn.net/maintenance-vid.mp4"), URL("https://bnkr.b-cdn.net/maintenance.mp4")]
+        self.bunkr_maintenance = [URL("https://bnkr.b-cdn.net/maintenance-vid.mp4"),
+                                  URL("https://bnkr.b-cdn.net/maintenance.mp4")]

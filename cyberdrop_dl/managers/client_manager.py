@@ -1,10 +1,15 @@
+from __future__ import annotations
+
 import ssl
+from typing import TYPE_CHECKING
 
 import aiohttp
 import certifi
 
-from cyberdrop_dl.managers.manager import Manager
 from cyberdrop_dl.clients.scraper_client import ScraperClient
+
+if TYPE_CHECKING:
+    from cyberdrop_dl.managers.manager import Manager
 
 
 class ClientManager:

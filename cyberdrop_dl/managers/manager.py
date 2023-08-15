@@ -6,7 +6,7 @@ from cyberdrop_dl.managers.client_manager import ClientManager
 from cyberdrop_dl.managers.db_manager import DBManager
 from cyberdrop_dl.managers.cache_manager import CacheManager
 from cyberdrop_dl.managers.config_manager import ConfigManager
-from cyberdrop_dl.managers.directory_manager import DirectoryManager, APP_STORAGE, DOWNLOAD_STORAGE
+from cyberdrop_dl.managers.directory_manager import DirectoryManager
 from cyberdrop_dl.managers.download_manager import DownloadManager
 from cyberdrop_dl.managers.file_manager import FileManager
 from cyberdrop_dl.managers.queue_manager import QueueManager
@@ -14,8 +14,18 @@ from cyberdrop_dl.managers.queue_manager import QueueManager
 
 def make_portable() -> None:
     """Makes the program portable"""
-    APP_STORAGE = Path.cwd() / "AppData"
-    DOWNLOAD_STORAGE = Path.cwd() / "Downloads"
+    from cyberdrop_dl.managers import directory_manager
+    directory_manager.APP_STORAGE = Path.cwd() / "AppData"
+    directory_manager.DOWNLOAD_STORAGE = Path.cwd() / "Downloads"
+
+    from cyberdrop_dl.utils.args.config_definitions import settings
+    settings['Files']['input_file'] = str(directory_manager.APP_STORAGE / "Configs" / "Default" / "URLs.txt")
+    settings['Files']['input_password_file'] = str(directory_manager.APP_STORAGE / "Configs" / "Default" / "URLs & Passwords.txt")
+    settings['Files']['download_folder'] = str(directory_manager.DOWNLOAD_STORAGE / "Cyberdrop-DL Downloads")
+
+    settings['Logs']['log_folder'] = str(directory_manager.APP_STORAGE / "Configs" / "Default" / "Logs")
+
+    settings['Sorting']['sort_folder'] = str(directory_manager.DOWNLOAD_STORAGE / "Cyberdrop-DL Downloads" / "Sorted")
 
 
 class Manager:

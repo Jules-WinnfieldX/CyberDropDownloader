@@ -1,8 +1,13 @@
-from asyncio import Queue
-from dataclasses import field
+from __future__ import annotations
 
-from cyberdrop_dl.clients.download_client import DownloadClient
-from cyberdrop_dl.managers.manager import Manager
+from dataclasses import field
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from asyncio import Queue
+
+    from cyberdrop_dl.clients.download_client import DownloadClient
+    from cyberdrop_dl.managers.manager import Manager
 
 
 class Downloader:

@@ -1,15 +1,20 @@
-import asyncio
-from asyncio import Queue
-from dataclasses import field
+from __future__ import annotations
 
-from cyberdrop_dl.clients.scraper_client import ScraperClient
-from cyberdrop_dl.managers.manager import Manager
-from cyberdrop_dl.utils.dataclasses.url_objects import ScrapeItem
+import asyncio
+from dataclasses import field
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from asyncio import Queue
+
+    from cyberdrop_dl.clients.scraper_client import ScraperClient
+    from cyberdrop_dl.managers.manager import Manager
+    from cyberdrop_dl.utils.dataclasses.url_objects import ScrapeItem
 
 
 class BunkrCrawler:
     def __init__(self, manager: Manager):
-        self.manager: Manager = manager
+        self.manager = manager
         self.client: ScraperClient = field(init=False)
 
         self.scraped_items: list = []

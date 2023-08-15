@@ -1,10 +1,18 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from InquirerPy import inquirer
 from InquirerPy.base.control import Choice
 from InquirerPy.validator import PathValidator, EmptyInputValidator, NumberValidator
 from rich.console import Console
 
-from cyberdrop_dl.managers.manager import Manager
 from cyberdrop_dl.utils.dataclasses.supported_domains import SupportedDomains
+
+if TYPE_CHECKING:
+    from typing import Dict
+
+    from cyberdrop_dl.managers.manager import Manager
 
 console = Console()
 
@@ -82,7 +90,7 @@ def edit_config_values_prompt(manager: Manager, new_conf: bool = False, new_conf
             return
 
 
-def edit_download_options_prompt(config: dict) -> None:
+def edit_download_options_prompt(config: Dict) -> None:
     """Edit the download options"""
     console.clear()
     action = inquirer.checkbox(
@@ -113,7 +121,7 @@ def edit_download_options_prompt(config: dict) -> None:
         config["Download_Options"][key] = True
 
 
-def edit_input_output_file_paths_prompt(config: dict) -> None:
+def edit_input_output_file_paths_prompt(config: Dict) -> None:
     """Edit the input / output file paths"""
     console.clear()
     console.print("Editing Input / Output File Paths")
@@ -138,7 +146,7 @@ def edit_input_output_file_paths_prompt(config: dict) -> None:
     config['Files']['download_folder'] = download_folder
 
 
-def edit_log_file_naming_path_prompt(config: dict) -> None:
+def edit_log_file_naming_path_prompt(config: Dict) -> None:
     """Edit the log file naming / path"""
     console.clear()
     console.print("Editing Log File Naming / Path")
@@ -181,7 +189,7 @@ def edit_log_file_naming_path_prompt(config: dict) -> None:
     config['Logs']['scrape_error_urls_filename'] = scrape_error_urls_filename
 
 
-def edit_file_size_limits_prompt(config: dict) -> None:
+def edit_file_size_limits_prompt(config: Dict) -> None:
     """Edit the file size limits"""
     console.clear()
     console.print("Editing File Size Limits")
@@ -230,7 +238,7 @@ def edit_file_size_limits_prompt(config: dict) -> None:
     config['File_Size_Limits']['minimum_other_size'] = minimum_other_size
 
 
-def edit_ignore_options_prompt(config: dict) -> None:
+def edit_ignore_options_prompt(config: Dict) -> None:
     """Edit the ignore options"""
     console.clear()
     console.print("Editing Ignore Options")
@@ -277,7 +285,7 @@ def edit_ignore_options_prompt(config: dict) -> None:
     config["Ignore_Options"]["only_hosts"] = only_hosts
 
 
-def edit_runtime_options_prompt(config: dict) -> None:
+def edit_runtime_options_prompt(config: Dict) -> None:
     """Edit the runtime options"""
     console.clear()
     console.print("Editing Runtime Options")
@@ -309,7 +317,7 @@ def edit_runtime_options_prompt(config: dict) -> None:
         config["Runtime_Options"][key] = True
 
 
-def edit_sort_options_prompt(config: dict) -> None:
+def edit_sort_options_prompt(config: Dict) -> None:
     """Edit the sort options"""
     console.clear()
     console.print("Editing Sort Options")

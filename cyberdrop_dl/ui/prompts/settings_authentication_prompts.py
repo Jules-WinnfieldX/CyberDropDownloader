@@ -1,4 +1,6 @@
-from typing import Dict
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 
 from InquirerPy import inquirer
 from InquirerPy.base.control import Choice
@@ -6,6 +8,11 @@ from rich.console import Console
 
 from cyberdrop_dl.utils.args.browser_cookie_extraction import get_forum_cookies
 from cyberdrop_dl.managers.manager import Manager
+
+if TYPE_CHECKING:
+    from typing import Dict
+
+    from cyberdrop_dl.managers.manager import Manager
 
 console = Console()
 

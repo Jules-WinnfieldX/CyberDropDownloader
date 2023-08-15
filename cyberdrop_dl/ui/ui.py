@@ -1,15 +1,23 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from InquirerPy import inquirer
 from rich.console import Console
 
-from cyberdrop_dl.managers.manager import Manager
+
 from cyberdrop_dl.ui.prompts.settings_authentication_prompts import edit_authentication_values_prompt
-from cyberdrop_dl.ui.prompts.general_prompts import main_prompt, select_config_prompt, donations_prompt, \
-    import_cyberdrop_v4_items_prompt, manage_configs_prompt
+from cyberdrop_dl.ui.prompts.general_prompts import (
+    main_prompt, select_config_prompt, donations_prompt,
+    import_cyberdrop_v4_items_prompt, manage_configs_prompt)
 from cyberdrop_dl.ui.prompts.settings_global_prompts import edit_global_settings_prompt
 from cyberdrop_dl.ui.prompts.url_file_prompts import edit_urls_prompt, edit_urls_passwords_prompt
 from cyberdrop_dl.ui.prompts.settings_user_prompts import create_new_config_prompt, edit_config_values_prompt
 
 console = Console()
+
+if TYPE_CHECKING:
+    from cyberdrop_dl.managers.manager import Manager
 
 
 def program_ui(manager: Manager):

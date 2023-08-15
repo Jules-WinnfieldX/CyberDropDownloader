@@ -1,13 +1,19 @@
+from __future__ import annotations
+
 import asyncio
-from typing import Dict
+from typing import TYPE_CHECKING
 
 from cyberdrop_dl.downloader.downloader import Downloader
-from cyberdrop_dl.managers.manager import Manager
+
+if TYPE_CHECKING:
+    from typing import Dict
+
+    from cyberdrop_dl.managers.manager import Manager
 
 
 class DownloadManager:
     def __init__(self, manager: Manager):
-        self.manager: Manager = manager
+        self.manager = manager
         self.download_instances: Dict = {}
         self.download_instance_tasks: Dict = {}
 

@@ -42,8 +42,6 @@ def startup():
 async def director(manager: Manager):
     await manager.async_startup()
 
-    # TODO Change to if TYPE_CHECKING for all files
-
     scrape_mapper = ScrapeMapper(manager)
     asyncio.create_task(scrape_mapper.map_urls())
 

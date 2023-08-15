@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 import os
-from typing import List
+from typing import TYPE_CHECKING
 
 from InquirerPy import inquirer
 from InquirerPy.base.control import Choice
@@ -9,7 +11,11 @@ from rich.console import Console
 
 from cyberdrop_dl.utils.transfer.transfer_v4_config import transfer_v4_config
 from cyberdrop_dl.utils.transfer.transfer_v4_db import transfer_v4_db
-from cyberdrop_dl.managers.manager import Manager
+
+if TYPE_CHECKING:
+    from typing import List
+
+    from cyberdrop_dl.managers.manager import Manager
 
 
 console = Console()
