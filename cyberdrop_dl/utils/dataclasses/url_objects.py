@@ -1,6 +1,4 @@
 from dataclasses import field
-from pathlib import Path
-from typing import Optional
 
 from yarl import URL
 
@@ -13,6 +11,7 @@ class MediaItem:
         self.filename = filename
         self.ext = ext
         self.original_filename = original_filename
+        self.filesize: int = field(init=False)
 
 
 class ScrapeItem:
