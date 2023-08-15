@@ -51,7 +51,6 @@ settings: Dict = {
         "skip_download_mark_completed": False,
     },
     "Files": {
-        # TODO Verify these work with changing app storage/download storage
         "input_file": str(APP_STORAGE / "Configs" / "Default" / "URLs.txt"),
         "input_password_file": str(APP_STORAGE / "Configs" / "Default" / "URLs & Passwords.txt"),
         "download_folder": str(DOWNLOAD_STORAGE / "Cyberdrop-DL Downloads"),
