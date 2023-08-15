@@ -1,10 +1,12 @@
 from asyncio import Queue
+from typing import Dict
 
 
 class QueueManager:
     def __init__(self):
-        self.scraper_queues: dict = {}
-        self.download_queues: dict = {}
+        self.scraper_queues: Dict = {}
+        self.download_queues: Dict = {}
+        self.urls_objects_to_map = Queue()
 
     async def get_scraper_queue(self, key: str) -> Queue:
         if key not in self.scraper_queues:

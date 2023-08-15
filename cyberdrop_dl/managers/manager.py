@@ -7,6 +7,7 @@ from cyberdrop_dl.managers.db_manager import DBManager
 from cyberdrop_dl.managers.cache_manager import CacheManager
 from cyberdrop_dl.managers.config_manager import ConfigManager
 from cyberdrop_dl.managers.directory_manager import DirectoryManager, APP_STORAGE, DOWNLOAD_STORAGE
+from cyberdrop_dl.managers.download_manager import DownloadManager
 from cyberdrop_dl.managers.file_manager import FileManager
 from cyberdrop_dl.managers.queue_manager import QueueManager
 
@@ -27,6 +28,7 @@ class Manager:
         self.queue_manager: QueueManager = QueueManager()
         self.db_manager: DBManager = field(init=False)
         self.client_manager: ClientManager = field(init=False)
+        self.download_manager: DownloadManager = field(init=False)
 
         self.cache_manager.startup(self.directory_manager.cache / "cache.yaml")
 
@@ -96,6 +98,7 @@ class Manager:
         """Async startup process for the manager"""
         self.db_manager = DBManager(self.file_manager.history_db)
         self.client_manager = ClientManager(self)
+        self.download_manager = DownloadManager(self)
 
         await self.db_manager.startup()
 
@@ -103,3 +106,4 @@ class Manager:
         """Closes the manager"""
         await self.db_manager.close()
         await self.client_manager.close()
+        await self.download_manager.close()
