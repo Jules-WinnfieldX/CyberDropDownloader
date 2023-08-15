@@ -1,3 +1,27 @@
+[tool.poetry]
+name = "cyberdrop-dl"
+version = "5.0.1"
+description = "Bulk downloader for multiple file hosts"
+authors = ["Jules Winnfield <juleswinnfieldII@protonmail.com>"]
+readme = "README.md"
+repository = "https://github.com/Jules-WinnfieldX/CyberDropDownloader"
+documentation = ""
+packages = [{include = "cyberdrop-dl"}]
+
+[tool.poetry.dependencies]
+python = "^3.8"
+aiofiles = "^23.2.1"
+aiohttp = "^3.8.5"
+aiolimiter = "^1.1.0"
+aiosqlite = "^0.19.0"
+inquirerpy = "^0.3.4"
+platformdirs = "^3.10.0"
+rich = "^13.5.2"
+pyyaml = "^6.0.1"
+
+[tool.poetry.scripts]
+cyberdrop-dl = "cyberdrop-dl.main:main"
+
 [build-system]
-requires = ["setuptools", "wheel"]
-build-backend = "setuptools.build_meta"
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
