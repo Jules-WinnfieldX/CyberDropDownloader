@@ -21,6 +21,7 @@ pyyaml = "^6.0.1"
 certifi = "^2023.7.22"
 browser-cookie3 = "^0.19.1"
 aiorun = "^2023.7.2"
+beautifulsoup4 = "^4.12.2"
 
 [tool.poetry.scripts]
 cyberdrop-dl = "cyberdrop-dl.main:main"
