@@ -110,6 +110,10 @@ class Manager:
         self.client_manager = ClientManager(self)
         self.download_manager = DownloadManager(self)
 
+        from cyberdrop_dl.utils.utilities import MAX_NAME_LENGTHS
+        MAX_NAME_LENGTHS['FILE'] = self.config_manager.global_settings_data['General']['max_file_name_length']
+        MAX_NAME_LENGTHS['FOLDER'] = self.config_manager.global_settings_data['General']['max_folder_name_length']
+
         await self.db_manager.startup()
 
     async def close(self):
