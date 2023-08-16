@@ -40,6 +40,16 @@ async def sanitize(name: str) -> str:
     return re.sub(r'[<>:"/\\|?*\']', "", name).strip()
 
 
+async def sanitize_folder(title: str) -> str:
+    """Simple sanitization to remove illegal characters from titles and trim the length to be less than 60 chars"""
+    title = title.replace("\n", "").strip()
+    title = title.replace("\t", "").strip()
+    title = re.sub(' +', ' ', title)
+    title = re.sub(r'[\\*?:"<>|./]', "-", title)
+    title = title[:MAX_NAME_LENGTHS['FOLDER']].strip()
+    return title
+
+
 async def get_filename_and_ext(filename: str, forum: bool = False) -> Tuple[str, str]:
     """Returns the filename and extension of a given file, throws NoExtensionFailure if there is no extension"""
     filename_parts = filename.rsplit('.', 1)
