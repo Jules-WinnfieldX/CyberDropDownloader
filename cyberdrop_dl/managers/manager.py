@@ -114,6 +114,8 @@ class Manager:
         MAX_NAME_LENGTHS['FILE'] = self.config_manager.global_settings_data['General']['max_file_name_length']
         MAX_NAME_LENGTHS['FOLDER'] = self.config_manager.global_settings_data['General']['max_folder_name_length']
 
+        self.db_manager.ignore_history = self.config_manager.settings_data['Runtime_Options']['ignore_history']
+        self.db_manager.ignore_cache = self.config_manager.settings_data['Runtime_Options']['ignore_cache']
         await self.db_manager.startup()
 
     async def close(self):

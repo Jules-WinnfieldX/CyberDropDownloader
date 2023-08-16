@@ -13,6 +13,9 @@ class DBManager:
         self.db_conn: aiosqlite.Connection = field(init=False)
         self.db_path: Path = db_path
 
+        self.ignore_cache: bool = False
+        self.ignore_history: bool = False
+
         self.cache_table: CacheTable = field(init=False)
         self.history_table: HistoryTable = field(init=False)
         self.temp_table: TempTable = field(init=False)
@@ -24,6 +27,9 @@ class DBManager:
         self.cache_table = CacheTable(self.db_conn)
         self.history_table = HistoryTable(self.db_conn)
         self.temp_table = TempTable(self.db_conn)
+
+        self.cache_table.ignore_cache = self.ignore_cache
+        self.history_table.ignore_history = self.ignore_history
 
         await self._pre_allocate()
 
