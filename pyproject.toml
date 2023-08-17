@@ -6,7 +6,7 @@ authors = ["Jules Winnfield <juleswinnfieldII@protonmail.com>"]
 readme = "README.md"
 repository = "https://github.com/Jules-WinnfieldX/CyberDropDownloader"
 documentation = ""
-packages = [{include = "cyberdrop-dl"}]
+packages = [{include = "cyberdrop_dl"}]
 
 [tool.poetry.dependencies]
 python = "^3.8"
@@ -24,7 +24,7 @@ aiorun = "^2023.7.2"
 beautifulsoup4 = "^4.12.2"
 
 [tool.poetry.scripts]
-cyberdrop-dl = "cyberdrop-dl.main:main"
+cyberdrop-dl = "cyberdrop_dl.main:main"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

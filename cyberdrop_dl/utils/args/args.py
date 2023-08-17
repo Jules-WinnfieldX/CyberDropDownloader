@@ -1,8 +1,6 @@
 import argparse
-from pathlib import Path
 
 from cyberdrop_dl import __version__ as VERSION
-from cyberdrop_dl.managers.directory_manager import APP_STORAGE, DOWNLOAD_STORAGE
 from cyberdrop_dl.utils.dataclasses.supported_domains import SupportedDomains
 
 

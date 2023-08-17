@@ -25,6 +25,7 @@ class ClientManager:
         self.verify_ssl = not manager.config_manager.global_settings_data['General']['allow_insecure_connections']
         self.ssl_context = ssl.create_default_context(cafile=certifi.where()) if self.verify_ssl else False
         self.cookies = aiohttp.CookieJar(quote_cookie=False)
+        self.proxy = manager.config_manager.global_settings_data['General']['proxy']
 
         self.scraper_sessions = {}
         self.downloader_sessions = {}

@@ -236,7 +236,7 @@ class Downloader:
             resume_point = partial_file.stat().st_size if partial_file.exists() else 0
             headers = {'Range': f'bytes={resume_point}-'}
 
-            # await self.client.download_file(self.manager, media_item, complete_file, partial_file, headers)
+            await self.client.download_file(self.manager, media_item, complete_file, partial_file, headers)
             partial_file.rename(complete_file)
 
             await self.mark_completed(media_item)

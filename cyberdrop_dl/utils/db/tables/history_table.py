@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import aiosqlite
 from typing import TYPE_CHECKING
 from yarl import URL

@@ -29,7 +29,7 @@ def startup():
             level=logging.DEBUG,
             format="%(asctime)s:%(levelname)s:%(module)s:%(filename)s:%(lineno)d:%(message)s",
             filemode="w",
-            handlers=[RichHandler(rich_tracebacks=True)]
+            # handlers=[RichHandler(rich_tracebacks=True)]
         )
 
         return manager
