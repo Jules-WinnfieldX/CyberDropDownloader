@@ -11,8 +11,10 @@ class MediaItem:
         self.download_folder: Path = download_folder
         self.filename = filename
         self.ext = ext
+        self.download_filename: str = field(init=False)
         self.original_filename = original_filename
         self.filesize: int = field(init=False)
+        self.current_attempt: int = field(init=False)
 
 
 class ScrapeItem:
