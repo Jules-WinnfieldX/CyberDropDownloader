@@ -12,7 +12,7 @@ def transfer_v4_db(db_path: Path, new_db_path: Path) -> None:
     new_db_connection.execute(create_cache)
     new_db_connection.execute(create_temp)
 
-    query = "SELECT domain, url_path, album_path, referer, original_filename, completed FROM media WHERE completed = 1"
+    query = "SELECT domain, url_path, referer, download_filename, original_filename, completed FROM media WHERE completed = 1"
     old_data_history = old_db_connection.execute(query).fetchall()
 
     new_db_connection.execute("insert into media values (?, ?, ?, ?, ?, ?)", old_data_history)
