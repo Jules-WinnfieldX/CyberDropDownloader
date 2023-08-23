@@ -85,7 +85,7 @@ class BunkrCrawler:
         return album_obj
 
     async def get_stream_link(self, url: URL):
-        cdn_possibilities = r"^(?:media-files|cdn|c)[0-9]{0,2}\.bunkrr?\.[a-z]{2,3}$"
+        cdn_possibilities = r"^(?:(?:(?:media-files|cdn|c)[0-9]{0,2})|(?:(?:big-taco-)[0-9]{0,2}(?:redir)?))\.bunkr?\.[a-z]{2,3}$"
 
         if not re.match(cdn_possibilities, url.host):
             return url
