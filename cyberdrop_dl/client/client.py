@@ -147,7 +147,8 @@ class DownloadSession:
         self.client_session = aiohttp.ClientSession(headers=self.headers, raise_for_status=True,
                                                     cookie_jar=self.client.cookies, timeout=self.timeouts)
         self.throttle_times: Dict[str, float] = {}
-        self.bunkr_maintenance = [URL("https://bnkr.b-cdn.net/maintenance-vid.mp4"), URL("https://bnkr.b-cdn.net/maintenance.mp4")]
+        self.bunkr_maintenance = [URL("https://bnkr.b-cdn.net/maintenance-vid.mp4"), URL("https://bnkr.b-cdn.net/maintenance.mp4"),
+                                  URL("https://bunkrstatic.b-cdn.net/v/maintenance-kek-bunkr.webm")]
 
     async def _append_content(self, file: Path, content: aiohttp.StreamReader,
                               update_progress: functools.partial | Callable[[int], Optional[bool]]) -> None:
