@@ -85,7 +85,7 @@ class BunkrCrawler:
         return album_obj
 
     async def get_stream_link(self, url: URL):
-        cdn_possibilities = r"^(?:(?:(?:media-files|cdn|c)[0-9]{0,2})|(?:(?:big-taco-|cdn-pizza)[0-9]{0,2}(?:redir)?))\.bunkr?\.[a-z]{2,3}$"
+        cdn_possibilities = r"^(?:(?:(?:media-files|cdn|c|pizza)[0-9]{0,2})|(?:(?:big-taco-|cdn-pizza)[0-9]{0,2}(?:redir)?))\.bunkr?\.[a-z]{2,3}$"
 
         if not re.match(cdn_possibilities, url.host):
             return url
@@ -121,34 +121,30 @@ class BunkrCrawler:
         return url
 
     async def get_video(self, session: ScrapeSession, url: URL):
-        # filename = url.parts[-1] if url.parts[-1] else url.parts[-2]
-        # async with self.small_limiter:
-        #     json_obj = await session.post(self.api_link / "getToken", {})
-        #     if not json_obj:
-        #         raise Exception("No Token Object returned")
-        #     token = json_obj["token"]
-        #
-        #     queries = {"file_name": filename, "tkn": token}
-        #     link = (self.api_link / "getFile").with_query(queries)
-        #     headers_resp, link_resp = await session.head(link, {"Referer": str(url)})
-
-        async with self.limiter:
-            soup = await session.get_BS4(url)
-            link = soup.select_one("a[class*=bg-blue-500]")
-            link_resp = URL(link.get("href"))
-
         try:
-            filename, ext = await get_filename_and_ext(link_resp.name)
-        except NoExtensionFailure:
-            filename, ext = await get_filename_and_ext(url.name)
-        if ext not in FILE_FORMATS['Images']:
-            link_resp = await self.check_for_la(link_resp)
+            async with self.limiter:
+                soup = await session.get_BS4(url)
+                link = soup.select("a[class*=bg-blue-500]")
+                link = link[-1]
+                link_resp = URL(link.get("href"))
 
-        original_filename, filename = await self.remove_id(filename, ext)
+            try:
+                filename, ext = await get_filename_and_ext(link_resp.name)
+            except NoExtensionFailure:
+                filename, ext = await get_filename_and_ext(url.name)
+            if ext not in FILE_FORMATS['Images']:
+                link_resp = await self.check_for_la(link_resp)
 
-        await self.SQL_Helper.fix_bunkr_entries(link_resp, original_filename)
-        complete = await self.SQL_Helper.check_complete_singular("bunkr", link_resp)
-        return MediaItem(link_resp, url, complete, filename, ext, original_filename)
+            original_filename, filename = await self.remove_id(filename, ext)
+
+            await self.SQL_Helper.fix_bunkr_entries(link_resp, original_filename)
+            complete = await self.SQL_Helper.check_complete_singular("bunkr", link_resp)
+            return MediaItem(link_resp, url, complete, filename, ext, original_filename)
+        except Exception as e:
+            logger.debug("Error encountered while handling %s", url, exc_info=True)
+            await self.error_writer.write_errored_scrape(url, e, self.quiet)
+            logger.debug(e)
+            return MediaItem(url, url, False, "", "", "")
 
     async def get_file(self, session: ScrapeSession, url: URL):
         """Gets the media item from the supplied url"""
@@ -187,7 +183,6 @@ class BunkrCrawler:
 
         except Exception as e:
             logger.debug("Error encountered while handling %s", url, exc_info=True)
-            log(f"Error: {url}", quiet=self.quiet, style="red")
             await self.error_writer.write_errored_scrape(url, e, self.quiet)
             logger.debug(e)
             return MediaItem(url, url, False, "", "", "")
@@ -218,7 +213,6 @@ class BunkrCrawler:
                     referer = await self.get_stream_link(link)
                 except Exception as e:
                     logger.debug("Error encountered while handling %s", link, exc_info=True)
-                    log(f"Error: {link}", quiet=self.quiet, style="red")
                     await self.error_writer.write_errored_scrape(link, e, self.quiet)
                     logger.debug(e)
                     continue
