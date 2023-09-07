@@ -232,7 +232,7 @@ async def regex_links(urls: List) -> List:
             continue
 
         all_links = [x.group().replace(".md.", ".") for x in re.finditer(
-            r"(?:http.*?)(?=($|\n|\r\n|\r|\s|\"|\[/URL]|]\[|\[/img]))", line)]
+            r"(?:http.*?)(?=($|\n|\r\n|\r|\s|\"|\[/URL]|']\[|]\[|\[/img]))", line)]
         for link in all_links:
             yarl_links.append(URL(link))
     return yarl_links
