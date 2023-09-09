@@ -3,7 +3,7 @@ import contextlib
 import logging
 
 import aiorun
-from rich.logging import RichHandler
+from rich.live import Live
 
 from cyberdrop_dl.managers.manager import Manager
 from cyberdrop_dl.scraper.scraper import ScrapeMapper
@@ -29,7 +29,6 @@ def startup():
             level=logging.DEBUG,
             format="%(asctime)s:%(levelname)s:%(module)s:%(filename)s:%(lineno)d:%(message)s",
             filemode="w",
-            # handlers=[RichHandler(rich_tracebacks=True)]
         )
 
         return manager
@@ -42,8 +41,10 @@ def startup():
 async def director(manager: Manager):
     await manager.async_startup()
 
-    scrape_mapper = ScrapeMapper(manager)
-    asyncio.create_task(scrape_mapper.map_urls())
+    with Live(manager.progress_manager.layout, refresh_per_second=manager.progress_manager.refresh_rate):
+        scrape_mapper = ScrapeMapper(manager)
+        task = asyncio.create_task(scrape_mapper.map_urls())
+        await asyncio.gather(task)
 
 
 def main():

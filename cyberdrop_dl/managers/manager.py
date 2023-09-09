@@ -9,6 +9,7 @@ from cyberdrop_dl.managers.config_manager import ConfigManager
 from cyberdrop_dl.managers.directory_manager import DirectoryManager
 from cyberdrop_dl.managers.download_manager import DownloadManager
 from cyberdrop_dl.managers.file_manager import FileManager
+from cyberdrop_dl.managers.progress_manager import ProgressManager
 from cyberdrop_dl.managers.queue_manager import QueueManager
 
 
@@ -39,6 +40,7 @@ class Manager:
         self.db_manager: DBManager = field(init=False)
         self.client_manager: ClientManager = field(init=False)
         self.download_manager: DownloadManager = field(init=False)
+        self.progress_manager: ProgressManager = field(init=False)
 
         self.cache_manager.startup(self.directory_manager.cache / "cache.yaml")
 
@@ -117,6 +119,7 @@ class Manager:
         self.db_manager.ignore_history = self.config_manager.settings_data['Runtime_Options']['ignore_history']
         self.db_manager.ignore_cache = self.config_manager.settings_data['Runtime_Options']['ignore_cache']
         await self.db_manager.startup()
+        await self.progress_manager.startup()
 
     async def close(self):
         """Closes the manager"""

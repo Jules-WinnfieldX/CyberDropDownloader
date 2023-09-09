@@ -51,12 +51,12 @@ class ScrapeMapper:
             scrape_item: ScrapeItem = await self.manager.queue_manager.url_objects_to_map.get()
 
             if not scrape_item.url:
-                return
+                continue
             if not scrape_item.url.host:
-                return
+                continue
 
             key = next((key for key in self.mapping if key in scrape_item.url.host), None)
             if key:
                 handler = self.mapping[key]
                 await handler(scrape_item=scrape_item)
-                return
+                continue

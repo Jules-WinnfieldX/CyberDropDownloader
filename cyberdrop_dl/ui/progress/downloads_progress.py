@@ -7,20 +7,20 @@ from rich.progress import Progress, BarColumn
 class DownloadsProgress:
     """Class that keeps track of completed, skipped and failed files"""
 
-    def __init__(self, total_files: int):
+    def __init__(self):
         self.progress = Progress("[progress.description]{task.description}",
                                  BarColumn(bar_width=None),
                                  "[progress.percentage]{task.percentage:>3.2f}%",
                                  "{task.completed} of {task.total} Files Completed")
         self.progress_group = Group(self.progress)
 
-        self.completed_files_task_id = self.progress.add_task("[green]Completed", total=total_files)
+        self.completed_files_task_id = self.progress.add_task("[green]Completed", total=0)
         self.completed_files = 0
-        self.previously_completed_files_task_id = self.progress.add_task("[Yellow]Previously Downloaded", total=total_files)
+        self.previously_completed_files_task_id = self.progress.add_task("[Yellow]Previously Downloaded", total=0)
         self.previously_completed_files = 0
-        self.skipped_files_task_id = self.progress.add_task("[yellow]Skipped By Configuration", total=total_files)
+        self.skipped_files_task_id = self.progress.add_task("[yellow]Skipped By Configuration", total=0)
         self.skipped_files = 0
-        self.failed_files_task_id = self.progress.add_task("[red]Failed", total=total_files)
+        self.failed_files_task_id = self.progress.add_task("[red]Failed", total=0)
         self.failed_files = 0
 
     async def get_progress(self) -> Group:
