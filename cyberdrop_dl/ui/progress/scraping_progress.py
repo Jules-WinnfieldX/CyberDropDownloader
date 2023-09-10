@@ -1,6 +1,7 @@
 from typing import List
 
 from rich.console import Group
+from rich.panel import Panel
 from rich.progress import Progress, SpinnerColumn, TaskID
 from yarl import URL
 
@@ -29,8 +30,8 @@ class ScrapingProgress:
         self.invisible_tasks: List[TaskID] = []
         self.tasks_visibility_limit = visible_tasks_limit
 
-    async def get_progress(self) -> Group:
-        return self.progress_group
+    async def get_progress(self) -> Panel:
+        return Panel(self.progress_group, title="Scraping", border_style="green", padding=(1, 1))
 
     async def redraw(self):
         while len(self.visible_tasks) > self.tasks_visibility_limit:

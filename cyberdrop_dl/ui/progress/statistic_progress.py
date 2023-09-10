@@ -1,8 +1,7 @@
-
-
-from typing import Tuple, List, Dict
+from typing import Dict
 
 from rich.console import Group
+from rich.panel import Panel
 from rich.progress import Progress, BarColumn, TaskID
 
 
@@ -17,24 +16,22 @@ class DownloadStatsProgress:
         self.progress_group = Group(self.progress)
 
         self.failure_types: Dict[str, TaskID] = {}
-        self.failed_files_task_id = self.progress.add_task("[red]Failed", total=0)
         self.failed_files = 0
 
-    async def get_progress(self) -> Group:
-        return self.progress_group
+    async def get_progress(self) -> Panel:
+        return Panel(self.progress_group, title="Download Failures", border_style="green", padding=(1, 1))
 
     async def update_total(self, total: int) -> None:
         for key in self.failure_types.keys():
             self.progress.update(self.failure_types[key], total=total)
 
     async def add_failure(self, failure_type: str) -> None:
+        self.failed_files += 1
         if failure_type in self.failure_types:
             self.progress.advance(self.failure_types[failure_type], 1)
         else:
-            self.failure_types[failure_type] = self.progress.add_task(failure_type, total=1)
-
-        self.progress.advance(self.failed_files_task_id, 1)
-        self.failed_files += 1
+            self.failure_types[failure_type] = self.progress.add_task(failure_type, total=self.failed_files, completed=1)
+        await self.update_total(self.failed_files)
 
     async def return_totals(self) -> Dict:
         failures = {}
@@ -54,24 +51,22 @@ class ScrapeStatsProgress:
         self.progress_group = Group(self.progress)
 
         self.failure_types: Dict[str, TaskID] = {}
-        self.failed_files_task_id = self.progress.add_task("[red]Failed", total=0)
         self.failed_files = 0
 
-    async def get_progress(self) -> Group:
-        return self.progress_group
+    async def get_progress(self) -> Panel:
+        return Panel(self.progress_group, title="Scrape Failures", border_style="green", padding=(1, 1))
 
     async def update_total(self, total: int) -> None:
         for key in self.failure_types.keys():
             self.progress.update(self.failure_types[key], total=total)
 
     async def add_failure(self, failure_type: str) -> None:
+        self.failed_files += 1
         if failure_type in self.failure_types:
             self.progress.advance(self.failure_types[failure_type], 1)
         else:
-            self.failure_types[failure_type] = self.progress.add_task(failure_type, total=1)
-
-        self.progress.advance(self.failed_files_task_id, 1)
-        self.failed_files += 1
+            self.failure_types[failure_type] = self.progress.add_task(failure_type, total=self.failed_files, completed=1)
+        await self.update_total(self.failed_files)
 
     async def return_totals(self) -> Dict:
         failures = {}

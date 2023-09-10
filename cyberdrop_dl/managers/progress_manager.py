@@ -30,8 +30,8 @@ class ProgressManager:
         progress_layout = Layout()
         progress_layout.split_column(
             Layout(name="upper", ratio=1),
-            Layout(renderable=await self.scraping_progress.get_progress(), name="Scraping", ratio=1),
-            Layout(renderable=await self.file_progress.get_progress(), name="Downloads", ratio=1),
+            Layout(renderable=await self.scraping_progress.get_progress(), name="Scraping", ratio=2),
+            Layout(renderable=await self.file_progress.get_progress(), name="Downloads", ratio=2),
         )
         progress_layout["upper"].split_row(
             Layout(renderable=await self.download_progress.get_progress(), name="Files", ratio=1),

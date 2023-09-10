@@ -1,6 +1,7 @@
 from typing import Tuple
 
 from rich.console import Group
+from rich.panel import Panel
 from rich.progress import Progress, BarColumn
 
 
@@ -16,15 +17,15 @@ class DownloadsProgress:
 
         self.completed_files_task_id = self.progress.add_task("[green]Completed", total=0)
         self.completed_files = 0
-        self.previously_completed_files_task_id = self.progress.add_task("[Yellow]Previously Downloaded", total=0)
+        self.previously_completed_files_task_id = self.progress.add_task("[yellow]Previously Downloaded", total=0)
         self.previously_completed_files = 0
         self.skipped_files_task_id = self.progress.add_task("[yellow]Skipped By Configuration", total=0)
         self.skipped_files = 0
         self.failed_files_task_id = self.progress.add_task("[red]Failed", total=0)
         self.failed_files = 0
 
-    async def get_progress(self) -> Group:
-        return self.progress_group
+    async def get_progress(self) -> Panel:
+        return Panel(self.progress_group, title="Files", border_style="green", padding=(1, 1))
 
     async def update_total(self, total_files: int) -> None:
         self.progress.update(self.completed_files_task_id, total=total_files)

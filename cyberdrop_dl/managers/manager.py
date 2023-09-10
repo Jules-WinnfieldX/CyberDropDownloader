@@ -111,6 +111,7 @@ class Manager:
         self.db_manager = DBManager(self.file_manager.history_db)
         self.client_manager = ClientManager(self)
         self.download_manager = DownloadManager(self)
+        self.progress_manager = ProgressManager(self.config_manager.global_settings_data['Progress_Options'])
 
         from cyberdrop_dl.utils.utilities import MAX_NAME_LENGTHS
         MAX_NAME_LENGTHS['FILE'] = self.config_manager.global_settings_data['General']['max_file_name_length']
