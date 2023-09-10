@@ -23,6 +23,7 @@ if TYPE_CHECKING:
 class BunkrCrawler:
     def __init__(self, manager: Manager):
         self.manager = manager
+        self.scraping_progress = manager.progress_manager.scraping_progress
         self.client: ScraperClient = field(init=False)
 
         self.primary_base_domain = URL("https://bunkrr.su")
@@ -49,13 +50,16 @@ class BunkrCrawler:
     async def run_loop(self):
         while True:
             item: ScrapeItem = await self.scraper_queue.get()
-            self.complete = False
-            self.unfinished_count += 1
             if item.url in self.scraped_items:
                 continue
+
+            self.complete = False
+            self.unfinished_count += 1
+
             self.scraped_items.append(item.url)
             self._current_is_album = False
             await self.fetch(item)
+
             self.scraper_queue.task_done()
             self.unfinished_count -= 1
             if self.unfinished_count == 0 and self.scraper_queue.empty():
@@ -63,28 +67,26 @@ class BunkrCrawler:
 
     async def fetch(self, scrape_item: ScrapeItem):
         """Determines where to send the scrape item based on the url"""
-        url = scrape_item.url
-        extension = ('.' + url.parts[-1].split('.')[-1]).lower()
+        task_id = await self.scraping_progress.add_task(scrape_item.url)
+        scrape_item.url = await self.get_stream_link(scrape_item.url)
 
-        if url.path.startswith("/a/"):
+        if scrape_item.url.path.startswith("/a/"):
             self._current_is_album = True
             await self.album(scrape_item)
             return
 
-        elif url.path.startswith("/v/") or extension in FILE_FORMATS['Videos']:
+        elif scrape_item.url.path.startswith("/v/"):
             await self.video(scrape_item)
 
-        elif url.host.startswith("i") or extension in FILE_FORMATS['Images']:
-            await self.image(scrape_item)
-
-        elif (url.path.startswith("/d/") or
-              (extension not in FILE_FORMATS['Images'] and extension not in FILE_FORMATS['Videos'])):
+        else:
             await self.other(scrape_item)
+
+        await self.scraping_progress.remove_task(task_id)
 
     async def album(self, scrape_item: ScrapeItem):
         """Scrapes an album"""
         async with self.request_limiter:
-            soup = await self.client.get_BS4(scrape_item.url)
+            soup = await self.client.get_BS4("bunkr", scrape_item.url)
         title = soup.select_one('h1[class="text-[24px] font-bold text-dark dark:text-white"]')
         for elem in title.find_all("span"):
             elem.decompose()
@@ -103,52 +105,28 @@ class BunkrCrawler:
     async def video(self, scrape_item: ScrapeItem):
         """Scrapes a video"""
         async with self.request_limiter:
-            soup = await self.client.get_BS4(scrape_item.url)
-        link_container = soup.select_one("a[class*=bg-blue-500]")
+            soup = await self.client.get_BS4("bunkr", scrape_item.url)
+        link_container = soup.select("a[class*=bg-blue-500]")[-1]
         link = URL(link_container.get('href'))
 
         try:
             filename, ext = await get_filename_and_ext(link.name)
         except NoExtensionFailure:
             filename, ext = await get_filename_and_ext(scrape_item.url.name)
-        if ext not in FILE_FORMATS['Images']:
-            link = await self.check_for_la(link)
 
-        await self.handle_file(link, scrape_item.url, scrape_item.parent_title, filename, ext)
-
-    async def image(self, scrape_item: ScrapeItem):
-        """Scrapes an image"""
-        link = await self.get_stream_link(scrape_item.url)
-        scrape_item.url = link
-
-        filename, ext = await get_filename_and_ext(link.name)
-        original_filename, filename = await self.remove_id(filename, ext)
         await self.handle_file(link, scrape_item.url, scrape_item.parent_title, filename, ext)
 
     async def other(self, scrape_item: ScrapeItem):
-        """Scrapes an "other" file"""
+        """Scrapes an image"""
         async with self.request_limiter:
-            soup = await self.client.get_BS4(scrape_item.url)
-        head = soup.select_one("head")
-        scripts = head.select('script[type="text/javascript"]')
-        link = None
-
-        for script in scripts:
-            if script.text and "link.href" in script.text:
-                link = script.text.split('link.href = "')[-1].split('";')[0]
-                break
-        if not link:
-            raise
-
-        # URL Cleanup
-        link = URL(html.unescape(str(link)))
+            soup = await self.client.get_BS4("bunkr", scrape_item.url)
+        link_container = soup.select('a[class*="text-white inline-flex"]')[-1]
+        link = URL(link_container.get('href'))
 
         try:
             filename, ext = await get_filename_and_ext(link.name)
         except NoExtensionFailure:
             filename, ext = await get_filename_and_ext(scrape_item.url.name)
-        if ext not in FILE_FORMATS['Images']:
-            link = await self.check_for_la(link)
 
         await self.handle_file(link, scrape_item.url, scrape_item.parent_title, filename, ext)
 
@@ -184,15 +162,8 @@ class BunkrCrawler:
                 filename = filename + ext
             return original_filename, filename
 
-    async def check_for_la(self, url: URL):
-        assert url.host is not None
-        if "12" in url.host:
-            url_host = url.host.replace(".su", ".la").replace(".ru", ".la")
-            url = url.with_host(url_host)
-        return url
-
     async def get_stream_link(self, url: URL):
-        cdn_possibilities = r"^(?:media-files|cdn|c)[0-9]{0,2}\.bunkrr?\.[a-z]{2,3}$"
+        cdn_possibilities = r"^(?:(?:(?:media-files|cdn|c|pizza|cdn-burger)[0-9]{0,2})|(?:(?:big-taco-|cdn-pizza)[0-9]{0,2}(?:redir)?))\.bunkr?\.[a-z]{2,3}$"
 
         if not re.match(cdn_possibilities, url.host):
             return url
