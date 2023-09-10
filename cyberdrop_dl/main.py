@@ -38,13 +38,22 @@ def startup():
         exit(0)
 
 
+async def runtime(manager: Manager):
+    scrape_mapper = ScrapeMapper(manager)
+    download_manager = manager.download_manager
+    asyncio.create_task(scrape_mapper.map_urls())
+
+    while True:
+        if scrape_mapper.complete and download_manager.check_complete():
+            break
+        await asyncio.sleep(1)
+
+
 async def director(manager: Manager):
     await manager.async_startup()
 
     with Live(manager.progress_manager.layout, refresh_per_second=manager.progress_manager.refresh_rate):
-        scrape_mapper = ScrapeMapper(manager)
-        task = asyncio.create_task(scrape_mapper.map_urls())
-        await asyncio.gather(task)
+        await runtime(manager)
 
 
 def main():

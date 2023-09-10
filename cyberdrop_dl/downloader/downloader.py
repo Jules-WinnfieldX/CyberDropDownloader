@@ -64,6 +64,9 @@ class Downloader:
         self.download_queue: Queue = field(init=False)
         self.file_lock = FileLock()
 
+        self.complete = False
+        self.unfinished_count = 0
+
         self.current_attempt_filesize = {}
 
     async def startup(self):
@@ -74,10 +77,14 @@ class Downloader:
     async def run_loop(self):
         while True:
             media_item: MediaItem = await self.download_queue.get()
-            url_path = await get_db_path(media_item.url, str(media_item.referer))
+            self.complete = False
+            self.unfinished_count += 1
             media_item.current_attempt = 0
             await self.download(media_item)
             self.download_queue.task_done()
+            self.unfinished_count -= 1
+            if self.unfinished_count == 0 and self.download_queue.empty():
+                self.complete = True
 
     """~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"""
 

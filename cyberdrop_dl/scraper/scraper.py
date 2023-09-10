@@ -3,8 +3,6 @@ from __future__ import annotations
 import asyncio
 from typing import TYPE_CHECKING
 
-
-
 if TYPE_CHECKING:
     from cyberdrop_dl.managers.manager import Manager
     from cyberdrop_dl.utils.dataclasses.url_objects import ScrapeItem
@@ -28,6 +26,8 @@ class ScrapeMapper:
         #                 "redd.it": self.Reddit, "redgifs": self.RedGifs}
         self.manager = manager
 
+        self.complete = False
+
         self.existing_crawlers = {}
         self.existing_crawler_tasks = {}
         self.mapping = {}
@@ -37,14 +37,18 @@ class ScrapeMapper:
             from cyberdrop_dl.scraper.crawlers.bunkr_crawler import BunkrCrawler
             self.existing_crawlers["bunkr"] = BunkrCrawler(self.manager)
             await self.existing_crawlers["bunkr"].startup()
-            self.existing_crawler_tasks["bunkr"] = asyncio.create_task(self.existing_crawlers["bunkr"].run_loop())
+            # TODO create class for manager to keep track of domain limits / rate limits
+            await self.manager.download_manager.get_download_instance("bunkr", 2)
         await self.existing_crawlers["bunkr"].add_to_queue(scrape_item)
 
     """~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"""
 
-    async def close(self):
-        for task in self.existing_crawler_tasks.values():
-            task.cancel()
+    async def check_complete(self):
+        if self.manager.queue_manager.url_objects_to_map.empty():
+            for crawler in self.existing_crawlers.values():
+                if not crawler.complete:
+                    return False
+            return True
 
     async def map_urls(self):
         while True:
@@ -60,3 +64,6 @@ class ScrapeMapper:
                 handler = self.mapping[key]
                 await handler(scrape_item=scrape_item)
                 continue
+
+            if self.complete:
+                break

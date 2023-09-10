@@ -28,6 +28,9 @@ class BunkrCrawler:
         self.primary_base_domain = URL("https://bunkrr.su")
         self._current_is_album: bool = field(init=False)
 
+        self.complete = False
+        self.unfinished_count = 0
+
         self.scraped_items: list = []
         self.scraper_queue: Queue = field(init=False)
         self.download_queue: Queue = field(init=False)
@@ -46,12 +49,17 @@ class BunkrCrawler:
     async def run_loop(self):
         while True:
             item: ScrapeItem = await self.scraper_queue.get()
+            self.complete = False
+            self.unfinished_count += 1
             if item.url in self.scraped_items:
                 continue
             self.scraped_items.append(item.url)
             self._current_is_album = False
             await self.fetch(item)
             self.scraper_queue.task_done()
+            self.unfinished_count -= 1
+            if self.unfinished_count == 0 and self.scraper_queue.empty():
+                self.complete = True
 
     async def fetch(self, scrape_item: ScrapeItem):
         """Determines where to send the scrape item based on the url"""
