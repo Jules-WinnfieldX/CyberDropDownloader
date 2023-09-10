@@ -43,19 +43,6 @@ class BunkrCrawler:
 
         url = await self.get_stream_link(url)
 
-        if "v" in url.parts or "d" in url.parts:
-            if "v" in url.parts:
-                media = await self.get_video(session, url)
-            else:
-                media = await self.get_file(session, url)
-            if not media.filename:
-                return album_obj
-            await album_obj.add_media(media)
-            log(f"Finished: {url}", quiet=self.quiet, style="green")
-            if not media.complete:
-                await self.SQL_Helper.insert_media("bunkr", "", media)
-            return album_obj
-
         if "a" in url.parts:
             album_obj = await self.get_album(session, url)
             await self.SQL_Helper.insert_album("bunkr", url, album_obj)
@@ -64,24 +51,16 @@ class BunkrCrawler:
                 log(f"Finished: {url}", quiet=self.quiet, style="green")
             return album_obj
 
-        ext = '.' + url.parts[-1].split('.')[-1]
-        if ext:
-            ext = ext.lower()
-        if ext in FILE_FORMATS['Images']:
-            filename, ext = await get_filename_and_ext(url.name)
-            original_filename, filename = await self.remove_id(filename, ext)
-
-            await self.SQL_Helper.fix_bunkr_entries(url, original_filename)
-            check_complete = await self.SQL_Helper.check_complete_singular("bunkr", url)
-
-            media_item = MediaItem(url, url, check_complete, filename, ext, original_filename)
-            await album_obj.add_media(media_item)
+        elif "v" in url.parts:
+            media = await self.get_video(session, url)
         else:
-            media_item = await self.get_file(session, url)
-            await album_obj.add_media(media_item)
-
-        await self.SQL_Helper.insert_album("bunkr", url, album_obj)
+            media = await self.get_other(session, url)
+        if not media.filename:
+            return album_obj
+        await album_obj.add_media(media)
         log(f"Finished: {url}", quiet=self.quiet, style="green")
+        if not media.complete:
+            await self.SQL_Helper.insert_media("bunkr", "", media)
         return album_obj
 
     async def get_stream_link(self, url: URL):
@@ -95,7 +74,7 @@ class BunkrCrawler:
             return url
 
         if ext in FILE_FORMATS['Images']:
-            url = url.with_host(re.sub(r"^cdn(\d*)\.", r"i\1.", url.host))
+            url = self.primary_base_domain / "i" / url.parts[-1]
         elif ext in FILE_FORMATS['Videos']:
             url = self.primary_base_domain / "v" / url.parts[-1]
         else:
@@ -113,13 +92,6 @@ class BunkrCrawler:
                 filename = filename + ext
         return original_filename, filename
 
-    async def check_for_la(self, url: URL):
-        assert url.host is not None
-        if "12" in url.host:
-            url_host = url.host.replace(".su", ".la").replace(".ru", ".la")
-            url = url.with_host(url_host)
-        return url
-
     async def get_video(self, session: ScrapeSession, url: URL):
         try:
             async with self.limiter:
@@ -132,8 +104,6 @@ class BunkrCrawler:
                 filename, ext = await get_filename_and_ext(link_resp.name)
             except NoExtensionFailure:
                 filename, ext = await get_filename_and_ext(url.name)
-            if ext not in FILE_FORMATS['Images']:
-                link_resp = await self.check_for_la(link_resp)
 
             original_filename, filename = await self.remove_id(filename, ext)
 
@@ -146,41 +116,24 @@ class BunkrCrawler:
             logger.debug(e)
             return MediaItem(url, url, False, "", "", "")
 
-    async def get_file(self, session: ScrapeSession, url: URL):
-        """Gets the media item from the supplied url"""
-
-        url = self.primary_base_domain.with_path(url.path)
-
+    async def get_other(self, session: ScrapeSession, url: URL):
         try:
             async with self.limiter:
                 soup = await session.get_BS4(url)
-            head = soup.select_one("head")
-            scripts = head.select('script[type="text/javascript"]')
-            link = None
-
-            for script in scripts:
-                if script.text and "link.href" in script.text:
-                    link = script.text.split('link.href = "')[-1].split('";')[0]
-                    break
-            if not link:
-                raise
-
-            # URL Cleanup
-            link = URL(html.unescape(str(link)))
+                link = soup.select('a[class*="text-white inline-flex"]')
+                link = link[-1]
+                link_resp = URL(link.get("href"))
 
             try:
-                filename, ext = await get_filename_and_ext(link.name)
+                filename, ext = await get_filename_and_ext(link_resp.name)
             except NoExtensionFailure:
                 filename, ext = await get_filename_and_ext(url.name)
-            if ext not in FILE_FORMATS['Images']:
-                link = await self.check_for_la(link)
 
             original_filename, filename = await self.remove_id(filename, ext)
 
-            await self.SQL_Helper.fix_bunkr_entries(link, original_filename)
-            complete = await self.SQL_Helper.check_complete_singular("bunkr", link)
-            return MediaItem(link, url, complete, filename, ext, original_filename)
-
+            await self.SQL_Helper.fix_bunkr_entries(link_resp, original_filename)
+            complete = await self.SQL_Helper.check_complete_singular("bunkr", link_resp)
+            return MediaItem(link_resp, url, complete, filename, ext, original_filename)
         except Exception as e:
             logger.debug("Error encountered while handling %s", url, exc_info=True)
             await self.error_writer.write_errored_scrape(url, e, self.quiet)
@@ -217,44 +170,12 @@ class BunkrCrawler:
                     logger.debug(e)
                     continue
 
-                try:
-                    filename, ext = await get_filename_and_ext(link.name)
-                except NoExtensionFailure:
-                    logger.debug("Couldn't get extension for %s", link)
-                    filename = ""
-                    ext = ""
-
-                if ext in FILE_FORMATS["Images"]:
-                    if "d" in link.parts:
-                        media = await self.get_file(session, referer)
-                        filename = media.filename
-                        ext = media.ext
-                        link = media.url
-                    link = URL(str(link).replace("https://cdn", "https://i"))
+                if "v" in referer.parts:
+                    media = await self.get_video(session, referer)
                 else:
-                    try:
-                        if "v" in referer.parts:
-                            media = await self.get_video(session, referer)
-                            filename = media.filename
-                            ext = media.ext
-                        else:
-                            media = await self.get_file(session, referer)
-                            filename = media.filename
-                            ext = media.ext
-                        link = media.url
-                    except Exception as e:
-                        logger.debug("Error encountered while handling %s", referer, exc_info=True)
-                        await self.error_writer.write_errored_scrape(referer, e, self.quiet)
-                        continue
-
-                if ext not in FILE_FORMATS['Images']:
-                    link = await self.check_for_la(link)
-
-                original_filename, filename = await self.remove_id(filename, ext)
-
-                await self.SQL_Helper.fix_bunkr_entries(link, original_filename)
-                complete = await self.SQL_Helper.check_complete_singular("bunkr", link)
-                media = MediaItem(link, referer, complete, filename, ext, original_filename)
+                    media = await self.get_other(session, referer)
+                if not media.filename:
+                    continue
                 await album.add_media(media)
 
         except Exception as e:
