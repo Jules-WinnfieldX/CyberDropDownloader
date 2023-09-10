@@ -221,19 +221,26 @@ class BunkrCrawler:
                     filename, ext = await get_filename_and_ext(link.name)
                 except NoExtensionFailure:
                     logger.debug("Couldn't get extension for %s", link)
-                    continue
+                    filename = ""
+                    ext = ""
 
                 if ext in FILE_FORMATS["Images"]:
                     if "d" in link.parts:
                         media = await self.get_file(session, referer)
+                        filename = media.filename
+                        ext = media.ext
                         link = media.url
                     link = URL(str(link).replace("https://cdn", "https://i"))
                 else:
                     try:
                         if "v" in referer.parts:
                             media = await self.get_video(session, referer)
+                            filename = media.filename
+                            ext = media.ext
                         else:
                             media = await self.get_file(session, referer)
+                            filename = media.filename
+                            ext = media.ext
                         link = media.url
                     except Exception as e:
                         logger.debug("Error encountered while handling %s", referer, exc_info=True)
