@@ -184,12 +184,15 @@ class CoomenoCrawler:
             soup = BeautifulSoup(text, 'html.parser')
 
             if self.separate_posts:
-                time_tag = soup.select_one("time[class*=timestamp]")
+                time_tag = soup.select_one("div[class*=post__published]")
                 post_tag = soup.select_one("h1[class=post__title]")
-                assert post_tag is not None
-                assert time_tag is not None
+
+                del_tags = time_tag.select("div")
+                for tag in del_tags:
+                    tag.decompose()
+
                 post_title = post_tag.text.replace('\n', '').replace("..", "")
-                time = time_tag.text + " - "
+                time = time_tag.text.strip() + " - "
                 prefix = f"{url.parts[-1]} - " if self.include_id else ""
                 if title:
                     title = title + '/' + await make_title_safe(prefix + time + post_title)
