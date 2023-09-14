@@ -14,7 +14,7 @@ class NoExtensionFailure(Exception):
 
 
 class DownloadFailure(Exception):
-    """This error will be thrown when a download fails"""
+    """This error will be thrown when a request fails"""
     def __init__(self, status: int, message: str = "Something went wrong"):
         self.status = status
         self.message = message

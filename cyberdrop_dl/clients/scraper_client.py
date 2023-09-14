@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 import aiohttp
+from functools import wraps
 from typing import TYPE_CHECKING
 
-from aiolimiter import AsyncLimiter
+from aiohttp import ClientSession
 from bs4 import BeautifulSoup
 
 from cyberdrop_dl.clients.errors import InvalidContentTypeFailure
@@ -14,14 +15,19 @@ if TYPE_CHECKING:
     from cyberdrop_dl.managers.client_manager import ClientManager
 
 
-def scrape_limit(func):
+def limiter(func):
     """Wrapper handles limits for scrape session"""
-
+    @wraps(func)
     async def wrapper(self, *args, **kwargs):
-        async with self.client.simultaneous_session_limit:
-            async with self.rate_limiter:
-                return await func(self, *args, **kwargs)
+        domain_limiter = await self.client_manager.get_rate_limiter(args[0])
+        async with self.client_manager.session_limit:
+            await self.global_limiter.aquire()
+            await domain_limiter.aquire()
 
+            async with aiohttp.ClientSession(headers=self.headers, raise_for_status=False,
+                                             cookie_jar=self.client_manager.cookies, timeout=self.timeouts) as client:
+                kwargs['client_session'] = client
+                return await func(self, *args, **kwargs)
     return wrapper
 
 
@@ -29,16 +35,17 @@ class ScraperClient:
     """AIOHTTP operations for scraping"""
     def __init__(self, client_manager: ClientManager) -> None:
         self.client_manager = client_manager
-        self.rate_limiter = AsyncLimiter(client_manager.rate_limit, 1)
         self.headers = {"user-agent": client_manager.user_agent}
         self.timeouts = aiohttp.ClientTimeout(total=client_manager.connection_timeout + 60,
                                               connect=client_manager.connection_timeout)
-        self.client_session = aiohttp.ClientSession(headers=self.headers, raise_for_status=True,
-                                                    cookie_jar=client_manager.cookies, timeout=self.timeouts)
+        self.global_limiter = self.client_manager.global_rate_limiter
 
-    @scrape_limit
-    async def get_BS4(self, url: URL) -> BeautifulSoup:
-        async with self.client_session.get(url, ssl=self.client_manager.ssl_context) as response:
+    @limiter
+    async def get_BS4(self, domain: str, url: URL, client_session: ClientSession) -> BeautifulSoup:
+        """Returns a BeautifulSoup object from the given URL"""
+        async with client_session.get(url, headers=self.headers, ssl=self.client_manager.ssl_context,
+                                      proxy=self.client_manager.proxy) as response:
+            await self.client_manager.check_http_status(response.status, response.headers, response.url)
             content_type = response.headers.get('Content-Type')
             assert content_type is not None
             if not any(s in content_type.lower() for s in ("html", "text")):

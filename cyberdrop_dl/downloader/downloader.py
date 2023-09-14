@@ -42,15 +42,15 @@ class FileLock:
     def __init__(self):
         self.locked_files = []
 
-    async def check_lock(self, filename: str):
+    async def check_lock(self, filename: str) -> bool:
         """Checks if the file is locked"""
         return filename in self.locked_files
 
-    async def add_lock(self, filename: str):
+    async def add_lock(self, filename: str) -> None:
         """Adds a lock to the file"""
         self.locked_files.append(filename)
 
-    async def remove_lock(self, filename: str):
+    async def remove_lock(self, filename: str) -> None:
         """Removes a lock from the file"""
         self.locked_files.remove(filename)
 
@@ -69,12 +69,14 @@ class Downloader:
 
         self.current_attempt_filesize = {}
 
-    async def startup(self):
+    async def startup(self) -> None:
+        """Starts the downloader"""
         self.download_queue = await self.manager.queue_manager.get_download_queue(self.domain, 0)
         self.client = await self.manager.client_manager.get_downloader_session(self.domain)
         await self.set_additional_headers()
 
-    async def run_loop(self):
+    async def run_loop(self) -> None:
+        """Runs the download loop"""
         while True:
             media_item: MediaItem = await self.download_queue.get()
             self.complete = False
@@ -88,7 +90,7 @@ class Downloader:
 
     """~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"""
 
-    async def check_file_can_download(self, media_item: MediaItem):
+    async def check_file_can_download(self, media_item: MediaItem) -> bool:
         """Checks if the file can be downloaded"""
         if not await self.manager.download_manager.check_free_space():
             return False
@@ -100,6 +102,7 @@ class Downloader:
         return True
 
     async def check_filesize_limits(self, media: MediaItem) -> bool:
+        """Checks if the file size is within the limits"""
         max_video_filesize = self.manager.config_manager.settings_data['File_Size_Limits']['maximum_video_size']
         min_video_filesize = self.manager.config_manager.settings_data['File_Size_Limits']['minimum_video_size']
         max_image_filesize = self.manager.config_manager.settings_data['File_Size_Limits']['maximum_image_size']
@@ -133,7 +136,7 @@ class Downloader:
                 return False
         return True
 
-    async def get_download_dir(self, media_item: MediaItem):
+    async def get_download_dir(self, media_item: MediaItem) -> Path:
         """Returns the download directory for the media item"""
         download_folder = media_item.download_folder
         if self.manager.config_manager.settings_data['Download_Options']['block_download_sub_folders']:
@@ -141,20 +144,21 @@ class Downloader:
                 download_folder = download_folder.parent
         return download_folder
 
-    async def mark_incomplete(self, media_item: MediaItem):
+    async def mark_incomplete(self, media_item: MediaItem) -> None:
         """Marks the media item as incomplete in the database"""
         await self.manager.db_manager.history_table.insert_uncompleted(self.domain, media_item)
 
-    async def mark_completed(self, media_item: MediaItem):
+    async def mark_completed(self, media_item: MediaItem) -> None:
         """Marks the media item as completed in the database"""
         await self.manager.db_manager.history_table.mark_complete(self.domain, media_item)
 
-    async def set_additional_headers(self):
+    async def set_additional_headers(self) -> None:
         """Sets additional headers for the download session"""
         if self.manager.config_manager.authentication_data['PixelDrain']['pixeldrain_api_key']:
             self.client.headers["Authorization"] = await self.manager.download_manager.basic_auth("Cyberdrop-DL", self.manager.config_manager.authentication_data['PixelDrain']['pixeldrain_api_key'])
 
-    async def get_final_file_info(self, complete_file: Path, partial_file: Path, media_item: MediaItem) -> tuple[Path, Path, bool]:
+    async def get_final_file_info(self, complete_file: Path, partial_file: Path,
+                                  media_item: MediaItem) -> tuple[Path, Path, bool]:
         """Complicated checker for if a file already exists, and was already downloaded"""
         expected_size = media_item.filesize if isinstance(media_item.filesize, int) else None
         proceed = True
@@ -197,6 +201,7 @@ class Downloader:
         return complete_file, partial_file, proceed
 
     async def iterate_filename(self, complete_file: Path, media_item: MediaItem) -> Tuple[Path, Path]:
+        """Iterates the filename until it is unique"""
         partial_file = None
         for iteration in itertools.count(1):
             filename = f"{complete_file.stem} ({iteration}){media_item.ext}"
@@ -211,7 +216,7 @@ class Downloader:
     """~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"""
 
     @retry
-    async def download(self, media_item: MediaItem, url_path: str):
+    async def download(self, media_item: MediaItem) -> None:
         """Downloads the media item"""
         if media_item.current_attempt == self.manager.config_manager.global_settings_data['Rate_Limiting_Options']['download_attempts']:
             return
@@ -243,7 +248,10 @@ class Downloader:
             resume_point = partial_file.stat().st_size if partial_file.exists() else 0
             headers = {'Range': f'bytes={resume_point}-'}
 
-            await self.client.download_file(self.manager, media_item, complete_file, partial_file, headers)
+            file_task = await self.manager.progress_manager.file_progress.add_task(media_item.filename, media_item.filesize)
+            await self.manager.progress_manager.file_progress.advance_file(file_task, resume_point)
+
+            await self.client.download_file(self.manager, self.domain, media_item, partial_file, headers, file_task)
             partial_file.rename(complete_file)
 
             await self.mark_completed(media_item)
