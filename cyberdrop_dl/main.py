@@ -10,7 +10,7 @@ from cyberdrop_dl.scraper.scraper import ScrapeMapper
 from cyberdrop_dl.ui.ui import program_ui
 
 
-def startup():
+def startup() -> Manager:
     """
     Starts the program and returns the manager
     This will also run the UI for the program
@@ -38,7 +38,8 @@ def startup():
         exit(0)
 
 
-async def runtime(manager: Manager):
+async def runtime(manager: Manager) -> None:
+    """Main runtime loop for the program, this will run until all scraping and downloading is complete"""
     scrape_mapper = ScrapeMapper(manager)
     download_manager = manager.download_manager
     asyncio.create_task(scrape_mapper.map_urls())
@@ -49,7 +50,8 @@ async def runtime(manager: Manager):
         await asyncio.sleep(1)
 
 
-async def director(manager: Manager):
+async def director(manager: Manager) -> None:
+    """Runs the program and handles the UI"""
     await manager.async_startup()
 
     with Live(manager.progress_manager.layout, refresh_per_second=manager.progress_manager.refresh_rate):
