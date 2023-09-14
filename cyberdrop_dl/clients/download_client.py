@@ -70,6 +70,7 @@ class DownloadClient:
     async def _download(self, domain: str, manager: Manager, media_item: MediaItem, headers_inc: Dict,
                         save_content: Callable[[aiohttp.StreamReader], Coroutine[Any, Any, None]], file: Path,
                         file_task: TaskID, client_session: ClientSession) -> None:
+        """Downloads a file"""
         headers = copy.deepcopy(self.headers)
         headers['Referer'] = media_item.referer
         headers.update(headers_inc)
@@ -91,6 +92,7 @@ class DownloadClient:
 
     async def _append_content(self, file: Path, content: aiohttp.StreamReader,
                               update_progress: partial) -> None:
+        """Appends content to a file"""
         file.parent.mkdir(parents=True, exist_ok=True)
         async with aiofiles.open(file, mode='ab') as f:
             async for chunk, _ in content.iter_chunks():
@@ -100,7 +102,7 @@ class DownloadClient:
 
     async def download_file(self, manager: Manager, domain: str, media_item: MediaItem, partial_file: Path,
                             headers: Dict, file_task: TaskID) -> None:
-        """Downloads a file"""
+        """Starts a file"""
         async def save_content(content: aiohttp.StreamReader) -> None:
             await self._append_content(partial_file, content,
                                        partial(manager.progress_manager.file_progress.advance_file,

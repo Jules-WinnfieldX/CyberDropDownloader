@@ -34,7 +34,7 @@ class CacheManager:
         else:
             self.load()
 
-    def load(self):
+    def load(self) -> None:
         """Loads the cache file into memory"""
         self.cache = _load_yaml(self.cache_file)
 
@@ -42,12 +42,12 @@ class CacheManager:
         """Returns the value of a key in the cache"""
         return self.cache.get(key, None)
 
-    def save(self, key: str, value: Any):
+    def save(self, key: str, value: Any) -> None:
         """Saves a key and value to the cache"""
         self.cache[key] = value
         _save_yaml(self.cache_file, self.cache)
 
-    def remove(self, key: str):
+    def remove(self, key: str) -> None:
         """Removes a key from the cache"""
         if key in self.cache:
             del self.cache[key]

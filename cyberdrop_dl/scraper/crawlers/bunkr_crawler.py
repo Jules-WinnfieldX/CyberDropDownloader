@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import html
 import re
 from dataclasses import field
 from typing import TYPE_CHECKING
@@ -14,6 +13,8 @@ from cyberdrop_dl.utils.utilities import FILE_FORMATS, get_filename_and_ext, san
 
 if TYPE_CHECKING:
     from asyncio import Queue
+    from pathlib import Path
+    from typing import Tuple
 
     from cyberdrop_dl.clients.scraper_client import ScraperClient
     from cyberdrop_dl.managers.manager import Manager
@@ -38,7 +39,8 @@ class BunkrCrawler:
 
         self.request_limiter = AsyncLimiter(10, 1)
 
-    async def startup(self):
+    async def startup(self) -> None:
+        """Starts the crawler"""
         download_limit = self.manager.config_manager.settings_data.get("max_simultaneous_downloads_per_domain")
         download_limit = 2 if download_limit > 2 else download_limit
 
@@ -47,7 +49,8 @@ class BunkrCrawler:
 
         self.client = await self.manager.client_manager.get_scraper_session("bunkr")
 
-    async def run_loop(self):
+    async def run_loop(self) -> None:
+        """Runs the crawler loop"""
         while True:
             item: ScrapeItem = await self.scraper_queue.get()
             if item.url in self.scraped_items:
@@ -65,7 +68,7 @@ class BunkrCrawler:
             if self.unfinished_count == 0 and self.scraper_queue.empty():
                 self.complete = True
 
-    async def fetch(self, scrape_item: ScrapeItem):
+    async def fetch(self, scrape_item: ScrapeItem) -> None:
         """Determines where to send the scrape item based on the url"""
         task_id = await self.scraping_progress.add_task(scrape_item.url)
         scrape_item.url = await self.get_stream_link(scrape_item.url)
@@ -83,7 +86,7 @@ class BunkrCrawler:
 
         await self.scraping_progress.remove_task(task_id)
 
-    async def album(self, scrape_item: ScrapeItem):
+    async def album(self, scrape_item: ScrapeItem) -> None:
         """Scrapes an album"""
         async with self.request_limiter:
             soup = await self.client.get_BS4("bunkr", scrape_item.url)
@@ -102,7 +105,7 @@ class BunkrCrawler:
             link = await self.get_stream_link(link)
             await self.fetch(ScrapeItem(link, title))
 
-    async def video(self, scrape_item: ScrapeItem):
+    async def video(self, scrape_item: ScrapeItem) -> None:
         """Scrapes a video"""
         async with self.request_limiter:
             soup = await self.client.get_BS4("bunkr", scrape_item.url)
@@ -116,8 +119,8 @@ class BunkrCrawler:
 
         await self.handle_file(link, scrape_item.url, scrape_item.parent_title, filename, ext)
 
-    async def other(self, scrape_item: ScrapeItem):
-        """Scrapes an image"""
+    async def other(self, scrape_item: ScrapeItem) -> None:
+        """Scrapes an image/other file"""
         async with self.request_limiter:
             soup = await self.client.get_BS4("bunkr", scrape_item.url)
         link_container = soup.select('a[class*="text-white inline-flex"]')[-1]
@@ -130,7 +133,7 @@ class BunkrCrawler:
 
         await self.handle_file(link, scrape_item.url, scrape_item.parent_title, filename, ext)
 
-    async def handle_file(self, url: URL, referer: URL, folder_name: str, filename: str, ext: str):
+    async def handle_file(self, url: URL, referer: URL, folder_name: str, filename: str, ext: str) -> None:
         """Finishes handling the file and hands it off to the download_queue"""
         original_filename, filename = await self.remove_id(filename, ext)
 
@@ -144,14 +147,14 @@ class BunkrCrawler:
 
     """~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"""
 
-    async def get_download_path(self, folder_name):
+    async def get_download_path(self, folder_name) -> Path:
         """Returns the path to the download folder"""
         if self._current_is_album:
             return self.manager.config_manager.settings_data["download_folder"] / folder_name
         else:
             return self.manager.config_manager.settings_data["download_folder"] / folder_name / "Loose Bunkr Files"
 
-    async def remove_id(self, filename: str, ext: str):
+    async def remove_id(self, filename: str, ext: str) -> Tuple[str, str]:
         """Removes the additional string bunkr adds to the end of every filename"""
         original_filename = filename
         if self.manager.config_manager.settings_data["remove_generated_id_from_filenames"]:
@@ -162,7 +165,7 @@ class BunkrCrawler:
                 filename = filename + ext
             return original_filename, filename
 
-    async def get_stream_link(self, url: URL):
+    async def get_stream_link(self, url: URL) -> URL:
         cdn_possibilities = r"^(?:(?:(?:media-files|cdn|c|pizza|cdn-burger)[0-9]{0,2})|(?:(?:big-taco-|cdn-pizza)[0-9]{0,2}(?:redir)?))\.bunkr?\.[a-z]{2,3}$"
 
         if not re.match(cdn_possibilities, url.host):

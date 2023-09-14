@@ -12,11 +12,13 @@ class QueueManager:
         self.url_objects_to_map = Queue()
 
     async def get_scraper_queue(self, key: str) -> Queue:
+        """Returns a queue for a scraper session"""
         if key not in self.scraper_queues:
             self.scraper_queues[key] = Queue()
         return self.scraper_queues[key]
 
     async def get_download_queue(self, key: str, limit: int) -> Queue:
+        """Returns a queue for a download session"""
         if key not in self.download_queues:
             self.download_queues[key] = Queue(limit)
         return self.download_queues[key]

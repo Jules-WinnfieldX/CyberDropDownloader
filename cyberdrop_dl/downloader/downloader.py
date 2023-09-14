@@ -262,6 +262,8 @@ class Downloader:
             if await self.file_lock.check_lock(media_item.original_filename):
                 await self.file_lock.remove_lock(media_item.original_filename)
 
+            # TODO Need to work on DownloadFailure handling
+
             if partial_file:
                 if partial_file.is_file():
                     size = partial_file.stat().st_size

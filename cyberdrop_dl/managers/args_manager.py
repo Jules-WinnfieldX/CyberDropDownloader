@@ -14,7 +14,7 @@ class ArgsManager:
 
         self.other_links: list = []
 
-    def startup(self):
+    def startup(self) -> None:
         self.parsed_args = parse_args().__dict__
 
         self.immediate_download = self.parsed_args['download']

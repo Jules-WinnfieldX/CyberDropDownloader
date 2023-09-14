@@ -31,6 +31,7 @@ def get_forum_cookies(manager: Manager, browser: str) -> None:
 
 
 def get_cookie(browser: str, domain: str):
+    """Get the cookies for a specific domain"""
     if browser == 'chrome':
         cookie = browser_cookie3.chrome(domain_name=domain)
     elif browser == 'firefox':

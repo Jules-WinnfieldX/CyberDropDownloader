@@ -25,35 +25,36 @@ class DownloadsProgress:
         self.failed_files = 0
 
     async def get_progress(self) -> Panel:
+        """Returns the progress bar"""
         return Panel(self.progress_group, title="Files", border_style="green", padding=(1, 1))
 
     async def update_total(self, total_files: int) -> None:
+        """Updates the total number of files to be downloaded"""
         self.progress.update(self.completed_files_task_id, total=total_files)
         self.progress.update(self.previously_completed_files_task_id, total=total_files)
         self.progress.update(self.skipped_files_task_id, total=total_files)
         self.progress.update(self.failed_files_task_id, total=total_files)
 
     async def add_completed(self) -> None:
+        """Adds a completed file to the progress bar"""
         self.progress.advance(self.completed_files_task_id, 1)
         self.completed_files += 1
 
     async def add_previously_completed(self) -> None:
+        """Adds a previously completed file to the progress bar"""
         self.progress.advance(self.previously_completed_files_task_id, 1)
         self.previously_completed_files += 1
 
     async def add_skipped(self) -> None:
+        """Adds a skipped file to the progress bar"""
         self.progress.advance(self.skipped_files_task_id, 1)
         self.skipped_files += 1
 
     async def add_failed(self) -> None:
+        """Adds a failed file to the progress bar"""
         self.progress.advance(self.failed_files_task_id, 1)
         self.failed_files += 1
 
     async def return_totals(self) -> Tuple[int, int, int, int]:
+        """Returns the total number of completed, previously completed, skipped and failed files"""
         return self.completed_files, self.previously_completed_files, self.skipped_files, self.failed_files
-
-    async def hide(self) -> None:
-        self.progress.update(self.completed_files_task_id, visible=False)
-        self.progress.update(self.previously_completed_files_task_id, visible=False)
-        self.progress.update(self.skipped_files_task_id, visible=False)
-        self.progress.update(self.failed_files_task_id, visible=False)

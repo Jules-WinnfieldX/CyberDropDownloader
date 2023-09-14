@@ -18,6 +18,9 @@ class MediaItem:
 
 
 class ScrapeItem:
-    def __init__(self, url: URL, parent_title: str):
+    def __init__(self, url: URL, parent_title: str, password: str = None):
         self.url: URL = url
         self.parent_title: str = parent_title
+        self.password: str = field(init=False)
+        if password:
+            self.password: str = password

@@ -26,7 +26,8 @@ class ProgressManager:
 
         self.layout: Layout = field(init=False)
 
-    async def startup(self):
+    async def startup(self) -> None:
+        """Startup process for the progress manager"""
         progress_layout = Layout()
         progress_layout.split_column(
             Layout(name="upper", ratio=1),

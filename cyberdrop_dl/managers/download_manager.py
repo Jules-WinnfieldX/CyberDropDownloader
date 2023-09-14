@@ -21,7 +21,7 @@ class DownloadManager:
         self.download_instances: Dict = {}
         self.download_instance_tasks: Dict = {}
 
-    async def check_complete(self):
+    async def check_complete(self) -> bool:
         if not self.download_instances:
             return True
         for instance in self.download_instances.values():
@@ -29,7 +29,7 @@ class DownloadManager:
                 return False
         return True
 
-    async def close(self):
+    async def close(self) -> None:
         for downloader in self.download_instance_tasks.values():
             for task in downloader:
                 task.cancel()
@@ -43,7 +43,7 @@ class DownloadManager:
                 self.download_instance_tasks[key].append(asyncio.create_task(self.download_instances[key].run_loop()))
         return self.download_instances[key]
 
-    async def basic_auth(self, username, password):
+    async def basic_auth(self, username, password) -> str:
         """Returns a basic auth token"""
         token = b64encode(f"{username}:{password}".encode('utf-8')).decode("ascii")
         return f'Basic {token}'

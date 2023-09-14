@@ -32,25 +32,27 @@ class ScrapeMapper:
         self.existing_crawler_tasks = {}
         self.mapping = {}
 
-    async def bunkr(self, scrape_item: ScrapeItem):
+    async def bunkr(self, scrape_item: ScrapeItem) -> None:
+        """Adds a bunkr link to the bunkr crawler"""
         if not self.existing_crawlers.get("bunkr"):
             from cyberdrop_dl.scraper.crawlers.bunkr_crawler import BunkrCrawler
             self.existing_crawlers["bunkr"] = BunkrCrawler(self.manager)
             await self.existing_crawlers["bunkr"].startup()
-            # TODO create class for manager to keep track of domain limits / rate limits
             await self.manager.download_manager.get_download_instance("bunkr", 2)
         await self.existing_crawlers["bunkr"].add_to_queue(scrape_item)
 
     """~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"""
 
-    async def check_complete(self):
+    async def check_complete(self) -> bool:
         if self.manager.queue_manager.url_objects_to_map.empty():
             for crawler in self.existing_crawlers.values():
                 if not crawler.complete:
                     return False
             return True
+        return False
 
-    async def map_urls(self):
+    async def map_urls(self) -> None:
+        """Maps URLs to their respective handlers"""
         while True:
             scrape_item: ScrapeItem = await self.manager.queue_manager.url_objects_to_map.get()
 

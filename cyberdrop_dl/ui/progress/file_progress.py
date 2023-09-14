@@ -41,9 +41,11 @@ class FileProgress:
         self.tasks_visibility_limit = visible_tasks_limit
 
     async def get_progress(self) -> Panel:
+        """Returns the progress bar"""
         return Panel(self.progress_group, title="Downloads", border_style="green", padding=(1, 1))
 
-    async def redraw(self):
+    async def redraw(self) -> None:
+        """Redraws the progress bar"""
         while len(self.visible_tasks) > self.tasks_visibility_limit:
             task_id = self.visible_tasks.pop(0)
             self.invisible_tasks.append(task_id)
@@ -58,6 +60,7 @@ class FileProgress:
             self.overflow.update(self.overflow_task_id, visible=False)
 
     async def add_task(self, file: str, expected_size: Optional[int]) -> TaskID:
+        """Adds a new task to the progress bar"""
         description = file.split('/')[-1]
         description = description.encode("ascii", "ignore").decode().strip()
         description = await adjust_title(description)
@@ -71,6 +74,7 @@ class FileProgress:
         return task_id
 
     async def remove_file(self, task_id: TaskID) -> None:
+        """Removes the given task from the progress bar"""
         if task_id in self.visible_tasks:
             self.visible_tasks.remove(task_id)
             self.progress.update(task_id, visible=False)
@@ -83,6 +87,7 @@ class FileProgress:
         await self.redraw()
 
     async def mark_task_completed(self, task_id: TaskID) -> None:
+        """Marks the given task as completed"""
         self.progress.update(task_id, visible=False)
         if task_id in self.visible_tasks:
             self.visible_tasks.remove(task_id)
@@ -92,6 +97,7 @@ class FileProgress:
         self.completed_tasks.append(task_id)
 
     async def advance_file(self, task_id: TaskID, amount: int) -> None:
+        """Advances the progress of the given task by the given amount"""
         if task_id in self.uninitiated_tasks:
             self.uninitiated_tasks.remove(task_id)
             self.invisible_tasks.append(task_id)
@@ -99,6 +105,7 @@ class FileProgress:
         self.progress.advance(task_id, amount)
 
     async def update_file_length(self, task_id: TaskID, total: int) -> None:
+        """Updates the total number of bytes to be downloaded for the given task"""
         if task_id in self.invisible_tasks:
             self.progress.update(task_id, total=total, visible=False)
         elif task_id in self.visible_tasks:

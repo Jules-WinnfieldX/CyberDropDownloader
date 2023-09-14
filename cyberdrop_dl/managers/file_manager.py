@@ -18,7 +18,7 @@ class FileManager:
         self.download_error_log: Path = field(init=False)
         self.scrape_error_log: Path = field(init=False)
 
-    def startup(self):
+    def startup(self) -> None:
         """Startup process for the file manager"""
         self.input_file.touch(exist_ok=True)
         self.input_password_file.touch(exist_ok=True)

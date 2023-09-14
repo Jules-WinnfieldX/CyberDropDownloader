@@ -17,7 +17,7 @@ class DirectoryManager:
         self.sorted_downloads: Path = field(init=False)
         self.logs: Path = field(init=False)
 
-    def startup(self):
+    def startup(self) -> None:
         """Startup process for the Directory Manager"""
         self.downloads.mkdir(parents=True, exist_ok=True)
         if not isinstance(self.sorted_downloads, Field):

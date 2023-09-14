@@ -31,9 +31,11 @@ class ScrapingProgress:
         self.tasks_visibility_limit = visible_tasks_limit
 
     async def get_progress(self) -> Panel:
+        """Returns the progress bar"""
         return Panel(self.progress_group, title="Scraping", border_style="green", padding=(1, 1))
 
-    async def redraw(self):
+    async def redraw(self) -> None:
+        """Redraws the progress bar"""
         while len(self.visible_tasks) > self.tasks_visibility_limit:
             task_id = self.visible_tasks.pop(0)
             self.invisible_tasks.append(task_id)
@@ -48,6 +50,7 @@ class ScrapingProgress:
             self.overflow.update(self.overflow_task_id, visible=False)
 
     async def add_task(self, url: URL) -> TaskID:
+        """Adds a new task to the progress bar"""
         if len(self.visible_tasks) >= self.tasks_visibility_limit:
             task_id = self.progress.add_task(self.progress_str.format(color=self.color, description=str(url)), visible=False)
             self.invisible_tasks.append(task_id)
@@ -57,6 +60,7 @@ class ScrapingProgress:
         return task_id
 
     async def remove_task(self, task_id: TaskID) -> None:
+        """Removes a task from the progress bar"""
         if task_id in self.visible_tasks:
             self.visible_tasks.remove(task_id)
             self.progress.update(task_id, visible=False)

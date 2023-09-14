@@ -19,13 +19,16 @@ class DownloadStatsProgress:
         self.failed_files = 0
 
     async def get_progress(self) -> Panel:
+        """Returns the progress bar"""
         return Panel(self.progress_group, title="Download Failures", border_style="green", padding=(1, 1))
 
     async def update_total(self, total: int) -> None:
+        """Updates the total number of files to be downloaded"""
         for key in self.failure_types.keys():
             self.progress.update(self.failure_types[key], total=total)
 
     async def add_failure(self, failure_type: str) -> None:
+        """Adds a failed file to the progress bar"""
         self.failed_files += 1
         if failure_type in self.failure_types:
             self.progress.advance(self.failure_types[failure_type], 1)
@@ -34,6 +37,7 @@ class DownloadStatsProgress:
         await self.update_total(self.failed_files)
 
     async def return_totals(self) -> Dict:
+        """Returns the total number of failed files"""
         failures = {}
         for key, value in self.failure_types.items():
             failures[key] = self.progress.tasks[value].completed
@@ -54,13 +58,16 @@ class ScrapeStatsProgress:
         self.failed_files = 0
 
     async def get_progress(self) -> Panel:
+        """Returns the progress bar"""
         return Panel(self.progress_group, title="Scrape Failures", border_style="green", padding=(1, 1))
 
     async def update_total(self, total: int) -> None:
+        """Updates the total number of sites to be scraped"""
         for key in self.failure_types.keys():
             self.progress.update(self.failure_types[key], total=total)
 
     async def add_failure(self, failure_type: str) -> None:
+        """Adds a failed site to the progress bar"""
         self.failed_files += 1
         if failure_type in self.failure_types:
             self.progress.advance(self.failure_types[failure_type], 1)
@@ -69,6 +76,7 @@ class ScrapeStatsProgress:
         await self.update_total(self.failed_files)
 
     async def return_totals(self) -> Dict:
+        """Returns the total number of failed sites and reasons"""
         failures = {}
         for key, value in self.failure_types.items():
             failures[key] = self.progress.tasks[value].completed

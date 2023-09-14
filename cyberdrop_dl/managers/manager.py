@@ -122,7 +122,7 @@ class Manager:
         await self.db_manager.startup()
         await self.progress_manager.startup()
 
-    async def close(self):
+    async def close(self) -> None:
         """Closes the manager"""
         await self.db_manager.close()
         await self.client_manager.close()

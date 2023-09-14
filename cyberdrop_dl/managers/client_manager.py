@@ -51,21 +51,21 @@ class ClientManager:
         self.scraper_sessions = {}
         self.downloader_sessions = {}
 
-    async def get_scraper_session(self, domain: str):
+    async def get_scraper_session(self, domain: str) -> ScraperClient:
         """Get a scraper session"""
         if domain in self.scraper_sessions:
             return self.scraper_sessions[domain]
         self.scraper_sessions[domain] = ScraperClient(self)
         return self.scraper_sessions[domain]
 
-    async def get_downloader_session(self, domain: str):
+    async def get_downloader_session(self, domain: str) -> ScraperClient:
         """Get a downloader session"""
         if domain in self.downloader_sessions:
             return self.downloader_sessions[domain]
         self.downloader_sessions[domain] = ScraperClient(self)
         return self.downloader_sessions[domain]
 
-    async def close(self):
+    async def close(self) -> None:
         """Close all sessions"""
         for session in self.scraper_sessions.values():
             await session.client_session.close()
@@ -74,7 +74,7 @@ class ClientManager:
 
     """~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"""
 
-    async def get_rate_limiter(self, domain: str):
+    async def get_rate_limiter(self, domain: str) -> AsyncLimiter:
         """Get a rate limiter for a domain"""
         if domain in self.domain_rate_limits:
             return self.domain_rate_limits[domain]
@@ -82,7 +82,8 @@ class ClientManager:
 
     """~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"""
 
-    async def check_http_status(self, status: int, headers: CIMultiDictProxy, response_url: URL, download: bool = False):
+    async def check_http_status(self, status: int, headers: CIMultiDictProxy, response_url: URL,
+                                download: bool = False) -> None:
         """Checks the HTTP status code and raises an exception if it's not acceptable"""
         if headers.get("Server") == "ddos-guard":
             raise DownloadFailure(status=CustomHTTPStatus.DDOS_GUARD, message="DDoS-Guard detected, unable to continue")
