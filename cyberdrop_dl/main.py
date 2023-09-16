@@ -54,7 +54,7 @@ async def director(manager: Manager) -> None:
     """Runs the program and handles the UI"""
     await manager.async_startup()
 
-    with Live(manager.progress_manager.layout, refresh_per_second=manager.progress_manager.refresh_rate):
+    with Live(manager.progress_manager.layout, refresh_per_second=10):
         await runtime(manager)
 
 

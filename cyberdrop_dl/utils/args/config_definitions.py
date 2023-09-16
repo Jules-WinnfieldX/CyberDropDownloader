@@ -108,9 +108,6 @@ global_settings: Dict = {
         "max_folder_name_length": 60,
         "required_free_space": 5,
     },
-    "Progress_Options": {
-        "refresh_rate": 10,
-    },
     "Rate_Limiting_Options": {
         "connection_timeout": 15,
         "download_attempts": 10,

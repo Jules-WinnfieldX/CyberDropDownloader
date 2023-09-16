@@ -92,8 +92,6 @@ def transfer_v4_config(manager: Manager, old_config_path: Path, new_config_name:
     new_global_data['General']['max_folder_name_length'] = old_data['Runtime']['max_folder_name_length']
     new_global_data['General']['required_free_space'] = old_data['Runtime']['required_free_space']
 
-    new_global_data['Progress_Options']['refresh_rate'] = old_data['Progress_Options']['refresh_rate']
-
     new_global_data['Rate_Limiting_Options']['connection_timeout'] = old_data['Ratelimiting']['connection_timeout']
     new_global_data['Rate_Limiting_Options']['download_attempts'] = old_data['Runtime']['attempts']
     new_global_data['Rate_Limiting_Options']['download_delay'] = old_data['Ratelimiting']['throttle']

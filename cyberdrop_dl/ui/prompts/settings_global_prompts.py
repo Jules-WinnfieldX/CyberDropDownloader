@@ -24,9 +24,8 @@ def edit_global_settings_prompt(manager: Manager) -> None:
             message="What would you like to do?",
             choices=[
                 Choice(1, "Edit General Settings"),
-                Choice(2, "Edit Progress Settings"),
-                Choice(3, "Edit Rate Limiting Settings"),
-                Choice(4, "Done"),
+                Choice(2, "Edit Rate Limiting Settings"),
+                Choice(3, "Done"),
             ],
         ).execute()
 
@@ -34,16 +33,12 @@ def edit_global_settings_prompt(manager: Manager) -> None:
         if action == 1:
             edit_general_settings_prompt(manager)
 
-        # Edit Progress Settings
-        elif action == 2:
-            edit_progress_settings_prompt(manager)
-
         # Edit Rate Limiting Settings
-        elif action == 3:
+        elif action == 2:
             edit_rate_limiting_settings_prompt(manager)
 
         # Done
-        elif action == 4:
+        elif action == 3:
             manager.config_manager.write_updated_global_settings_config()
             break
 
