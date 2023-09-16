@@ -12,7 +12,6 @@ from typing import TYPE_CHECKING
 import aiohttp
 
 from cyberdrop_dl.clients.errors import DownloadFailure
-from cyberdrop_dl.utils.db.tables.history_table import get_db_path
 from cyberdrop_dl.utils.utilities import FILE_FORMATS, log
 
 if TYPE_CHECKING:

@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import re
 from dataclasses import field
-from functools import wraps
 from typing import TYPE_CHECKING
 
 from aiolimiter import AsyncLimiter
