@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import re
 from dataclasses import field
+from functools import wraps
 from typing import TYPE_CHECKING
 
 from aiolimiter import AsyncLimiter
@@ -9,7 +10,7 @@ from yarl import URL
 
 from cyberdrop_dl.clients.errors import NoExtensionFailure
 from cyberdrop_dl.utils.dataclasses.url_objects import MediaItem
-from cyberdrop_dl.utils.utilities import FILE_FORMATS, get_filename_and_ext, sanitize_folder
+from cyberdrop_dl.utils.utilities import FILE_FORMATS, get_filename_and_ext, sanitize_folder, error_handling_wrapper
 
 if TYPE_CHECKING:
     from asyncio import Queue
@@ -75,17 +76,18 @@ class BunkrCrawler:
 
         if scrape_item.url.path.startswith("/a/"):
             self._current_is_album = True
-            await self.album(scrape_item)
+            await self.album(self, scrape_item)
             return
 
         elif scrape_item.url.path.startswith("/v/"):
-            await self.video(scrape_item)
+            await self.video(self, scrape_item)
 
         else:
-            await self.other(scrape_item)
+            await self.other(self, scrape_item)
 
         await self.scraping_progress.remove_task(task_id)
 
+    @error_handling_wrapper
     async def album(self, scrape_item: ScrapeItem) -> None:
         """Scrapes an album"""
         async with self.request_limiter:
@@ -105,6 +107,7 @@ class BunkrCrawler:
             link = await self.get_stream_link(link)
             await self.fetch(ScrapeItem(link, title))
 
+    @error_handling_wrapper
     async def video(self, scrape_item: ScrapeItem) -> None:
         """Scrapes a video"""
         async with self.request_limiter:
@@ -119,6 +122,7 @@ class BunkrCrawler:
 
         await self.handle_file(link, scrape_item.url, scrape_item.parent_title, filename, ext)
 
+    @error_handling_wrapper
     async def other(self, scrape_item: ScrapeItem) -> None:
         """Scrapes an image/other file"""
         async with self.request_limiter:

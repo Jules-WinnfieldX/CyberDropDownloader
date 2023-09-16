@@ -2,12 +2,17 @@ from __future__ import annotations
 
 import logging
 import re
+from functools import wraps
 from typing import TYPE_CHECKING
+
+from yarl import URL
 
 from cyberdrop_dl.clients.errors import NoExtensionFailure
 
 if TYPE_CHECKING:
     from typing import Tuple
+
+    from cyberdrop_dl.managers.manager import Manager
 
 logger = logging.getLogger(__name__)
 
@@ -35,6 +40,17 @@ FILE_FORMATS = {
         '.txt',
     }
 }
+
+
+def error_handling_wrapper(func):
+    """Wrapper handles errors for url scraping"""
+    @wraps(func)
+    async def wrapper(self, *args, **kwargs):
+        try:
+            await func(self, *args, **kwargs)
+        except Exception as e:
+            await handle_scrape_error(self.manager, args[0].url, e)
+    return wrapper
 
 
 async def sanitize(name: str) -> str:
@@ -65,3 +81,16 @@ async def get_filename_and_ext(filename: str, forum: bool = False) -> Tuple[str,
     filename = filename.rstrip(".")
     filename = await sanitize(filename + ext)
     return filename, ext
+
+
+async def handle_scrape_error(manager: Manager, url: URL, error: Exception) -> None:
+    """Handles logging scrape errors"""
+    if hasattr(error, 'status'):
+        if hasattr(error, 'message'):
+            logger.debug(f"Scrape Error: {url} ({error.status} - {error.message})")
+        else:
+            logger.debug(f"Scrape Error: {url} ({error.status})")
+        await manager.progress_manager.scrape_stats_progress.add_failure(error.status)
+    else:
+        logger.debug(f"Scrape Error: {url} ({error})")
+        await manager.progress_manager.scrape_stats_progress.add_failure("Unknown")
