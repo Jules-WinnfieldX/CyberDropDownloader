@@ -53,6 +53,11 @@ def error_handling_wrapper(func):
     return wrapper
 
 
+async def log(message: str) -> None:
+    """Simple logging function"""
+    logger.debug(message)
+
+
 async def sanitize(name: str) -> str:
     """Simple sanitization to remove illegal characters"""
     return re.sub(r'[<>:"/\\|?*\']', "", name).strip()

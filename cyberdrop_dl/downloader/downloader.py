@@ -13,7 +13,7 @@ import aiohttp
 
 from cyberdrop_dl.clients.errors import DownloadFailure
 from cyberdrop_dl.utils.db.tables.history_table import get_db_path
-from cyberdrop_dl.utils.utilities import FILE_FORMATS
+from cyberdrop_dl.utils.utilities import FILE_FORMATS, log
 
 if TYPE_CHECKING:
     from asyncio import Queue
@@ -30,11 +30,26 @@ def retry(f):
     async def wrapper(self, *args, **kwargs):
         while True:
             try:
+                await log(f"Downloading {args[0].url}")
                 return await f(self, *args, **kwargs)
             except DownloadFailure as e:
                 media_item = args[0]
+                if hasattr(e, "status"):
+                    if hasattr(e, "message"):
+                        await log(f"Download failed: {media_item.url} with status {e.status} and message {e.message}")
+                    else:
+                        await log(f"Download failed: {media_item.url} with status {e.status}")
+                else:
+                    await log(f"Download failed: {media_item.url} with error {e}")
+
                 if e.status != 999:
                     media_item.current_attempt += 1
+                elif not self.manager.config_manager.settings_data['Download_Options']['disable_download_attempt_limit']:
+                    if media_item.current_attempt >= self.manager.config_manager.global_settings_data['Rate_Limiting_Options']['download_attempts']:
+                        if hasattr(e, "status"):
+                            await self.manager.progress_manager.download_stats_progress.add_failure(e.status)
+                        else:
+                            await self.manager.progress_manager.download_stats_progress.add_failure("Unknown")
     return wrapper
 
 
@@ -262,14 +277,12 @@ class Downloader:
             if await self.file_lock.check_lock(media_item.original_filename):
                 await self.file_lock.remove_lock(media_item.original_filename)
 
-            # TODO Need to work on DownloadFailure handling
-
             if partial_file:
                 if partial_file.is_file():
                     size = partial_file.stat().st_size
                     if partial_file.name not in self.current_attempt_filesize:
                         self.current_attempt_filesize[media_item.filename] = size
-                    elif self.current_attempt_filesize[media_item.filename] > size:
+                    elif self.current_attempt_filesize[media_item.filename] < size:
                         self.current_attempt_filesize[media_item.filename] = size
                     else:
                         raise DownloadFailure(status=getattr(e, "status", 1), message="Download timeout reached, retrying")
