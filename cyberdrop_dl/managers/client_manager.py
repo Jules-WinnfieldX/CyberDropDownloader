@@ -12,6 +12,7 @@ from aiolimiter import AsyncLimiter
 from multidict import CIMultiDictProxy
 from yarl import URL
 
+from cyberdrop_dl.clients.download_client import DownloadClient
 from cyberdrop_dl.clients.errors import DownloadFailure
 from cyberdrop_dl.clients.scraper_client import ScraperClient
 
@@ -48,29 +49,8 @@ class ClientManager:
         self.global_rate_limiter = AsyncLimiter(self.rate_limit, 1)
         self.session_limit = asyncio.Semaphore(50)
 
-        self.scraper_sessions = {}
-        self.downloader_sessions = {}
-
-    async def get_scraper_session(self, domain: str) -> ScraperClient:
-        """Get a scraper session"""
-        if domain in self.scraper_sessions:
-            return self.scraper_sessions[domain]
-        self.scraper_sessions[domain] = ScraperClient(self)
-        return self.scraper_sessions[domain]
-
-    async def get_downloader_session(self, domain: str) -> ScraperClient:
-        """Get a downloader session"""
-        if domain in self.downloader_sessions:
-            return self.downloader_sessions[domain]
-        self.downloader_sessions[domain] = ScraperClient(self)
-        return self.downloader_sessions[domain]
-
-    async def close(self) -> None:
-        """Close all sessions"""
-        for session in self.scraper_sessions.values():
-            await session.client_session.close()
-        for session in self.downloader_sessions.values():
-            await session.client_session.close()
+        self.scraper_session = ScraperClient(self)
+        self.downloader_session = DownloadClient(self)
 
     """~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"""
 

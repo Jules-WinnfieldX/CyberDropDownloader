@@ -9,7 +9,8 @@ from yarl import URL
 
 from cyberdrop_dl.clients.errors import NoExtensionFailure
 from cyberdrop_dl.utils.dataclasses.url_objects import MediaItem
-from cyberdrop_dl.utils.utilities import FILE_FORMATS, get_filename_and_ext, sanitize_folder, error_handling_wrapper
+from cyberdrop_dl.utils.utilities import FILE_FORMATS, get_filename_and_ext, sanitize_folder, error_handling_wrapper, \
+    log
 
 if TYPE_CHECKING:
     from asyncio import Queue
@@ -28,10 +29,8 @@ class BunkrCrawler:
         self.client: ScraperClient = field(init=False)
 
         self.primary_base_domain = URL("https://bunkrr.su")
-        self._current_is_album: bool = field(init=False)
 
         self.complete = False
-        self.unfinished_count = 0
 
         self.scraped_items: list = []
         self.scraper_queue: Queue = field(init=False)
@@ -41,13 +40,13 @@ class BunkrCrawler:
 
     async def startup(self) -> None:
         """Starts the crawler"""
-        download_limit = self.manager.config_manager.settings_data.get("max_simultaneous_downloads_per_domain")
+        download_limit = self.manager.config_manager.global_settings_data['Rate_Limiting_Options']['max_simultaneous_downloads_per_domain']
         download_limit = 2 if download_limit > 2 else download_limit
 
         self.scraper_queue = await self.manager.queue_manager.get_scraper_queue("bunkr")
         self.download_queue = await self.manager.queue_manager.get_download_queue("bunkr", download_limit)
 
-        self.client = await self.manager.client_manager.get_scraper_session("bunkr")
+        self.client = self.manager.client_manager.scraper_session
 
     async def run_loop(self) -> None:
         """Runs the crawler loop"""
@@ -57,15 +56,11 @@ class BunkrCrawler:
                 continue
 
             self.complete = False
-            self.unfinished_count += 1
-
             self.scraped_items.append(item.url)
-            self._current_is_album = False
             await self.fetch(item)
 
             self.scraper_queue.task_done()
-            self.unfinished_count -= 1
-            if self.unfinished_count == 0 and self.scraper_queue.empty():
+            if self.scraper_queue.empty():
                 self.complete = True
 
     async def fetch(self, scrape_item: ScrapeItem) -> None:
@@ -74,15 +69,11 @@ class BunkrCrawler:
         scrape_item.url = await self.get_stream_link(scrape_item.url)
 
         if scrape_item.url.path.startswith("/a/"):
-            self._current_is_album = True
-            await self.album(self, scrape_item)
-            return
-
+            await self.album(scrape_item)
         elif scrape_item.url.path.startswith("/v/"):
-            await self.video(self, scrape_item)
-
+            await self.video(scrape_item)
         else:
-            await self.other(self, scrape_item)
+            await self.other(scrape_item)
 
         await self.scraping_progress.remove_task(task_id)
 
@@ -104,7 +95,7 @@ class BunkrCrawler:
                 link = URL("https://" + scrape_item.url.host + link)
             link = URL(link)
             link = await self.get_stream_link(link)
-            await self.fetch(ScrapeItem(link, title))
+            await self.scraper_queue.put(ScrapeItem(url=link, parent_title=title))
 
     @error_handling_wrapper
     async def video(self, scrape_item: ScrapeItem) -> None:

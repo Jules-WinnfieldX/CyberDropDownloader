@@ -1,8 +1,10 @@
 import asyncio
 import contextlib
 import logging
+import os
 
 import aiorun
+from rich import console
 from rich.live import Live
 
 from cyberdrop_dl.managers.manager import Manager
@@ -44,8 +46,9 @@ async def runtime(manager: Manager) -> None:
     download_manager = manager.download_manager
     asyncio.create_task(scrape_mapper.map_urls())
 
+    await scrape_mapper.load_links()
     while True:
-        if scrape_mapper.complete and download_manager.check_complete():
+        if await scrape_mapper.check_complete() and await download_manager.check_complete():
             break
         await asyncio.sleep(1)
 
@@ -57,6 +60,11 @@ async def director(manager: Manager) -> None:
     with Live(manager.progress_manager.layout, refresh_per_second=10):
         await runtime(manager)
 
+        clear_screen_proc = await asyncio.create_subprocess_shell('cls' if os.name == 'nt' else 'clear')
+        await clear_screen_proc.wait()
+
+        # TODO add a "finished" message
+
 
 def main():
     manager = startup()
@@ -65,7 +73,7 @@ def main():
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
 
-        aiorun.run(director(manager))
+        aiorun.run(director(manager), stop_on_unhandled_errors=True)
         exit(0)
 
 

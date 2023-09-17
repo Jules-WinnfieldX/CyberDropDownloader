@@ -10,9 +10,7 @@ from cyberdrop_dl.ui.progress.statistic_progress import DownloadStatsProgress, S
 
 
 class ProgressManager:
-    def __init__(self, progress_options: Dict):
-        self.refresh_rate = progress_options['refresh_rate']
-
+    def __init__(self):
         # File Download Bars
         self.file_progress: FileProgress = FileProgress(5)
 

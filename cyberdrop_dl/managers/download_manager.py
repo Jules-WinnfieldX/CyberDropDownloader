@@ -40,7 +40,7 @@ class DownloadManager:
             await self.download_instances[key].startup()
             self.download_instance_tasks[key] = []
             for i in range(instances):
-                self.download_instance_tasks[key].append(asyncio.create_task(self.download_instances[key].run_loop()))
+                task = asyncio.create_task(self.download_instances[key].run_loop())
         return self.download_instances[key]
 
     async def basic_auth(self, username, password) -> str:

@@ -78,7 +78,7 @@ class Downloader:
         self.download_queue: Queue = field(init=False)
         self.file_lock = FileLock()
 
-        self.complete = False
+        self.complete = True
         self.unfinished_count = 0
 
         self.current_attempt_filesize = {}
@@ -86,7 +86,7 @@ class Downloader:
     async def startup(self) -> None:
         """Starts the downloader"""
         self.download_queue = await self.manager.queue_manager.get_download_queue(self.domain, 0)
-        self.client = await self.manager.client_manager.get_downloader_session(self.domain)
+        self.client = self.manager.client_manager.downloader_session
         await self.set_additional_headers()
 
     async def run_loop(self) -> None:

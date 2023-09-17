@@ -34,8 +34,8 @@ def limiter(func):
     async def wrapper(self, *args, **kwargs):
         domain_limiter = await self.client_manager.get_rate_limiter(args[0])
         async with self.client_manager.session_limit:
-            await self.global_limiter.aquire()
-            await domain_limiter.aquire()
+            await self.global_limiter.acquire()
+            await domain_limiter.acquire()
 
             async with aiohttp.ClientSession(headers=self.headers, raise_for_status=False,
                                              cookie_jar=self.client_manager.cookies, timeout=self.timeouts) as client:
