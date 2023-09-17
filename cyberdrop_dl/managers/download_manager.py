@@ -36,12 +36,12 @@ class DownloadManager:
 
     async def get_download_instance(self, key: str, instances: int) -> Downloader:
         if key not in self._download_instances:
-            self.download_instances[key] = Downloader(self.manager, key)
-            await self.download_instances[key].startup()
-            self.download_instance_tasks[key] = []
+            self._download_instances[key] = Downloader(self.manager, key)
+            await self._download_instances[key].startup()
+            self._download_instance_tasks[key] = []
             for i in range(instances):
-                self._download_instance_tasks[key].append(asyncio.create_task(self.download_instances[key].run_loop()))
-        return self.download_instances[key]
+                self._download_instance_tasks[key].append(asyncio.create_task(self._download_instances[key].run_loop()))
+        return self._download_instances[key]
 
     async def basic_auth(self, username, password) -> str:
         """Returns a basic auth token"""
@@ -56,12 +56,12 @@ class DownloadManager:
 
     async def check_allowed_filetype(self, media_item: MediaItem) -> bool:
         """Checks if the file type is allowed to download"""
-        if media_item.ext in FILE_FORMATS['images'] and self.manager.config_manager.global_settings_data['General']['exclude_images']:
+        if media_item.ext in FILE_FORMATS['Images'] and self.manager.config_manager.settings_data['Ignore_Options']['exclude_images']:
             return False
-        if media_item.ext in FILE_FORMATS['videos'] and self.manager.config_manager.global_settings_data['General']['exclude_videos']:
+        elif media_item.ext in FILE_FORMATS['Videos'] and self.manager.config_manager.settings_data['Ignore_Options']['exclude_videos']:
             return False
-        if media_item.ext in FILE_FORMATS['audio'] and self.manager.config_manager.global_settings_data['General']['exclude_audio']:
+        elif media_item.ext in FILE_FORMATS['Audio'] and self.manager.config_manager.settings_data['Ignore_Options']['exclude_audio']:
             return False
-        if media_item.ext in FILE_FORMATS['other'] and self.manager.config_manager.global_settings_data['General']['exclude_other']:
+        elif self.manager.config_manager.settings_data['Ignore_Options']['exclude_other']:
             return False
         return True

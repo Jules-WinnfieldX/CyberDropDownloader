@@ -24,7 +24,7 @@ def limiter(func):
             await self._global_limiter.acquire()
             await domain_limiter.acquire()
 
-            async with aiohttp.ClientSession(headers=self.headers, raise_for_status=False,
+            async with aiohttp.ClientSession(headers=self._headers, raise_for_status=False,
                                              cookie_jar=self.client_manager.cookies, timeout=self._timeouts) as client:
                 kwargs['client_session'] = client
                 return await func(self, *args, **kwargs)

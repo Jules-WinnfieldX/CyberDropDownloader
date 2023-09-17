@@ -37,7 +37,7 @@ def limiter(func):
             await self._global_limiter.acquire()
             await domain_limiter.acquire()
 
-            async with aiohttp.ClientSession(headers=self.headers, raise_for_status=False,
+            async with aiohttp.ClientSession(headers=self._headers, raise_for_status=False,
                                              cookie_jar=self.client_manager.cookies, timeout=self._timeouts) as client:
                 kwargs['client_session'] = client
                 return await func(self, *args, **kwargs)
@@ -50,7 +50,7 @@ class DownloadClient:
         self.client_manager = client_manager
         self._headers = {"user-agent": client_manager.user_agent}
         self._timeouts = aiohttp.ClientTimeout(total=client_manager.read_timeout + client_manager.connection_timeout,
-                                              connect=client_manager.connection_timeout)
+                                               connect=client_manager.connection_timeout)
         self._global_limiter = self.client_manager.global_rate_limiter
 
     @limiter

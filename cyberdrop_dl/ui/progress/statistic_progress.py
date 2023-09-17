@@ -27,7 +27,7 @@ class DownloadStatsProgress:
         for key in self.failure_types.keys():
             self.progress.update(self.failure_types[key], total=total)
 
-    async def add_failure(self, failure_type: str) -> None:
+    async def add_failure(self, failure_type: [str, int]) -> None:
         """Adds a failed file to the progress bar"""
         self.failed_files += 1
         if failure_type in self.failure_types:
@@ -66,7 +66,7 @@ class ScrapeStatsProgress:
         for key in self.failure_types.keys():
             self.progress.update(self.failure_types[key], total=total)
 
-    async def add_failure(self, failure_type: str) -> None:
+    async def add_failure(self, failure_type: [str, int]) -> None:
         """Adds a failed site to the progress bar"""
         self.failed_files += 1
         if failure_type in self.failure_types:

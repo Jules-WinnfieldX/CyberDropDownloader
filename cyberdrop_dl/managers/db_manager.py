@@ -22,11 +22,11 @@ class DBManager:
 
     async def startup(self) -> None:
         """Startup process for the DBManager"""
-        self._db_conn = await aiosqlite.connect(self.db_path)
+        self._db_conn = await aiosqlite.connect(self._db_path)
 
-        self.cache_table = CacheTable(self.db_conn)
-        self.history_table = HistoryTable(self.db_conn)
-        self.temp_table = TempTable(self.db_conn)
+        self.cache_table = CacheTable(self._db_conn)
+        self.history_table = HistoryTable(self._db_conn)
+        self.temp_table = TempTable(self._db_conn)
 
         self.cache_table.ignore_cache = self.ignore_cache
         self.history_table.ignore_history = self.ignore_history
@@ -49,13 +49,13 @@ class DBManager:
         fill_pre_allocation = "INSERT INTO t VALUES(zeroblob(100*1024*1024));"  # 100 mb
         check_pre_allocation = "PRAGMA freelist_count;"
 
-        result = await self.db_conn.execute(check_pre_allocation)
+        result = await self._db_conn.execute(check_pre_allocation)
         free_space = await result.fetchone()
 
         if free_space[0] <= 1024:
-            await self.db_conn.execute(create_pre_allocation_table)
-            await self.db_conn.commit()
-            await self.db_conn.execute(fill_pre_allocation)
-            await self.db_conn.commit()
-            await self.db_conn.execute(drop_pre_allocation_table)
-            await self.db_conn.commit()
+            await self._db_conn.execute(create_pre_allocation_table)
+            await self._db_conn.commit()
+            await self._db_conn.execute(fill_pre_allocation)
+            await self._db_conn.commit()
+            await self._db_conn.execute(drop_pre_allocation_table)
+            await self._db_conn.commit()

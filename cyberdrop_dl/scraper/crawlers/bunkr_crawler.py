@@ -52,6 +52,7 @@ class BunkrCrawler:
         """Runs the crawler loop"""
         while True:
             item: ScrapeItem = await self.scraper_queue.get()
+            await log(f"Scrape Starting: {item.url}")
             if item.url in self.scraped_items:
                 continue
 
@@ -59,6 +60,7 @@ class BunkrCrawler:
             self.scraped_items.append(item.url)
             await self.fetch(item)
 
+            await log(f"Scrape Finished: {item.url}")
             self.scraper_queue.task_done()
             if self.scraper_queue.empty():
                 self.complete = True

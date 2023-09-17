@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import copy
 import itertools
+import traceback
 from dataclasses import field
 from functools import wraps
 from http import HTTPStatus
@@ -30,7 +31,6 @@ def retry(f):
     async def wrapper(self, *args, **kwargs):
         while True:
             try:
-                await log(f"Downloading {args[0].url}")
                 return await f(self, *args, **kwargs)
             except DownloadFailure as e:
                 media_item = args[0]
@@ -50,6 +50,12 @@ def retry(f):
                             await self.manager.progress_manager.download_stats_progress.add_failure(e.status)
                         else:
                             await self.manager.progress_manager.download_stats_progress.add_failure("Unknown")
+                        break
+            except Exception as e:
+                await log(f"Download Error: {args[0].url} with error {e}")
+                await log(traceback.format_exc())
+                await self.manager.progress_manager.download_stats_progress.add_failure("Unknown")
+                break
     return wrapper
 
 
@@ -97,13 +103,15 @@ class Downloader:
         """Runs the download loop"""
         while True:
             media_item: MediaItem = await self.download_queue.get()
+            await log(f"Download Starting: {media_item.url}")
             self.complete = False
-            self.unfinished_count += 1
+            self._unfinished_count += 1
             media_item.current_attempt = 0
             await self.download(media_item)
+            await log(f"Download Finished: {media_item.url}")
             self.download_queue.task_done()
-            self.unfinished_count -= 1
-            if self.unfinished_count == 0 and self.download_queue.empty():
+            self._unfinished_count -= 1
+            if self._unfinished_count == 0 and self.download_queue.empty():
                 self.complete = True
 
     """~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"""
@@ -114,7 +122,7 @@ class Downloader:
             return False
         if not await self.manager.download_manager.check_allowed_filetype(media_item):
             return False
-        if not await self.manager.config_manager.settings_data['Download_Options']['skip_download_mark_completed']:
+        if not self.manager.config_manager.settings_data['Download_Options']['skip_download_mark_completed']:
             await self.mark_completed(media_item)
             return False
         return True

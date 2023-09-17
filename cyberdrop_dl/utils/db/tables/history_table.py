@@ -50,7 +50,7 @@ class HistoryTable:
     async def insert_uncompleted(self, domain: str, media_item: MediaItem) -> None:
         """Inserts an uncompleted file into the database"""
         url_path = await get_db_path(media_item.url, str(media_item.referer))
-        await self.db_conn.execute("""INSERT OR IGNORE INTO media (domain, url_path, album_path, referer, original_filename, completed) VALUES (?, ?, ?, ?, ?, ?)""", (domain, url_path, media_item.referer, media_item.original_filename, 0))
+        await self.db_conn.execute("""INSERT OR IGNORE INTO media (domain, url_path, referer, original_filename, completed) VALUES (?, ?, ?, ?, ?)""", (domain, url_path, str(media_item.referer), media_item.original_filename, 0))
         await self.db_conn.commit()
 
     async def mark_complete(self, domain: str, media_item: MediaItem) -> None:

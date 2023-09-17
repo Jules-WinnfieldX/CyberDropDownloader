@@ -51,10 +51,20 @@ def error_handling_wrapper(func):
             await func(self, *args, **kwargs)
         except Exception as e:
             await handle_scrape_error(self.manager, args[0].url, e.with_traceback(e.__traceback__))
+            if hasattr(e, 'status'):
+                if hasattr(e, 'message'):
+                    await log(f"Scrape Error: {args[0].url} ({e.status} - {e.message})")
+                else:
+                    await log(f"Scrape Error: {args[0].url} ({e.status})")
+                await self.manager.progress_manager.scrape_stats_progress.add_failure(e.status)
+            else:
+                await log(f"Scrape Error: {args[0].url} ({e})")
+                await log(traceback.format_exc())
+                await self.manager.progress_manager.scrape_stats_progress.add_failure("Unknown")
     return wrapper
 
 
-async def log(message: str) -> None:
+async def log(message: [str, Exception]) -> None:
     """Simple logging function"""
     logger.debug(message)
 
@@ -93,11 +103,11 @@ async def handle_scrape_error(manager: Manager, url: URL, error: Exception) -> N
     """Handles logging scrape errors"""
     if hasattr(error, 'status'):
         if hasattr(error, 'message'):
-            logger.debug(f"Scrape Error: {url} ({error.status} - {error.message})")
+            await log(f"Scrape Error: {url} ({error.status} - {error.message})")
         else:
-            logger.debug(f"Scrape Error: {url} ({error.status})")
+            await log(f"Scrape Error: {url} ({error.status})")
         await manager.progress_manager.scrape_stats_progress.add_failure(error.status)
     else:
-        logger.debug(f"Scrape Error: {url} ({error})")
-        logger.debug(traceback.extract_tb(error.__traceback__))
+        await log(f"Scrape Error: {url} ({error})")
+        await log("\n".join(traceback.format_tb(error.__traceback__)))
         await manager.progress_manager.scrape_stats_progress.add_failure("Unknown")
