@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import logging
 import re
+import traceback
 from functools import wraps
 from typing import TYPE_CHECKING
 
@@ -49,7 +50,7 @@ def error_handling_wrapper(func):
         try:
             await func(self, *args, **kwargs)
         except Exception as e:
-            await handle_scrape_error(self.manager, args[0].url, e)
+            await handle_scrape_error(self.manager, args[0].url, e.with_traceback(e.__traceback__))
     return wrapper
 
 
@@ -98,4 +99,5 @@ async def handle_scrape_error(manager: Manager, url: URL, error: Exception) -> N
         await manager.progress_manager.scrape_stats_progress.add_failure(error.status)
     else:
         logger.debug(f"Scrape Error: {url} ({error})")
+        logger.debug(traceback.extract_tb(error.__traceback__))
         await manager.progress_manager.scrape_stats_progress.add_failure("Unknown")

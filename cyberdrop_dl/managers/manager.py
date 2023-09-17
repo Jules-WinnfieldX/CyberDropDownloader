@@ -11,6 +11,7 @@ from cyberdrop_dl.managers.download_manager import DownloadManager
 from cyberdrop_dl.managers.file_manager import FileManager
 from cyberdrop_dl.managers.progress_manager import ProgressManager
 from cyberdrop_dl.managers.queue_manager import QueueManager
+from cyberdrop_dl.utils.args import config_definitions
 
 
 def make_portable() -> None:
@@ -108,6 +109,8 @@ class Manager:
 
     async def async_startup(self) -> None:
         """Async startup process for the manager"""
+        await self.args_consolidation()
+
         self.db_manager = DBManager(self.file_manager.history_db)
         self.client_manager = ClientManager(self)
         self.download_manager = DownloadManager(self)
@@ -122,8 +125,23 @@ class Manager:
         await self.db_manager.startup()
         await self.progress_manager.startup()
 
+    async def args_consolidation(self) -> None:
+        """Consolidates runtime arguments with config values"""
+        for arg in self.args_manager.parsed_args.keys():
+            if arg in config_definitions.settings['Download_Options']:
+                if self.args_manager.parsed_args[arg] != config_definitions.settings['Download_Options'][arg]:
+                    self.config_manager.settings_data['Download_Options'][arg] = self.args_manager.parsed_args[arg]
+            elif arg in config_definitions.settings['File_Size_Limits']:
+                if self.args_manager.parsed_args[arg] != config_definitions.settings['File_Size_Limits'][arg]:
+                    self.config_manager.settings_data['File_Size_Limits'][arg] = self.args_manager.parsed_args[arg]
+            elif arg in config_definitions.settings['Ignore_Options']:
+                if self.args_manager.parsed_args[arg] != config_definitions.settings['Ignore_Options'][arg]:
+                    self.config_manager.settings_data['Ignore_Options'][arg] = self.args_manager.parsed_args[arg]
+            elif arg in config_definitions.settings['Runtime_Options']:
+                if self.args_manager.parsed_args[arg] != config_definitions.settings['Runtime_Options'][arg]:
+                    self.config_manager.settings_data['Runtime_Options'][arg] = self.args_manager.parsed_args[arg]
+
     async def close(self) -> None:
         """Closes the manager"""
         await self.db_manager.close()
-        await self.client_manager.close()
         await self.download_manager.close()

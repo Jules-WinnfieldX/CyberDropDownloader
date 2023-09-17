@@ -95,7 +95,7 @@ class BunkrCrawler:
                 link = URL("https://" + scrape_item.url.host + link)
             link = URL(link)
             link = await self.get_stream_link(link)
-            await self.scraper_queue.put(ScrapeItem(url=link, parent_title=title))
+            await self.scraper_queue.put(ScrapeItem(url=link, parent_title=title, part_of_album=True))
 
     @error_handling_wrapper
     async def video(self, scrape_item: ScrapeItem) -> None:
@@ -110,7 +110,7 @@ class BunkrCrawler:
         except NoExtensionFailure:
             filename, ext = await get_filename_and_ext(scrape_item.url.name)
 
-        await self.handle_file(link, scrape_item.url, scrape_item.parent_title, filename, ext)
+        await self.handle_file(link, scrape_item, filename, ext)
 
     @error_handling_wrapper
     async def other(self, scrape_item: ScrapeItem) -> None:
@@ -125,39 +125,41 @@ class BunkrCrawler:
         except NoExtensionFailure:
             filename, ext = await get_filename_and_ext(scrape_item.url.name)
 
-        await self.handle_file(link, scrape_item.url, scrape_item.parent_title, filename, ext)
+        await self.handle_file(link, scrape_item, filename, ext)
 
-    async def handle_file(self, url: URL, referer: URL, folder_name: str, filename: str, ext: str) -> None:
+    async def handle_file(self, url: URL, scrape_item: ScrapeItem, filename: str, ext: str) -> None:
         """Finishes handling the file and hands it off to the download_queue"""
         original_filename, filename = await self.remove_id(filename, ext)
 
-        check_complete = self.manager.db_manager.history_table.check_complete("bunkr", url)
+        check_complete = await self.manager.db_manager.history_table.check_complete("bunkr", url)
         if check_complete:
             return
 
-        download_folder = await self.get_download_path(folder_name)
-        media_item = MediaItem(url, referer, download_folder, filename, ext, original_filename)
+        download_folder = await self.get_download_path(scrape_item)
+        media_item = MediaItem(url, scrape_item.url, download_folder, filename, ext, original_filename)
         await self.download_queue.put(media_item)
 
     """~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"""
 
-    async def get_download_path(self, folder_name) -> Path:
+    async def get_download_path(self, scrape_item: ScrapeItem) -> Path:
         """Returns the path to the download folder"""
-        if self._current_is_album:
-            return self.manager.config_manager.settings_data["download_folder"] / folder_name
+        if scrape_item.parent_title and scrape_item.part_of_album:
+            return self.manager.directory_manager.downloads / scrape_item.parent_title
+        elif scrape_item.parent_title:
+            return self.manager.directory_manager.downloads / scrape_item.parent_title / "Loose Bunkr Files"
         else:
-            return self.manager.config_manager.settings_data["download_folder"] / folder_name / "Loose Bunkr Files"
+            return self.manager.directory_manager.downloads / "Loose Bunkr Files"
 
     async def remove_id(self, filename: str, ext: str) -> Tuple[str, str]:
         """Removes the additional string bunkr adds to the end of every filename"""
         original_filename = filename
-        if self.manager.config_manager.settings_data["remove_generated_id_from_filenames"]:
+        if self.manager.config_manager.settings_data["Download_Options"]["remove_generated_id_from_filenames"]:
             original_filename = filename
             filename = filename.rsplit(ext, 1)[0]
             filename = filename.rsplit("-", 1)[0]
             if ext not in filename:
                 filename = filename + ext
-            return original_filename, filename
+        return original_filename, filename
 
     async def get_stream_link(self, url: URL) -> URL:
         cdn_possibilities = r"^(?:(?:(?:media-files|cdn|c|pizza|cdn-burger)[0-9]{0,2})|(?:(?:big-taco-|cdn-pizza)[0-9]{0,2}(?:redir)?))\.bunkr?\.[a-z]{2,3}$"

@@ -18,29 +18,29 @@ if TYPE_CHECKING:
 class DownloadManager:
     def __init__(self, manager: Manager):
         self.manager = manager
-        self.download_instances: Dict = {}
-        self.download_instance_tasks: Dict = {}
+        self._download_instances: Dict = {}
+        self._download_instance_tasks: Dict = {}
 
     async def check_complete(self) -> bool:
-        if not self.download_instances:
+        if not self._download_instances:
             return True
-        for instance in self.download_instances.values():
+        for instance in self._download_instances.values():
             if not instance.complete:
                 return False
         return True
 
     async def close(self) -> None:
-        for downloader in self.download_instance_tasks.values():
+        for downloader in self._download_instance_tasks.values():
             for task in downloader:
                 task.cancel()
 
     async def get_download_instance(self, key: str, instances: int) -> Downloader:
-        if key not in self.download_instances:
+        if key not in self._download_instances:
             self.download_instances[key] = Downloader(self.manager, key)
             await self.download_instances[key].startup()
             self.download_instance_tasks[key] = []
             for i in range(instances):
-                task = asyncio.create_task(self.download_instances[key].run_loop())
+                self._download_instance_tasks[key].append(asyncio.create_task(self.download_instances[key].run_loop()))
         return self.download_instances[key]
 
     async def basic_auth(self, username, password) -> str:

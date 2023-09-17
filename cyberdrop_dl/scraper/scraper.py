@@ -30,18 +30,18 @@ class ScrapeMapper:
         """Adds a bunkr link to the bunkr crawler"""
         if not self.existing_crawlers.get("bunkr"):
             from cyberdrop_dl.scraper.crawlers.bunkr_crawler import BunkrCrawler
-            self.existing_crawlers["bunkr"] = BunkrCrawler(self.manager)
-            await self.existing_crawlers["bunkr"].startup()
+            self.existing_crawlers['bunkr'] = BunkrCrawler(self.manager)
+            await self.existing_crawlers['bunkr'].startup()
             await self.manager.download_manager.get_download_instance("bunkr", 2)
-            asyncio.create_task(self.existing_crawlers["bunkr"].run_loop())
-        await self.existing_crawlers["bunkr"].scraper_queue.put(scrape_item)
+            asyncio.create_task(self.existing_crawlers['bunkr'].run_loop())
+        await self.existing_crawlers['bunkr'].scraper_queue.put(scrape_item)
         await asyncio.sleep(0)
 
     """~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"""
 
     async def regex_links(self, line: str) -> List:
-        """Regex grab the links from the URLs.txt file"""
-        """This allows code blocks or full paragraphs to be copy and pasted into the URLs.txt"""
+        """Regex grab the links from the URLs.txt file
+        This allows code blocks or full paragraphs to be copy and pasted into the URLs.txt"""
         yarl_links = []
         if line.lstrip().rstrip().startswith('#'):
             return yarl_links

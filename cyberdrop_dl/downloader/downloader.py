@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import copy
 import itertools
 from dataclasses import field
 from functools import wraps
@@ -53,20 +54,21 @@ def retry(f):
 
 
 class FileLock:
+    """Is this necessary? No. But I want it."""
     def __init__(self):
-        self.locked_files = []
+        self._locked_files = []
 
     async def check_lock(self, filename: str) -> bool:
         """Checks if the file is locked"""
-        return filename in self.locked_files
+        return filename in self._locked_files
 
     async def add_lock(self, filename: str) -> None:
         """Adds a lock to the file"""
-        self.locked_files.append(filename)
+        self._locked_files.append(filename)
 
     async def remove_lock(self, filename: str) -> None:
         """Removes a lock from the file"""
-        self.locked_files.remove(filename)
+        self._locked_files.remove(filename)
 
 
 class Downloader:
@@ -74,14 +76,16 @@ class Downloader:
         self.manager: Manager = manager
         self.domain: str = domain
 
+        self.complete = True
+
         self.client: DownloadClient = field(init=False)
         self.download_queue: Queue = field(init=False)
-        self.file_lock = FileLock()
 
-        self.complete = True
-        self.unfinished_count = 0
+        self._file_lock = FileLock()
+        self._additional_headers = {}
 
-        self.current_attempt_filesize = {}
+        self._unfinished_count = 0
+        self._current_attempt_filesize = {}
 
     async def startup(self) -> None:
         """Starts the downloader"""
@@ -169,7 +173,7 @@ class Downloader:
     async def set_additional_headers(self) -> None:
         """Sets additional headers for the download session"""
         if self.manager.config_manager.authentication_data['PixelDrain']['pixeldrain_api_key']:
-            self.client.headers["Authorization"] = await self.manager.download_manager.basic_auth("Cyberdrop-DL", self.manager.config_manager.authentication_data['PixelDrain']['pixeldrain_api_key'])
+            self._additional_headers["Authorization"] = await self.manager.download_manager.basic_auth("Cyberdrop-DL", self.manager.config_manager.authentication_data['PixelDrain']['pixeldrain_api_key'])
 
     async def get_final_file_info(self, complete_file: Path, partial_file: Path,
                                   media_item: MediaItem) -> tuple[Path, Path, bool]:
@@ -244,9 +248,9 @@ class Downloader:
         complete_file = None
 
         try:
-            while await self.file_lock.check_lock(media_item.original_filename):
+            while await self._file_lock.check_lock(media_item.original_filename):
                 await asyncio.sleep(gauss(1, 1.5))
-            await self.file_lock.add_lock(media_item.filename)
+            await self._file_lock.add_lock(media_item.filename)
 
             if not isinstance(media_item.current_attempt, int):
                 media_item.current_attempt = 1
@@ -260,7 +264,8 @@ class Downloader:
                 return
 
             resume_point = partial_file.stat().st_size if partial_file.exists() else 0
-            headers = {'Range': f'bytes={resume_point}-'}
+            headers = copy.deepcopy(self._additional_headers)
+            headers['Range'] = f'bytes={resume_point}-'
 
             file_task = await self.manager.progress_manager.file_progress.add_task(media_item.filename, media_item.filesize)
             await self.manager.progress_manager.file_progress.advance_file(file_task, resume_point)
@@ -269,20 +274,20 @@ class Downloader:
             partial_file.rename(complete_file)
 
             await self.mark_completed(media_item)
-            await self.file_lock.remove_lock(media_item.original_filename)
+            await self._file_lock.remove_lock(media_item.original_filename)
             return
 
         except (aiohttp.ServerDisconnectedError, asyncio.TimeoutError, aiohttp.ServerTimeoutError) as e:
-            if await self.file_lock.check_lock(media_item.original_filename):
-                await self.file_lock.remove_lock(media_item.original_filename)
+            if await self._file_lock.check_lock(media_item.original_filename):
+                await self._file_lock.remove_lock(media_item.original_filename)
 
             if partial_file:
                 if partial_file.is_file():
                     size = partial_file.stat().st_size
-                    if partial_file.name not in self.current_attempt_filesize:
-                        self.current_attempt_filesize[media_item.filename] = size
-                    elif self.current_attempt_filesize[media_item.filename] < size:
-                        self.current_attempt_filesize[media_item.filename] = size
+                    if partial_file.name not in self._current_attempt_filesize:
+                        self._current_attempt_filesize[media_item.filename] = size
+                    elif self._current_attempt_filesize[media_item.filename] < size:
+                        self._current_attempt_filesize[media_item.filename] = size
                     else:
                         raise DownloadFailure(status=getattr(e, "status", 1), message="Download timeout reached, retrying")
                     raise DownloadFailure(status=999, message="Download timeout reached, retrying")
@@ -291,8 +296,8 @@ class Downloader:
 
         except (aiohttp.ClientPayloadError, aiohttp.ClientOSError, aiohttp.ClientResponseError, DownloadFailure,
                 FileNotFoundError, PermissionError) as e:
-            if await self.file_lock.check_lock(media_item.original_filename):
-                await self.file_lock.remove_lock(media_item.original_filename)
+            if await self._file_lock.check_lock(media_item.original_filename):
+                await self._file_lock.remove_lock(media_item.original_filename)
 
             if hasattr(e, "status"):
                 if await is_4xx_client_error(e.status) and e.status != HTTPStatus.TOO_MANY_REQUESTS:

@@ -34,11 +34,11 @@ def limiter(func):
     async def wrapper(self, *args, **kwargs):
         domain_limiter = await self.client_manager.get_rate_limiter(args[0])
         async with self.client_manager.session_limit:
-            await self.global_limiter.acquire()
+            await self._global_limiter.acquire()
             await domain_limiter.acquire()
 
             async with aiohttp.ClientSession(headers=self.headers, raise_for_status=False,
-                                             cookie_jar=self.client_manager.cookies, timeout=self.timeouts) as client:
+                                             cookie_jar=self.client_manager.cookies, timeout=self._timeouts) as client:
                 kwargs['client_session'] = client
                 return await func(self, *args, **kwargs)
     return wrapper
@@ -48,15 +48,15 @@ class DownloadClient:
     """AIOHTTP operations for downloading"""
     def __init__(self, client_manager: ClientManager):
         self.client_manager = client_manager
-        self.headers = {"user-agent": client_manager.user_agent}
-        self.timeouts = aiohttp.ClientTimeout(total=client_manager.read_timeout + client_manager.connection_timeout,
+        self._headers = {"user-agent": client_manager.user_agent}
+        self._timeouts = aiohttp.ClientTimeout(total=client_manager.read_timeout + client_manager.connection_timeout,
                                               connect=client_manager.connection_timeout)
-        self.global_limiter = self.client_manager.global_rate_limiter
+        self._global_limiter = self.client_manager.global_rate_limiter
 
     @limiter
     async def get_filesize(self, media_item: MediaItem, client_session: ClientSession) -> int:
         """Returns the file size of the media item"""
-        headers = copy.deepcopy(self.headers)
+        headers = copy.deepcopy(self._headers)
         headers['Referer'] = media_item.referer
 
         async with client_session.get(media_item.url, headers=headers, ssl=self.client_manager.ssl_context,
@@ -71,7 +71,7 @@ class DownloadClient:
                         save_content: Callable[[aiohttp.StreamReader], Coroutine[Any, Any, None]], file: Path,
                         file_task: TaskID, client_session: ClientSession) -> None:
         """Downloads a file"""
-        headers = copy.deepcopy(self.headers)
+        headers = copy.deepcopy(self._headers)
         headers['Referer'] = media_item.referer
         headers.update(headers_inc)
 
@@ -108,5 +108,5 @@ class DownloadClient:
                                        partial(manager.progress_manager.file_progress.advance_file,
                                                file_task))
 
-        await self._download(self, domain, manager, media_item, headers, save_content, partial_file, file_task)
+        await self._download(domain, manager, media_item, headers, save_content, partial_file, file_task)
 

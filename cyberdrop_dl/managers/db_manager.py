@@ -10,8 +10,8 @@ from cyberdrop_dl.utils.db.tables.temp_table import TempTable
 
 class DBManager:
     def __init__(self, db_path: Path):
-        self.db_conn: aiosqlite.Connection = field(init=False)
-        self.db_path: Path = db_path
+        self._db_conn: aiosqlite.Connection = field(init=False)
+        self._db_path: Path = db_path
 
         self.ignore_cache: bool = False
         self.ignore_history: bool = False
@@ -22,7 +22,7 @@ class DBManager:
 
     async def startup(self) -> None:
         """Startup process for the DBManager"""
-        self.db_conn = await aiosqlite.connect(self.db_path)
+        self._db_conn = await aiosqlite.connect(self.db_path)
 
         self.cache_table = CacheTable(self.db_conn)
         self.history_table = HistoryTable(self.db_conn)
@@ -39,7 +39,7 @@ class DBManager:
 
     async def close(self) -> None:
         """Close the DBManager"""
-        await self.db_conn.close()
+        await self._db_conn.close()
 
     async def _pre_allocate(self) -> None:
         """We pre-allocate 100MB of space to the SQL file just in case the user runs out of disk space"""
