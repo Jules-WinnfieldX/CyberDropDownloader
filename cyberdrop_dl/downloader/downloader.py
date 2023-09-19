@@ -230,6 +230,7 @@ class Downloader:
             complete_file = media_item.download_folder / media_item.filename
             partial_file = complete_file.with_suffix(complete_file.suffix + '.part')
 
+        media_item.download_filename = complete_file.name
         return complete_file, partial_file, proceed
 
     async def iterate_filename(self, complete_file: Path, media_item: MediaItem) -> Tuple[Path, Path]:
@@ -253,7 +254,6 @@ class Downloader:
         if media_item.current_attempt == self.manager.config_manager.global_settings_data['Rate_Limiting_Options']['download_attempts']:
             return
 
-        await self.mark_incomplete(media_item)
         if not await self.check_file_can_download(media_item):
             return
 
@@ -274,6 +274,7 @@ class Downloader:
             partial_file = complete_file.with_suffix(complete_file.suffix + '.part')
 
             complete_file, partial_file, proceed = await self.get_final_file_info(complete_file, partial_file, media_item)
+            await self.mark_incomplete(media_item)
 
             if not proceed:
                 return

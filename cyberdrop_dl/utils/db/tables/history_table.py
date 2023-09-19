@@ -50,14 +50,15 @@ class HistoryTable:
     async def insert_uncompleted(self, domain: str, media_item: MediaItem) -> None:
         """Inserts an uncompleted file into the database"""
         url_path = await get_db_path(media_item.url, str(media_item.referer))
-        await self.db_conn.execute("""INSERT OR IGNORE INTO media (domain, url_path, referer, original_filename, completed) VALUES (?, ?, ?, ?, ?)""", (domain, url_path, str(media_item.referer), media_item.original_filename, 0))
+        download_filename = media_item.download_filename if isinstance(media_item.download_filename, str) else ""
+        await self.db_conn.execute("""INSERT OR IGNORE INTO media (domain, url_path, referer, download_filename, original_filename, completed) VALUES (?, ?, ?, ?, ?, ?)""", (domain, url_path, str(media_item.referer), download_filename, media_item.original_filename, 0))
         await self.db_conn.commit()
 
     async def mark_complete(self, domain: str, media_item: MediaItem) -> None:
         """Mark a download as completed in the database"""
         url_path = await get_db_path(media_item.url, str(media_item.referer))
         download_filename = media_item.download_filename if isinstance(media_item.download_filename, str) else ""
-        await self.db_conn.execute("""UPDATE media SET completed = 1, download_filename = ? WHERE domain = ? and url_path = ?""", (download_filename, domain, url_path))
+        await self.db_conn.execute("""UPDATE media SET completed = 1 WHERE domain = ? and url_path = ?""", (domain, url_path))
         await self.db_conn.commit()
 
     async def check_filename_exists(self, filename: str):
@@ -71,6 +72,6 @@ class HistoryTable:
         """Returns the downloaded filename from the database"""
         url_path = await get_db_path(media_item.url, str(media_item.referer))
         cursor = await self.db_conn.cursor()
-        result = await cursor.execute("""SELECT downloaded_filename FROM media WHERE domain = ? and url_path = ?""", (domain, url_path))
+        result = await cursor.execute("""SELECT download_filename FROM media WHERE domain = ? and url_path = ?""", (domain, url_path))
         sql_file_check = await result.fetchone()
         return sql_file_check[0] if sql_file_check else None
