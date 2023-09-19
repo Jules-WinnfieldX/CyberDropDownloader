@@ -135,6 +135,8 @@ class BunkrCrawler:
 
         check_complete = await self.manager.db_manager.history_table.check_complete("bunkr", url)
         if check_complete:
+            await log(f"Skipping {url} as it has already been downloaded")
+            await self.manager.progress_manager.download_progress.add_previously_completed()
             return
 
         download_folder = await self.get_download_path(scrape_item)

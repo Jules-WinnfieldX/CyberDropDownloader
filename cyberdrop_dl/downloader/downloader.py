@@ -34,9 +34,10 @@ def retry(f):
             try:
                 return await f(self, *args, **kwargs)
             except DownloadFailure as e:
-                if isinstance(self._current_task, TaskID):
-                    await self.manager.progress_manager.file_progress.remove_file(self._current_task)
                 media_item = args[0]
+                if isinstance(media_item.download_task_id, TaskID):
+                    await self.manager.progress_manager.file_progress.remove_file(media_item.download_task_id)
+
                 if hasattr(e, "status"):
                     if hasattr(e, "message"):
                         await log(f"Download failed: {media_item.url} with status {e.status} and message {e.message}")
@@ -53,13 +54,16 @@ def retry(f):
                             await self.manager.progress_manager.download_stats_progress.add_failure(e.status)
                         else:
                             await self.manager.progress_manager.download_stats_progress.add_failure("Unknown")
+                        await self.manager.progress_manager.download_progress.add_failed()
                         break
             except Exception as e:
-                await log(f"Download Error: {args[0].url} with error {e}")
-                if isinstance(self._current_task, TaskID):
-                    await self.manager.progress_manager.file_progress.remove_file(self._current_task)
+                media_item = args[0]
+                await log(f"Download Error: {media_item.url} with error {e}")
+                if isinstance(media_item.download_task_id, TaskID):
+                    await self.manager.progress_manager.file_progress.remove_file(media_item.download_task_id)
                 await log(traceback.format_exc())
                 await self.manager.progress_manager.download_stats_progress.add_failure("Unknown")
+                await self.manager.progress_manager.download_progress.add_failed()
                 break
     return wrapper
 
@@ -96,7 +100,6 @@ class Downloader:
         self._additional_headers = {}
 
         self._unfinished_count = 0
-        self._current_task = None
         self._current_attempt_filesize = {}
 
     async def startup(self) -> None:
@@ -251,10 +254,14 @@ class Downloader:
     @retry
     async def download(self, media_item: MediaItem) -> None:
         """Downloads the media item"""
+        await self.manager.progress_manager.download_progress.update_total()
         if media_item.current_attempt == self.manager.config_manager.global_settings_data['Rate_Limiting_Options']['download_attempts']:
+            await self.manager.progress_manager.download_stats_progress.add_failure("Attempt Limit Reached")
+            await self.manager.progress_manager.download_progress.add_failed()
             return
 
         if not await self.check_file_can_download(media_item):
+            await self.manager.progress_manager.download_progress.add_skipped()
             return
 
         download_dir = await self.get_download_dir(media_item)
@@ -283,14 +290,15 @@ class Downloader:
             headers = copy.deepcopy(self._additional_headers)
             headers['Range'] = f'bytes={resume_point}-'
 
-            self._current_task = await self.manager.progress_manager.file_progress.add_task(media_item.filename, media_item.filesize)
-            await self.manager.progress_manager.file_progress.advance_file(self._current_task, resume_point)
+            media_item.download_task_id = await self.manager.progress_manager.file_progress.add_task(media_item.filename, media_item.filesize)
+            await self.manager.progress_manager.file_progress.advance_file(media_item.download_task_id, resume_point)
 
-            await self.client.download_file(self.manager, self.domain, media_item, partial_file, headers, self._current_task)
+            await self.client.download_file(self.manager, self.domain, media_item, partial_file, headers, media_item.download_task_id)
             partial_file.rename(complete_file)
 
             await self.mark_completed(media_item)
-            await self.manager.progress_manager.file_progress.mark_task_completed(self._current_task)
+            await self.manager.progress_manager.file_progress.mark_task_completed(media_item.download_task_id)
+            await self.manager.progress_manager.download_progress.add_completed()
             await self._file_lock.remove_lock(media_item.original_filename)
             return
 

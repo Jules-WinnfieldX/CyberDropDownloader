@@ -15,6 +15,7 @@ class DownloadsProgress:
                                  "{task.completed} of {task.total} Files Completed")
         self.progress_group = Group(self.progress)
 
+        self.total_files = 0
         self.completed_files_task_id = self.progress.add_task("[green]Completed", total=0)
         self.completed_files = 0
         self.previously_completed_files_task_id = self.progress.add_task("[yellow]Previously Downloaded", total=0)
@@ -28,12 +29,13 @@ class DownloadsProgress:
         """Returns the progress bar"""
         return Panel(self.progress_group, title="Files", border_style="green", padding=(1, 1))
 
-    async def update_total(self, total_files: int) -> None:
+    async def update_total(self) -> None:
         """Updates the total number of files to be downloaded"""
-        self.progress.update(self.completed_files_task_id, total=total_files)
-        self.progress.update(self.previously_completed_files_task_id, total=total_files)
-        self.progress.update(self.skipped_files_task_id, total=total_files)
-        self.progress.update(self.failed_files_task_id, total=total_files)
+        self.total_files = self.total_files + 1
+        self.progress.update(self.completed_files_task_id, total=self.total_files)
+        self.progress.update(self.previously_completed_files_task_id, total=self.total_files)
+        self.progress.update(self.skipped_files_task_id, total=self.total_files)
+        self.progress.update(self.failed_files_task_id, total=self.total_files)
 
     async def add_completed(self) -> None:
         """Adds a completed file to the progress bar"""
