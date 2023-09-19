@@ -57,7 +57,7 @@ class HistoryTable:
         """Mark a download as completed in the database"""
         url_path = await get_db_path(media_item.url, str(media_item.referer))
         download_filename = media_item.download_filename if isinstance(media_item.download_filename, str) else ""
-        await self.db_conn.execute("""UPDATE media SET completed = 1, downloaded_filename = ? WHERE domain = ? and url_path = ?""", (download_filename, domain, url_path))
+        await self.db_conn.execute("""UPDATE media SET completed = 1, download_filename = ? WHERE domain = ? and url_path = ?""", (download_filename, domain, url_path))
         await self.db_conn.commit()
 
     async def check_filename_exists(self, filename: str):

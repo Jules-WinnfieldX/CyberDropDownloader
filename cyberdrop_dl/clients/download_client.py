@@ -4,6 +4,7 @@ import asyncio
 import copy
 from http import HTTPStatus
 from functools import wraps, partial
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 import aiofiles
@@ -15,7 +16,6 @@ from cyberdrop_dl.clients.errors import DownloadFailure
 from cyberdrop_dl.utils.utilities import FILE_FORMATS
 
 if TYPE_CHECKING:
-    from pathlib import Path
     from typing import Dict, Callable, Coroutine, Any
 
     from cyberdrop_dl.managers.client_manager import ClientManager, CustomHTTPStatus
@@ -57,7 +57,7 @@ class DownloadClient:
     async def get_filesize(self, media_item: MediaItem, client_session: ClientSession) -> int:
         """Returns the file size of the media item"""
         headers = copy.deepcopy(self._headers)
-        headers['Referer'] = media_item.referer
+        headers['Referer'] = str(media_item.referer)
 
         async with client_session.get(media_item.url, headers=headers, ssl=self.client_manager.ssl_context,
                                       proxy=self.client_manager.proxy) as resp:
@@ -72,7 +72,7 @@ class DownloadClient:
                         file_task: TaskID, client_session: ClientSession) -> None:
         """Downloads a file"""
         headers = copy.deepcopy(self._headers)
-        headers['Referer'] = media_item.referer
+        headers['Referer'] = str(media_item.referer)
         headers.update(headers_inc)
 
         async with client_session.get(media_item.url, headers=headers, ssl=self.client_manager.ssl_context,
