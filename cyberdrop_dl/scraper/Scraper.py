@@ -100,7 +100,7 @@ class ScrapeMapper:
                         "hgamecg": self.HGameCG, "imgbox": self.ImgBox, "pixeldrain": self.PixelDrain,
                         "postimg": self.PostImg, "saint": self.Saint, "img.kiwi": self.ShareX, "imgur": self.Imgur,
                         "jpg.church": self.ShareX, "jpg.fish": self.ShareX, "jpg.pet": self.ShareX,
-                        "jpg1.su": self.ShareX, "jpeg.pet": self.ShareX, "pixl.li": self.ShareX,
+                        "jpg1.su": self.ShareX, "jpg2.su": self.ShareX, "jpeg.pet": self.ShareX, "pixl.li": self.ShareX,
                         "nsfw.xxx": self.NSFW_XXX, "pimpandhost": self.PimpAndHost, "lovefap": self.LoveFap,
                         "e-hentai": self.EHentai, "gallery.deltaporno": self.ShareX, "vk.com": self.vk_redirect,
                         "coomer.party": self.Coomeno, "coomer.su": self.Coomeno, "kemono.party": self.Coomeno,
