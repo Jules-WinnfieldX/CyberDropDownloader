@@ -63,7 +63,7 @@ async def director(manager: Manager) -> None:
         clear_screen_proc = await asyncio.create_subprocess_shell('cls' if os.name == 'nt' else 'clear')
         await clear_screen_proc.wait()
 
-        # TODO add a "finished" message
+        asyncio.get_event_loop().stop()
 
 
 def main():
