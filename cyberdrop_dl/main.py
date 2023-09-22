@@ -10,6 +10,8 @@ from rich.live import Live
 from cyberdrop_dl.managers.manager import Manager
 from cyberdrop_dl.scraper.scraper import ScrapeMapper
 from cyberdrop_dl.ui.ui import program_ui
+from cyberdrop_dl.utils.sorting import Sorter
+from cyberdrop_dl.utils.utilities import check_latest_pypi, log_with_color, check_partials_and_empty_folders
 
 
 def startup() -> Manager:
@@ -62,6 +64,20 @@ async def director(manager: Manager) -> None:
 
         clear_screen_proc = await asyncio.create_subprocess_shell('cls' if os.name == 'nt' else 'clear')
         await clear_screen_proc.wait()
+
+        if manager.config_manager.settings_data['Sorting']['sort_downloads']:
+            sorter = Sorter(manager.directory_manager.downloads, manager.directory_manager.sorted_downloads,
+                            manager.config_manager.settings_data['Sorting']['sorted_audio_folder'],
+                            manager.config_manager.settings_data['Sorting']['sorted_image_folder'],
+                            manager.config_manager.settings_data['Sorting']['sorted_video_folder'],
+                            manager.config_manager.settings_data['Sorting']['sorted_other_folder'])
+            await sorter.sort()
+        await check_partials_and_empty_folders(manager)
+
+        await manager.progress_manager.print_stats()
+        await check_latest_pypi()
+
+        await log_with_color("Finished downloading. Enjoy :)", 'green')
 
         asyncio.get_event_loop().stop()
 

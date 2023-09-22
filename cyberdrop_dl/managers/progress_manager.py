@@ -7,6 +7,7 @@ from cyberdrop_dl.ui.progress.downloads_progress import DownloadsProgress
 from cyberdrop_dl.ui.progress.file_progress import FileProgress
 from cyberdrop_dl.ui.progress.scraping_progress import ScrapingProgress
 from cyberdrop_dl.ui.progress.statistic_progress import DownloadStatsProgress, ScrapeStatsProgress
+from cyberdrop_dl.utils.utilities import log_with_color
 
 
 class ProgressManager:
@@ -39,3 +40,22 @@ class ProgressManager:
         )
 
         self.layout = progress_layout
+
+    async def print_stats(self) -> None:
+        """Prints the stats of the program"""
+        await log_with_color("Download Stats:", "cyan")
+        await log_with_color(f"Downloaded {self.download_progress.completed_files} files", "green")
+        await log_with_color(
+            f"Already Downloaded {self.download_progress.previously_completed_files} files", "yellow")
+        await log_with_color(f"Skipped By Config {self.download_progress.skipped_files} files", "yellow")
+        await log_with_color(f"Failed {self.download_stats_progress.failed_files} files", "red")
+
+        scrape_failures = await self.scrape_stats_progress.return_totals()
+        await log_with_color("Scrape Failures", "cyan")
+        for key, value in scrape_failures.items():
+            await log_with_color(f"Scrape Failures ({key}): {value}", "red")
+
+        download_failures = await self.download_stats_progress.return_totals()
+        await log_with_color("Download Failures", "cyan")
+        for key, value in download_failures.items():
+            await log_with_color(f"Download Failures ({key}): {value}", "red")

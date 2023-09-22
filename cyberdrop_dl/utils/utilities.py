@@ -1,11 +1,14 @@
 from __future__ import annotations
 
 import logging
+import os
 import re
 import traceback
 from functools import wraps
+from pathlib import Path
 from typing import TYPE_CHECKING
 
+import rich
 from yarl import URL
 
 from cyberdrop_dl.clients.errors import NoExtensionFailure
@@ -69,6 +72,15 @@ async def log(message: [str, Exception]) -> None:
     logger.debug(message)
 
 
+async def log_with_color(message: str, style: str) -> None:
+    """Simple logging function with color"""
+    logger.debug(message)
+    rich.print(f"[{style}]{message}[/{style}]")
+
+
+"""~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"""
+
+
 async def sanitize(name: str) -> str:
     """Simple sanitization to remove illegal characters"""
     return re.sub(r'[<>:"/\\|?*\']', "", name).strip()
@@ -111,3 +123,62 @@ async def handle_scrape_error(manager: Manager, url: URL, error: Exception) -> N
         await log(f"Scrape Error: {url} ({error})")
         await log("\n".join(traceback.format_tb(error.__traceback__)))
         await manager.progress_manager.scrape_stats_progress.add_failure("Unknown")
+
+
+"""~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"""
+
+
+async def purge_dir(dirname: Path) -> None:
+    """Purges empty directories"""
+    deleted = []
+    dir_tree = list(os.walk(dirname, topdown=False))
+
+    for tree_element in dir_tree:
+        sub_dir = tree_element[0]
+        dir_count = len(os.listdir(sub_dir))
+        if dir_count == 0:
+            deleted.append(sub_dir)
+    list(map(os.rmdir, deleted))
+
+
+async def check_partials_and_empty_folders(manager: Manager):
+    if manager.config_manager.settings_data['Runtime_Options']['delete_partials']:
+        await log_with_color("Deleting partial downloads...", "bold_red")
+        partial_downloads = manager.directory_manager.downloads.rglob("*.part")
+        for file in partial_downloads:
+            file.unlink(missing_ok=True)
+    elif not manager.config_manager.settings_data['Runtime_Options']['skip_check_for_partial_files']:
+        await log_with_color("Checking for partial downloads...", "yellow")
+        partial_downloads = any(f.is_file() for f in manager.directory_manager.downloads.rglob("*.part"))
+        if partial_downloads:
+            await log_with_color("There are partial downloads in the downloads folder", "yellow")
+        temp_downloads = any(Path(f).is_file() for f in await manager.db_manager.temp_table.get_temp_names())
+        if temp_downloads:
+            await log_with_color("There are partial downloads from the previous run, please re-run the program.", "yellow")
+
+    if not manager.config_manager.settings_data['Runtime_Options']['skip_check_for_empty_folders']:
+        await log_with_color("Checking for empty folders...", "yellow")
+        await purge_dir(manager.directory_manager.downloads)
+        await purge_dir(manager.directory_manager.sorted_downloads)
+
+
+async def check_latest_pypi():
+    """Checks if the current version is the latest version"""
+    import subprocess
+    import sys
+    import json
+    import urllib.request
+
+    # create dictionary of package versions
+    pkgs = subprocess.check_output([sys.executable, '-m', 'pip', 'freeze'])
+    keys = [p.decode().split('==')[0] for p in pkgs.split()]
+    values = [p.decode().split('==')[1] for p in pkgs.split()]
+    d = dict(zip(keys, values))
+
+    # retrieve info on latest version
+    contents = urllib.request.urlopen('https://pypi.org/pypi/cyberdrop-dl/json').read()
+    data = json.loads(contents)
+    latest_version = data['info']['version']
+
+    if d['cyberdrop-dl'] != latest_version:
+        await log_with_color(f"New version of cyberdrop-dl available: {latest_version}", "bold_red")
