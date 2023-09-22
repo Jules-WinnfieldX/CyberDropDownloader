@@ -27,8 +27,8 @@ def main_prompt(manager: Manager) -> int:
         message="What would you like to do?",
         choices=[
             Choice(1, "Download"),
-            Choice(2, "Edit URLs File"),
-            Choice(3, "Edit URLs & Passwords File"),
+            Choice(2, "Download (All Configs)"),
+            Choice(3, "Edit URLs File"),
             Separator(),
             Choice(4, f"Select Config (Current: {manager.config_manager.loaded_config})"),
             Choice(5, "Manage Configs"),

@@ -22,10 +22,7 @@ class MediaItem:
 
 
 class ScrapeItem:
-    def __init__(self, url: URL, parent_title: str, part_of_album: bool = False, password: str = None):
+    def __init__(self, url: URL, parent_title: str, part_of_album: bool = False):
         self.url: URL = url
         self.parent_title: str = parent_title
         self.part_of_album: bool = part_of_album
-        self.password: str = field(init=False)
-        if password:
-            self.password: str = password

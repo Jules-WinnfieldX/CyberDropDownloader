@@ -8,8 +8,6 @@ if TYPE_CHECKING:
 class FileManager:
     def __init__(self):
         self.input_file: Path = field(init=False)
-        self.input_password_file: Path = field(init=False)
-
         self.history_db: Path = field(init=False)
 
         self.main_log: Path = field(init=False)
@@ -21,7 +19,6 @@ class FileManager:
     def startup(self) -> None:
         """Startup process for the file manager"""
         self.input_file.touch(exist_ok=True)
-        self.input_password_file.touch(exist_ok=True)
 
         self.main_log.touch(exist_ok=True)
         self.last_post_log.touch(exist_ok=True)

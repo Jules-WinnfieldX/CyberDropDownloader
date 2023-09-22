@@ -12,6 +12,7 @@ def parse_args() -> argparse.Namespace:
     general.add_argument("--config", type=str, help="name of config to load", default="")
     general.add_argument("--portable", action="store_true", help="use portable mode", default=False)
     general.add_argument("--download", action="store_true", help="Skip the UI and go straight to downloading", default=False)
+    general.add_argument("--download-all-configs", action="store_true", help="Skip the UI and iterate through configs", default=False)
 
     # Settings
     download_options = parser.add_argument_group("Download_Options")

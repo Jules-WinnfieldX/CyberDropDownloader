@@ -32,8 +32,12 @@ def program_ui(manager: Manager):
         if action == 1:
             break
 
+        if action == 2:
+            manager.args_manager.all_configs = True
+            break
+
         # Edit URLs
-        elif action == 2:
+        elif action == 3:
             edit_urls_prompt(manager.file_manager.input_file)
 
         # Edit URLs & Passwords
