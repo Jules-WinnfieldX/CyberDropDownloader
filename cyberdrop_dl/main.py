@@ -62,24 +62,24 @@ async def director(manager: Manager) -> None:
     with Live(manager.progress_manager.layout, refresh_per_second=10):
         await runtime(manager)
 
-        clear_screen_proc = await asyncio.create_subprocess_shell('cls' if os.name == 'nt' else 'clear')
-        await clear_screen_proc.wait()
+    clear_screen_proc = await asyncio.create_subprocess_shell('cls' if os.name == 'nt' else 'clear')
+    await clear_screen_proc.wait()
 
-        if manager.config_manager.settings_data['Sorting']['sort_downloads']:
-            sorter = Sorter(manager.directory_manager.downloads, manager.directory_manager.sorted_downloads,
-                            manager.config_manager.settings_data['Sorting']['sorted_audio_folder'],
-                            manager.config_manager.settings_data['Sorting']['sorted_image_folder'],
-                            manager.config_manager.settings_data['Sorting']['sorted_video_folder'],
-                            manager.config_manager.settings_data['Sorting']['sorted_other_folder'])
-            await sorter.sort()
-        await check_partials_and_empty_folders(manager)
+    if manager.config_manager.settings_data['Sorting']['sort_downloads']:
+        sorter = Sorter(manager.directory_manager.downloads, manager.directory_manager.sorted_downloads,
+                        manager.config_manager.settings_data['Sorting']['sorted_audio_folder'],
+                        manager.config_manager.settings_data['Sorting']['sorted_image_folder'],
+                        manager.config_manager.settings_data['Sorting']['sorted_video_folder'],
+                        manager.config_manager.settings_data['Sorting']['sorted_other_folder'])
+        await sorter.sort()
+    await check_partials_and_empty_folders(manager)
 
-        await manager.progress_manager.print_stats()
-        await check_latest_pypi()
+    await manager.progress_manager.print_stats()
+    await check_latest_pypi()
 
-        await log_with_color("Finished downloading. Enjoy :)", 'green')
+    await log_with_color("Finished downloading. Enjoy :)", 'green')
 
-        asyncio.get_event_loop().stop()
+    asyncio.get_event_loop().stop()
 
 
 def main():
