@@ -74,7 +74,7 @@ class CDLHelper:
         self.File_Lock = FileLock()
 
         # Limits
-        self.delay = {'cyberdrop': 1.0, 'cyberfile': 1.0, 'anonfiles': 1.0, "coomer": 0.2, "kemono": 0.2}
+        self.delay = {'cyberdrop': 1.0, 'cyberfile': 1.0, 'anonfiles': 1.0, "coomer": 0.2, "kemono": 0.2, 'bunkr': 0.5}
 
         # Exclude Args
         self.exclude_audio = args["Ignore"]["exclude_audio"]
