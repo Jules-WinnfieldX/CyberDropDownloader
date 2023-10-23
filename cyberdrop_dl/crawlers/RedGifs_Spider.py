@@ -57,7 +57,7 @@ class RedGifsCrawler:
         page = 1
         total_pages = 1
         while page <= total_pages:
-            json_obj = await session.get_json((self.redgifs_api / "v2/users" / user_id / "search").with_query(f"page={page}"), headers_inc=self.headers)
+            json_obj = await session.get_json((self.redgifs_api / "v2/users" / user_id / "search").with_query(f"order=new&count=40&page={page}"), headers_inc=self.headers)
             total_pages = json_obj["pages"]
             gifs = json_obj["gifs"]
             for gif in gifs:
