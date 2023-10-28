@@ -71,7 +71,8 @@ class Sorter:
 
     async def move_cd(self, file: Path, dest: Path) -> None:
         try:
-            dest_file = dest / file.name
+            new_name = "".join(x for x in file.parent.name  if x.isalnum()) + "_" + file.name
+            dest_file = dest / new_name
             file.rename(dest_file)
         except FileExistsError:
             if file.stat().st_size == dest_file.stat().st_size:
