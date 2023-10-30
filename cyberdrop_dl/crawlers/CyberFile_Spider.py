@@ -67,7 +67,7 @@ class CyberFileCrawler:
         try:
             async with self.limiter:
                 soup = await session.get_BS4(url)
-            script_func = soup.select_one('div[class="page-container horizontal-menu with-sidebar fit-logo-with-sidebar logged-out clear-adblock"] script').text
+            script_func = soup.select('div[class*="page-container"] script')[-1].text
             script_func = script_func.split('loadImages(')[-1]
             script_func = script_func.split(';')[0]
             nodeId = int(script_func.split(',')[1].replace("'", ""))
