@@ -240,5 +240,5 @@ class SkipData:
                                                   "kemono.su", "lovefap", "nsfw.xxx", "pimpandhost", "pixeldrain",
                                                   "pixl.li", "postimg", "saint", "nudostar", "reddit", "simpcity",
                                                   "socialmediagirls", "xbunker", "xbunkr", "imgur", "redd.it",
-                                                  "jpeg.pet", "jpg1.su", "jpg2.su", "redgifs")
+                                                  "jpeg.pet", "jpg1.su", "jpg2.su", "jpg3.su", "redgifs")
     sites: List[str]
