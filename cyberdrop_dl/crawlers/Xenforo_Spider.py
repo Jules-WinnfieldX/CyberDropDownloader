@@ -224,9 +224,13 @@ class XenforoCrawler:
                 if parent_simp:
                     if "init" in parent_simp:
                         continue
+                nudo_thumb_check = link_tag.parent.get("href")
+                if nudo_thumb_check:
+                    if "nudostar" in nudo_thumb_check:
+                        continue
 
             test_for_img = link_tag.select_one("img")
-            if test_for_img:
+            if test_for_img and "nudostar.com" not in link:
                 continue
             if not link:
                 continue
