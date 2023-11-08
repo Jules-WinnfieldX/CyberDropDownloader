@@ -8,7 +8,7 @@ if TYPE_CHECKING:
 
 
 class MediaItem:
-    def __init__(self, url: URL, referer: URL, download_folder: Path, filename: str, ext: str, original_filename: str):
+    def __init__(self, url: "URL", referer: "URL", download_folder: Path, filename: str, ext: str, original_filename: str):
         self.url: URL = url
         self.referer: URL = referer
         self.download_folder: Path = download_folder
@@ -22,7 +22,7 @@ class MediaItem:
 
 
 class ScrapeItem:
-    def __init__(self, url: URL, parent_title: str, part_of_album: bool = False):
+    def __init__(self, url: "URL", parent_title: str, part_of_album: bool = False):
         self.url: URL = url
         self.parent_title: str = parent_title
         self.part_of_album: bool = part_of_album

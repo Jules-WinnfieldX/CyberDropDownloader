@@ -2,6 +2,7 @@ import asyncio
 import contextlib
 import logging
 import os
+import sys
 
 import aiorun
 from rich import console
@@ -77,7 +78,9 @@ async def director(manager: Manager) -> None:
     await manager.progress_manager.print_stats()
     await check_latest_pypi()
 
-    await log_with_color("Finished downloading. Enjoy :)", 'green')
+    await manager.close()
+
+    await log_with_color("\nFinished downloading. Enjoy :)", 'green')
 
     asyncio.get_event_loop().stop()
 
@@ -90,7 +93,7 @@ def main():
         asyncio.set_event_loop(loop)
 
         aiorun.run(director(manager), stop_on_unhandled_errors=True)
-        exit(0)
+        sys.exit(0)
 
 
 if __name__ == '__main__':

@@ -142,7 +142,7 @@ async def purge_dir(dirname: Path) -> None:
 
 
 async def check_partials_and_empty_folders(manager: Manager):
-    if manager.config_manager.settings_data['Runtime_Options']['delete_partials']:
+    if manager.config_manager.settings_data['Runtime_Options']['delete_partial_files']:
         await log_with_color("Deleting partial downloads...", "bold_red")
         partial_downloads = manager.directory_manager.downloads.rglob("*.part")
         for file in partial_downloads:
@@ -159,7 +159,8 @@ async def check_partials_and_empty_folders(manager: Manager):
     if not manager.config_manager.settings_data['Runtime_Options']['skip_check_for_empty_folders']:
         await log_with_color("Checking for empty folders...", "yellow")
         await purge_dir(manager.directory_manager.downloads)
-        await purge_dir(manager.directory_manager.sorted_downloads)
+        if isinstance(manager.directory_manager.sorted_downloads, Path):
+            await purge_dir(manager.directory_manager.sorted_downloads)
 
 
 async def check_latest_pypi():
@@ -179,6 +180,9 @@ async def check_latest_pypi():
     contents = urllib.request.urlopen('https://pypi.org/pypi/cyberdrop-dl/json').read()
     data = json.loads(contents)
     latest_version = data['info']['version']
+
+    if "cyberdrop-dl" not in d:
+        return
 
     if d['cyberdrop-dl'] != latest_version:
         await log_with_color(f"New version of cyberdrop-dl available: {latest_version}", "bold_red")

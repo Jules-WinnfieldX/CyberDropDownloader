@@ -11,7 +11,7 @@ from cyberdrop_dl.ui.prompts.general_prompts import (
     main_prompt, select_config_prompt, donations_prompt,
     import_cyberdrop_v4_items_prompt, manage_configs_prompt)
 from cyberdrop_dl.ui.prompts.settings_global_prompts import edit_global_settings_prompt
-from cyberdrop_dl.ui.prompts.url_file_prompts import edit_urls_prompt, edit_urls_passwords_prompt
+from cyberdrop_dl.ui.prompts.url_file_prompts import edit_urls_prompt
 from cyberdrop_dl.ui.prompts.settings_user_prompts import create_new_config_prompt, edit_config_values_prompt
 
 console = Console()
@@ -39,10 +39,6 @@ def program_ui(manager: Manager):
         # Edit URLs
         elif action == 3:
             edit_urls_prompt(manager.file_manager.input_file)
-
-        # Edit URLs & Passwords
-        elif action == 3:
-            edit_urls_passwords_prompt(manager.file_manager.input_password_file)
 
         # Select Config
         elif action == 4:

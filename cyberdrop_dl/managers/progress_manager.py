@@ -43,7 +43,7 @@ class ProgressManager:
 
     async def print_stats(self) -> None:
         """Prints the stats of the program"""
-        await log_with_color("Download Stats:", "cyan")
+        await log_with_color("\nDownload Stats:", "cyan")
         await log_with_color(f"Downloaded {self.download_progress.completed_files} files", "green")
         await log_with_color(
             f"Already Downloaded {self.download_progress.previously_completed_files} files", "yellow")
@@ -51,11 +51,11 @@ class ProgressManager:
         await log_with_color(f"Failed {self.download_stats_progress.failed_files} files", "red")
 
         scrape_failures = await self.scrape_stats_progress.return_totals()
-        await log_with_color("Scrape Failures", "cyan")
+        await log_with_color("\nScrape Failures:", "cyan")
         for key, value in scrape_failures.items():
             await log_with_color(f"Scrape Failures ({key}): {value}", "red")
 
         download_failures = await self.download_stats_progress.return_totals()
-        await log_with_color("Download Failures", "cyan")
+        await log_with_color("\nDownload Failures:", "cyan")
         for key, value in download_failures.items():
             await log_with_color(f"Download Failures ({key}): {value}", "red")

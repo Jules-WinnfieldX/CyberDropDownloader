@@ -17,7 +17,7 @@ class TempTable:
     async def get_temp_names(self) -> List[str]:
         """Gets the list of temp filenames"""
         cursor = await self.db_conn.cursor()
-        await cursor.execute("SELECT downloaded_filename FROM downloads_temp;")
+        await cursor.execute("SELECT downloaded_filename FROM temp;")
         filenames = await cursor.fetchall()
         filenames = [list(filename) for filename in filenames]
         return list(sum(filenames, ()))

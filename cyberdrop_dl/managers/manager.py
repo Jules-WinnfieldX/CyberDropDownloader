@@ -88,8 +88,6 @@ class Manager:
     def file_startup(self) -> None:
         """Start the file manager"""
         self.file_manager.input_file = Path(self.config_manager.settings_data['Files']['input_file'])
-        self.file_manager.input_password_file = Path(self.config_manager.settings_data['Files']['input_password_file'])
-
         self.file_manager.history_db = Path(self.directory_manager.cache / "cyberdrop.db")
 
         self.file_manager.main_log = Path(

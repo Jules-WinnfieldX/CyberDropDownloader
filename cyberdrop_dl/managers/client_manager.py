@@ -43,7 +43,6 @@ class ClientManager:
 
         self.domain_rate_limits = {
             "bunkr": AsyncLimiter(10, 1),
-
             "other": AsyncLimiter(100, 1)
         }
         self.global_rate_limiter = AsyncLimiter(self.rate_limit, 1)
