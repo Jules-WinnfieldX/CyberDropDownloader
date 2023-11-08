@@ -37,6 +37,7 @@ class ClientManager:
         self.download_delay = manager.config_manager.global_settings_data['Rate_Limiting_Options']['download_delay']
         self.user_agent = manager.config_manager.global_settings_data['General']['user_agent']
         self.verify_ssl = not manager.config_manager.global_settings_data['General']['allow_insecure_connections']
+        self.simultaneous_per_domain = manager.config_manager.global_settings_data['Rate_Limiting_Options']['max_simultaneous_downloads_per_domain']
         self.ssl_context = ssl.create_default_context(cafile=certifi.where()) if self.verify_ssl else False
         self.cookies = aiohttp.CookieJar(quote_cookie=False)
         self.proxy = manager.config_manager.global_settings_data['General']['proxy']
@@ -47,6 +48,7 @@ class ClientManager:
         }
         self.global_rate_limiter = AsyncLimiter(self.rate_limit, 1)
         self.session_limit = asyncio.Semaphore(50)
+        self.download_session_limit = asyncio.Semaphore(self.manager.config_manager.global_settings_data['Rate_Limiting_Options']['max_simultaneous_downloads'])
 
         self.scraper_session = ScraperClient(self)
         self.downloader_session = DownloadClient(self)
