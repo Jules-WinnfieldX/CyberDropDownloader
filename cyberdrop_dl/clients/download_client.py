@@ -33,7 +33,7 @@ def limiter(func):
     @wraps(func)
     async def wrapper(self, *args, **kwargs):
         domain_limiter = await self.client_manager.get_rate_limiter(args[0])
-        async with self.client_manager.session_limit:
+        async with self.client_manager.download_session_limit:
             await self._global_limiter.acquire()
             await domain_limiter.acquire()
 
