@@ -30,4 +30,3 @@ def transfer_v4_db(db_path: Path, new_db_path: Path) -> None:
     new_db_connection.commit()
     old_db_connection.close()
     new_db_connection.close()
-

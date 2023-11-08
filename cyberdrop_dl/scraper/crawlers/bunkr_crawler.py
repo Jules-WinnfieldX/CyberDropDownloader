@@ -9,13 +9,11 @@ from yarl import URL
 
 from cyberdrop_dl.clients.errors import NoExtensionFailure
 from cyberdrop_dl.utils.dataclasses.url_objects import MediaItem
-from cyberdrop_dl.utils.utilities import FILE_FORMATS, get_filename_and_ext, sanitize_folder, error_handling_wrapper, \
-    log
+from cyberdrop_dl.utils.utilities import (FILE_FORMATS, get_filename_and_ext, sanitize_folder, error_handling_wrapper,
+                                          log, get_download_path, remove_id)
 
 if TYPE_CHECKING:
     from asyncio import Queue
-    from pathlib import Path
-    from typing import Tuple
 
     from cyberdrop_dl.clients.scraper_client import ScraperClient
     from cyberdrop_dl.managers.manager import Manager
@@ -131,7 +129,7 @@ class BunkrCrawler:
 
     async def handle_file(self, url: URL, scrape_item: ScrapeItem, filename: str, ext: str) -> None:
         """Finishes handling the file and hands it off to the download_queue"""
-        original_filename, filename = await self.remove_id(filename, ext)
+        original_filename, filename = await remove_id(self.manager, filename, ext)
 
         check_complete = await self.manager.db_manager.history_table.check_complete("bunkr", url)
         if check_complete:
@@ -139,31 +137,11 @@ class BunkrCrawler:
             await self.manager.progress_manager.download_progress.add_previously_completed()
             return
 
-        download_folder = await self.get_download_path(scrape_item)
+        download_folder = await get_download_path(self.manager, scrape_item, "Bunkr")
         media_item = MediaItem(url, scrape_item.url, download_folder, filename, ext, original_filename)
         await self.download_queue.put(media_item)
 
     """~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"""
-
-    async def get_download_path(self, scrape_item: ScrapeItem) -> Path:
-        """Returns the path to the download folder"""
-        if scrape_item.parent_title and scrape_item.part_of_album:
-            return self.manager.directory_manager.downloads / scrape_item.parent_title
-        elif scrape_item.parent_title:
-            return self.manager.directory_manager.downloads / scrape_item.parent_title / "Loose Bunkr Files"
-        else:
-            return self.manager.directory_manager.downloads / "Loose Bunkr Files"
-
-    async def remove_id(self, filename: str, ext: str) -> Tuple[str, str]:
-        """Removes the additional string bunkr adds to the end of every filename"""
-        original_filename = filename
-        if self.manager.config_manager.settings_data["Download_Options"]["remove_generated_id_from_filenames"]:
-            original_filename = filename
-            filename = filename.rsplit(ext, 1)[0]
-            filename = filename.rsplit("-", 1)[0]
-            if ext not in filename:
-                filename = filename + ext
-        return original_filename, filename
 
     async def get_stream_link(self, url: URL) -> URL:
         cdn_possibilities = r"^(?:(?:(?:media-files|cdn|c|pizza|cdn-burger)[0-9]{0,2})|(?:(?:big-taco-|cdn-pizza|cdn-meatballs)[0-9]{0,2}(?:redir)?))\.bunkr?\.[a-z]{2,3}$"
