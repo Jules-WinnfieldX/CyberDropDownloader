@@ -17,6 +17,7 @@ if TYPE_CHECKING:
     from typing import Tuple
 
     from cyberdrop_dl.managers.manager import Manager
+    from cyberdrop_dl.utils.dataclasses.url_objects import ScrapeItem
 
 logger = logging.getLogger(__name__)
 
@@ -53,7 +54,6 @@ def error_handling_wrapper(func):
         try:
             await func(self, *args, **kwargs)
         except Exception as e:
-            await handle_scrape_error(self.manager, args[0].url, e.with_traceback(e.__traceback__))
             if hasattr(e, 'status'):
                 if hasattr(e, 'message'):
                     await log(f"Scrape Error: {args[0].url} ({e.status} - {e.message})")
@@ -111,18 +111,26 @@ async def get_filename_and_ext(filename: str, forum: bool = False) -> Tuple[str,
     return filename, ext
 
 
-async def handle_scrape_error(manager: Manager, url: URL, error: Exception) -> None:
-    """Handles logging scrape errors"""
-    if hasattr(error, 'status'):
-        if hasattr(error, 'message'):
-            await log(f"Scrape Error: {url} ({error.status} - {error.message})")
-        else:
-            await log(f"Scrape Error: {url} ({error.status})")
-        await manager.progress_manager.scrape_stats_progress.add_failure(error.status)
+async def get_download_path(manager: Manager, scrape_item: ScrapeItem, domain: str) -> Path:
+    """Returns the path to the download folder"""
+    if scrape_item.parent_title and scrape_item.part_of_album:
+        return manager.directory_manager.downloads / scrape_item.parent_title
+    elif scrape_item.parent_title:
+        return manager.directory_manager.downloads / scrape_item.parent_title / f"Loose {domain} Files"
     else:
-        await log(f"Scrape Error: {url} ({error})")
-        await log("\n".join(traceback.format_tb(error.__traceback__)))
-        await manager.progress_manager.scrape_stats_progress.add_failure("Unknown")
+        return manager.directory_manager.downloads / f"Loose {domain} Files"
+
+
+async def remove_id(manager: Manager, filename: str, ext: str) -> Tuple[str, str]:
+    """Removes the additional string some websites adds to the end of every filename"""
+    original_filename = filename
+    if manager.config_manager.settings_data["Download_Options"]["remove_generated_id_from_filenames"]:
+        original_filename = filename
+        filename = filename.rsplit(ext, 1)[0]
+        filename = filename.rsplit("-", 1)[0]
+        if ext not in filename:
+            filename = filename + ext
+    return original_filename, filename
 
 
 """~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"""
