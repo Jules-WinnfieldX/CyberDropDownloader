@@ -19,7 +19,7 @@ if TYPE_CHECKING:
 class ScrapeMapper:
     """This class maps links to their respective handlers, or JDownloader if they are unsupported"""
     def __init__(self, manager: Manager):
-        self.mapping = {"bunkr": self.bunkr}
+        self.mapping = {"bunkr": self.bunkr, "cyberdrop": self.cyberdrop}
         self.manager = manager
 
         self.complete = False
@@ -32,9 +32,20 @@ class ScrapeMapper:
             from cyberdrop_dl.scraper.crawlers.bunkr_crawler import BunkrCrawler
             self.existing_crawlers['bunkr'] = BunkrCrawler(self.manager)
             await self.existing_crawlers['bunkr'].startup()
-            await self.manager.download_manager.get_download_instance("bunkr", 2)
+            await self.manager.download_manager.get_download_instance("bunkr", 1)
             asyncio.create_task(self.existing_crawlers['bunkr'].run_loop())
         await self.existing_crawlers['bunkr'].scraper_queue.put(scrape_item)
+        await asyncio.sleep(0)
+
+    async def cyberdrop(self, scrape_item: ScrapeItem) -> None:
+        """Adds a cyberdrop link to the cyberdrop crawler"""
+        if not self.existing_crawlers.get("cyberdrop"):
+            from cyberdrop_dl.scraper.crawlers.cyberdrop_crawler import CyberdropCrawler
+            self.existing_crawlers['cyberdrop'] = CyberdropCrawler(self.manager)
+            await self.existing_crawlers['cyberdrop'].startup()
+            await self.manager.download_manager.get_download_instance("cyberdrop", self.manager.client_manager.simultaneous_per_domain)
+            asyncio.create_task(self.existing_crawlers['cyberdrop'].run_loop())
+        await self.existing_crawlers['cyberdrop'].scraper_queue.put(scrape_item)
         await asyncio.sleep(0)
 
     """~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"""
