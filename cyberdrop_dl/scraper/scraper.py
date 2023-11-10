@@ -19,7 +19,7 @@ if TYPE_CHECKING:
 class ScrapeMapper:
     """This class maps links to their respective handlers, or JDownloader if they are unsupported"""
     def __init__(self, manager: Manager):
-        self.mapping = {"bunkr": self.bunkr, "coomer": self.coomer, "cyberdrop": self.cyberdrop}
+        self.mapping = {"bunkr": self.bunkr, "coomer": self.coomer, "cyberdrop": self.cyberdrop, "kemono": self.kemono}
         self.manager = manager
 
         self.complete = False
@@ -57,6 +57,17 @@ class ScrapeMapper:
             await self.manager.download_manager.get_download_instance("cyberdrop")
             asyncio.create_task(self.existing_crawlers['cyberdrop'].run_loop())
         await self.existing_crawlers['cyberdrop'].scraper_queue.put(scrape_item)
+        await asyncio.sleep(0)
+
+    async def kemono(self, scrape_item: ScrapeItem) -> None:
+        """Adds a kemono link to the kemono crawler"""
+        if not self.existing_crawlers.get("kemono"):
+            from cyberdrop_dl.scraper.crawlers.kemono_crawler import KemonoCrawler
+            self.existing_crawlers['kemono'] = KemonoCrawler(self.manager)
+            await self.existing_crawlers['kemono'].startup()
+            await self.manager.download_manager.get_download_instance("kemono")
+            asyncio.create_task(self.existing_crawlers['kemono'].run_loop())
+        await self.existing_crawlers['kemono'].scraper_queue.put(scrape_item)
         await asyncio.sleep(0)
 
     """~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"""
