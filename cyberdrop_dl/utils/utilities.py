@@ -19,7 +19,7 @@ if TYPE_CHECKING:
     from cyberdrop_dl.managers.manager import Manager
     from cyberdrop_dl.utils.dataclasses.url_objects import ScrapeItem
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("cyberdrop_dl")
 
 MAX_NAME_LENGTHS = {"FILE": 95, "FOLDER": 60}
 

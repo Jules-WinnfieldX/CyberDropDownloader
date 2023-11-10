@@ -29,12 +29,11 @@ def startup() -> Manager:
         if not manager.args_manager.immediate_download:
             program_ui(manager)
 
-        logging.basicConfig(
-            filename=manager.file_manager.main_log,
-            level=logging.DEBUG,
-            format="%(asctime)s:%(levelname)s:%(module)s:%(filename)s:%(lineno)d:%(message)s",
-            filemode="w",
-        )
+        logger = logging.getLogger("cyberdrop_dl")
+        logger.setLevel(logging.DEBUG)
+        file_handler = logging.FileHandler(manager.file_manager.main_log, mode="w")
+        file_handler.setLevel(logging.DEBUG)
+        logger.addHandler(file_handler)
 
         return manager
 
