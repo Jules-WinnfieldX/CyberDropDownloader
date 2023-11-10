@@ -109,7 +109,7 @@ class CoomerCrawler:
             soup = BeautifulSoup(soup, "html.parser")
 
         user = soup.select_one("meta[name=user]").get("content")
-        time = soup.select_one("meta[name=published]").get("content")
+        date = soup.select_one("meta[name=published]").get("content")
         title = soup.select_one("h1[class=post__title]").get_text().replace('\n', '').replace("..", "")
         post_id = soup.select_one("meta[name=id]").get("content")
 
@@ -120,18 +120,18 @@ class CoomerCrawler:
 
         await scrape_item.add_to_parent_title(user + f" ({scrape_item.url.host})")
         if self.manager.config_manager.settings_data['Download_Options']['separate_posts']:
-            post_title = f"{time} - {title}"
+            post_title = f"{date} - {title}"
             if self.manager.config_manager.settings_data['Download_Options']['include_album_id_in_folder_name']:
                 post_title = post_id + " - " + post_title
             await scrape_item.add_to_parent_title(post_title)
 
         images = soup.select('a[class="fileThumb"]')
         for image in images:
-            await self.scraper_queue.put(ScrapeItem(URL(image.get("href")), scrape_item.parent_title, True))
+            await self.scraper_queue.put(ScrapeItem(URL(image.get("href")), scrape_item.parent_title, True, possible_datetime=date))
 
         downloads = soup.select('a[class=post__attachment-link]')
         for download in downloads:
-            await self.scraper_queue.put(ScrapeItem(URL(download.get("href")), scrape_item.parent_title, True))
+            await self.scraper_queue.put(ScrapeItem(URL(download.get("href")), scrape_item.parent_title, True, possible_datetime=date))
 
     @error_handling_wrapper
     async def handle_direct_link(self, scrape_item: ScrapeItem) -> None:
@@ -149,4 +149,7 @@ class CoomerCrawler:
 
         download_folder = await get_download_path(self.manager, scrape_item, "Coomer")
         media_item = MediaItem(url, scrape_item.url, download_folder, filename, ext, filename)
+        if scrape_item.possible_datetime:
+            media_item.datetime = scrape_item.possible_datetime
+
         await self.download_queue.put(media_item)

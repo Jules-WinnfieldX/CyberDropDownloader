@@ -22,6 +22,7 @@ certifi = "^2023.7.22"
 browser-cookie3 = "^0.19.1"
 aiorun = "^2023.7.2"
 beautifulsoup4 = "^4.12.2"
+filedate = "^2.0"
 
 [tool.poetry.scripts]
 cyberdrop-dl = "cyberdrop_dl.main:main"

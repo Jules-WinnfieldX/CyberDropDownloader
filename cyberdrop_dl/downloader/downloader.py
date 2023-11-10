@@ -12,6 +12,7 @@ from random import gauss
 from typing import TYPE_CHECKING
 
 import aiohttp
+import filedate
 from rich.progress import TaskID
 
 from cyberdrop_dl.clients.download_client import is_4xx_client_error
@@ -251,6 +252,16 @@ class Downloader:
                 break
         return complete_file, partial_file
 
+    async def set_file_datetime(self, media_item: MediaItem, complete_file: Path) -> None:
+        """Sets the file's datetime"""
+        if not isinstance(media_item.datetime, Field):
+            file = filedate.File(str(complete_file))
+            file.set(
+                created=media_item.datetime,
+                modified=media_item.datetime,
+                accessed=media_item.datetime,
+            )
+
     """~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"""
 
     @retry
@@ -297,6 +308,8 @@ class Downloader:
 
             await self.client.download_file(self.manager, self.domain, media_item, partial_file, headers, media_item.download_task_id)
             partial_file.rename(complete_file)
+
+            await self.set_file_datetime(media_item, complete_file)
 
             await self.mark_completed(media_item)
             await self.manager.progress_manager.file_progress.mark_task_completed(media_item.download_task_id)

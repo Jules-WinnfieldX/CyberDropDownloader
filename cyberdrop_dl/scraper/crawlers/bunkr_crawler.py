@@ -88,13 +88,16 @@ class BunkrCrawler:
         title = title.get_text()
         await scrape_item.add_to_parent_title(title)
 
-        for file in soup.select('a[class*="grid-images_box-link"]'):
+        card_listings = soup.select('div[class*="grid-images_box rounded-lg"]')
+        for card_listing in card_listings:
+            file = card_listing.select_one('a[class*="grid-images_box-link"]')
+            date = card_listing.select_one('p[class*="date"]').text
             link = file.get("href")
             if link.startswith("/"):
                 link = URL("https://" + scrape_item.url.host + link)
             link = URL(link)
             link = await self.get_stream_link(link)
-            await self.scraper_queue.put(ScrapeItem(url=link, parent_title=title, part_of_album=True))
+            await self.scraper_queue.put(ScrapeItem(url=link, parent_title=scrape_item.parent_title, part_of_album=True, possible_datetime=await self.parse_datetime(date)))
 
     @error_handling_wrapper
     async def video(self, scrape_item: ScrapeItem) -> None:
@@ -138,6 +141,9 @@ class BunkrCrawler:
 
         download_folder = await get_download_path(self.manager, scrape_item, "Bunkr")
         media_item = MediaItem(url, scrape_item.url, download_folder, filename, ext, original_filename)
+        if scrape_item.possible_datetime:
+            media_item.datetime = scrape_item.possible_datetime
+
         await self.download_queue.put(media_item)
 
     """~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"""
@@ -160,3 +166,10 @@ class BunkrCrawler:
             url = self.primary_base_domain / "d" / url.parts[-1]
 
         return url
+
+    async def parse_datetime(self, date: str):
+        time = date.split(" ")[0]
+        day = date.split(" ")[1].split("/")[0]
+        month = date.split(" ")[1].split("/")[1]
+        year = date.split(" ")[1].split("/")[2]
+        return f"{year}-{month}-{day} {time}"

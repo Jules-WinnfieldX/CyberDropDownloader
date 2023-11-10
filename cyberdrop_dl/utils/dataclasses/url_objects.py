@@ -18,16 +18,18 @@ class MediaItem:
         self.ext: str = ext
         self.download_filename: str = field(init=False)
         self.original_filename: str = original_filename
+        self.datetime: str = field(init=False)
         self.filesize: int = field(init=False)
         self.current_attempt: int = field(init=False)
         self.download_task_id: TaskID = field(init=False)
 
 
 class ScrapeItem:
-    def __init__(self, url: "URL", parent_title: str, part_of_album: bool = False):
+    def __init__(self, url: "URL", parent_title: str, part_of_album: bool = False, possible_datetime: str = None):
         self.url: URL = url
         self.parent_title: str = parent_title
         self.part_of_album: bool = part_of_album
+        self.possible_datetime: str = possible_datetime
 
     async def add_to_parent_title(self, title: str) -> None:
         title = await sanitize_folder(title)
