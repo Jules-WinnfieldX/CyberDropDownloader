@@ -81,7 +81,6 @@ settings: Dict = {
         "only_hosts": [],
     },
     "Runtime_Options": {
-        "ignore_cache": False,
         "ignore_history": False,
         "skip_check_for_partial_files": False,
         "skip_check_for_empty_folders": False,

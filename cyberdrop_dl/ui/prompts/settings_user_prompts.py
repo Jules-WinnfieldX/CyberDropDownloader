@@ -295,9 +295,6 @@ def edit_runtime_options_prompt(config: Dict) -> None:
     action = inquirer.checkbox(
         message="Select the runtime options you want to enable:",
         choices=[
-            Choice(value="ignore_cache",
-                   name="Ignore the cache (cached versions of Coomer/Kemono)",
-                   enabled=config["Runtime_Options"]["ignore_cache"]),
             Choice(value="ignore_history",
                    name="Ignore the history (previously downloaded files)",
                    enabled=config["Runtime_Options"]["ignore_history"]),

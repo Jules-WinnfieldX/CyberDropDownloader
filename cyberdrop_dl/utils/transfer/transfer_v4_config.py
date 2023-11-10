@@ -73,7 +73,6 @@ def transfer_v4_config(manager: Manager, old_config_path: Path, new_config_name:
     new_user_data['Ignore_Options']['skip_hosts'] = old_data['Ignore']['skip_hosts']
     new_user_data['Ignore_Options']['only_hosts'] = old_data['Ignore']['only_hosts']
 
-    new_user_data['Runtime_Options']['ignore_cache'] = old_data['Ignore']['ignore_cache']
     new_user_data['Runtime_Options']['ignore_history'] = old_data['Ignore']['ignore_history']
     new_user_data['Runtime_Options']['skip_check_for_partial_files'] = old_data['Runtime']['skip_check_for_partial_files_and_empty_dirs']
     new_user_data['Runtime_Options']['skip_check_for_empty_folders'] = old_data['Runtime']['skip_check_for_partial_files_and_empty_dirs']

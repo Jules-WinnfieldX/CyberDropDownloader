@@ -3,7 +3,6 @@ from pathlib import Path
 
 import aiosqlite
 
-from cyberdrop_dl.utils.db.tables.cache_table import CacheTable
 from cyberdrop_dl.utils.db.tables.history_table import HistoryTable
 from cyberdrop_dl.utils.db.tables.temp_table import TempTable
 
@@ -16,7 +15,6 @@ class DBManager:
         self.ignore_cache: bool = False
         self.ignore_history: bool = False
 
-        self.cache_table: CacheTable = field(init=False)
         self.history_table: HistoryTable = field(init=False)
         self.temp_table: TempTable = field(init=False)
 
@@ -24,16 +22,13 @@ class DBManager:
         """Startup process for the DBManager"""
         self._db_conn = await aiosqlite.connect(self._db_path)
 
-        self.cache_table = CacheTable(self._db_conn)
         self.history_table = HistoryTable(self._db_conn)
         self.temp_table = TempTable(self._db_conn)
 
-        self.cache_table.ignore_cache = self.ignore_cache
         self.history_table.ignore_history = self.ignore_history
 
         await self._pre_allocate()
 
-        await self.cache_table.startup()
         await self.history_table.startup()
         await self.temp_table.startup()
 
