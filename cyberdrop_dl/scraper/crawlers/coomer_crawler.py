@@ -1,10 +1,9 @@
 from __future__ import annotations
 
 from dataclasses import field
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Tuple, Dict
 
 from aiolimiter import AsyncLimiter
-from bs4 import BeautifulSoup
 from yarl import URL
 
 from cyberdrop_dl.utils.dataclasses.url_objects import MediaItem, ScrapeItem
@@ -24,6 +23,9 @@ class CoomerCrawler:
         self.client: ScraperClient = field(init=False)
 
         self.complete = False
+
+        self.base_domain = URL("https://coomer.su")
+        self.api_url = URL("https://coomer.su/api/v1")
 
         self.scraped_items: list = []
         self.scraper_queue: Queue = field(init=False)
@@ -68,70 +70,59 @@ class CoomerCrawler:
             link = URL(f"https://{scrape_item.url.host}/{'/'.join(parts)}")
             scrape_item.url = link
             await self.handle_direct_link(scrape_item)
-        elif "data" in scrape_item.url.parts:
-            await self.handle_direct_link(scrape_item)
         elif "post" in scrape_item.url.parts:
             await self.post(scrape_item)
-        else:
+        elif "onlyfans" in scrape_item.url.parts or "fansly" in scrape_item.url.parts:
             await self.profile(scrape_item)
+        else:
+            await self.handle_direct_link(scrape_item)
 
         await self.scraping_progress.remove_task(task_id)
 
     @error_handling_wrapper
     async def profile(self, scrape_item: ScrapeItem):
         """Scrapes a profile"""
-        async with self.request_limiter:
-            soup = await self.client.get_BS4("coomer", scrape_item.url)
+        offset = 0
+        service, user = await self.get_service_and_user(scrape_item)
+        api_call = self.api_url / service / "user" / user
+        while True:
+            async with self.request_limiter:
+                JSON_Resp = await self.client.get_json("coomer", api_call.with_query({"o": offset}))
+                offset += 50
+                if not JSON_Resp:
+                    break
 
-        posts = soup.select("article[class*=post-card] a")
-        for post in posts:
-            path = post.get("href")
-            if path:
-                link = URL(f"https://{scrape_item.url.host}{path}")
-                await self.scraper_queue.put(ScrapeItem(link, scrape_item.parent_title))
-
-        next_page = soup.select_one("a[class*=next]")
-        if next_page:
-            next_page = next_page.get('href')
-            if next_page:
-                link = URL(f"https://{scrape_item.url.host}{next_page}")
-                await self.scraper_queue.put(ScrapeItem(link, scrape_item.parent_title))
+            for post in JSON_Resp:
+                await self.handle_post_content(post, scrape_item, user)
 
     @error_handling_wrapper
     async def post(self, scrape_item: ScrapeItem):
         """Scrapes a post"""
-        soup = await self.manager.db_manager.cache_table.get_blob(scrape_item.url)
-        if not soup:
-            async with self.request_limiter:
-                soup = await self.client.get_BS4("coomer", scrape_item.url)
-            await self.manager.db_manager.cache_table.insert_blob(str(soup), scrape_item.url)
-        else:
-            soup = BeautifulSoup(soup, "html.parser")
+        service, user, post_id = await self.get_service_user_and_post(scrape_item)
+        api_call = self.api_url / service / "user" / user / "post" / post_id
+        async with self.request_limiter:
+            post = await self.client.get_json("coomer", api_call)
+        await self.handle_post_content(post, scrape_item, user)
 
-        user = soup.select_one("meta[name=user]").get("content")
-        date = soup.select_one("meta[name=published]").get("content")
-        title = soup.select_one("h1[class=post__title]").get_text().replace('\n', '').replace("..", "")
-        post_id = soup.select_one("meta[name=id]").get("content")
+    @error_handling_wrapper
+    async def handle_post_content(self, post: Dict, scrape_item: ScrapeItem, user: str):
+        if "#ad" in post['content'] and self.manager.config_manager.settings_data['Ignore_Options']['ignore_coomer_ads']:
+            return
 
-        text_block = soup.select_one('div[class=post__content]')
-        if text_block:
-            if "#AD" in text_block.text and self.manager.config_manager.settings_data['Ignore_Options']['ignore_coomer_ads']:
-                return
+        date = post["published"].replace("T", " ")
+        post_id = post["id"]
+        post_title = post["title"]
 
-        await scrape_item.add_to_parent_title(user + f" ({scrape_item.url.host})")
-        if self.manager.config_manager.settings_data['Download_Options']['separate_posts']:
-            post_title = f"{date} - {title}"
-            if self.manager.config_manager.settings_data['Download_Options']['include_album_id_in_folder_name']:
-                post_title = post_id + " - " + post_title
-            await scrape_item.add_to_parent_title(post_title)
+        async def handle_file(file_obj):
+            link = self.base_domain / ("data" + file_obj['path'])
+            link = link.with_query({"f": file_obj['name']})
+            await self.create_new_scrape_item(link, scrape_item, user, post_title, post_id, date)
 
-        images = soup.select('a[class="fileThumb"]')
-        for image in images:
-            await self.scraper_queue.put(ScrapeItem(URL(image.get("href")), scrape_item.parent_title, True, possible_datetime=date))
+        if post['file']:
+            await handle_file(post['file'])
 
-        downloads = soup.select('a[class=post__attachment-link]')
-        for download in downloads:
-            await self.scraper_queue.put(ScrapeItem(URL(download.get("href")), scrape_item.parent_title, True, possible_datetime=date))
+        for file in post['attachments']:
+            await handle_file(file)
 
     @error_handling_wrapper
     async def handle_direct_link(self, scrape_item: ScrapeItem) -> None:
@@ -153,3 +144,29 @@ class CoomerCrawler:
             media_item.datetime = scrape_item.possible_datetime
 
         await self.download_queue.put(media_item)
+
+    """~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"""
+
+    async def get_service_and_user(self, scrape_item: ScrapeItem) -> Tuple[str, str]:
+        user = scrape_item.url.parts[3]
+        service = scrape_item.url.parts[1]
+        return service, user
+
+    async def get_service_user_and_post(self, scrape_item: ScrapeItem) -> Tuple[str, str, str]:
+        user = scrape_item.url.parts[3]
+        service = scrape_item.url.parts[1]
+        post = scrape_item.url.parts[5]
+        return service, user, post
+
+    async def create_new_scrape_item(self, link: URL, old_scrape_item: ScrapeItem, user: str, title: str, post_id: str,
+                                     date: str) -> None:
+        post_title = None
+        if self.manager.config_manager.settings_data['Download_Options']['separate_posts']:
+            post_title = f"{date} - {title}"
+            if self.manager.config_manager.settings_data['Download_Options']['include_album_id_in_folder_name']:
+                post_title = post_id + " - " + post_title
+
+        new_scrape_item = ScrapeItem(link, old_scrape_item.parent_title, True, possible_datetime=date)
+        await new_scrape_item.add_to_parent_title(f"{user} ({old_scrape_item.url.host})")
+        await new_scrape_item.add_to_parent_title(post_title)
+        await self.scraper_queue.put(new_scrape_item)
