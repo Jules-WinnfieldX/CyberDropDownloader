@@ -8,8 +8,8 @@ from aiolimiter import AsyncLimiter
 from yarl import URL
 
 from cyberdrop_dl.clients.errors import NoExtensionFailure
-from cyberdrop_dl.utils.dataclasses.url_objects import MediaItem
-from cyberdrop_dl.utils.utilities import (FILE_FORMATS, get_filename_and_ext, sanitize_folder, error_handling_wrapper,
+from cyberdrop_dl.utils.dataclasses.url_objects import MediaItem, ScrapeItem
+from cyberdrop_dl.utils.utilities import (FILE_FORMATS, get_filename_and_ext, error_handling_wrapper,
                                           log, get_download_path, remove_id)
 
 if TYPE_CHECKING:
@@ -17,7 +17,6 @@ if TYPE_CHECKING:
 
     from cyberdrop_dl.clients.scraper_client import ScraperClient
     from cyberdrop_dl.managers.manager import Manager
-    from cyberdrop_dl.utils.dataclasses.url_objects import ScrapeItem
 
 
 class BunkrCrawler:
@@ -38,13 +37,15 @@ class BunkrCrawler:
 
     async def startup(self) -> None:
         """Starts the crawler"""
-        download_limit = self.manager.config_manager.global_settings_data['Rate_Limiting_Options']['max_simultaneous_downloads_per_domain']
-        download_limit = 2 if download_limit > 2 else download_limit
-
         self.scraper_queue = await self.manager.queue_manager.get_scraper_queue("bunkr")
-        self.download_queue = await self.manager.queue_manager.get_download_queue("bunkr", download_limit)
+        self.download_queue = await self.manager.queue_manager.get_download_queue("bunkr")
 
         self.client = self.manager.client_manager.scraper_session
+
+    async def finish_task(self):
+        self.scraper_queue.task_done()
+        if self.scraper_queue.empty():
+            self.complete = True
 
     async def run_loop(self) -> None:
         """Runs the crawler loop"""
@@ -52,6 +53,7 @@ class BunkrCrawler:
             item: ScrapeItem = await self.scraper_queue.get()
             await log(f"Scrape Starting: {item.url}")
             if item.url in self.scraped_items:
+                await self.finish_task()
                 continue
 
             self.complete = False
@@ -59,9 +61,7 @@ class BunkrCrawler:
             await self.fetch(item)
 
             await log(f"Scrape Finished: {item.url}")
-            self.scraper_queue.task_done()
-            if self.scraper_queue.empty():
-                self.complete = True
+            await self.finish_task()
 
     async def fetch(self, scrape_item: ScrapeItem) -> None:
         """Determines where to send the scrape item based on the url"""
@@ -85,9 +85,8 @@ class BunkrCrawler:
         title = soup.select_one('h1[class="text-[24px] font-bold text-dark dark:text-white"]')
         for elem in title.find_all("span"):
             elem.decompose()
-        title = await sanitize_folder(title.get_text())
-        if scrape_item.parent_title:
-            title = scrape_item.parent_title + " / " + title
+        title = title.get_text()
+        await scrape_item.add_to_parent_title(title)
 
         for file in soup.select('a[class*="grid-images_box-link"]'):
             link = file.get("href")

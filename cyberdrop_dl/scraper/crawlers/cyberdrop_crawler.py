@@ -8,7 +8,7 @@ from aiolimiter import AsyncLimiter
 from yarl import URL
 
 from cyberdrop_dl.clients.errors import InvalidContentTypeFailure
-from cyberdrop_dl.utils.dataclasses.url_objects import MediaItem
+from cyberdrop_dl.utils.dataclasses.url_objects import MediaItem, ScrapeItem
 from cyberdrop_dl.utils.utilities import (get_filename_and_ext, sanitize_folder, error_handling_wrapper, log,
                                           get_download_path, remove_id)
 
@@ -17,7 +17,6 @@ if TYPE_CHECKING:
 
     from cyberdrop_dl.clients.scraper_client import ScraperClient
     from cyberdrop_dl.managers.manager import Manager
-    from cyberdrop_dl.utils.dataclasses.url_objects import ScrapeItem
 
 
 class CyberdropCrawler:
@@ -36,12 +35,15 @@ class CyberdropCrawler:
 
     async def startup(self) -> None:
         """Starts the crawler"""
-        download_limit = self.manager.config_manager.global_settings_data['Rate_Limiting_Options']['max_simultaneous_downloads_per_domain']
-
         self.scraper_queue = await self.manager.queue_manager.get_scraper_queue("cyberdrop")
-        self.download_queue = await self.manager.queue_manager.get_download_queue("cyberdrop", download_limit)
+        self.download_queue = await self.manager.queue_manager.get_download_queue("cyberdrop")
 
         self.client = self.manager.client_manager.scraper_session
+
+    async def finish_task(self):
+        self.scraper_queue.task_done()
+        if self.scraper_queue.empty():
+            self.complete = True
 
     async def run_loop(self) -> None:
         """Runs the crawler loop"""
@@ -49,6 +51,7 @@ class CyberdropCrawler:
             item: ScrapeItem = await self.scraper_queue.get()
             await log(f"Scrape Starting: {item.url}")
             if item.url in self.scraped_items:
+                await self.finish_task()
                 continue
 
             self.complete = False
@@ -56,33 +59,34 @@ class CyberdropCrawler:
             await self.fetch(item)
 
             await log(f"Scrape Finished: {item.url}")
-            self.scraper_queue.task_done()
-            if self.scraper_queue.empty():
-                self.complete = True
+            await self.finish_task()
 
     async def fetch(self, scrape_item: ScrapeItem) -> None:
         """Determines where to send the scrape item based on the url"""
+        task_id = await self.scraping_progress.add_task(scrape_item.url)
+
         if self.check_direct_link(scrape_item.url):
             await self.handle_direct_link(scrape_item)
         else:
             await self.album(scrape_item)
 
+        await self.scraping_progress.remove_task(task_id)
+
     @error_handling_wrapper
     async def album(self, scrape_item: ScrapeItem):
         """Scrapes an album"""
-        try:
-            soup = await self.client.get_BS4("cyberdrop", scrape_item.url)
-        except InvalidContentTypeFailure:
-            await self.handle_direct_link(scrape_item)
-            return
+        async with self.request_limiter:
+            try:
+                soup = await self.client.get_BS4("cyberdrop", scrape_item.url)
+            except InvalidContentTypeFailure:
+                await self.handle_direct_link(scrape_item)
+                return
 
         title = soup.select_one("h1[id=title]").get_text()
-        title = await sanitize_folder(title)
-        if scrape_item.parent_title:
-            title = scrape_item.parent_title + " / " + title
-        if self.manager.config_manager.settings_data['include_album_id_in_folder_name']:
+        if self.manager.config_manager.settings_data['Download_Options']['include_album_id_in_folder_name']:
             album_id = scrape_item.url.name
             title = title + " - " + album_id
+        await scrape_item.add_to_parent_title(title)
 
         links = soup.select('div[class="image-container column"] a')
         for link in links:
