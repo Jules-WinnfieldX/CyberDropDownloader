@@ -55,6 +55,7 @@ def transfer_v4_config(manager: Manager, old_config_path: Path, new_config_name:
     new_user_data['Download_Options']['disable_download_attempt_limit'] = old_data['Runtime']['disable_attempt_limit']
     new_user_data['Download_Options']['include_album_id_in_folder_name'] = old_data['Runtime']['include_id']
     new_user_data['Download_Options']['remove_generated_id_from_filenames'] = old_data['Runtime']['remove_bunkr_identifier']
+    new_user_data['Download_Options']['separate_posts'] = old_data['Forum_Options']['separate_posts']
     new_user_data['Download_Options']['skip_download_mark_completed'] = old_data['Runtime']['skip_download_mark_completed']
 
     new_user_data['File_Size_Limits']['maximum_image_size'] = old_data['Runtime']['filesize_maximum_images']
