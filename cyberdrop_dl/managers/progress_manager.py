@@ -45,8 +45,7 @@ class ProgressManager:
         """Prints the stats of the program"""
         await log_with_color("\nDownload Stats:", "cyan")
         await log_with_color(f"Downloaded {self.download_progress.completed_files} files", "green")
-        await log_with_color(
-            f"Already Downloaded {self.download_progress.previously_completed_files} files", "yellow")
+        await log_with_color(f"Previously Downloaded {self.download_progress.previously_completed_files} files", "yellow")
         await log_with_color(f"Skipped By Config {self.download_progress.skipped_files} files", "yellow")
         await log_with_color(f"Failed {self.download_stats_progress.failed_files} files", "red")
 

@@ -4,7 +4,7 @@ import asyncio
 import copy
 import itertools
 import traceback
-from dataclasses import field
+from dataclasses import field, Field
 from functools import wraps
 from http import HTTPStatus
 from pathlib import Path
@@ -14,14 +14,16 @@ from typing import TYPE_CHECKING
 import aiohttp
 from rich.progress import TaskID
 
+from cyberdrop_dl.clients.download_client import is_4xx_client_error
 from cyberdrop_dl.clients.errors import DownloadFailure
+from cyberdrop_dl.managers.client_manager import CustomHTTPStatus
 from cyberdrop_dl.utils.utilities import FILE_FORMATS, log
 
 if TYPE_CHECKING:
     from asyncio import Queue
     from typing import Tuple
 
-    from cyberdrop_dl.clients.download_client import DownloadClient, is_4xx_client_error, CustomHTTPStatus
+    from cyberdrop_dl.clients.download_client import DownloadClient
     from cyberdrop_dl.managers.manager import Manager
     from cyberdrop_dl.utils.dataclasses.url_objects import MediaItem
 
@@ -35,7 +37,7 @@ def retry(f):
                 return await f(self, *args, **kwargs)
             except DownloadFailure as e:
                 media_item = args[0]
-                if isinstance(media_item.download_task_id, TaskID):
+                if not isinstance(media_item.download_task_id, Field):
                     await self.manager.progress_manager.file_progress.remove_file(media_item.download_task_id)
 
                 if hasattr(e, "status"):
@@ -104,7 +106,7 @@ class Downloader:
 
     async def startup(self) -> None:
         """Starts the downloader"""
-        self.download_queue = await self.manager.queue_manager.get_download_queue(self.domain, 0)
+        self.download_queue = await self.manager.queue_manager.get_download_queue(self.domain)
         self.client = self.manager.client_manager.downloader_session
         await self.set_additional_headers()
 
@@ -326,6 +328,9 @@ class Downloader:
 
             if hasattr(e, "status"):
                 if await is_4xx_client_error(e.status) and e.status != HTTPStatus.TOO_MANY_REQUESTS:
+                    await self.manager.progress_manager.download_progress.add_failed()
+                    await self.manager.progress_manager.download_stats_progress.add_failure(e.status)
+                    await self.manager.progress_manager.file_progress.remove_file(media_item.download_task_id)
                     return
 
                 if e.status == HTTPStatus.SERVICE_UNAVAILABLE or e.status == HTTPStatus.BAD_GATEWAY \
@@ -333,6 +338,9 @@ class Downloader:
                     if hasattr(e, "message"):
                         if not e.message:
                             e.message = "Web server is down"
+                    await self.manager.progress_manager.download_progress.add_failed()
+                    await self.manager.progress_manager.download_stats_progress.add_failure(e.status)
+                    await self.manager.progress_manager.file_progress.remove_file(media_item.download_task_id)
                     return
 
-            raise DownloadFailure(status=getattr(e, "status", 1), message=repr(e))
+            raise DownloadFailure(status=getattr(e, "status", 1), message=getattr(e, "message", repr(e)))
