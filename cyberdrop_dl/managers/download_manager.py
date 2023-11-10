@@ -21,7 +21,10 @@ class DownloadManager:
         self._download_instances: Dict = {}
         self._download_instance_tasks: Dict = {}
 
+        self.download_limits = {'bunkr': 1}
+
     async def check_complete(self) -> bool:
+        """Checks if all download instances are complete"""
         if not self._download_instances:
             return True
         for instance in self._download_instances.values():
@@ -30,16 +33,28 @@ class DownloadManager:
         return True
 
     async def close(self) -> None:
+        """Closes all download instances"""
         for downloader in self._download_instance_tasks.values():
             for task in downloader:
                 task.cancel()
 
-    async def get_download_instance(self, key: str, instances: int) -> Downloader:
+    async def get_download_limit(self, key: str) -> int:
+        if key in self.download_limits:
+            instances = self.download_limits[key]
+        else:
+            instances = self.manager.config_manager.global_settings_data['Rate_Limiting_Options']['max_simultaneous_downloads_per_domain']
+
+        if instances > self.manager.config_manager.global_settings_data['Rate_Limiting_Options']['max_simultaneous_downloads_per_domain']:
+            instances = self.manager.config_manager.global_settings_data['Rate_Limiting_Options']['max_simultaneous_downloads_per_domain']
+        return instances
+
+    async def get_download_instance(self, key: str) -> Downloader:
+        """Returns a download instance"""
         if key not in self._download_instances:
             self._download_instances[key] = Downloader(self.manager, key)
             await self._download_instances[key].startup()
             self._download_instance_tasks[key] = []
-            for i in range(instances):
+            for i in range(await self.get_download_limit(key)):
                 self._download_instance_tasks[key].append(asyncio.create_task(self._download_instances[key].run_loop()))
         return self._download_instances[key]
 
