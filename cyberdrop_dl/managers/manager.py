@@ -37,7 +37,7 @@ class Manager:
         self.directory_manager: DirectoryManager = DirectoryManager()
         self.config_manager: ConfigManager = ConfigManager(self)
         self.file_manager: FileManager = FileManager()
-        self.queue_manager: QueueManager = QueueManager()
+        self.queue_manager: QueueManager = QueueManager(self)
         self.db_manager: DBManager = field(init=False)
         self.client_manager: ClientManager = field(init=False)
         self.download_manager: DownloadManager = field(init=False)
