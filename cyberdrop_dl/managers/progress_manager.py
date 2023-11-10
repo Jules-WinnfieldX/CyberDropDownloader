@@ -29,7 +29,7 @@ class ProgressManager:
         """Startup process for the progress manager"""
         progress_layout = Layout()
         progress_layout.split_column(
-            Layout(name="upper", ratio=1),
+            Layout(name="upper", ratio=1, minimum_size=8),
             Layout(renderable=await self.scraping_progress.get_progress(), name="Scraping", ratio=2),
             Layout(renderable=await self.file_progress.get_progress(), name="Downloads", ratio=2),
         )
