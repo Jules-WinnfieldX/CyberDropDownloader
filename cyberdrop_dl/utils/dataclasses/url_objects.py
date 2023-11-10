@@ -2,6 +2,8 @@ from dataclasses import field
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+from cyberdrop_dl.utils.utilities import sanitize_folder
+
 if TYPE_CHECKING:
     from rich.progress import TaskID
     from yarl import URL
@@ -26,3 +28,7 @@ class ScrapeItem:
         self.url: URL = url
         self.parent_title: str = parent_title
         self.part_of_album: bool = part_of_album
+
+    async def add_to_parent_title(self, title: str) -> None:
+        title = await sanitize_folder(title)
+        self.parent_title = (self.parent_title + "/" + title) if self.parent_title else title
