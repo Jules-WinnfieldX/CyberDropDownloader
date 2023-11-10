@@ -32,5 +32,7 @@ class ScrapeItem:
         self.possible_datetime: str = possible_datetime
 
     async def add_to_parent_title(self, title: str) -> None:
+        if not title:
+            return
         title = await sanitize_folder(title)
         self.parent_title = (self.parent_title + "/" + title) if self.parent_title else title
