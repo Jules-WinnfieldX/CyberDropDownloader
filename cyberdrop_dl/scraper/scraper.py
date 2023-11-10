@@ -19,7 +19,7 @@ if TYPE_CHECKING:
 class ScrapeMapper:
     """This class maps links to their respective handlers, or JDownloader if they are unsupported"""
     def __init__(self, manager: Manager):
-        self.mapping = {"bunkr": self.bunkr, "cyberdrop": self.cyberdrop}
+        self.mapping = {"bunkr": self.bunkr, "coomer": self.coomer, "cyberdrop": self.cyberdrop}
         self.manager = manager
 
         self.complete = False
@@ -32,9 +32,20 @@ class ScrapeMapper:
             from cyberdrop_dl.scraper.crawlers.bunkr_crawler import BunkrCrawler
             self.existing_crawlers['bunkr'] = BunkrCrawler(self.manager)
             await self.existing_crawlers['bunkr'].startup()
-            await self.manager.download_manager.get_download_instance("bunkr", 1)
+            await self.manager.download_manager.get_download_instance("bunkr")
             asyncio.create_task(self.existing_crawlers['bunkr'].run_loop())
         await self.existing_crawlers['bunkr'].scraper_queue.put(scrape_item)
+        await asyncio.sleep(0)
+
+    async def coomer(self, scrape_item: ScrapeItem) -> None:
+        """Adds a coomer link to the coomer crawler"""
+        if not self.existing_crawlers.get("coomer"):
+            from cyberdrop_dl.scraper.crawlers.coomer_crawler import CoomerCrawler
+            self.existing_crawlers['coomer'] = CoomerCrawler(self.manager)
+            await self.existing_crawlers['coomer'].startup()
+            await self.manager.download_manager.get_download_instance("coomer")
+            asyncio.create_task(self.existing_crawlers['coomer'].run_loop())
+        await self.existing_crawlers['coomer'].scraper_queue.put(scrape_item)
         await asyncio.sleep(0)
 
     async def cyberdrop(self, scrape_item: ScrapeItem) -> None:
@@ -43,7 +54,7 @@ class ScrapeMapper:
             from cyberdrop_dl.scraper.crawlers.cyberdrop_crawler import CyberdropCrawler
             self.existing_crawlers['cyberdrop'] = CyberdropCrawler(self.manager)
             await self.existing_crawlers['cyberdrop'].startup()
-            await self.manager.download_manager.get_download_instance("cyberdrop", self.manager.client_manager.simultaneous_per_domain)
+            await self.manager.download_manager.get_download_instance("cyberdrop")
             asyncio.create_task(self.existing_crawlers['cyberdrop'].run_loop())
         await self.existing_crawlers['cyberdrop'].scraper_queue.put(scrape_item)
         await asyncio.sleep(0)
