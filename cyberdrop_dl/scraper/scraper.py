@@ -19,56 +19,37 @@ if TYPE_CHECKING:
 class ScrapeMapper:
     """This class maps links to their respective handlers, or JDownloader if they are unsupported"""
     def __init__(self, manager: Manager):
-        self.mapping = {"bunkr": self.bunkr, "coomer": self.coomer, "cyberdrop": self.cyberdrop, "kemono": self.kemono}
+        self.mapping = {"bunkr": self.bunkr, "coomer": self.coomer, "cyberdrop": self.cyberdrop,
+                        "cyberfile": self.cyberfile, "kemono": self.kemono}
+        self.existing_crawlers = {}
         self.manager = manager
 
         self.complete = False
 
-        self.existing_crawlers = {}
+    async def bunkr(self) -> None:
+        """Creates a Bunkr Crawler instance"""
+        from cyberdrop_dl.scraper.crawlers.bunkr_crawler import BunkrCrawler
+        self.existing_crawlers['bunkr'] = BunkrCrawler(self.manager)
 
-    async def bunkr(self, scrape_item: ScrapeItem) -> None:
-        """Adds a bunkr link to the bunkr crawler"""
-        if not self.existing_crawlers.get("bunkr"):
-            from cyberdrop_dl.scraper.crawlers.bunkr_crawler import BunkrCrawler
-            self.existing_crawlers['bunkr'] = BunkrCrawler(self.manager)
-            await self.existing_crawlers['bunkr'].startup()
-            await self.manager.download_manager.get_download_instance("bunkr")
-            asyncio.create_task(self.existing_crawlers['bunkr'].run_loop())
-        await self.existing_crawlers['bunkr'].scraper_queue.put(scrape_item)
-        await asyncio.sleep(0)
+    async def coomer(self) -> None:
+        """Creates a Coomer Crawler instance"""
+        from cyberdrop_dl.scraper.crawlers.coomer_crawler import CoomerCrawler
+        self.existing_crawlers['coomer'] = CoomerCrawler(self.manager)
 
-    async def coomer(self, scrape_item: ScrapeItem) -> None:
-        """Adds a coomer link to the coomer crawler"""
-        if not self.existing_crawlers.get("coomer"):
-            from cyberdrop_dl.scraper.crawlers.coomer_crawler import CoomerCrawler
-            self.existing_crawlers['coomer'] = CoomerCrawler(self.manager)
-            await self.existing_crawlers['coomer'].startup()
-            await self.manager.download_manager.get_download_instance("coomer")
-            asyncio.create_task(self.existing_crawlers['coomer'].run_loop())
-        await self.existing_crawlers['coomer'].scraper_queue.put(scrape_item)
-        await asyncio.sleep(0)
+    async def cyberdrop(self) -> None:
+        """Creates a Cyberdrop Crawler instance"""
+        from cyberdrop_dl.scraper.crawlers.cyberdrop_crawler import CyberdropCrawler
+        self.existing_crawlers['cyberdrop'] = CyberdropCrawler(self.manager)
 
-    async def cyberdrop(self, scrape_item: ScrapeItem) -> None:
-        """Adds a cyberdrop link to the cyberdrop crawler"""
-        if not self.existing_crawlers.get("cyberdrop"):
-            from cyberdrop_dl.scraper.crawlers.cyberdrop_crawler import CyberdropCrawler
-            self.existing_crawlers['cyberdrop'] = CyberdropCrawler(self.manager)
-            await self.existing_crawlers['cyberdrop'].startup()
-            await self.manager.download_manager.get_download_instance("cyberdrop")
-            asyncio.create_task(self.existing_crawlers['cyberdrop'].run_loop())
-        await self.existing_crawlers['cyberdrop'].scraper_queue.put(scrape_item)
-        await asyncio.sleep(0)
+    async def cyberfile(self) -> None:
+        """Creates a Cyberfile Crawler instance"""
+        from cyberdrop_dl.scraper.crawlers.cyberfile_crawler import CyberfileCrawler
+        self.existing_crawlers['cyberfile'] = CyberfileCrawler(self.manager)
 
-    async def kemono(self, scrape_item: ScrapeItem) -> None:
-        """Adds a kemono link to the kemono crawler"""
-        if not self.existing_crawlers.get("kemono"):
-            from cyberdrop_dl.scraper.crawlers.kemono_crawler import KemonoCrawler
-            self.existing_crawlers['kemono'] = KemonoCrawler(self.manager)
-            await self.existing_crawlers['kemono'].startup()
-            await self.manager.download_manager.get_download_instance("kemono")
-            asyncio.create_task(self.existing_crawlers['kemono'].run_loop())
-        await self.existing_crawlers['kemono'].scraper_queue.put(scrape_item)
-        await asyncio.sleep(0)
+    async def kemono(self) -> None:
+        """Creates a Kemono Crawler instance"""
+        from cyberdrop_dl.scraper.crawlers.kemono_crawler import KemonoCrawler
+        self.existing_crawlers['kemono'] = KemonoCrawler(self.manager)
 
     """~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"""
 
@@ -124,8 +105,15 @@ class ScrapeMapper:
 
             key = next((key for key in self.mapping if key in scrape_item.url.host.lower()), None)
             if key:
-                handler = self.mapping[key]
-                await handler(scrape_item=scrape_item)
+                """If the crawler doesn't exist, create it, finally add the scrape item to it's queue"""
+                if not self.existing_crawlers.get(key):
+                    start_handler = self.mapping[key]
+                    await start_handler()
+                    await self.existing_crawlers[key].startup()
+                    await self.manager.download_manager.get_download_instance(key)
+                    asyncio.create_task(self.existing_crawlers[key].run_loop())
+                await self.existing_crawlers[key].scraper_queue.put(scrape_item)
+                await asyncio.sleep(0)
                 continue
 
             if self.complete:
