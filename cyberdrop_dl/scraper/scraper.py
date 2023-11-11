@@ -8,7 +8,7 @@ import aiofiles
 from yarl import URL
 
 from cyberdrop_dl.utils.dataclasses.url_objects import ScrapeItem
-from cyberdrop_dl.utils.utilities import log\
+from cyberdrop_dl.utils.utilities import log
 
 if TYPE_CHECKING:
     from typing import List
