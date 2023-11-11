@@ -24,7 +24,7 @@ class KemonoCrawler:
 
         self.complete = False
 
-        self.base_domain = URL("https://kemono.su")
+        self.primary_base_domain = URL("https://kemono.su")
         self.api_url = URL("https://kemono.su/api/v1")
         self.services = ['patreon', 'fanbox', 'fantia', 'afdian', 'boosty', 'dlsite', 'gumroad', 'subscribestar']
 
@@ -131,7 +131,7 @@ class KemonoCrawler:
         post_title = post["title"] if "title" in post else ""
 
         async def handle_file(file_obj):
-            link = self.base_domain / ("data" + file_obj['path'])
+            link = self.primary_base_domain / ("data" + file_obj['path'])
             link = link.with_query({"f": file_obj['name']})
             await self.create_new_scrape_item(link, scrape_item, user, post_title, post_id, date)
 

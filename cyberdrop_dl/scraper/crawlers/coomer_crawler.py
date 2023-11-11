@@ -24,7 +24,7 @@ class CoomerCrawler:
 
         self.complete = False
 
-        self.base_domain = URL("https://coomer.su")
+        self.primary_base_domain = URL("https://coomer.su")
         self.api_url = URL("https://coomer.su/api/v1")
 
         self.scraped_items: list = []
@@ -114,7 +114,7 @@ class CoomerCrawler:
         post_title = post["title"]
 
         async def handle_file(file_obj):
-            link = self.base_domain / ("data" + file_obj['path'])
+            link = self.primary_base_domain / ("data" + file_obj['path'])
             link = link.with_query({"f": file_obj['name']})
             await self.create_new_scrape_item(link, scrape_item, user, post_title, post_id, date)
 
