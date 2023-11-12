@@ -20,7 +20,8 @@ class ScrapeMapper:
     """This class maps links to their respective handlers, or JDownloader if they are unsupported"""
     def __init__(self, manager: Manager):
         self.mapping = {"bunkr": self.bunkr, "coomer": self.coomer, "cyberdrop": self.cyberdrop,
-                        "cyberfile": self.cyberfile, "e-hentai": self.ehentai, "kemono": self.kemono}
+                        "cyberfile": self.cyberfile, "e-hentai": self.ehentai, "erome": self.erome,
+                        "kemono": self.kemono}
         self.existing_crawlers = {}
         self.manager = manager
 
@@ -50,6 +51,11 @@ class ScrapeMapper:
         """Creates a EHentai Crawler instance"""
         from cyberdrop_dl.scraper.crawlers.ehentai_crawler import EHentaiCrawler
         self.existing_crawlers['e-hentai'] = EHentaiCrawler(self.manager)
+
+    async def erome(self) -> None:
+        """Creates a Erome Crawler instance"""
+        from cyberdrop_dl.scraper.crawlers.erome_crawler import EromeCrawler
+        self.existing_crawlers['erome'] = EromeCrawler(self.manager)
 
     async def kemono(self) -> None:
         """Creates a Kemono Crawler instance"""
