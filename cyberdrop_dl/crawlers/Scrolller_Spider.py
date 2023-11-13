@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Dict
-import requests
 import json
 
 from yarl import URL
@@ -74,7 +73,6 @@ class ScrolllerCrawler:
             while True:
                 # Fetching items with iterator iterator
                 body["variables"]["iterator"] = iterator
-                # response = requests.post(self.scrolller_api, headers=self.headers, data=json.dumps(body))
                 response = await session.post(self.scrolller_api, data=json.dumps(body))
 
                 if response:
