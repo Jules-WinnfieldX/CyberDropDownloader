@@ -28,7 +28,7 @@ class FapelloCrawler:
         self.scraper_queue: Queue = field(init=False)
         self.download_queue: Queue = field(init=False)
 
-        self.request_limiter = AsyncLimiter(10, 1)
+        self.request_limiter = AsyncLimiter(5, 1)
 
     async def startup(self) -> None:
         """Starts the crawler"""
@@ -65,7 +65,7 @@ class FapelloCrawler:
         if not str(scrape_item.url).endswith("/"):
             scrape_item.url = scrape_item.url / ""
 
-        if scrape_item.url.path[-2].isnumeric():
+        if scrape_item.url.parts[-2].isnumeric():
             await self.post(scrape_item)
         else:
             await self.profile(scrape_item)
@@ -84,10 +84,16 @@ class FapelloCrawler:
 
         content = soup.select("div[id=content] a")
         for post in content:
-            link = URL(post.get('href'))
-            new_scrape_item = ScrapeItem(link, scrape_item.parent_title, part_of_album=True)
-            await new_scrape_item.add_to_parent_title(title)
-            await self.scraper_queue.put(new_scrape_item)
+            if "javascript" in post.get('href'):
+                video_tag = post.select_one('iframe')
+                video_link = URL(video_tag.get('src'))
+                new_scrape_item = ScrapeItem(video_link, scrape_item.parent_title, part_of_album=True)
+                await self.manager.queue_manager.url_objects_to_map.put(new_scrape_item)
+            else:
+                link = URL(post.get('href'))
+                new_scrape_item = ScrapeItem(link, scrape_item.parent_title, part_of_album=True)
+                await new_scrape_item.add_to_parent_title(title)
+                await self.scraper_queue.put(new_scrape_item)
 
         next_page = soup.select_one('div[id="next_page"] a')
         if next_page:
