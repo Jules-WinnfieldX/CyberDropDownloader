@@ -81,7 +81,7 @@ class ImgurCrawler:
         await self.scraping_progress.remove_task(task_id)
 
     @error_handling_wrapper
-    async def album(self, scrape_item: ScrapeItem):
+    async def album(self, scrape_item: ScrapeItem) -> None:
         """Scrapes an album"""
         if self.imgur_client_id == "":
             await log("To scrape imgur content, you need to provide a client id")
@@ -107,7 +107,7 @@ class ImgurCrawler:
             await self.handle_direct(new_scrape_object)
 
     @error_handling_wrapper
-    async def image(self, scrape_item: ScrapeItem):
+    async def image(self, scrape_item: ScrapeItem) -> None:
         if self.imgur_client_id == "":
             await log("To scrape imgur content, you need to provide a client id")
             raise Exception("No Imgur Client ID provided")
@@ -123,7 +123,7 @@ class ImgurCrawler:
         await self.handle_direct(new_scrape_object)
 
     @error_handling_wrapper
-    async def handle_direct(self, scrape_item: ScrapeItem):
+    async def handle_direct(self, scrape_item: ScrapeItem) -> None:
         """Scrapes an image"""
         filename, ext = await get_filename_and_ext(scrape_item.url.name)
         if ext.lower() == ".gifv" or ext.lower() == ".mp4":
@@ -149,7 +149,7 @@ class ImgurCrawler:
 
     """~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"""
 
-    async def check_imgur_credits(self):
+    async def check_imgur_credits(self) -> None:
         credits_obj = await self.client.get_json("imgur", self.imgur_api / "credits", headers_inc=self.headers)
         self.imgur_client_remaining = credits_obj["data"]["ClientRemaining"]
         if self.imgur_client_remaining < 100:
