@@ -22,7 +22,7 @@ class ScrapeMapper:
         self.mapping = {"bunkr": self.bunkr, "coomer": self.coomer, "cyberdrop": self.cyberdrop,
                         "cyberfile": self.cyberfile, "e-hentai": self.ehentai, "erome": self.erome,
                         "fapello": self.fapello, "gofile": self.gofile, "imgbox": self.imgbox,
-                        "kemono": self.kemono, "saint": self.saint}
+                        "imgur": self.imgur, "kemono": self.kemono, "saint": self.saint}
         self.existing_crawlers = {}
         self.manager = manager
 
@@ -72,6 +72,11 @@ class ScrapeMapper:
         """Creates a ImgBox Crawler instance"""
         from cyberdrop_dl.scraper.crawlers.imgbox_crawler import ImgBoxCrawler
         self.existing_crawlers['imgbox'] = ImgBoxCrawler(self.manager)
+
+    async def imgur(self) -> None:
+        """Creates a Imgur Crawler instance"""
+        from cyberdrop_dl.scraper.crawlers.imgur_crawler import ImgurCrawler
+        self.existing_crawlers['imgur'] = ImgurCrawler(self.manager)
 
     async def kemono(self) -> None:
         """Creates a Kemono Crawler instance"""
@@ -134,6 +139,9 @@ class ScrapeMapper:
                 continue
             if not scrape_item.url.host:
                 continue
+
+            if str(scrape_item.url).endswith("/"):
+                scrape_item.url = scrape_item.url.with_path(scrape_item.url.path[:-1])
 
             key = next((key for key in self.mapping if key in scrape_item.url.host.lower()), None)
             if key:
