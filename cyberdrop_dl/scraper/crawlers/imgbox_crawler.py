@@ -4,7 +4,6 @@ from dataclasses import field
 from typing import TYPE_CHECKING
 
 from aiolimiter import AsyncLimiter
-from bs4 import BeautifulSoup
 from yarl import URL
 
 from cyberdrop_dl.utils.dataclasses.url_objects import ScrapeItem, MediaItem

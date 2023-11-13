@@ -11,10 +11,8 @@ import aiohttp.client_exceptions
 from aiolimiter import AsyncLimiter
 from yarl import URL
 
-from cyberdrop_dl.clients.errors import NoExtensionFailure
 from cyberdrop_dl.utils.dataclasses.url_objects import MediaItem, ScrapeItem
-from cyberdrop_dl.utils.utilities import (FILE_FORMATS, get_filename_and_ext, error_handling_wrapper,
-                                          log, get_download_path, remove_id)
+from cyberdrop_dl.utils.utilities import get_filename_and_ext, error_handling_wrapper, log, get_download_path, remove_id
 
 if TYPE_CHECKING:
     from asyncio import Queue
