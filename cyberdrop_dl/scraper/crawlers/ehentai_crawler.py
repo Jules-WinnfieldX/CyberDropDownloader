@@ -58,21 +58,21 @@ class EHentaiCrawler:
             await log(f"Scrape Finished: {item.url}")
             await self.finish_task()
 
+    """~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"""
+
     async def fetch(self, scrape_item: ScrapeItem) -> None:
         """Determines where to send the scrape item based on the url"""
         task_id = await self.scraping_progress.add_task(scrape_item.url)
 
-        if scrape_item.url.path.startswith("/g/"):
+        if "g" in scrape_item.url.parts:
             await self.album(scrape_item)
-        elif scrape_item.url.path.startswith("/s/"):
+        elif "s" in scrape_item.url.parts:
             await self.image(scrape_item)
         else:
             await log(f"Scrape Error: Unknown URL Path for {scrape_item.url}")
             await self.manager.progress_manager.scrape_stats_progress.add_failure("Unknown")
 
         await self.scraping_progress.remove_task(task_id)
-
-    """~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"""
 
     @error_handling_wrapper
     async def album(self, scrape_item: ScrapeItem) -> None:

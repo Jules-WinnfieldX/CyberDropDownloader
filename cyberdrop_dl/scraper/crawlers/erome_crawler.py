@@ -64,7 +64,7 @@ class EromeCrawler:
         """Determines where to send the scrape item based on the url"""
         task_id = await self.scraping_progress.add_task(scrape_item.url)
 
-        if scrape_item.url.path.startswith("/a/"):
+        if "a" in scrape_item.url.parts:
             await self.album(scrape_item)
         else:
             await self.profile(scrape_item)

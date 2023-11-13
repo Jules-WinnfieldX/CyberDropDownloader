@@ -70,9 +70,9 @@ class BunkrCrawler:
         task_id = await self.scraping_progress.add_task(scrape_item.url)
         scrape_item.url = await self.get_stream_link(scrape_item.url)
 
-        if scrape_item.url.path.startswith("/a/"):
+        if "a" in scrape_item.url.parts:
             await self.album(scrape_item)
-        elif scrape_item.url.path.startswith("/v/"):
+        elif "v" in scrape_item.url.parts:
             await self.video(scrape_item)
         else:
             await self.other(scrape_item)
