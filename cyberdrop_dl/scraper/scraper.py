@@ -21,7 +21,8 @@ class ScrapeMapper:
     def __init__(self, manager: Manager):
         self.mapping = {"bunkr": self.bunkr, "coomer": self.coomer, "cyberdrop": self.cyberdrop,
                         "cyberfile": self.cyberfile, "e-hentai": self.ehentai, "erome": self.erome,
-                        "fapello": self.fapello, "kemono": self.kemono, "saint": self.saint}
+                        "fapello": self.fapello, "gofile": self.gofile,
+                        "kemono": self.kemono, "saint": self.saint}
         self.existing_crawlers = {}
         self.manager = manager
 
@@ -61,6 +62,11 @@ class ScrapeMapper:
         """Creates a Fappelo Crawler instance"""
         from cyberdrop_dl.scraper.crawlers.fapello_crawler import FapelloCrawler
         self.existing_crawlers['fapello'] = FapelloCrawler(self.manager)
+
+    async def gofile(self) -> None:
+        """Creates a GoFile Crawler instance"""
+        from cyberdrop_dl.scraper.crawlers.gofile_crawler import GoFileCrawler
+        self.existing_crawlers['gofile'] = GoFileCrawler(self.manager)
 
     async def kemono(self) -> None:
         """Creates a Kemono Crawler instance"""

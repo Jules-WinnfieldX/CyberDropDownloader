@@ -4,7 +4,7 @@ import json
 
 import aiohttp
 from functools import wraps
-from typing import TYPE_CHECKING, Dict
+from typing import TYPE_CHECKING, Dict, Optional
 
 from aiohttp import ClientSession
 from bs4 import BeautifulSoup
@@ -68,16 +68,23 @@ class ScraperClient:
             return BeautifulSoup(text, 'html.parser'), URL(response.url)
 
     @limiter
-    async def get_json(self, domain: str, url: URL, client_session: ClientSession) -> Dict:
+    async def get_json(self, domain: str, url: URL, params: Optional[Dict] = None, client_session: ClientSession = None) -> Dict:
         """Returns a JSON object from the given URL"""
         async with client_session.get(url, headers=self._headers, ssl=self.client_manager.ssl_context,
-                                      proxy=self.client_manager.proxy) as response:
+                                      proxy=self.client_manager.proxy, params=params) as response:
             await self.client_manager.check_http_status(response.status, response.headers, response.url)
             content_type = response.headers.get('Content-Type')
             assert content_type is not None
             if 'json' not in content_type.lower():
                 raise InvalidContentTypeFailure(message=f"Received {content_type}, was expecting JSON")
             return await response.json()
+
+    @limiter
+    async def get_text(self, domain: str, url: URL, client_session: ClientSession) -> str:
+        async with client_session.get(url, headers=self._headers, ssl=self.client_manager.ssl_context,
+                                      proxy=self.client_manager.proxy) as response:
+            await self.client_manager.check_http_status(response.status, response.headers, response.url)
+            return await response.text()
 
     @limiter
     async def post_data(self, domain: str, url: URL, client_session: ClientSession, data: Dict) -> Dict:
