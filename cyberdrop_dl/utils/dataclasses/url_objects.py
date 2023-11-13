@@ -25,11 +25,11 @@ class MediaItem:
 
 
 class ScrapeItem:
-    def __init__(self, url: "URL", parent_title: str, part_of_album: bool = False, possible_datetime: str = None):
+    def __init__(self, url: "URL", parent_title: str, part_of_album: bool = False, possible_datetime: int = None):
         self.url: URL = url
         self.parent_title: str = parent_title
         self.part_of_album: bool = part_of_album
-        self.possible_datetime: str = possible_datetime
+        self.possible_datetime: int = possible_datetime
 
     async def add_to_parent_title(self, title: str) -> None:
         if not title:

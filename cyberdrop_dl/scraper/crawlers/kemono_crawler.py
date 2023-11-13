@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import calendar
+import datetime
 from dataclasses import field
 from typing import TYPE_CHECKING, Tuple, Dict
 
@@ -167,6 +169,11 @@ class KemonoCrawler:
 
     """~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"""
 
+    async def parse_datetime(self, date: str) -> int:
+        """Parses a datetime string"""
+        date = datetime.datetime.strptime(date, "%Y-%m-%d %H:%M:%S")
+        return calendar.timegm(date.timetuple())
+
     async def get_service_and_user(self, scrape_item: ScrapeItem) -> Tuple[str, str]:
         user = scrape_item.url.parts[3]
         service = scrape_item.url.parts[1]
@@ -190,7 +197,7 @@ class KemonoCrawler:
             if self.manager.config_manager.settings_data['Download_Options']['include_album_id_in_folder_name']:
                 post_title = post_id + " - " + post_title
 
-        new_scrape_item = ScrapeItem(link, old_scrape_item.parent_title, True, possible_datetime=date)
+        new_scrape_item = ScrapeItem(link, old_scrape_item.parent_title, True, possible_datetime=await self.parse_datetime(date))
         await new_scrape_item.add_to_parent_title(f"{user} ({old_scrape_item.url.host})")
         await new_scrape_item.add_to_parent_title(post_title)
         await self.scraper_queue.put(new_scrape_item)

@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import calendar
+import datetime
 from dataclasses import field
 from typing import TYPE_CHECKING
 
@@ -81,7 +83,7 @@ class ImgBoxCrawler:
             soup = await self.client.get_BS4("imgbox", scrape_item.url)
 
         title = soup.select_one("div[id=gallery-view] h1").get_text().rsplit(" - ", 1)[0] + f" ({scrape_item.url.host})"
-        date = title.split(" UTC)")[0].split("(")[-1]
+        date = await self.parse_datetime(title.split(" UTC)")[0].split("(")[-1])
 
         scrape_item.possible_datetime = date
         scrape_item.part_of_album = True
@@ -118,3 +120,9 @@ class ImgBoxCrawler:
             media_item.datetime = scrape_item.possible_datetime
 
         await self.download_queue.put(media_item)
+
+    """~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"""
+
+    async def parse_datetime(self, date: str) -> int:
+        date = datetime.datetime.strptime(date, "%Y-%m-%d %H:%M:%S")
+        return calendar.timegm(date.timetuple())

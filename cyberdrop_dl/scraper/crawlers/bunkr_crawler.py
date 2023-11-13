@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import calendar
+import datetime
 import re
 from dataclasses import field
 from typing import TYPE_CHECKING
@@ -169,9 +171,11 @@ class BunkrCrawler:
 
         return url
 
-    async def parse_datetime(self, date: str) -> str:
+    async def parse_datetime(self, date: str) -> int:
         time = date.split(" ")[0]
         day = date.split(" ")[1].split("/")[0]
         month = date.split(" ")[1].split("/")[1]
         year = date.split(" ")[1].split("/")[2]
-        return f"{year}-{month}-{day} {time}"
+        date = f"{year}-{month}-{day} {time}"
+        date = datetime.datetime.strptime(date, "%Y-%m-%d %H:%M:%S")
+        return calendar.timegm(date.timetuple())

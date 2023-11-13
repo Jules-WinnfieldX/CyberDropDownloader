@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import calendar
+import datetime
 from dataclasses import field
 from typing import TYPE_CHECKING
 
@@ -80,7 +82,7 @@ class EHentaiCrawler:
         async with self.request_limiter:
             soup = await self.client.get_BS4("e-hentai", scrape_item.url)
         title = soup.select_one("h1[id=gn]").get_text()
-        date = soup.select_one("td[class=gdt2]").get_text()
+        date = await self.parse_datetime(soup.select_one("td[class=gdt2]").get_text())
 
         images = soup.select("div[class=gdtm] div a")
         for image in images:
@@ -127,3 +129,9 @@ class EHentaiCrawler:
             media_item.datetime = scrape_item.possible_datetime
 
         await self.download_queue.put(media_item)
+
+    """~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"""
+
+    async def parse_datetime(self, date: str) -> int:
+        date = datetime.datetime.strptime(date, "%Y-%m-%d %H:%M:%S")
+        return calendar.timegm(date.timetuple())

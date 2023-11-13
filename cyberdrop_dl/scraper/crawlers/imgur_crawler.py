@@ -101,7 +101,7 @@ class ImgurCrawler:
 
         for image in JSON_Obj["data"]:
             link = URL(image["link"])
-            date = await self.parse_datetime(image["datetime"])
+            date = image["datetime"]
             new_scrape_object = ScrapeItem(url=link, parent_title=scrape_item.parent_title, part_of_album=True, possible_datetime=date)
             await new_scrape_object.add_to_parent_title(title)
             await self.handle_direct(new_scrape_object)
@@ -117,7 +117,7 @@ class ImgurCrawler:
         async with self.request_limiter:
             JSON_Obj = await self.client.get_json("imgur", self.imgur_api / f"image/{image_id}", headers_inc=self.headers)
 
-        date = await self.parse_datetime(JSON_Obj["data"]["datetime"])
+        date = JSON_Obj["data"]["datetime"]
         link = URL(JSON_Obj["data"]["link"])
         new_scrape_object = ScrapeItem(url=link, parent_title=scrape_item.parent_title, possible_datetime=date)
         await self.handle_direct(new_scrape_object)
@@ -154,6 +154,3 @@ class ImgurCrawler:
         self.imgur_client_remaining = credits_obj["data"]["ClientRemaining"]
         if self.imgur_client_remaining < 100:
             raise Exception("Imgur API rate limit reached")
-
-    async def parse_datetime(self, epoch_time: int) -> str:
-        return strftime("%Y-%m-%d %H:%M:%S", localtime(epoch_time))

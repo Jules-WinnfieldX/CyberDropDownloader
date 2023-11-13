@@ -122,7 +122,7 @@ class GoFileCrawler:
                 link = URL(content["link"])
             filename, ext = await get_filename_and_ext(link.name)
             duplicate_scrape_item = deepcopy(scrape_item)
-            duplicate_scrape_item.possible_datetime = await self.parse_datetime(content["createTime"])
+            duplicate_scrape_item.possible_datetime = content["createTime"]
             duplicate_scrape_item.part_of_album = True
             await duplicate_scrape_item.add_to_parent_title(title)
             await self.handle_file(link, duplicate_scrape_item, filename, ext)
@@ -193,8 +193,3 @@ class GoFileCrawler:
         morsel['domain'] = 'gofile.io'
         morsel.set('accountToken', client_token, client_token)
         session.client_manager.cookies.update_cookies({'gofile.io': morsel})
-
-    """~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"""
-
-    async def parse_datetime(self, epoch_time: int) -> str:
-        return strftime("%Y-%m-%d %H:%M:%S", localtime(epoch_time))
