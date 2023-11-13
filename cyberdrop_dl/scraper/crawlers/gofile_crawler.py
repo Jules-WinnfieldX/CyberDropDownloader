@@ -47,7 +47,7 @@ class GoFileCrawler:
 
         self.client = self.manager.client_manager.scraper_session
 
-    async def finish_task(self):
+    async def finish_task(self) -> None:
         self.scraper_queue.task_done()
         if self.scraper_queue.empty():
             self.complete = True
@@ -186,7 +186,7 @@ class GoFileCrawler:
             raise Exception("Couldn't generate GoFile websiteToken")
         self.manager.cache_manager.save("gofile_website_token", self.websiteToken)
 
-    async def set_cookie(self, session: ScraperClient):
+    async def set_cookie(self, session: ScraperClient) -> None:
         """Sets the given token as a cookie into the session (and client)"""
         client_token = self.token
         morsel: http.cookies.Morsel = http.cookies.Morsel()

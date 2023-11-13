@@ -42,7 +42,7 @@ class BunkrCrawler:
 
         self.client = self.manager.client_manager.scraper_session
 
-    async def finish_task(self):
+    async def finish_task(self) -> None:
         self.scraper_queue.task_done()
         if self.scraper_queue.empty():
             self.complete = True
@@ -169,7 +169,7 @@ class BunkrCrawler:
 
         return url
 
-    async def parse_datetime(self, date: str):
+    async def parse_datetime(self, date: str) -> str:
         time = date.split(" ")[0]
         day = date.split(" ")[1].split("/")[0]
         month = date.split(" ")[1].split("/")[1]

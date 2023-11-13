@@ -40,7 +40,7 @@ class CoomerCrawler:
 
         self.client = self.manager.client_manager.scraper_session
 
-    async def finish_task(self):
+    async def finish_task(self) -> None:
         self.scraper_queue.task_done()
         if self.scraper_queue.empty():
             self.complete = True
@@ -63,7 +63,7 @@ class CoomerCrawler:
 
     """~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"""
 
-    async def fetch(self, scrape_item: ScrapeItem):
+    async def fetch(self, scrape_item: ScrapeItem) -> None:
         """Determines where to send the scrape item based on the url"""
         task_id = await self.scraping_progress.add_task(scrape_item.url)
 
@@ -82,7 +82,7 @@ class CoomerCrawler:
         await self.scraping_progress.remove_task(task_id)
 
     @error_handling_wrapper
-    async def profile(self, scrape_item: ScrapeItem):
+    async def profile(self, scrape_item: ScrapeItem) -> None:
         """Scrapes a profile"""
         offset = 0
         service, user = await self.get_service_and_user(scrape_item)
@@ -98,7 +98,7 @@ class CoomerCrawler:
                 await self.handle_post_content(post, scrape_item, user)
 
     @error_handling_wrapper
-    async def post(self, scrape_item: ScrapeItem):
+    async def post(self, scrape_item: ScrapeItem) -> None:
         """Scrapes a post"""
         service, user, post_id = await self.get_service_user_and_post(scrape_item)
         api_call = self.api_url / service / "user" / user / "post" / post_id
@@ -107,7 +107,7 @@ class CoomerCrawler:
         await self.handle_post_content(post, scrape_item, user)
 
     @error_handling_wrapper
-    async def handle_post_content(self, post: Dict, scrape_item: ScrapeItem, user: str):
+    async def handle_post_content(self, post: Dict, scrape_item: ScrapeItem, user: str) -> None:
         if "#ad" in post['content'] and self.manager.config_manager.settings_data['Ignore_Options']['ignore_coomer_ads']:
             return
 

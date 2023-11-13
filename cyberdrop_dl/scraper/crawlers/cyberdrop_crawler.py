@@ -40,7 +40,7 @@ class CyberdropCrawler:
 
         self.client = self.manager.client_manager.scraper_session
 
-    async def finish_task(self):
+    async def finish_task(self) -> None:
         self.scraper_queue.task_done()
         if self.scraper_queue.empty():
             self.complete = True
@@ -75,7 +75,7 @@ class CyberdropCrawler:
         await self.scraping_progress.remove_task(task_id)
 
     @error_handling_wrapper
-    async def album(self, scrape_item: ScrapeItem):
+    async def album(self, scrape_item: ScrapeItem) -> None:
         """Scrapes an album"""
         async with self.request_limiter:
             try:

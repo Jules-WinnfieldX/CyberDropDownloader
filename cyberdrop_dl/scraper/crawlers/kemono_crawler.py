@@ -41,7 +41,7 @@ class KemonoCrawler:
 
         self.client = self.manager.client_manager.scraper_session
 
-    async def finish_task(self):
+    async def finish_task(self) -> None:
         self.scraper_queue.task_done()
         if self.scraper_queue.empty():
             self.complete = True
@@ -64,7 +64,7 @@ class KemonoCrawler:
 
     """~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"""
 
-    async def fetch(self, scrape_item: ScrapeItem):
+    async def fetch(self, scrape_item: ScrapeItem) -> None:
         """Determines where to send the scrape item based on the url"""
         task_id = await self.scraping_progress.add_task(scrape_item.url)
 
@@ -85,7 +85,7 @@ class KemonoCrawler:
         await self.scraping_progress.remove_task(task_id)
 
     @error_handling_wrapper
-    async def profile(self, scrape_item: ScrapeItem):
+    async def profile(self, scrape_item: ScrapeItem) -> None:
         """Scrapes a profile"""
         offset = 0
         service, user = await self.get_service_and_user(scrape_item)
@@ -101,7 +101,7 @@ class KemonoCrawler:
                 await self.handle_post_content(post, scrape_item, user)
 
     @error_handling_wrapper
-    async def discord(self, scrape_item: ScrapeItem):
+    async def discord(self, scrape_item: ScrapeItem) -> None:
         """Scrapes a profile"""
         offset = 0
         channel = await self.get_discord_channel(scrape_item)
@@ -117,7 +117,7 @@ class KemonoCrawler:
                 await self.handle_post_content(post, scrape_item, channel)
 
     @error_handling_wrapper
-    async def post(self, scrape_item: ScrapeItem):
+    async def post(self, scrape_item: ScrapeItem) -> None:
         """Scrapes a post"""
         service, user, post_id = await self.get_service_user_and_post(scrape_item)
         api_call = self.api_url / service / "user" / user / "post" / post_id
@@ -126,7 +126,7 @@ class KemonoCrawler:
         await self.handle_post_content(post, scrape_item, user)
 
     @error_handling_wrapper
-    async def handle_post_content(self, post: Dict, scrape_item: ScrapeItem, user: str):
+    async def handle_post_content(self, post: Dict, scrape_item: ScrapeItem, user: str) -> None:
         """Handles the content of a post"""
         date = post["published"].replace("T", " ")
         post_id = post["id"]
