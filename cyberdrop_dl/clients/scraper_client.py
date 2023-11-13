@@ -8,12 +8,11 @@ from typing import TYPE_CHECKING, Dict
 
 from aiohttp import ClientSession
 from bs4 import BeautifulSoup
+from yarl import URL
 
 from cyberdrop_dl.clients.errors import InvalidContentTypeFailure
 
 if TYPE_CHECKING:
-    from yarl import URL
-
     from cyberdrop_dl.managers.client_manager import ClientManager
 
 
@@ -54,6 +53,19 @@ class ScraperClient:
                 raise InvalidContentTypeFailure(message=f"Received {content_type}, was expecting text")
             text = await response.text()
             return BeautifulSoup(text, 'html.parser')
+
+    @limiter
+    async def get_BS4_and_return_URL(self, domain: str, url: URL, client_session: ClientSession) -> tuple[BeautifulSoup, URL]:
+        """Returns a BeautifulSoup object and response URL from the given URL"""
+        async with client_session.get(url, headers=self._headers, ssl=self.client_manager.ssl_context,
+                                      proxy=self.client_manager.proxy) as response:
+            await self.client_manager.check_http_status(response.status, response.headers, response.url)
+            content_type = response.headers.get('Content-Type')
+            assert content_type is not None
+            if not any(s in content_type.lower() for s in ("html", "text")):
+                raise InvalidContentTypeFailure(message=f"Received {content_type}, was expecting text")
+            text = await response.text()
+            return BeautifulSoup(text, 'html.parser'), URL(response.url)
 
     @limiter
     async def get_json(self, domain: str, url: URL, client_session: ClientSession) -> Dict:
