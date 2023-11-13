@@ -80,7 +80,7 @@ class EromeCrawler:
 
         for album in albums:
             link = URL(album['href'])
-            new_scrape_item = ScrapeItem(url=link, parent_title=title, part_of_album=True)
+            new_scrape_item = ScrapeItem(url=link, parent_title=scrape_item.parent_title, part_of_album=True)
             await new_scrape_item.add_to_parent_title(title)
             await self.scraper_queue.put(new_scrape_item)
 
