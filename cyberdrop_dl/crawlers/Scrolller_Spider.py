@@ -96,7 +96,6 @@ class ScrolllerCrawler:
                     if iterations > 0 and iterator is None:
                         break
                 else:
-                    log(f"Request failed with status code {response.status_code}. Error message: {response.text}")
                     break
 
                 iterations += 1
