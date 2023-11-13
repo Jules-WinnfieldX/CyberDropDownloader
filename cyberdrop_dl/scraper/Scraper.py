@@ -15,6 +15,7 @@ from cyberdrop_dl.crawlers.CyberFile_Spider import CyberFileCrawler
 from cyberdrop_dl.crawlers.Cyberdrop_Spider import CyberdropCrawler
 from cyberdrop_dl.crawlers.EHentai_Spider import EHentaiCrawler
 from cyberdrop_dl.crawlers.Erome_Spider import EromeCrawler
+from cyberdrop_dl.crawlers.Scrolller_Spider import ScrolllerCrawler
 from cyberdrop_dl.crawlers.Fapello_Spider import FapelloCrawler
 from cyberdrop_dl.crawlers.Gfycat_Spider import GfycatCrawler
 from cyberdrop_dl.crawlers.GoFile_Spider import GoFileCrawler
@@ -62,6 +63,7 @@ class ScrapeMapper:
         self.cyberfile_crawler: Optional[CyberFileCrawler] = None
         self.ehentai_crawler: Optional[EHentaiCrawler] = None
         self.erome_crawler: Optional[EromeCrawler] = None
+        self.scrolller_crawler: Optional[ScrolllerCrawler] = None
         self.fapello_crawler: Optional[FapelloCrawler] = None
         self.gfycat_crawler: Optional[GfycatCrawler] = None
         self.gofile_crawler: Optional[GoFileCrawler] = None
@@ -96,7 +98,7 @@ class ScrapeMapper:
 
         self.mapping = {"anonfiles": self.Anonfiles, "bayfiles": self.Anonfiles, "xbunkr": self.XBunkr,
                         "bunkr": self.Bunkr, "cyberdrop": self.Cyberdrop, "cyberfile": self.CyberFile,
-                        "erome": self.Erome, "fapello": self.Fapello, "gfycat": self.Gfycat, "gofile": self.GoFile,
+                        "erome": self.Erome, "scrolller": self.Scrolller, "fapello": self.Fapello, "gfycat": self.Gfycat, "gofile": self.GoFile,
                         "hgamecg": self.HGameCG, "imgbox": self.ImgBox, "pixeldrain": self.PixelDrain,
                         "postimg": self.PostImg, "saint": self.Saint, "img.kiwi": self.ShareX, "imgur": self.Imgur,
                         "jpg.church": self.ShareX, "jpg.fish": self.ShareX, "jpg.pet": self.ShareX,
@@ -325,6 +327,17 @@ class ScrapeMapper:
         await xbunkr_session.exit_handler()
 
     """Archive Sites"""
+
+    async def Scrolller(self, url: URL, title=None):
+        scrolller_session = ScrapeSession(self.client)
+        if not self.scrolller_crawler:
+            self.scrolller_crawler = ScrolllerCrawler(quiet=self.quiet, SQL_Helper=self.SQL_Helper,
+                                                    error_writer=self.error_writer, separate_posts=self.separate_posts,
+                                                    args=self.args)
+        domain_obj = await self.scrolller_crawler.fetch(scrolller_session, url)
+        if domain_obj:
+            await self._handle_domain_additions("scrolller", domain_obj, title)
+        await scrolller_session.exit_handler()
 
     async def Fapello(self, url, title=None):
         fapello_session = ScrapeSession(self.client)
