@@ -62,6 +62,8 @@ class KemonoCrawler:
             await log(f"Scrape Finished: {item.url}")
             await self.finish_task()
 
+    """~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"""
+
     async def fetch(self, scrape_item: ScrapeItem):
         """Determines where to send the scrape item based on the url"""
         task_id = await self.scraping_progress.add_task(scrape_item.url)
