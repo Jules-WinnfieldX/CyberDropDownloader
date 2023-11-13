@@ -68,9 +68,11 @@ class ScraperClient:
             return BeautifulSoup(text, 'html.parser'), URL(response.url)
 
     @limiter
-    async def get_json(self, domain: str, url: URL, params: Optional[Dict] = None, client_session: ClientSession = None) -> Dict:
+    async def get_json(self, domain: str, url: URL, params: Optional[Dict] = None, headers_inc: Optional[Dict] = None, client_session: ClientSession = None) -> Dict:
         """Returns a JSON object from the given URL"""
-        async with client_session.get(url, headers=self._headers, ssl=self.client_manager.ssl_context,
+        headers = {**self._headers, **headers_inc} if headers_inc else self._headers
+
+        async with client_session.get(url, headers=headers, ssl=self.client_manager.ssl_context,
                                       proxy=self.client_manager.proxy, params=params) as response:
             await self.client_manager.check_http_status(response.status, response.headers, response.url)
             content_type = response.headers.get('Content-Type')
