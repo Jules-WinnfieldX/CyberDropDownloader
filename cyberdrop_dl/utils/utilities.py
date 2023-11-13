@@ -91,7 +91,8 @@ async def sanitize_folder(title: str) -> str:
     title = title.replace("\n", "").strip()
     title = title.replace("\t", "").strip()
     title = re.sub(' +', ' ', title)
-    title = re.sub(r'[\\*?:"<>|./]', "-", title)
+    title = re.sub(r'[\\*?:"<>|/]', "-", title)
+    title = re.sub(r'\.{2,}', ".", title)
     title = title[:MAX_NAME_LENGTHS['FOLDER']].strip()
     return title
 
