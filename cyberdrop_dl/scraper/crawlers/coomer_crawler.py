@@ -2,66 +2,25 @@ from __future__ import annotations
 
 import calendar
 import datetime
-from dataclasses import field
 from typing import TYPE_CHECKING, Tuple, Dict
 
 from aiolimiter import AsyncLimiter
 from yarl import URL
 
-from cyberdrop_dl.utils.dataclasses.url_objects import MediaItem, ScrapeItem
-from cyberdrop_dl.utils.utilities import get_filename_and_ext, error_handling_wrapper, log, get_download_path
+from cyberdrop_dl.scraper.crawler import Crawler
+from cyberdrop_dl.utils.dataclasses.url_objects import ScrapeItem
+from cyberdrop_dl.utils.utilities import get_filename_and_ext, error_handling_wrapper
 
 if TYPE_CHECKING:
-    from asyncio import Queue
-
-    from cyberdrop_dl.clients.scraper_client import ScraperClient
     from cyberdrop_dl.managers.manager import Manager
 
 
-class CoomerCrawler:
+class CoomerCrawler(Crawler):
     def __init__(self, manager: Manager):
-        self.manager = manager
-        self.scraping_progress = manager.progress_manager.scraping_progress
-        self.client: ScraperClient = field(init=False)
-
-        self.complete = False
-
+        super().__init__(manager, "coomer", "Coomer")
         self.primary_base_domain = URL("https://coomer.su")
         self.api_url = URL("https://coomer.su/api/v1")
-
-        self.scraped_items: list = []
-        self.scraper_queue: Queue = field(init=False)
-        self.download_queue: Queue = field(init=False)
-
         self.request_limiter = AsyncLimiter(10, 1)
-
-    async def startup(self) -> None:
-        """Starts the crawler"""
-        self.scraper_queue = await self.manager.queue_manager.get_scraper_queue("coomer")
-        self.download_queue = await self.manager.queue_manager.get_download_queue("coomer")
-
-        self.client = self.manager.client_manager.scraper_session
-
-    async def finish_task(self) -> None:
-        self.scraper_queue.task_done()
-        if self.scraper_queue.empty():
-            self.complete = True
-
-    async def run_loop(self) -> None:
-        """Runs the crawler loop"""
-        while True:
-            item: ScrapeItem = await self.scraper_queue.get()
-            await log(f"Scrape Starting: {item.url}")
-            if item.url in self.scraped_items:
-                await self.finish_task()
-                continue
-
-            self.complete = False
-            self.scraped_items.append(item.url)
-            await self.fetch(item)
-
-            await log(f"Scrape Finished: {item.url}")
-            await self.finish_task()
 
     """~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"""
 
@@ -91,7 +50,7 @@ class CoomerCrawler:
         api_call = self.api_url / service / "user" / user
         while True:
             async with self.request_limiter:
-                JSON_Resp = await self.client.get_json("coomer", api_call.with_query({"o": offset}))
+                JSON_Resp = await self.client.get_json(self.domain, api_call.with_query({"o": offset}))
                 offset += 50
                 if not JSON_Resp:
                     break
@@ -105,7 +64,7 @@ class CoomerCrawler:
         service, user, post_id = await self.get_service_user_and_post(scrape_item)
         api_call = self.api_url / service / "user" / user / "post" / post_id
         async with self.request_limiter:
-            post = await self.client.get_json("coomer", api_call)
+            post = await self.client.get_json(self.domain, api_call)
         await self.handle_post_content(post, scrape_item, user)
 
     @error_handling_wrapper
@@ -133,21 +92,6 @@ class CoomerCrawler:
         """Handles a direct link"""
         filename, ext = await get_filename_and_ext(scrape_item.url.query["f"])
         await self.handle_file(scrape_item.url, scrape_item, filename, ext)
-
-    async def handle_file(self, url: URL, scrape_item: ScrapeItem, filename: str, ext: str) -> None:
-        """Finishes handling the file and hands it off to the download_queue"""
-        check_complete = await self.manager.db_manager.history_table.check_complete("coomer", url)
-        if check_complete:
-            await log(f"Skipping {url} as it has already been downloaded")
-            await self.manager.progress_manager.download_progress.add_previously_completed()
-            return
-
-        download_folder = await get_download_path(self.manager, scrape_item, "Coomer")
-        media_item = MediaItem(url, scrape_item.url, download_folder, filename, ext, filename)
-        if scrape_item.possible_datetime:
-            media_item.datetime = scrape_item.possible_datetime
-
-        await self.download_queue.put(media_item)
 
     """~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"""
 

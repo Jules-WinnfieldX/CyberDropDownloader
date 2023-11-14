@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING, Tuple, Dict
 from aiolimiter import AsyncLimiter
 from yarl import URL
 
+from cyberdrop_dl.scraper.crawler import Crawler
 from cyberdrop_dl.utils.dataclasses.url_objects import MediaItem, ScrapeItem
 from cyberdrop_dl.utils.utilities import get_filename_and_ext, error_handling_wrapper, log, get_download_path
 
@@ -18,7 +19,7 @@ if TYPE_CHECKING:
     from cyberdrop_dl.managers.manager import Manager
 
 
-class KemonoCrawler:
+class KemonoCrawler(Crawler):
     def __init__(self, manager: Manager):
         self.manager = manager
         self.scraping_progress = manager.progress_manager.scraping_progress

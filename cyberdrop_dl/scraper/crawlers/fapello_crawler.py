@@ -1,62 +1,22 @@
 from __future__ import annotations
 
-from dataclasses import field
 from typing import TYPE_CHECKING
 
 from aiolimiter import AsyncLimiter
 from yarl import URL
 
-from cyberdrop_dl.utils.dataclasses.url_objects import MediaItem, ScrapeItem
-from cyberdrop_dl.utils.utilities import get_filename_and_ext, error_handling_wrapper, log, get_download_path, remove_id
+from cyberdrop_dl.scraper.crawler import Crawler
+from cyberdrop_dl.utils.dataclasses.url_objects import ScrapeItem
+from cyberdrop_dl.utils.utilities import get_filename_and_ext, error_handling_wrapper
 
 if TYPE_CHECKING:
-    from asyncio import Queue
-
-    from cyberdrop_dl.clients.scraper_client import ScraperClient
     from cyberdrop_dl.managers.manager import Manager
 
 
-class FapelloCrawler:
+class FapelloCrawler(Crawler):
     def __init__(self, manager: Manager):
-        self.manager = manager
-        self.scraping_progress = manager.progress_manager.scraping_progress
-        self.client: ScraperClient = field(init=False)
-
-        self.complete = False
-
-        self.scraped_items: list = []
-        self.scraper_queue: Queue = field(init=False)
-        self.download_queue: Queue = field(init=False)
-
+        super().__init__(manager, "fapello", "Fapello")
         self.request_limiter = AsyncLimiter(5, 1)
-
-    async def startup(self) -> None:
-        """Starts the crawler"""
-        self.scraper_queue = await self.manager.queue_manager.get_scraper_queue("fapello")
-        self.download_queue = await self.manager.queue_manager.get_download_queue("fapello")
-
-        self.client = self.manager.client_manager.scraper_session
-
-    async def finish_task(self) -> None:
-        self.scraper_queue.task_done()
-        if self.scraper_queue.empty():
-            self.complete = True
-
-    async def run_loop(self) -> None:
-        """Runs the crawler loop"""
-        while True:
-            item: ScrapeItem = await self.scraper_queue.get()
-            await log(f"Scrape Starting: {item.url}")
-            if item.url in self.scraped_items:
-                await self.finish_task()
-                continue
-
-            self.complete = False
-            self.scraped_items.append(item.url)
-            await self.fetch(item)
-
-            await log(f"Scrape Finished: {item.url}")
-            await self.finish_task()
 
     """~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"""
 
@@ -78,7 +38,7 @@ class FapelloCrawler:
     async def profile(self, scrape_item: ScrapeItem) -> None:
         """Scrapes a profile"""
         async with self.request_limiter:
-            soup, response_url = await self.client.get_BS4_and_return_URL("fapello", scrape_item.url)
+            soup, response_url = await self.client.get_BS4_and_return_URL(self.domain, scrape_item.url)
             if response_url != scrape_item.url:
                 return
 
@@ -107,7 +67,7 @@ class FapelloCrawler:
     async def post(self, scrape_item: ScrapeItem) -> None:
         """Scrapes an album"""
         async with self.request_limiter:
-            soup = await self.client.get_BS4("fapello", scrape_item.url)
+            soup = await self.client.get_BS4(self.domain, scrape_item.url)
 
         content = soup.select_one('div[class="flex justify-between items-center"]')
         content_tags = content.select("img")
@@ -117,20 +77,3 @@ class FapelloCrawler:
             link = URL(selection.get('src'))
             filename, ext = await get_filename_and_ext(link.name)
             await self.handle_file(link, scrape_item, filename, ext)
-
-    async def handle_file(self, url: URL, scrape_item: ScrapeItem, filename: str, ext: str) -> None:
-        """Finishes handling the file and hands it off to the download_queue"""
-        original_filename, filename = await remove_id(self.manager, filename, ext)
-
-        check_complete = await self.manager.db_manager.history_table.check_complete("fapello", url)
-        if check_complete:
-            await log(f"Skipping {url} as it has already been downloaded")
-            await self.manager.progress_manager.download_progress.add_previously_completed()
-            return
-
-        download_folder = await get_download_path(self.manager, scrape_item, "Fapello")
-        media_item = MediaItem(url, scrape_item.url, download_folder, filename, ext, original_filename)
-        if scrape_item.possible_datetime:
-            media_item.datetime = scrape_item.possible_datetime
-
-        await self.download_queue.put(media_item)
