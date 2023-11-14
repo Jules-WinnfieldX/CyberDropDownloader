@@ -22,9 +22,14 @@ class ScrapeMapper:
         self.mapping = {"bunkr": self.bunkr, "coomer": self.coomer, "cyberdrop": self.cyberdrop,
                         "cyberfile": self.cyberfile, "e-hentai": self.ehentai, "erome": self.erome,
                         "fapello": self.fapello, "gofile": self.gofile, "imgbox": self.imgbox,
-                        "imgur": self.imgur, "kemono": self.kemono, "pimpandhost": self.pimpandhost,
-                        "pixeldrain": self.pixeldrain, "postimg": self.postimg, "reddit": self.reddit,
-                        "redgifs": self.redgifs, "saint": self.saint}
+                        "imgur": self.imgur, "img.kiwi": self.imgwiki, "jpg.church": self.jpgchurch,
+                        "jpg.homes": self.jpgchurch, "jpg.fish": self.jpgchurch, "jpg.fishing": self.jpgchurch,
+                        "jpg.pet": self.jpgchurch, "jpeg.pet": self.jpgchurch, "jpg1.su": self.jpgchurch,
+                        "jpg2.su": self.jpgchurch, "jpg3.su": self.jpgchurch, "kemono": self.kemono,
+                        "pimpandhost": self.pimpandhost, "pixeldrain": self.pixeldrain, "postimg": self.postimg,
+                        "reddit": self.reddit, "redgifs": self.redgifs, "saint": self.saint}
+        self.sharex_domains = ["img.kiwi", "jpg.church", "jpg.homes", "jpg.fish", "jpg.fishing", "jpg.pet",
+                               "jpeg.pet", "jpg1.su", "jpg2.su", "jpg3.su"]
         self.existing_crawlers = {}
         self.manager = manager
 
@@ -79,6 +84,24 @@ class ScrapeMapper:
         """Creates a Imgur Crawler instance"""
         from cyberdrop_dl.scraper.crawlers.imgur_crawler import ImgurCrawler
         self.existing_crawlers['imgur'] = ImgurCrawler(self.manager)
+
+    async def imgwiki(self) -> None:
+        """Creates a ImgWiki Crawler instance"""
+        from cyberdrop_dl.scraper.crawlers.imgkiwi_crawler import ImgKiwiCrawler
+        self.existing_crawlers['img.kiwi'] = ImgKiwiCrawler(self.manager)
+
+    async def jpgchurch(self) -> None:
+        """Creates a JPGChurch Crawler instance"""
+        from cyberdrop_dl.scraper.crawlers.jpgchurch_crawler import JPGChurchCrawler
+        self.existing_crawlers['jpg.church'] = JPGChurchCrawler(self.manager)
+        self.existing_crawlers['jpg.homes'] = self.existing_crawlers['jpg.church']
+        self.existing_crawlers['jpg.fish'] = self.existing_crawlers['jpg.church']
+        self.existing_crawlers['jpg.fishing'] = self.existing_crawlers['jpg.church']
+        self.existing_crawlers['jpg.pet'] = self.existing_crawlers['jpg.church']
+        self.existing_crawlers['jpeg.pet'] = self.existing_crawlers['jpg.church']
+        self.existing_crawlers['jpg1.su'] = self.existing_crawlers['jpg.church']
+        self.existing_crawlers['jpg2.su'] = self.existing_crawlers['jpg.church']
+        self.existing_crawlers['jpg3.su'] = self.existing_crawlers['jpg.church']
 
     async def kemono(self) -> None:
         """Creates a Kemono Crawler instance"""
@@ -171,13 +194,17 @@ class ScrapeMapper:
                 scrape_item.url = scrape_item.url.with_path(scrape_item.url.path[:-1])
 
             key = next((key for key in self.mapping if key in scrape_item.url.host.lower()), None)
+            download_key = key
+            if any(re.search(domain, str(scrape_item.url.host.lower())) for domain in self.sharex_domains):
+                download_key = "sharex"
+
             if key:
                 """If the crawler doesn't exist, create it, finally add the scrape item to it's queue"""
                 if not self.existing_crawlers.get(key):
                     start_handler = self.mapping[key]
                     await start_handler()
                     await self.existing_crawlers[key].startup()
-                    await self.manager.download_manager.get_download_instance(key)
+                    await self.manager.download_manager.get_download_instance(download_key)
                     asyncio.create_task(self.existing_crawlers[key].run_loop())
                 await self.existing_crawlers[key].scraper_queue.put(scrape_item)
                 await asyncio.sleep(0)
