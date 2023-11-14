@@ -18,7 +18,7 @@ if TYPE_CHECKING:
 
 class ImgKiwiCrawler(Crawler):
     def __init__(self, manager: Manager):
-        super().__init__(manager, "img.kiwi", "ImgKiwi")
+        super().__init__(manager, "sharex", "ImgKiwi")
         self.request_limiter = AsyncLimiter(10, 1)
 
     """~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"""
@@ -42,7 +42,7 @@ class ImgKiwiCrawler(Crawler):
         async with self.request_limiter:
             soup = await self.client.get_BS4(self.domain, scrape_item.url)
 
-        title = soup.select_one("a[data-text=album-name]").get_text()
+        title = soup.select_one("a[data-text=album-name]").get_text() + f" ({scrape_item.url.host})"
         link_next = URL(soup.select_one("a[id=list-most-recent-link]").get("href"))
 
         while True:
