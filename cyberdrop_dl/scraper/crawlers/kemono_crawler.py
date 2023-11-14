@@ -21,49 +21,11 @@ if TYPE_CHECKING:
 
 class KemonoCrawler(Crawler):
     def __init__(self, manager: Manager):
-        self.manager = manager
-        self.scraping_progress = manager.progress_manager.scraping_progress
-        self.client: ScraperClient = field(init=False)
-
-        self.complete = False
-
+        super().__init__(manager, "kemono", "Kemono")
         self.primary_base_domain = URL("https://kemono.su")
         self.api_url = URL("https://kemono.su/api/v1")
         self.services = ['patreon', 'fanbox', 'fantia', 'afdian', 'boosty', 'dlsite', 'gumroad', 'subscribestar']
-
-        self.scraped_items: list = []
-        self.scraper_queue: Queue = field(init=False)
-        self.download_queue: Queue = field(init=False)
-
         self.request_limiter = AsyncLimiter(10, 1)
-
-    async def startup(self) -> None:
-        """Starts the crawler"""
-        self.scraper_queue = await self.manager.queue_manager.get_scraper_queue("kemono")
-        self.download_queue = await self.manager.queue_manager.get_download_queue("kemono")
-
-        self.client = self.manager.client_manager.scraper_session
-
-    async def finish_task(self) -> None:
-        self.scraper_queue.task_done()
-        if self.scraper_queue.empty():
-            self.complete = True
-
-    async def run_loop(self) -> None:
-        """Runs the crawler loop"""
-        while True:
-            item: ScrapeItem = await self.scraper_queue.get()
-            await log(f"Scrape Starting: {item.url}")
-            if item.url in self.scraped_items:
-                await self.finish_task()
-                continue
-
-            self.complete = False
-            self.scraped_items.append(item.url)
-            await self.fetch(item)
-
-            await log(f"Scrape Finished: {item.url}")
-            await self.finish_task()
 
     """~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"""
 
@@ -152,21 +114,6 @@ class KemonoCrawler(Crawler):
         """Handles a direct link"""
         filename, ext = await get_filename_and_ext(scrape_item.url.query["f"])
         await self.handle_file(scrape_item.url, scrape_item, filename, ext)
-
-    async def handle_file(self, url: URL, scrape_item: ScrapeItem, filename: str, ext: str) -> None:
-        """Finishes handling the file and hands it off to the download_queue"""
-        check_complete = await self.manager.db_manager.history_table.check_complete("kemono", url)
-        if check_complete:
-            await log(f"Skipping {url} as it has already been downloaded")
-            await self.manager.progress_manager.download_progress.add_previously_completed()
-            return
-
-        download_folder = await get_download_path(self.manager, scrape_item, "Kemono")
-        media_item = MediaItem(url, scrape_item.url, download_folder, filename, ext, filename)
-        if scrape_item.possible_datetime:
-            media_item.datetime = scrape_item.possible_datetime
-
-        await self.download_queue.put(media_item)
 
     """~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"""
 
