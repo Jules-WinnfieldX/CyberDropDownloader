@@ -14,5 +14,7 @@ class SupportedDomains:
                                                   "jpeg.pet", "redgifs", "kemono.party")
     supported_forums: ClassVar[Tuple[str, ...]] = ("nudostar.com", "simpcity.su", "forums.socialmediagirls.com",
                                                    "xbunker.nu")
+    supported_forums_map = {"nudostar.com": "nudostar", "simpcity.su": "simpcity",
+                            "forums.socialmediagirls.com": "socialmediagirls", "xbunker.nu": "xbunker"}
 
     sites: List[str]
