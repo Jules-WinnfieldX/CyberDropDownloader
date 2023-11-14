@@ -23,7 +23,7 @@ class ScrapeMapper:
                         "cyberfile": self.cyberfile, "e-hentai": self.ehentai, "erome": self.erome,
                         "fapello": self.fapello, "gofile": self.gofile, "imgbox": self.imgbox,
                         "imgur": self.imgur, "kemono": self.kemono, "pimpandhost": self.pimpandhost,
-                        "pixeldrain": self.pixeldrain, "saint": self.saint}
+                        "pixeldrain": self.pixeldrain, "postimg": self.postimg, "saint": self.saint}
         self.existing_crawlers = {}
         self.manager = manager
 
@@ -93,6 +93,11 @@ class ScrapeMapper:
         """Creates a PixelDrain Crawler instance"""
         from cyberdrop_dl.scraper.crawlers.pixeldrain_crawler import PixelDrainCrawler
         self.existing_crawlers['pixeldrain'] = PixelDrainCrawler(self.manager)
+
+    async def postimg(self) -> None:
+        """Creates a PostImg Crawler instance"""
+        from cyberdrop_dl.scraper.crawlers.postimg_crawler import PostImgCrawler
+        self.existing_crawlers['postimg'] = PostImgCrawler(self.manager)
 
     async def saint(self) -> None:
         """Creates a Saint Crawler instance"""
