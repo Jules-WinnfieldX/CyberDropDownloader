@@ -133,6 +133,7 @@ class CyberfileCrawler(Crawler):
 
     @error_handling_wrapper
     async def handle_content_id(self, scrape_item: ScrapeItem, contentId: int) -> None:
+        """Scrapes a file using the content id"""
         data = {"u": contentId}
         async with self.request_limiter:
             ajax_dict = await self.client.post_data(self.domain, self.api_details, data=data)
@@ -158,5 +159,6 @@ class CyberfileCrawler(Crawler):
     """~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"""
 
     async def parse_datetime(self, date: str) -> int:
+        """Parses a datetime string into a unix timestamp"""
         date = datetime.datetime.strptime(date, "%d/%m/%Y %H:%M:%S")
         return calendar.timegm(date.timetuple())

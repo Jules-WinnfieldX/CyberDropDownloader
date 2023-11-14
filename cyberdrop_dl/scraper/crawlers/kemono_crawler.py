@@ -2,20 +2,16 @@ from __future__ import annotations
 
 import calendar
 import datetime
-from dataclasses import field
 from typing import TYPE_CHECKING, Tuple, Dict
 
 from aiolimiter import AsyncLimiter
 from yarl import URL
 
 from cyberdrop_dl.scraper.crawler import Crawler
-from cyberdrop_dl.utils.dataclasses.url_objects import MediaItem, ScrapeItem
-from cyberdrop_dl.utils.utilities import get_filename_and_ext, error_handling_wrapper, log, get_download_path
+from cyberdrop_dl.utils.dataclasses.url_objects import ScrapeItem
+from cyberdrop_dl.utils.utilities import get_filename_and_ext, error_handling_wrapper
 
 if TYPE_CHECKING:
-    from asyncio import Queue
-
-    from cyberdrop_dl.clients.scraper_client import ScraperClient
     from cyberdrop_dl.managers.manager import Manager
 
 
@@ -69,7 +65,7 @@ class KemonoCrawler(Crawler):
     async def discord(self, scrape_item: ScrapeItem) -> None:
         """Scrapes a profile"""
         offset = 0
-        channel = await self.get_discord_channel(scrape_item)
+        channel = scrape_item.url.raw_fragment
         api_call = self.api_url / "discord/channel" / channel
         while True:
             async with self.request_limiter:
@@ -118,27 +114,26 @@ class KemonoCrawler(Crawler):
     """~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"""
 
     async def parse_datetime(self, date: str) -> int:
-        """Parses a datetime string"""
+        """Parses a datetime string into a unix timestamp"""
         date = datetime.datetime.strptime(date, "%Y-%m-%d %H:%M:%S")
         return calendar.timegm(date.timetuple())
 
     async def get_service_and_user(self, scrape_item: ScrapeItem) -> Tuple[str, str]:
+        """Gets the service and user from a scrape item"""
         user = scrape_item.url.parts[3]
         service = scrape_item.url.parts[1]
         return service, user
 
     async def get_service_user_and_post(self, scrape_item: ScrapeItem) -> Tuple[str, str, str]:
+        """Gets the service, user and post id from a scrape item"""
         user = scrape_item.url.parts[3]
         service = scrape_item.url.parts[1]
         post = scrape_item.url.parts[5]
         return service, user, post
 
-    async def get_discord_channel(self, scrape_item: ScrapeItem) -> str:
-        channel = scrape_item.url.raw_fragment
-        return channel
-
     async def create_new_scrape_item(self, link: URL, old_scrape_item: ScrapeItem, user: str, title: str, post_id: str,
                                      date: str) -> None:
+        """Creates a new scrape item with the same parent as the old scrape item"""
         post_title = None
         if self.manager.config_manager.settings_data['Download_Options']['separate_posts']:
             post_title = f"{date} - {title}"

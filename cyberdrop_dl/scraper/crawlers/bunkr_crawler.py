@@ -94,6 +94,7 @@ class BunkrCrawler(Crawler):
     """~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"""
 
     async def get_stream_link(self, url: URL) -> URL:
+        """Gets the stream link for a given url"""
         cdn_possibilities = r"^(?:(?:(?:media-files|cdn|c|pizza|cdn-burger)[0-9]{0,2})|(?:(?:big-taco-|cdn-pizza|cdn-meatballs)[0-9]{0,2}(?:redir)?))\.bunkr?\.[a-z]{2,3}$"
 
         if not re.match(cdn_possibilities, url.host):
@@ -113,5 +114,6 @@ class BunkrCrawler(Crawler):
         return url
 
     async def parse_datetime(self, date: str) -> int:
+        """Parses a datetime string into a unix timestamp"""
         date = datetime.datetime.strptime(date, "%H:%M:%S %d/%m/%Y")
         return calendar.timegm(date.timetuple())

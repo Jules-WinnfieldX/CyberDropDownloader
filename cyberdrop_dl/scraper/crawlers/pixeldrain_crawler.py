@@ -64,9 +64,11 @@ class PixelDrainCrawler(Crawler):
     """~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"""
 
     async def parse_datetime(self, date: str) -> int:
+        """Parses a datetime string into a unix timestamp"""
         date = datetime.datetime.strptime(date, "%Y-%m-%d %H:%M:%S")
         return calendar.timegm(date.timetuple())
 
     async def create_download_link(self, file_id: str) -> URL:
+        """Creates a download link for a file"""
         link = (self.api_address / "file" / file_id).with_query('download')
         return link

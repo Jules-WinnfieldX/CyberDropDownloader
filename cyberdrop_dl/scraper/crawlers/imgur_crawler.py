@@ -65,6 +65,7 @@ class ImgurCrawler(Crawler):
 
     @error_handling_wrapper
     async def image(self, scrape_item: ScrapeItem) -> None:
+        """Scrapes an image"""
         if self.imgur_client_id == "":
             await log("To scrape imgur content, you need to provide a client id")
             raise Exception("No Imgur Client ID provided")
@@ -92,6 +93,7 @@ class ImgurCrawler(Crawler):
     """~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"""
 
     async def check_imgur_credits(self) -> None:
+        """Checks the remaining credits"""
         credits_obj = await self.client.get_json(self.domain, self.imgur_api / "credits", headers_inc=self.headers)
         self.imgur_client_remaining = credits_obj["data"]["ClientRemaining"]
         if self.imgur_client_remaining < 100:

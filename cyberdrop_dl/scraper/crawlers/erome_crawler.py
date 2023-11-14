@@ -63,7 +63,6 @@ class EromeCrawler(Crawler):
             title = scrape_item.url.name
         await scrape_item.add_to_parent_title(title)
 
-        # Images
         images = soup.select('img[class="img-front lasyload"]')
         vidoes = soup.select('div[class=media-group] div[class=video-lg] video source')
 

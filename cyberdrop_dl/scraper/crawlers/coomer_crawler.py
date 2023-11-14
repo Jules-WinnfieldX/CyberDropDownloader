@@ -69,6 +69,7 @@ class CoomerCrawler(Crawler):
 
     @error_handling_wrapper
     async def handle_post_content(self, post: Dict, scrape_item: ScrapeItem, user: str) -> None:
+        """Handles the content of a post"""
         if "#ad" in post['content'] and self.manager.config_manager.settings_data['Ignore_Options']['ignore_coomer_ads']:
             return
 
@@ -101,11 +102,13 @@ class CoomerCrawler(Crawler):
         return calendar.timegm(date.timetuple())
 
     async def get_service_and_user(self, scrape_item: ScrapeItem) -> Tuple[str, str]:
+        """Gets the service and user from a scrape item"""
         user = scrape_item.url.parts[3]
         service = scrape_item.url.parts[1]
         return service, user
 
     async def get_service_user_and_post(self, scrape_item: ScrapeItem) -> Tuple[str, str, str]:
+        """Gets the service, user and post id from a scrape item"""
         user = scrape_item.url.parts[3]
         service = scrape_item.url.parts[1]
         post = scrape_item.url.parts[5]
@@ -113,6 +116,7 @@ class CoomerCrawler(Crawler):
 
     async def create_new_scrape_item(self, link: URL, old_scrape_item: ScrapeItem, user: str, title: str, post_id: str,
                                      date: str) -> None:
+        """Creates a new scrape item with the same parent as the old scrape item"""
         post_title = None
         if self.manager.config_manager.settings_data['Download_Options']['separate_posts']:
             post_title = f"{date} - {title}"
