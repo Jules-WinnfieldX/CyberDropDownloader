@@ -79,7 +79,7 @@ class PimpAndHostCrawler:
         async with self.request_limiter:
             soup = await self.client.get_BS4("pimpandhost", scrape_item.url)
 
-        title = soup.select_one("span[class=author-header__album-name]").get_text()
+        title = soup.select_one("span[class=author-header__album-name]").get_text() + f" ({scrape_item.url.host}"
         date = soup.select_one("span[class=date-time]").get("title")
         date = await self.parse_datetime(date)
 
