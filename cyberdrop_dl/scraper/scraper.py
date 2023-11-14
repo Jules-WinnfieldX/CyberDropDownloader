@@ -24,7 +24,7 @@ class ScrapeMapper:
                         "fapello": self.fapello, "gofile": self.gofile, "imgbox": self.imgbox,
                         "imgur": self.imgur, "kemono": self.kemono, "pimpandhost": self.pimpandhost,
                         "pixeldrain": self.pixeldrain, "postimg": self.postimg, "reddit": self.reddit,
-                        "saint": self.saint}
+                        "redgifs": self.redgifs, "saint": self.saint}
         self.existing_crawlers = {}
         self.manager = manager
 
@@ -104,6 +104,11 @@ class ScrapeMapper:
         """Creates a Reddit Crawler instance"""
         from cyberdrop_dl.scraper.crawlers.reddit_crawler import RedditCrawler
         self.existing_crawlers['reddit'] = RedditCrawler(self.manager)
+
+    async def redgifs(self) -> None:
+        """Creates a RedGifs Crawler instance"""
+        from cyberdrop_dl.scraper.crawlers.redgifs_crawler import RedGifsCrawler
+        self.existing_crawlers['redgifs'] = RedGifsCrawler(self.manager)
 
     async def saint(self) -> None:
         """Creates a Saint Crawler instance"""
