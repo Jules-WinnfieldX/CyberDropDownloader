@@ -18,7 +18,7 @@ if TYPE_CHECKING:
 
 class ImgKiwiCrawler(Crawler):
     def __init__(self, manager: Manager):
-        super().__init__(manager, "imgkiwi", "ImgKiwi")
+        super().__init__(manager, "img.kiwi", "ImgKiwi")
         self.request_limiter = AsyncLimiter(10, 1)
 
     """~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"""
@@ -27,7 +27,7 @@ class ImgKiwiCrawler(Crawler):
         """Determines where to send the scrape item based on the url"""
         task_id = await self.scraping_progress.add_task(scrape_item.url)
 
-        if self.check_direct_link(scrape_item.url):
+        if await self.check_direct_link(scrape_item.url):
             await self.handle_direct_link(scrape_item)
         elif "album" in scrape_item.url.parts:
             await self.album(scrape_item)
@@ -71,7 +71,8 @@ class ImgKiwiCrawler(Crawler):
         async with self.request_limiter:
             soup = await self.client.get_BS4(self.domain, scrape_item.url)
 
-        link = URL(soup.select_one("div[id=image-viewer-container] img").get('src'))
+        link = soup.select_one("div[id=image-viewer-container] img").get('src')
+        link = URL(link.replace(".md.", ".").replace(".th.", "."))
         date = soup.select_one("p[class*=description-meta] span").get("title")
         date = await self.parse_datetime(date)
         scrape_item.possible_datetime = date
