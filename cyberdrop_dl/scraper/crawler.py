@@ -82,3 +82,9 @@ class Crawler(ABC):
             media_item.datetime = scrape_item.possible_datetime
 
         await self.download_queue.put(media_item)
+
+    """~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"""
+
+    async def handle_external_links(self, scrape_item: ScrapeItem) -> None:
+        """Maps external links to the scraper class"""
+        await self.manager.queue_manager.url_objects_to_map.put(scrape_item)
