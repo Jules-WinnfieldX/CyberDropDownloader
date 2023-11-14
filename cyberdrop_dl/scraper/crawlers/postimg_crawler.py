@@ -69,9 +69,3 @@ class PostImgCrawler(Crawler):
         link = URL(soup.select_one("a[id=download]").get('href').replace("?dl=1", ""))
         filename, ext = await get_filename_and_ext(link.name)
         await self.handle_file(link, scrape_item, filename, ext)
-
-    """~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"""
-
-    async def parse_datetime(self, date: str) -> int:
-        date = datetime.datetime.strptime(date, "%Y-%m-%d %H:%M:%S")
-        return calendar.timegm(date.timetuple())
