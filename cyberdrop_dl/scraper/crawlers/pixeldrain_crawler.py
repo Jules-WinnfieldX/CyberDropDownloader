@@ -5,7 +5,6 @@ import datetime
 from typing import TYPE_CHECKING
 
 from aiolimiter import AsyncLimiter
-from bs4 import BeautifulSoup
 from yarl import URL
 
 from cyberdrop_dl.scraper.crawler import Crawler
