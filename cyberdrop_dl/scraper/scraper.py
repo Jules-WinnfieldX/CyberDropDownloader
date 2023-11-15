@@ -19,7 +19,9 @@ if TYPE_CHECKING:
 class ScrapeMapper:
     """This class maps links to their respective handlers, or JDownloader if they are unsupported"""
     def __init__(self, manager: Manager):
-        self.mapping = {"bunkr": self.bunkr, "coomer": self.coomer, "cyberdrop": self.cyberdrop,
+        # "cyberdrop": self.cyberdrop
+
+        self.mapping = {"bunkr": self.bunkr, "coomer": self.coomer,
                         "cyberfile": self.cyberfile, "e-hentai": self.ehentai, "erome": self.erome,
                         "fapello": self.fapello, "gofile": self.gofile, "imgbox": self.imgbox,
                         "imgur": self.imgur, "img.kiwi": self.imgwiki, "jpg.church": self.jpgchurch,
@@ -27,7 +29,7 @@ class ScrapeMapper:
                         "jpg.pet": self.jpgchurch, "jpeg.pet": self.jpgchurch, "jpg1.su": self.jpgchurch,
                         "jpg2.su": self.jpgchurch, "jpg3.su": self.jpgchurch, "kemono": self.kemono,
                         "pimpandhost": self.pimpandhost, "pixeldrain": self.pixeldrain, "postimg": self.postimg,
-                        "reddit": self.reddit, "redgifs": self.redgifs, "saint": self.saint}
+                        "reddit": self.reddit, "redgifs": self.redgifs, "saint": self.saint, "simpcity": self.simpcity}
         self.sharex_domains = ["img.kiwi", "jpg.church", "jpg.homes", "jpg.fish", "jpg.fishing", "jpg.pet",
                                "jpeg.pet", "jpg1.su", "jpg2.su", "jpg3.su"]
         self.existing_crawlers = {}
@@ -137,6 +139,11 @@ class ScrapeMapper:
         """Creates a Saint Crawler instance"""
         from cyberdrop_dl.scraper.crawlers.saint_crawler import SaintCrawler
         self.existing_crawlers['saint'] = SaintCrawler(self.manager)
+
+    async def simpcity(self) -> None:
+        """Creates a SimpCity Crawler instance"""
+        from cyberdrop_dl.scraper.crawlers.simpcity_crawler import SimpCityCrawler
+        self.existing_crawlers['simpcity'] = SimpCityCrawler(self.manager)
 
     """~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"""
 
