@@ -18,6 +18,7 @@ if TYPE_CHECKING:
 class SimpCityCrawler(Crawler):
     def __init__(self, manager: Manager):
         super().__init__(manager, "simpcity", "SimpCity")
+        self.primary_base_domain = URL("https://simpcity.su")
         self.logged_in = False
         self.request_limiter = AsyncLimiter(10, 1)
 
@@ -28,7 +29,7 @@ class SimpCityCrawler(Crawler):
         task_id = await self.scraping_progress.add_task(scrape_item.url)
 
         if not self.logged_in:
-            login_url = URL("https://simpcity.su/login")
+            login_url = self.primary_base_domain / "login"
             session_cookie = self.manager.config_manager.authentication_data['Forums']['simpcity_xf_user_cookie']
             username = self.manager.config_manager.authentication_data['Forums']['simpcity_username']
             password = self.manager.config_manager.authentication_data['Forums']['simpcity_password']
@@ -85,7 +86,7 @@ class SimpCityCrawler(Crawler):
                 thread_url = next_page.get("href")
                 if thread_url:
                     if thread_url.startswith("/"):
-                        thread_url = "https://simpcity.su" + thread_url
+                        thread_url = self.primary_base_domain / thread_url[1:]
                     thread_url = URL(thread_url)
                     continue
             else:
@@ -131,10 +132,10 @@ class SimpCityCrawler(Crawler):
             if link.startswith("//"):
                 link = "https:" + link
             elif link.startswith("/"):
-                link = "https://simpcity.su" + link
+                link = self.primary_base_domain / link[1:]
             link = URL(link)
 
-            if "simpcity" not in link.host:
+            if self.domain not in link.host:
                 new_scrape_item = ScrapeItem(link, scrape_item.parent_title)
                 await self.handle_external_links(new_scrape_item)
             elif "attachments" in link.parts:
@@ -159,10 +160,10 @@ class SimpCityCrawler(Crawler):
             if link.startswith("//"):
                 link = "https:" + link
             elif link.startswith("/"):
-                link = "https://simpcity.su" + link
+                link = self.primary_base_domain / link[1:]
             link = URL(link)
 
-            if "simpcity" not in link.host:
+            if self.domain not in link.host:
                 new_scrape_item = ScrapeItem(link, scrape_item.parent_title)
                 await self.handle_external_links(new_scrape_item)
             elif "attachments" in link.parts:
@@ -235,10 +236,10 @@ class SimpCityCrawler(Crawler):
             if link.startswith("//"):
                 link = "https:" + link
             elif link.startswith("/"):
-                link = "https://simpcity.su" + link
+                link = self.primary_base_domain / link[1:]
             link = URL(link)
 
-            if "simpcity" not in link.host:
+            if self.domain not in link.host:
                 new_scrape_item = ScrapeItem(link, scrape_item.parent_title)
                 await self.handle_external_links(new_scrape_item)
             elif "attachments" in link.parts:
