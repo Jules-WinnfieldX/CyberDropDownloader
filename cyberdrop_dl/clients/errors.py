@@ -1,4 +1,3 @@
-
 class InvalidContentTypeFailure(Exception):
     """This error will be thrown when the content type isn't as expected"""
     def __init__(self, *, message: str = "Invalid content type"):
