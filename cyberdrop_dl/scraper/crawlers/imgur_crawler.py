@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING
 from aiolimiter import AsyncLimiter
 from yarl import URL
 
+from cyberdrop_dl.clients.errors import ScrapeFailure
 from cyberdrop_dl.scraper.crawler import Crawler
 from cyberdrop_dl.utils.dataclasses.url_objects import ScrapeItem
 from cyberdrop_dl.utils.utilities import error_handling_wrapper, log, get_filename_and_ext
@@ -42,7 +43,7 @@ class ImgurCrawler(Crawler):
         """Scrapes an album"""
         if self.imgur_client_id == "":
             await log("To scrape imgur content, you need to provide a client id")
-            raise Exception("No Imgur Client ID provided")
+            raise ScrapeFailure(401, "No Imgur Client ID provided")
         await self.check_imgur_credits()
 
         album_id = scrape_item.url.parts[-1]
@@ -68,7 +69,7 @@ class ImgurCrawler(Crawler):
         """Scrapes an image"""
         if self.imgur_client_id == "":
             await log("To scrape imgur content, you need to provide a client id")
-            raise Exception("No Imgur Client ID provided")
+            raise ScrapeFailure(401, "No Imgur Client ID provided")
         await self.check_imgur_credits()
 
         image_id = scrape_item.url.parts[-1]
@@ -97,4 +98,4 @@ class ImgurCrawler(Crawler):
         credits_obj = await self.client.get_json(self.domain, self.imgur_api / "credits", headers_inc=self.headers)
         self.imgur_client_remaining = credits_obj["data"]["ClientRemaining"]
         if self.imgur_client_remaining < 100:
-            raise Exception("Imgur API rate limit reached")
+            raise ScrapeFailure(429, "Imgur API rate limit reached")

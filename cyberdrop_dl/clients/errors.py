@@ -21,8 +21,19 @@ class DownloadFailure(Exception):
         super().__init__(self.status)
 
 
-class FailedLoginFailure(Exception):
-    """This error will be thrown when the login fails for a site"""
-    def __init__(self, *, message: str = "Failed login."):
+class ScrapeFailure(Exception):
+    """This error will be thrown when a request fails"""
+    def __init__(self, status: int, message: str = "Something went wrong"):
+        self.status = status
         self.message = message
         super().__init__(self.message)
+        super().__init__(self.status)
+
+
+class FailedLoginFailure(Exception):
+    """This error will be thrown when the login fails for a site"""
+    def __init__(self, *, status: int, message: str = "Failed login."):
+        self.status = status
+        self.message = message
+        super().__init__(self.message)
+        super().__init__(self.status)

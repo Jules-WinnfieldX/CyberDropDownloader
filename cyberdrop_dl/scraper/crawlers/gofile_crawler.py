@@ -9,6 +9,7 @@ import aiohttp.client_exceptions
 from aiolimiter import AsyncLimiter
 from yarl import URL
 
+from cyberdrop_dl.clients.errors import ScrapeFailure
 from cyberdrop_dl.scraper.crawler import Crawler
 from cyberdrop_dl.utils.dataclasses.url_objects import ScrapeItem
 from cyberdrop_dl.utils.utilities import get_filename_and_ext, error_handling_wrapper
@@ -62,7 +63,7 @@ class GoFileCrawler(Crawler):
                     JSON_Resp = await self.client.get_json(self.domain, self.api_address / "getContent", params)
 
         if JSON_Resp["status"] != "ok":
-            raise Exception("Does Not Exist")
+            raise ScrapeFailure(404, "Does Not Exist")
 
         JSON_Resp = JSON_Resp['data']
         title = JSON_Resp["name"] + f" ({scrape_item.url.host})"
@@ -107,7 +108,7 @@ class GoFileCrawler(Crawler):
                 self.token = JSON_Resp["data"]["token"]
                 await self.set_cookie(session)
             else:
-                raise Exception("Couldn't generate GoFile token")
+                raise ScrapeFailure(403, "Couldn't generate GoFile token")
 
     @error_handling_wrapper
     async def get_website_token(self, session: ScraperClient) -> None:
@@ -125,7 +126,7 @@ class GoFileCrawler(Crawler):
         text = str(text)
         self.websiteToken = re.search(r'fetchData\.websiteToken\s*=\s*"(.*?)"', text).group(1)
         if not self.websiteToken:
-            raise Exception("Couldn't generate GoFile websiteToken")
+            raise ScrapeFailure(403, "Couldn't generate GoFile websiteToken")
         self.manager.cache_manager.save("gofile_website_token", self.websiteToken)
 
     async def set_cookie(self, session: ScraperClient) -> None:

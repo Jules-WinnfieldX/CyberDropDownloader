@@ -100,14 +100,14 @@ class Crawler(ABC):
                                                               response_url=URL("https://" + login_url.host))
         if (not username or not password) and not session_cookie:
             await log(f"Login wasn't provided for {login_url.host}")
-            raise FailedLoginFailure(message="Login wasn't provided")
+            raise FailedLoginFailure(status=401, message="Login wasn't provided")
         attempt = 0
 
         while True:
             while True:
                 try:
                     if attempt == 5:
-                        raise FailedLoginFailure(message="Failed to login after 5 attempts")
+                        raise FailedLoginFailure(status=403, message="Failed to login after 5 attempts")
 
                     assert login_url.host is not None
 
