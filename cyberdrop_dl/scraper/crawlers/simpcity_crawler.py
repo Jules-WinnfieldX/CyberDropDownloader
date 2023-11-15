@@ -22,6 +22,29 @@ class SimpCityCrawler(Crawler):
         self.logged_in = False
         self.request_limiter = AsyncLimiter(10, 1)
 
+        self.title_selector = "h1[class=p-title-value]"
+        self.title_trash_selector = "a"
+        self.posts_selector = "div[class*=message-main]"
+        self.posts_number_selector = "li[class=u-concealed] a"
+        self.posts_number_attribute = "href"
+        self.quotes_selector = "blockquote"
+        self.posts_content_selector = "div[class=bbWrapper]"
+        self.next_page_selector = "a[class=pageNav-jump--next]"
+        self.next_page_attribute = "href"
+        self.links_selector = "a"
+        self.links_attribute = "href"
+        self.attachment_url_part = "attachments"
+        self.images_selector = "img[class*=bbImage]"
+        self.images_attribute = "src"
+        self.videos_selector = "video source"
+        self.iframe_selector = "iframe[class=saint-iframe]"
+        self.videos_attribute = "src"
+        self.embeds_selector = "span[data-s9e-mediaembed-iframe]"
+        self.embeds_attribute = "data-s9e-mediaembed-iframe"
+        self.attachments_block_selector = "section[class=message-attachments]"
+        self.attachments_selector = "a"
+        self.attachments_attribute = "href"
+
     """~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"""
 
     async def fetch(self, scrape_item: ScrapeItem) -> None:
@@ -58,32 +81,32 @@ class SimpCityCrawler(Crawler):
             async with self.request_limiter:
                 soup = await self.client.get_BS4(self.domain, thread_url)
 
-            title_block = soup.select_one("h1[class=p-title-value]")
-            for elem in title_block.find_all("a"):
+            title_block = soup.select_one(self.title_selector)
+            for elem in title_block.find_all(self.title_trash_selector):
                 elem.decompose()
             title = title_block.text.replace("\n", "").strip() + f" ({thread_url.host})"
 
             new_scrape_item = ScrapeItem(thread_url, scrape_item.parent_title)
             await new_scrape_item.add_to_parent_title(title)
 
-            posts = soup.select("div[class*=message-main]")
+            posts = soup.select(self.posts_selector)
             for post in posts:
-                current_post_number = int(post.select_one("li[class=u-concealed] a").get("href").split('/')[-1].split('post-')[-1])
+                current_post_number = int(post.select_one(self.posts_number_selector).get(self.posts_number_attribute).split('/')[-1].split('post-')[-1])
                 if post_number > current_post_number:
                     continue
 
-                for elem in post.find_all("blockquote"):
+                for elem in post.find_all(self.posts_selector):
                     elem.decompose()
-                post_content = post.select_one("div[class=bbWrapper]")
+                post_content = post.select_one(self.posts_content_selector)
                 await self.post(new_scrape_item, post_content, current_post_number)
 
                 if self.manager.config_manager.settings_data['Download_Options']['scrape_single_forum_post']:
                     continue_scraping = False
                     break
 
-            next_page = soup.select_one("a[class=pageNav-jump--next]")
+            next_page = soup.select_one(self.next_page_selector)
             if next_page and continue_scraping:
-                thread_url = next_page.get("href")
+                thread_url = next_page.get(self.next_page_attribute)
                 if thread_url:
                     if thread_url.startswith("/"):
                         thread_url = self.primary_base_domain / thread_url[1:]
@@ -114,13 +137,13 @@ class SimpCityCrawler(Crawler):
     @error_handling_wrapper
     async def links(self, scrape_item: ScrapeItem, post_content: Tag) -> None:
         """Scrapes links from a post"""
-        links = post_content.select("a")
+        links = post_content.select(self.links_selector)
         for link_obj in links:
             test_for_img = link_obj.select_one("img")
             if test_for_img is not None:
                 continue
 
-            link = link_obj.get("href")
+            link = link_obj.get(self.links_attribute)
             if not link:
                 continue
 
@@ -138,7 +161,7 @@ class SimpCityCrawler(Crawler):
             if self.domain not in link.host:
                 new_scrape_item = ScrapeItem(link, scrape_item.parent_title)
                 await self.handle_external_links(new_scrape_item)
-            elif "attachments" in link.parts:
+            elif self.attachment_url_part in link.parts:
                 await self.handle_internal_links(link, scrape_item)
             else:
                 await log(f"Unknown link type: {link}")
@@ -147,11 +170,16 @@ class SimpCityCrawler(Crawler):
     @error_handling_wrapper
     async def images(self, scrape_item: ScrapeItem, post_content: Tag) -> None:
         """Scrapes images from a post"""
-        images = post_content.select("img[class*=bbImage]")
+        images = post_content.select(self.images_selector)
         for image in images:
-            link = image.get("src")
+            link = image.get(self.images_attribute)
             if not link:
                 continue
+
+            parent_simp_check = image.parent.get("data-simp")
+            if parent_simp_check:
+                if "init" in parent_simp_check:
+                    continue
 
             link = link.replace(".th.", ".").replace(".md.", ".")
             if link.endswith("/"):
@@ -166,7 +194,7 @@ class SimpCityCrawler(Crawler):
             if self.domain not in link.host:
                 new_scrape_item = ScrapeItem(link, scrape_item.parent_title)
                 await self.handle_external_links(new_scrape_item)
-            elif "attachments" in link.parts:
+            elif self.attachment_url_part in link.parts:
                 await self.handle_internal_links(link, scrape_item)
             else:
                 await log(f"Unknown image type: {link}")
@@ -175,11 +203,11 @@ class SimpCityCrawler(Crawler):
     @error_handling_wrapper
     async def videos(self, scrape_item: ScrapeItem, post_content: Tag) -> None:
         """Scrapes videos from a post"""
-        videos = post_content.select("video source")
-        videos.extend(post_content.select("iframe[class=saint-iframe]"))
+        videos = post_content.select(self.videos_selector)
+        videos.extend(post_content.select(self.iframe_selector))
 
         for video in videos:
-            link = video.get("src")
+            link = video.get(self.videos_attribute)
             if not link:
                 continue
 
@@ -196,9 +224,9 @@ class SimpCityCrawler(Crawler):
     @error_handling_wrapper
     async def embeds(self, scrape_item: ScrapeItem, post_content: Tag) -> None:
         """Scrapes embeds from a post"""
-        embeds = post_content.select("span[data-s9e-mediaembed-iframe]")
+        embeds = post_content.select(self.embeds_selector)
         for embed in embeds:
-            data = embed.get("data-s9e-mediaembed-iframe")
+            data = embed.get(self.embeds_attribute)
             if not data:
                 continue
 
@@ -220,13 +248,13 @@ class SimpCityCrawler(Crawler):
     @error_handling_wrapper
     async def attachments(self, scrape_item: ScrapeItem, post_content: Tag) -> None:
         """Scrapes attachments from a post"""
-        attachment_block = post_content.select_one("section[class=message-attachments]")
+        attachment_block = post_content.select_one(self.attachments_block_selector)
         if not attachment_block:
             return
 
-        attachments = attachment_block.select("a")
+        attachments = attachment_block.select(self.attachments_selector)
         for attachment in attachments:
-            link = attachment.get("href")
+            link = attachment.get(self.attachments_attribute)
             if not link:
                 continue
 
@@ -242,7 +270,7 @@ class SimpCityCrawler(Crawler):
             if self.domain not in link.host:
                 new_scrape_item = ScrapeItem(link, scrape_item.parent_title)
                 await self.handle_external_links(new_scrape_item)
-            elif "attachments" in link.parts:
+            elif self.attachment_url_part in link.parts:
                 await self.handle_internal_links(link, scrape_item)
             else:
                 await log(f"Unknown image type: {link}")
