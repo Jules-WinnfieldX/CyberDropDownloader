@@ -93,6 +93,7 @@ class JPGChurchCrawler(Crawler):
 
     async def handle_direct_link(self, scrape_item: ScrapeItem) -> None:
         """Handles a direct link"""
+        scrape_item.url = scrape_item.url.with_name(scrape_item.url.name.replace('.md.', '.').replace('.th.', '.'))
         pattern = r"simp([1-5])\.jpg\.fish/"
         scrape_item.url = URL(re.sub(pattern, r'simp\1.jpg.church/', str(scrape_item.url)))
         filename, ext = await get_filename_and_ext(scrape_item.url.name)
