@@ -20,3 +20,10 @@ class DownloadFailure(Exception):
         self.message = message
         super().__init__(self.message)
         super().__init__(self.status)
+
+
+class FailedLoginFailure(Exception):
+    """This error will be thrown when the login fails for a site"""
+    def __init__(self, *, message: str = "Failed login."):
+        self.message = message
+        super().__init__(self.message)
