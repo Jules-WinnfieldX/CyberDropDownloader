@@ -52,16 +52,21 @@ def error_handling_wrapper(func):
     @wraps(func)
     async def wrapper(self, *args, **kwargs):
         try:
-            await func(self, *args, **kwargs)
+            return await func(self, *args, **kwargs)
         except Exception as e:
+            if isinstance(args[0], URL):
+                link = args[0]
+            else:
+                link = args[0].url
+
             if hasattr(e, 'status'):
                 if hasattr(e, 'message'):
-                    await log(f"Scrape Error: {args[0].url} ({e.status} - {e.message})")
+                    await log(f"Scrape Error: {link} ({e.status} - {e.message})")
                 else:
-                    await log(f"Scrape Error: {args[0].url} ({e.status})")
+                    await log(f"Scrape Error: {link} ({e.status})")
                 await self.manager.progress_manager.scrape_stats_progress.add_failure(e.status)
             else:
-                await log(f"Scrape Error: {args[0].url} ({e})")
+                await log(f"Scrape Error: {link} ({e})")
                 await log(traceback.format_exc())
                 await self.manager.progress_manager.scrape_stats_progress.add_failure("Unknown")
     return wrapper
