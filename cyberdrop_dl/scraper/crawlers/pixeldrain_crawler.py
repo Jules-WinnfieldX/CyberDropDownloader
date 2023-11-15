@@ -56,9 +56,9 @@ class PixelDrainCrawler(Crawler):
             JSON_Resp = await self.client.get_json(self.domain, self.api_address / "file" / scrape_item.url.parts[-1] / "info")
 
         link = await self.create_download_link(JSON_Resp['id'])
-        date = await self.parse_datetime(JSON_Resp['date_uploaded'].replace("T", " ").split(".")[0])
+        date = await self.parse_datetime(JSON_Resp['date_upload'].replace("T", " ").split(".")[0])
         filename, ext = await get_filename_and_ext(JSON_Resp['name'])
-        new_scrape_item = ScrapeItem(link, scrape_item.parent_title, part_of_album=True, possible_datetime=date)
+        new_scrape_item = ScrapeItem(link, scrape_item.parent_title, part_of_album=scrape_item.part_of_album, possible_datetime=date)
         await self.handle_file(link, new_scrape_item, filename, ext)
 
     """~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"""
