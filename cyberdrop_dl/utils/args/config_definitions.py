@@ -48,6 +48,7 @@ settings: Dict = {
         "disable_file_timestamps": False,
         "include_album_id_in_folder_name": False,
         "remove_generated_id_from_filenames": False,
+        "scrape_single_forum_post": False,
         "separate_posts": False,
         "skip_download_mark_completed": False,
     },
