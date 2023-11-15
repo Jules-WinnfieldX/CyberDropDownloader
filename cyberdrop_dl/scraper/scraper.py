@@ -29,7 +29,8 @@ class ScrapeMapper:
                         "jpg.pet": self.jpgchurch, "jpeg.pet": self.jpgchurch, "jpg1.su": self.jpgchurch,
                         "jpg2.su": self.jpgchurch, "jpg3.su": self.jpgchurch, "kemono": self.kemono,
                         "pimpandhost": self.pimpandhost, "pixeldrain": self.pixeldrain, "postimg": self.postimg,
-                        "reddit": self.reddit, "redgifs": self.redgifs, "saint": self.saint, "simpcity": self.simpcity}
+                        "reddit": self.reddit, "redgifs": self.redgifs, "saint": self.saint,
+                        "socialmediagirls": self.socialmediagirls, "simpcity": self.simpcity}
         self.sharex_domains = ["img.kiwi", "jpg.church", "jpg.homes", "jpg.fish", "jpg.fishing", "jpg.pet",
                                "jpeg.pet", "jpg1.su", "jpg2.su", "jpg3.su"]
         self.existing_crawlers = {}
@@ -139,6 +140,11 @@ class ScrapeMapper:
         """Creates a Saint Crawler instance"""
         from cyberdrop_dl.scraper.crawlers.saint_crawler import SaintCrawler
         self.existing_crawlers['saint'] = SaintCrawler(self.manager)
+
+    async def socialmediagirls(self) -> None:
+        """Creates a SocialMediaGirls Crawler instance"""
+        from cyberdrop_dl.scraper.crawlers.socialmediagirls_crawler import SocialMediaGirlsCrawler
+        self.existing_crawlers['socialmediagirls'] = SocialMediaGirlsCrawler(self.manager)
 
     async def simpcity(self) -> None:
         """Creates a SimpCity Crawler instance"""
