@@ -29,7 +29,7 @@ class SocialMediaGirlsCrawler(Crawler):
         self.posts_number_attribute = "href"
         self.quotes_selector = "blockquote"
         self.posts_content_selector = "div[class=bbWrapper]"
-        self.next_page_selector = "a[class=pageNav-jump--next]"
+        self.next_page_selector = "a[class*=pageNav-jump--next]"
         self.next_page_attribute = "href"
         self.links_selector = "a"
         self.links_attribute = "href"
