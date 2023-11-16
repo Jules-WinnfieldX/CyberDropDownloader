@@ -23,7 +23,7 @@ class SocialMediaGirlsCrawler(Crawler):
         self.request_limiter = AsyncLimiter(10, 1)
 
         self.title_selector = "h1[class=p-title-value]"
-        self.title_trash_selector = "a"
+        self.title_trash_selector = "span"
         self.posts_selector = "div[class*=message-main]"
         self.posts_number_selector = "li[class=u-concealed] a"
         self.posts_number_attribute = "href"
@@ -161,15 +161,17 @@ class SocialMediaGirlsCrawler(Crawler):
                 link = await self.handle_link_confirmation(link)
             if link is None:
                 return
-
-            if self.domain not in link.host:
-                new_scrape_item = ScrapeItem(link, scrape_item.parent_title)
-                await self.handle_external_links(new_scrape_item)
-            elif self.attachment_url_part in link.parts or "smgmedia" in link.host:
-                await self.handle_internal_links(link, scrape_item)
-            else:
-                await log(f"Unknown link type: {link}")
-                continue
+            try:
+                if self.domain not in link.host:
+                    new_scrape_item = ScrapeItem(link, scrape_item.parent_title)
+                    await self.handle_external_links(new_scrape_item)
+                elif self.attachment_url_part in link.parts or "smgmedia" in link.host:
+                    await self.handle_internal_links(link, scrape_item)
+                else:
+                    await log(f"Unknown link type: {link}")
+                    continue
+            except Exception as e:
+                await log(f"Scrape Error: encountered while handling {link}")
 
     @error_handling_wrapper
     async def images(self, scrape_item: ScrapeItem, post_content: Tag) -> None:

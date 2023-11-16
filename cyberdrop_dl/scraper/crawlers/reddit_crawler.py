@@ -4,9 +4,11 @@ from typing import TYPE_CHECKING
 
 import aiohttp
 import asyncpraw
+import asyncprawcore
 from aiolimiter import AsyncLimiter
 from yarl import URL
 
+from cyberdrop_dl.clients.errors import ScrapeFailure
 from cyberdrop_dl.scraper.crawler import Crawler
 from cyberdrop_dl.utils.dataclasses.url_objects import ScrapeItem
 from cyberdrop_dl.utils.utilities import error_handling_wrapper, log, get_filename_and_ext
@@ -73,7 +75,10 @@ class RedditCrawler(Crawler):
 
     @error_handling_wrapper
     async def get_posts(self, scrape_item: ScrapeItem, submissions) -> None:
-        submissions = [submission async for submission in submissions]
+        try:
+            submissions = [submission async for submission in submissions]
+        except asyncprawcore.exceptions.Forbidden:
+            raise ScrapeFailure(403, "Forbidden")
 
         for submission in submissions:
             await self.post(scrape_item, submission)
