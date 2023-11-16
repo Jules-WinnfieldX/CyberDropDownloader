@@ -26,11 +26,10 @@ class PostImgCrawler(Crawler):
         """Determines where to send the scrape item based on the url"""
         task_id = await self.scraping_progress.add_task(scrape_item.url)
 
-        if scrape_item.url.host == "i.postimg.cc":
+        if "i.postimg.cc" in scrape_item.url.host:
             filename, ext = await get_filename_and_ext(scrape_item.url.name)
             await self.handle_file(scrape_item.url, scrape_item, filename, ext)
-
-        if "gallery" in scrape_item.url.parts:
+        elif "gallery" in scrape_item.url.parts:
             await self.album(scrape_item)
         else:
             await self.image(scrape_item)
