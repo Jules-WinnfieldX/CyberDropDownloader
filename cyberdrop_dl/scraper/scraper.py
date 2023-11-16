@@ -21,7 +21,7 @@ class ScrapeMapper:
     def __init__(self, manager: Manager):
         # "cyberdrop": self.cyberdrop
 
-        self.mapping = {"bunkr": self.bunkr, "coomer": self.coomer,
+        self.mapping = {"xbunkr": self.xbunkr, "bunkr": self.bunkr, "coomer": self.coomer,
                         "cyberfile": self.cyberfile, "e-hentai": self.ehentai, "erome": self.erome,
                         "fapello": self.fapello, "gofile": self.gofile, "imgbox": self.imgbox,
                         "imgur": self.imgur, "img.kiwi": self.imgwiki, "jpg.church": self.jpgchurch,
@@ -30,7 +30,8 @@ class ScrapeMapper:
                         "jpg2.su": self.jpgchurch, "jpg3.su": self.jpgchurch, "kemono": self.kemono,
                         "pimpandhost": self.pimpandhost, "pixeldrain": self.pixeldrain, "postimg": self.postimg,
                         "reddit": self.reddit, "redgifs": self.redgifs, "saint": self.saint,
-                        "socialmediagirls": self.socialmediagirls, "simpcity": self.simpcity}
+                        "socialmediagirls": self.socialmediagirls, "simpcity": self.simpcity,
+                        "xbunker": self.xbunker}
         self.sharex_domains = ["img.kiwi", "jpg.church", "jpg.homes", "jpg.fish", "jpg.fishing", "jpg.pet",
                                "jpeg.pet", "jpg1.su", "jpg2.su", "jpg3.su"]
         self.existing_crawlers = {}
@@ -150,6 +151,16 @@ class ScrapeMapper:
         """Creates a SimpCity Crawler instance"""
         from cyberdrop_dl.scraper.crawlers.simpcity_crawler import SimpCityCrawler
         self.existing_crawlers['simpcity'] = SimpCityCrawler(self.manager)
+
+    async def xbunker(self) -> None:
+        """Creates a XBunker Crawler instance"""
+        from cyberdrop_dl.scraper.crawlers.xbunker_crawler import XBunkerCrawler
+        self.existing_crawlers['xbunker'] = XBunkerCrawler(self.manager)
+
+    async def xbunkr(self) -> None:
+        """Creates a XBunkr Crawler instance"""
+        from cyberdrop_dl.scraper.crawlers.xbunkr_crawler import XBunkrCrawler
+        self.existing_crawlers['xbunkr'] = XBunkrCrawler(self.manager)
 
     """~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"""
 
