@@ -150,9 +150,6 @@ class NudoStarCrawler(Crawler):
 
             link = link.replace(".th.", ".").replace(".md.", ".")
 
-            if link.endswith("/"):
-                link = link[:-1]
-
             if link.startswith("//"):
                 link = "https:" + link
             elif link.startswith("/"):
@@ -185,8 +182,6 @@ class NudoStarCrawler(Crawler):
                 continue
 
             link = link.replace(".th.", ".").replace(".md.", ".")
-            if link.endswith("/"):
-                link = link[:-1]
 
             if link.startswith("//"):
                 link = "https:" + link
@@ -213,9 +208,6 @@ class NudoStarCrawler(Crawler):
             link = video.get(self.videos_attribute)
             if not link:
                 continue
-
-            if link.endswith("/"):
-                link = link[:-1]
 
             if link.startswith("//"):
                 link = "https:" + link
@@ -261,9 +253,6 @@ class NudoStarCrawler(Crawler):
             if not link:
                 continue
 
-            if link.endswith("/"):
-                link = link[:-1]
-
             if link.startswith("//"):
                 link = "https:" + link
             elif link.startswith("/"):
@@ -284,7 +273,8 @@ class NudoStarCrawler(Crawler):
     @error_handling_wrapper
     async def handle_internal_links(self, link: URL, scrape_item: ScrapeItem) -> None:
         """Handles internal links"""
-        filename, ext = await get_filename_and_ext(link.name, True)
+        temp_link = URL(str(link)[:-1]) if str(link).endswith("/") else link
+        filename, ext = await get_filename_and_ext(temp_link.name, True)
         new_scrape_item = ScrapeItem(link, scrape_item.parent_title, True)
         await new_scrape_item.add_to_parent_title("Attachments")
         await self.handle_file(link, new_scrape_item, filename, ext)
