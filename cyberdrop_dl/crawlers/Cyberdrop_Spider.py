@@ -9,9 +9,9 @@ from ..base_functions.base_functions import (
     create_media_item,
     log,
     logger,
-    make_title_safe,
+    make_title_safe, get_filename_and_ext,
 )
-from ..base_functions.data_classes import AlbumItem
+from ..base_functions.data_classes import AlbumItem, MediaItem
 from ..base_functions.error_classes import InvalidContentTypeFailure, NoExtensionFailure
 
 if TYPE_CHECKING:
@@ -33,51 +33,41 @@ class CyberdropCrawler:
         album_obj = AlbumItem("Loose Cyberdrop Files", [])
 
         log(f"Starting: {url}", quiet=self.quiet, style="green")
-        if await check_direct(url):
-            url = url.with_host("cyberdrop.me")
-            media = await create_media_item(url, url, self.SQL_Helper, "cyberdrop")
-            await album_obj.add_media(media)
-            await self.SQL_Helper.insert_album("cyberdrop", URL(""), album_obj)
-            log(f"Finished: {url}", quiet=self.quiet, style="green")
-            return album_obj
 
         try:
-            try:
-                soup = await session.get_BS4(url)
-            except InvalidContentTypeFailure:
-                url = url.with_host("cyberdrop.me")
-                media = await create_media_item(url, url, self.SQL_Helper, "cyberdrop")
-                await album_obj.add_media(media)
-                await self.SQL_Helper.insert_album("cyberdrop", URL(""), album_obj)
-                log(f"Finished: {url}", quiet=self.quiet, style="green")
-                return album_obj
-
-            title = soup.select_one("h1[id=title]").get_text()
-            title = await make_title_safe(title)
-            if title is None:
-                title = url.name
-            elif self.include_id:
-                titlep2 = url.name
-                title = title + " - " + titlep2
-            await album_obj.set_new_title(title)
-
-            links = soup.select('div[class="image-container column"] a')
-            for link in links:
-                link = URL(link.get('href'))
-                link = link.with_host("cyberdrop.me")
-                try:
-                    media = await create_media_item(link, url, self.SQL_Helper, "cyberdrop")
-                except NoExtensionFailure:
-                    logger.debug("Couldn't get extension for %s", link)
-                    continue
-
-                await album_obj.add_media(media)
-
+            if "a" in url.parts:
+                await self.get_album(session, url, album_obj)
+            else:
+                await self.get_file(session, url, album_obj)
         except Exception as e:
             logger.debug("Error encountered while handling %s", url, exc_info=True)
             await self.error_writer.write_errored_scrape(url, e, self.quiet)
-            return album_obj
 
         await self.SQL_Helper.insert_album("cyberdrop", url, album_obj)
         log(f"Finished: {url}", quiet=self.quiet, style="green")
         return album_obj
+
+    async def get_album(self, session: ScrapeSession, url: URL, album_obj: AlbumItem) -> None:
+        """Cyberdrop scraper"""
+        soup = await session.get_BS4(url)
+        title = await make_title_safe(soup.select_one("h1[id=title]").text)
+        title = title.strip()
+        await album_obj.set_new_title(title)
+
+        links = soup.select("div[class*=image-container] a[id=file]")
+        for link in links:
+            link = link.get('href')
+            if link.startswith("/"):
+                link = URL("https://" + url.host + link)
+            link = URL(link)
+            await self.get_file(session, link, album_obj)
+
+    async def get_file(self, session: ScrapeSession, url: URL, album_obj: AlbumItem) -> None:
+        """Cyberdrop scraper"""
+        url = URL("https://cyberdrop.me/api/") / url.path[1:]
+        soup = await session.get_json(url)
+        filename, ext = await get_filename_and_ext(soup["name"])
+        link = URL(soup['url'])
+        complete = await self.SQL_Helper.check_complete_singular("cyberdrop", link)
+        media_item = MediaItem(link, url, complete, filename, ext, soup["name"])
+        await album_obj.add_media(media_item)
