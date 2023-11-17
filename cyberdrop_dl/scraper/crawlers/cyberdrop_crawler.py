@@ -2,13 +2,11 @@ from __future__ import annotations
 
 import calendar
 import datetime
-import re
 from typing import TYPE_CHECKING
 
 from aiolimiter import AsyncLimiter
 from yarl import URL
 
-from cyberdrop_dl.clients.errors import InvalidContentTypeFailure
 from cyberdrop_dl.scraper.crawler import Crawler
 from cyberdrop_dl.utils.dataclasses.url_objects import ScrapeItem
 from cyberdrop_dl.utils.utilities import get_filename_and_ext, error_handling_wrapper
