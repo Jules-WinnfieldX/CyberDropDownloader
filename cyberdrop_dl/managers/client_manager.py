@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import asyncio
 import ssl
-from enum import IntEnum
 from http import HTTPStatus
 from typing import TYPE_CHECKING
 
@@ -15,15 +14,10 @@ from yarl import URL
 from cyberdrop_dl.clients.download_client import DownloadClient
 from cyberdrop_dl.clients.errors import DownloadFailure
 from cyberdrop_dl.clients.scraper_client import ScraperClient
+from cyberdrop_dl.utils.utilities import CustomHTTPStatus
 
 if TYPE_CHECKING:
     from cyberdrop_dl.managers.manager import Manager
-
-
-class CustomHTTPStatus(IntEnum):
-    WEB_SERVER_IS_DOWN = 521
-    IM_A_TEAPOT = 418
-    DDOS_GUARD = 429
 
 
 class ClientManager:

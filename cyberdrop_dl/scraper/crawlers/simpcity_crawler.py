@@ -60,7 +60,8 @@ class SimpCityCrawler(Crawler):
 
             await self.forum_login(login_url, session_cookie, username, password, wait_time)
 
-        await self.forum(scrape_item)
+        if self.logged_in:
+            await self.forum(scrape_item)
 
         await self.scraping_progress.remove_task(task_id)
 
@@ -95,7 +96,7 @@ class SimpCityCrawler(Crawler):
                 if post_number > current_post_number:
                     continue
 
-                for elem in post.find_all(self.posts_selector):
+                for elem in post.find_all(self.quotes_selector):
                     elem.decompose()
                 post_content = post.select_one(self.posts_content_selector)
                 await self.post(new_scrape_item, post_content, current_post_number)
@@ -158,14 +159,17 @@ class SimpCityCrawler(Crawler):
                 link = self.primary_base_domain / link[1:]
             link = URL(link)
 
-            if self.domain not in link.host:
-                new_scrape_item = ScrapeItem(link, scrape_item.parent_title)
-                await self.handle_external_links(new_scrape_item)
-            elif self.attachment_url_part in link.parts:
-                await self.handle_internal_links(link, scrape_item)
-            else:
-                await log(f"Unknown link type: {link}")
-                continue
+            try:
+                if self.domain not in link.host:
+                    new_scrape_item = ScrapeItem(link, scrape_item.parent_title)
+                    await self.handle_external_links(new_scrape_item)
+                elif self.attachment_url_part in link.parts:
+                    await self.handle_internal_links(link, scrape_item)
+                else:
+                    await log(f"Unknown link type: {link}")
+                    continue
+            except TypeError:
+                await log(f"Scrape Error: encountered while handling {link}")
 
     @error_handling_wrapper
     async def images(self, scrape_item: ScrapeItem, post_content: Tag) -> None:

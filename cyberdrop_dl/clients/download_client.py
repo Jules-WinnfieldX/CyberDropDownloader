@@ -13,12 +13,12 @@ from aiohttp import ClientSession
 from rich.progress import TaskID
 
 from cyberdrop_dl.clients.errors import DownloadFailure
-from cyberdrop_dl.utils.utilities import FILE_FORMATS
+from cyberdrop_dl.utils.utilities import CustomHTTPStatus, FILE_FORMATS
 
 if TYPE_CHECKING:
     from typing import Dict, Callable, Coroutine, Any
 
-    from cyberdrop_dl.managers.client_manager import ClientManager, CustomHTTPStatus
+    from cyberdrop_dl.managers.client_manager import ClientManager
     from cyberdrop_dl.managers.manager import Manager
     from cyberdrop_dl.utils.dataclasses.url_objects import MediaItem
 

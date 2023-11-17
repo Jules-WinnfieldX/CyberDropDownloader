@@ -4,6 +4,7 @@ import logging
 import os
 import re
 import traceback
+from enum import IntEnum
 from functools import wraps
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -81,6 +82,15 @@ async def log_with_color(message: str, style: str) -> None:
     """Simple logging function with color"""
     logger.debug(message)
     rich.print(f"[{style}]{message}[/{style}]")
+
+
+"""~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"""
+
+
+class CustomHTTPStatus(IntEnum):
+    WEB_SERVER_IS_DOWN = 521
+    IM_A_TEAPOT = 418
+    DDOS_GUARD = 429
 
 
 """~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"""

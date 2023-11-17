@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import re
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 from aiolimiter import AsyncLimiter
 from bs4 import Tag
@@ -15,27 +15,27 @@ if TYPE_CHECKING:
     from cyberdrop_dl.managers.manager import Manager
 
 
-class SocialMediaGirlsCrawler(Crawler):
+class NudoStarCrawler(Crawler):
     def __init__(self, manager: Manager):
-        super().__init__(manager, "socialmediagirls", "SocialMediaGirls")
-        self.primary_base_domain = URL("https://forums.socialmediagirls.com")
+        super().__init__(manager, "nudostar", "NudoStar")
+        self.primary_base_domain = URL("https://nudostar.com")
         self.logged_in = False
         self.request_limiter = AsyncLimiter(10, 1)
 
         self.title_selector = "h1[class=p-title-value]"
         self.title_trash_selector = "span"
         self.posts_selector = "div[class*=message-main]"
-        self.posts_number_selector = "li[class=u-concealed] a"
+        self.posts_number_selector = "a[class=u-concealed]"
         self.posts_number_attribute = "href"
         self.quotes_selector = "blockquote"
-        self.posts_content_selector = "div[class=bbWrapper]"
+        self.posts_content_selector = "div[class*=message-userContent]"
         self.next_page_selector = "a[class*=pageNav-jump--next]"
         self.next_page_attribute = "href"
         self.links_selector = "a"
         self.links_attribute = "href"
         self.attachment_url_part = "attachments"
         self.images_selector = "img[class*=bbImage]"
-        self.images_attribute = "data-src"
+        self.images_attribute = "src"
         self.videos_selector = "video source"
         self.iframe_selector = "iframe[class=saint-iframe]"
         self.videos_attribute = "src"
@@ -52,11 +52,11 @@ class SocialMediaGirlsCrawler(Crawler):
         task_id = await self.scraping_progress.add_task(scrape_item.url)
 
         if not self.logged_in:
-            login_url = self.primary_base_domain / "login"
-            session_cookie = self.manager.config_manager.authentication_data['Forums']['socialmediagirls_xf_user_cookie']
-            username = self.manager.config_manager.authentication_data['Forums']['socialmediagirls_username']
-            password = self.manager.config_manager.authentication_data['Forums']['socialmediagirls_password']
-            wait_time = 15
+            login_url = self.primary_base_domain / "forum/login"
+            session_cookie = self.manager.config_manager.authentication_data['Forums']['nudostar_xf_user_cookie']
+            username = self.manager.config_manager.authentication_data['Forums']['nudostar_username']
+            password = self.manager.config_manager.authentication_data['Forums']['nudostar_password']
+            wait_time = 5
 
             await self.forum_login(login_url, session_cookie, username, password, wait_time)
 
@@ -140,12 +140,12 @@ class SocialMediaGirlsCrawler(Crawler):
         """Scrapes links from a post"""
         links = post_content.select(self.links_selector)
         for link_obj in links:
-            test_for_img = link_obj.select_one("img")
-            if test_for_img is not None:
-                continue
-
             link = link_obj.get(self.links_attribute)
             if not link:
+                continue
+
+            test_for_img = link_obj.select_one("img")
+            if test_for_img and "nudostar.com" not in link:
                 continue
 
             link = link.replace(".th.", ".").replace(".md.", ".")
@@ -156,17 +156,14 @@ class SocialMediaGirlsCrawler(Crawler):
             if link.startswith("//"):
                 link = "https:" + link
             elif link.startswith("/"):
-                link = str(self.primary_base_domain) + link
-            link = URL(link, encoded=True)
-            if "link-confirmation" in link.path:
-                link = await self.handle_link_confirmation(link)
-            if link is None:
-                return
+                link = self.primary_base_domain / link[1:]
+            link = URL(link)
+
             try:
                 if self.domain not in link.host:
                     new_scrape_item = ScrapeItem(link, scrape_item.parent_title)
                     await self.handle_external_links(new_scrape_item)
-                elif self.attachment_url_part in link.parts or "smgmedia" in link.host:
+                elif self.attachment_url_part in link.parts:
                     await self.handle_internal_links(link, scrape_item)
                 else:
                     await log(f"Unknown link type: {link}")
@@ -180,13 +177,12 @@ class SocialMediaGirlsCrawler(Crawler):
         images = post_content.select(self.images_selector)
         for image in images:
             link = image.get(self.images_attribute)
-            if link is None:
+            if not link:
                 continue
 
-            parent_simp_check = image.parent.get("data-simp")
-            if parent_simp_check:
-                if "init" in parent_simp_check:
-                    continue
+            parent_nudo_check = image.parent.get("href")
+            if parent_nudo_check:
+                continue
 
             link = link.replace(".th.", ".").replace(".md.", ".")
             if link.endswith("/"):
@@ -201,7 +197,7 @@ class SocialMediaGirlsCrawler(Crawler):
             if self.domain not in link.host:
                 new_scrape_item = ScrapeItem(link, scrape_item.parent_title)
                 await self.handle_external_links(new_scrape_item)
-            elif self.attachment_url_part in link.parts or "smgmedia" in link.host:
+            elif self.attachment_url_part in link.parts:
                 await self.handle_internal_links(link, scrape_item)
             else:
                 await log(f"Unknown image type: {link}")
@@ -277,7 +273,7 @@ class SocialMediaGirlsCrawler(Crawler):
             if self.domain not in link.host:
                 new_scrape_item = ScrapeItem(link, scrape_item.parent_title)
                 await self.handle_external_links(new_scrape_item)
-            elif self.attachment_url_part in link.parts or "smgmedia" in link.host:
+            elif self.attachment_url_part in link.parts:
                 await self.handle_internal_links(link, scrape_item)
             else:
                 await log(f"Unknown image type: {link}")
@@ -292,15 +288,3 @@ class SocialMediaGirlsCrawler(Crawler):
         new_scrape_item = ScrapeItem(link, scrape_item.parent_title, True)
         await new_scrape_item.add_to_parent_title("Attachments")
         await self.handle_file(link, new_scrape_item, filename, ext)
-
-    @error_handling_wrapper
-    async def handle_link_confirmation(self, link: URL) -> Optional[URL]:
-        """Handles link confirmation"""
-        async with self.request_limiter:
-            soup = await self.client.get_BS4(self.domain, link)
-        confirm_button = soup.select_one("a[class*=button--cta]")
-        if confirm_button:
-            return_link = URL(confirm_button.get("href"))
-            return return_link
-        else:
-            return None

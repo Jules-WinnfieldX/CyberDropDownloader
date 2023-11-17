@@ -17,8 +17,7 @@ from rich.progress import TaskID
 
 from cyberdrop_dl.clients.download_client import is_4xx_client_error
 from cyberdrop_dl.clients.errors import DownloadFailure
-from cyberdrop_dl.managers.client_manager import CustomHTTPStatus
-from cyberdrop_dl.utils.utilities import FILE_FORMATS, log
+from cyberdrop_dl.utils.utilities import CustomHTTPStatus, FILE_FORMATS, log
 
 if TYPE_CHECKING:
     from asyncio import Queue
@@ -105,6 +104,8 @@ class Downloader:
         self._unfinished_count = 0
         self._current_attempt_filesize = {}
 
+        self.processed_items: list = []
+
     async def startup(self) -> None:
         """Starts the downloader"""
         self.download_queue = await self.manager.queue_manager.get_download_queue(self.domain)
@@ -119,8 +120,10 @@ class Downloader:
             self.complete = False
             self._unfinished_count += 1
             media_item.current_attempt = 0
-            await self.download(media_item)
-            await log(f"Download Finished: {media_item.url}")
+            if not (media_item.url in self.processed_items):
+                self.processed_items.append(media_item.url)
+                await self.download(media_item)
+                await log(f"Download Finished: {media_item.url}")
             self.download_queue.task_done()
             self._unfinished_count -= 1
             if self._unfinished_count == 0 and self.download_queue.empty():
@@ -211,7 +214,7 @@ class Downloader:
             if not complete_file.exists() and not partial_file.exists():
                 break
 
-            if complete_file.exists() and complete_file.stat().st_size == expected_size:
+            if complete_file.exists() and complete_file.stat().st_size == media_item.filesize:
                 proceed = False
                 break
 
@@ -222,11 +225,11 @@ class Downloader:
 
             if media_item.filename == downloaded_filename:
                 if partial_file.exists():
-                    if partial_file.stat().st_size == expected_size:
+                    if partial_file.stat().st_size == media_item.filesize:
                         proceed = False
                         partial_file.rename(complete_file)
                 elif complete_file.exists():
-                    if complete_file.stat().st_size == expected_size:
+                    if complete_file.stat().st_size == media_item.filesize:
                         proceed = False
                     else:
                         complete_file, partial_file = await self.iterate_filename(complete_file, media_item)

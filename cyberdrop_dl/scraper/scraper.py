@@ -28,10 +28,9 @@ class ScrapeMapper:
                         "jpg.homes": self.jpgchurch, "jpg.fish": self.jpgchurch, "jpg.fishing": self.jpgchurch,
                         "jpg.pet": self.jpgchurch, "jpeg.pet": self.jpgchurch, "jpg1.su": self.jpgchurch,
                         "jpg2.su": self.jpgchurch, "jpg3.su": self.jpgchurch, "kemono": self.kemono,
-                        "pimpandhost": self.pimpandhost, "pixeldrain": self.pixeldrain, "postimg": self.postimg,
-                        "reddit": self.reddit, "redgifs": self.redgifs, "saint": self.saint,
-                        "socialmediagirls": self.socialmediagirls, "simpcity": self.simpcity,
-                        "xbunker": self.xbunker}
+                        "nudostar": self.nudostar, "pimpandhost": self.pimpandhost, "pixeldrain": self.pixeldrain,
+                        "postimg": self.postimg, "reddit": self.reddit, "redgifs": self.redgifs, "saint": self.saint,
+                        "socialmediagirls": self.socialmediagirls, "simpcity": self.simpcity, "xbunker": self.xbunker}
         self.sharex_domains = ["img.kiwi", "jpg.church", "jpg.homes", "jpg.fish", "jpg.fishing", "jpg.pet",
                                "jpeg.pet", "jpg1.su", "jpg2.su", "jpg3.su"]
         self.existing_crawlers = {}
@@ -111,6 +110,11 @@ class ScrapeMapper:
         """Creates a Kemono Crawler instance"""
         from cyberdrop_dl.scraper.crawlers.kemono_crawler import KemonoCrawler
         self.existing_crawlers['kemono'] = KemonoCrawler(self.manager)
+
+    async def nudostar(self) -> None:
+        """Creates a NudoStar Crawler instance"""
+        from cyberdrop_dl.scraper.crawlers.nudostar_crawler import NudoStarCrawler
+        self.existing_crawlers['nudostar'] = NudoStarCrawler(self.manager)
 
     async def pimpandhost(self) -> None:
         """Creates a PimpAndHost Crawler instance"""
@@ -233,6 +237,8 @@ class ScrapeMapper:
                 await self.existing_crawlers[key].scraper_queue.put(scrape_item)
                 await asyncio.sleep(0)
                 continue
+            else:
+                await log(f"Unsupported URL: {scrape_item.url}")
 
             if self.complete:
                 break
