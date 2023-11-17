@@ -15,8 +15,6 @@ console = Console()
 
 def edit_global_settings_prompt(manager: Manager) -> None:
     """Edit the authentication values"""
-    auth = manager.config_manager.authentication_data
-
     while True:
         console.clear()
         console.print("Editing Global Settings")

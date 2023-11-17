@@ -5,7 +5,6 @@ import os
 import sys
 
 import aiorun
-from rich import console
 from rich.live import Live
 
 from cyberdrop_dl.managers.manager import Manager

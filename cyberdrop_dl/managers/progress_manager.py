@@ -1,5 +1,4 @@
 from dataclasses import field
-from typing import Dict
 
 from rich.layout import Layout
 

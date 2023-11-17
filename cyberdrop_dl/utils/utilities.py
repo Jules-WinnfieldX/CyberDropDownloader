@@ -166,6 +166,7 @@ async def purge_dir(dirname: Path) -> None:
 
 
 async def check_partials_and_empty_folders(manager: Manager):
+    """Checks for partial downloads and empty folders"""
     if manager.config_manager.settings_data['Runtime_Options']['delete_partial_files']:
         await log_with_color("Deleting partial downloads...", "bold_red")
         partial_downloads = manager.directory_manager.downloads.rglob("*.part")

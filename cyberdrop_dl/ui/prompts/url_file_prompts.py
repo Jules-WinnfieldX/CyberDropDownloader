@@ -2,7 +2,6 @@ import re
 from pathlib import Path
 
 from InquirerPy import inquirer
-from InquirerPy.base.control import Choice
 from rich.console import Console
 
 console = Console()

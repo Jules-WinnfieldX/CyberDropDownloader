@@ -83,6 +83,7 @@ class ScraperClient:
 
     @limiter
     async def get_text(self, domain: str, url: URL, client_session: ClientSession) -> str:
+        """Returns a text object from the given URL"""
         async with client_session.get(url, headers=self._headers, ssl=self.client_manager.ssl_context,
                                       proxy=self.client_manager.proxy) as response:
             await self.client_manager.check_http_status(response.status, response.headers, response.url)
@@ -90,6 +91,7 @@ class ScraperClient:
 
     @limiter
     async def post_data(self, domain: str, url: URL, client_session: ClientSession, data: Dict) -> Dict:
+        """Returns a JSON object from the given URL when posting data"""
         async with client_session.post(url, headers=self._headers, ssl=self.client_manager.ssl_context,
                                        proxy=self.client_manager.proxy, data=data) as response:
             await self.client_manager.check_http_status(response.status, response.headers, response.url)

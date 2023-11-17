@@ -39,6 +39,7 @@ class DownloadManager:
                 task.cancel()
 
     async def get_download_limit(self, key: str) -> int:
+        """Returns the download limit for a domain"""
         if key in self.download_limits:
             instances = self.download_limits[key]
         else:

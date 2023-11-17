@@ -17,6 +17,7 @@ class Sorter:
         self.other_dir = other_dir
 
     async def find_files_in_dir(self, directory: Path) -> list:
+        """Finds all files in a directory and returns them in a list"""
         file_list = []
         for x in directory.iterdir():
             if x.is_file():
@@ -26,6 +27,7 @@ class Sorter:
         return file_list
 
     async def sort(self) -> None:
+        """Sorts the files in the download directory into their respective folders"""
         audio_count = 0
         image_count = 0
         video_count = 0
@@ -70,6 +72,7 @@ class Sorter:
         await log_with_color(f"Organized: {other_count} Other Files", style="green")
 
     async def move_cd(self, file: Path, dest: Path) -> None:
+        """Moves a file to a destination folder"""
         try:
             dest_file = dest / file.name
             file.rename(dest_file)
