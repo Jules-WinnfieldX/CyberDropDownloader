@@ -19,9 +19,7 @@ if TYPE_CHECKING:
 class ScrapeMapper:
     """This class maps links to their respective handlers, or JDownloader if they are unsupported"""
     def __init__(self, manager: Manager):
-        # "cyberdrop": self.cyberdrop
-
-        self.mapping = {"xbunkr": self.xbunkr, "bunkr": self.bunkr, "coomer": self.coomer,
+        self.mapping = {"xbunkr": self.xbunkr, "bunkr": self.bunkr, "coomer": self.coomer, "cyberdrop": self.cyberdrop,
                         "cyberfile": self.cyberfile, "e-hentai": self.ehentai, "erome": self.erome,
                         "fapello": self.fapello, "gofile": self.gofile, "imgbox": self.imgbox,
                         "imgur": self.imgur, "img.kiwi": self.imgwiki, "jpg.church": self.jpgchurch,

@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import calendar
+import datetime
 import re
 from typing import TYPE_CHECKING
 
@@ -18,6 +20,8 @@ if TYPE_CHECKING:
 class CyberdropCrawler(Crawler):
     def __init__(self, manager: Manager):
         super().__init__(manager, "cyberdrop", "Cyberdrop")
+        self.api_url = URL("https://cyberdrop.me/api/")
+        self.primary_base_url = URL("https://cyberdrop.me/")
         self.request_limiter = AsyncLimiter(10, 1)
 
     """~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"""
@@ -26,10 +30,11 @@ class CyberdropCrawler(Crawler):
         """Determines where to send the scrape item based on the url"""
         task_id = await self.scraping_progress.add_task(scrape_item.url)
 
-        if self.check_direct_link(scrape_item.url):
-            await self.handle_direct_link(scrape_item)
-        else:
+        if "a" in scrape_item.url.parts:
+            scrape_item.url = scrape_item.url.with_query("nojs")
             await self.album(scrape_item)
+        else:
+            await self.file(scrape_item)
 
         await self.scraping_progress.remove_task(task_id)
 
@@ -37,32 +42,36 @@ class CyberdropCrawler(Crawler):
     async def album(self, scrape_item: ScrapeItem) -> None:
         """Scrapes an album"""
         async with self.request_limiter:
-            try:
-                soup = await self.client.get_BS4(self.domain, scrape_item.url)
-            except InvalidContentTypeFailure:
-                await self.handle_direct_link(scrape_item)
-                return
+            soup = await self.client.get_BS4(self.domain, scrape_item.url)
 
-        title = soup.select_one("h1[id=title]").get_text()
-        if self.manager.config_manager.settings_data['Download_Options']['include_album_id_in_folder_name']:
-            album_id = scrape_item.url.name
-            title = title + " - " + album_id
-        await scrape_item.add_to_parent_title(title)
+        title = soup.select_one("h1[id=title]").text + f" ({scrape_item.url.host})"
+        date = await self.parse_datetime(soup.select("p[class=title]")[-1].text)
 
-        links = soup.select('div[class="image-container column"] a')
+        links = soup.select("div[class*=image-container] a")
         for link in links:
-            link = URL(link.get('href'))
-            await self.scraper_queue.put(ScrapeItem(url=link, parent_title=title, part_of_album=True))
+            link = link.get('href')
+            if link.startswith("/"):
+                link = self.primary_base_url.with_path(link)
+            link = URL(link)
+
+            new_scrape_item = ScrapeItem(link, parent_title=scrape_item.parent_title, part_of_album=True, possible_datetime=date)
+            await new_scrape_item.add_to_parent_title(title)
+            await self.scraper_queue.put(new_scrape_item)
 
     @error_handling_wrapper
-    async def handle_direct_link(self, scrape_item: ScrapeItem) -> None:
-        """Handles a direct link"""
-        filename, ext = await get_filename_and_ext(scrape_item.url.name)
-        await self.handle_file(scrape_item.url, scrape_item, filename, ext)
+    async def file(self, scrape_item: ScrapeItem) -> None:
+        """Scrapes a file"""
+        async with self.request_limiter:
+            JSON_Resp = await self.client.get_json(self.domain, self.api_url / scrape_item.url.path[1:])
+
+        filename, ext = await get_filename_and_ext(JSON_Resp["name"])
+        link = URL(JSON_Resp['url'])
+        await self.handle_file(link, scrape_item, filename, ext)
 
     """~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"""
 
-    async def check_direct_link(self, url: URL) -> bool:
-        """Determines if the url is a direct link or not"""
-        mapping_direct = [r'img-...cyberdrop...', r'f.cyberdrop...', r'fs-...cyberdrop...',]
-        return any(re.search(domain, str(url)) for domain in mapping_direct)
+    async def parse_datetime(self, date: str) -> int:
+        """Parses a datetime string into a unix timestamp"""
+        date = datetime.datetime.strptime(date, "%d.%m.%Y")
+        return calendar.timegm(date.timetuple())
+
