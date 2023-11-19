@@ -4,14 +4,16 @@ from pathlib import Path
 
 import platformdirs
 
+APP_STORAGE = Path("../Test-AppData-Dir")
+DOWNLOAD_STORAGE = Path("../Test-Download-Dir")
 
-if os.getenv("PYCHARM_HOSTED") is not None:
-    """This is for testing purposes only"""
-    APP_STORAGE = Path("../Test-AppData-Dir")
-    DOWNLOAD_STORAGE = Path("../Test-Download-Dir")
-else:
-    APP_STORAGE: Path = Path(platformdirs.user_config_dir("Cyberdrop-DL"))
-    DOWNLOAD_STORAGE = Path(platformdirs.user_downloads_path())
+#if os.getenv("PYCHARM_HOSTED") is not None:
+#     """This is for testing purposes only"""
+#     APP_STORAGE = Path("../Test-AppData-Dir")
+#     DOWNLOAD_STORAGE = Path("../Test-Download-Dir")
+# else:
+#     APP_STORAGE: Path = Path(platformdirs.user_config_dir("Cyberdrop-DL"))
+#     DOWNLOAD_STORAGE = Path(platformdirs.user_downloads_path())
 
 
 class DirectoryManager:
