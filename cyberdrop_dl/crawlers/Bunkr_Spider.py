@@ -28,8 +28,7 @@ class BunkrCrawler:
         self.quiet = quiet
         self.SQL_Helper = SQL_Helper
         self.remove_bunkr_id = remove_bunkr_id
-        self.limiter = AsyncLimiter(10, 1)
-        self.small_limiter = AsyncLimiter(1, 1)
+        self.limiter = AsyncLimiter(3, 1)
 
         self.error_writer = error_writer
 
