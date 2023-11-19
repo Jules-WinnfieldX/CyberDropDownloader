@@ -21,7 +21,7 @@ class DownloadManager:
         self._download_instances: Dict = {}
         self._download_instance_tasks: Dict = {}
 
-        self.download_limits = {'bunkr': 1, 'coomer': 8, 'cyberfile': 2, 'kemono': 8, "pixeldrain": 2}
+        self.download_limits = {'bunkr': 1, 'cyberdrop': 1, 'coomer': 8, 'cyberfile': 2, 'kemono': 8, "pixeldrain": 2}
 
     async def check_complete(self) -> bool:
         """Checks if all download instances are complete"""

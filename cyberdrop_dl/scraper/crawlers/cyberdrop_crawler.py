@@ -20,7 +20,7 @@ class CyberdropCrawler(Crawler):
         super().__init__(manager, "cyberdrop", "Cyberdrop")
         self.api_url = URL("https://cyberdrop.me/api/")
         self.primary_base_url = URL("https://cyberdrop.me/")
-        self.request_limiter = AsyncLimiter(10, 1)
+        self.request_limiter = AsyncLimiter(1.0, 2.0)
 
     """~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"""
 
