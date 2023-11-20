@@ -57,13 +57,13 @@ def retry(f):
                             await self.manager.progress_manager.download_stats_progress.add_failure(e.status)
                             if hasattr(e, "message"):
                                 await log(f"Download failed: {media_item.url} with status {e.status} and message {e.message}")
-                                await self.manager.file_manager.write_download_error_log(media_item.url, f"{e.status} - {e.message}")
+                                await self.manager.file_manager.write_download_error_log(media_item.url, f" {e.status} - {e.message}")
                             else:
                                 await log(f"Download failed: {media_item.url} with status {e.status}")
-                                await self.manager.file_manager.write_download_error_log(media_item.url, f"{e.status}")
+                                await self.manager.file_manager.write_download_error_log(media_item.url, f" {e.status}")
                         else:
                             await self.manager.progress_manager.download_stats_progress.add_failure("Unknown")
-                            await self.manager.file_manager.write_download_error_log(media_item.url, f"See Log for Details")
+                            await self.manager.file_manager.write_download_error_log(media_item.url, f" See Log for Details")
                             await log(f"Download failed: {media_item.url} with error {e}")
                         await self.manager.progress_manager.download_progress.add_failed()
                         break
@@ -358,16 +358,25 @@ class Downloader:
                     await self.manager.progress_manager.download_progress.add_failed()
                     await self.manager.progress_manager.download_stats_progress.add_failure(e.status)
                     await self.manager.progress_manager.file_progress.remove_file(media_item.download_task_id)
+                    if hasattr(e, "message"):
+                        if not e.message:
+                            e.message = "Download failed"
+                        await self.manager.file_manager.write_download_error_log(media_item.url, f" {e.status} - {e.message}")
+                    else:
+                        await self.manager.file_manager.write_download_error_log(media_item.url, f" {e.status}")
                     return
 
                 if e.status == HTTPStatus.SERVICE_UNAVAILABLE or e.status == HTTPStatus.BAD_GATEWAY \
                         or e.status == CustomHTTPStatus.WEB_SERVER_IS_DOWN:
-                    if hasattr(e, "message"):
-                        if not e.message:
-                            e.message = "Web server is down"
                     await self.manager.progress_manager.download_progress.add_failed()
                     await self.manager.progress_manager.download_stats_progress.add_failure(e.status)
                     await self.manager.progress_manager.file_progress.remove_file(media_item.download_task_id)
+                    if hasattr(e, "message"):
+                        if not e.message:
+                            e.message = "Download failed"
+                        await self.manager.file_manager.write_download_error_log(media_item.url, f" {e.status} - {e.message}")
+                    else:
+                        await self.manager.file_manager.write_download_error_log(media_item.url, f" {e.status}")
                     return
 
             raise DownloadFailure(status=getattr(e, "status", 1), message=getattr(e, "message", repr(e)))
