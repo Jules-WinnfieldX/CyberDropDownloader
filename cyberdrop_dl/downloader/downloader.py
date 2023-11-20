@@ -143,10 +143,13 @@ class Downloader:
     async def check_file_can_download(self, media_item: MediaItem) -> bool:
         """Checks if the file can be downloaded"""
         if not await self.manager.download_manager.check_free_space():
+            await log(f"Download Skip {media_item.url} due to insufficient free space")
             return False
         if not await self.manager.download_manager.check_allowed_filetype(media_item):
+            await log(f"Download Skip {media_item.url} due to filetype restrictions")
             return False
         if self.manager.config_manager.settings_data['Download_Options']['skip_download_mark_completed']:
+            await log(f"Download Skip {media_item.url} due to mark completed option")
             await self.mark_completed(media_item)
             return False
         return True
