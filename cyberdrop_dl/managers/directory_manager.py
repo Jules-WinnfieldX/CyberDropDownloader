@@ -11,7 +11,7 @@ else:
     APP_STORAGE = Path("./Test-AppData-Dir")
     DOWNLOAD_STORAGE = Path("./Test-Download-Dir")
 
-#if os.getenv("PYCHARM_HOSTED") is not None:
+# if os.getenv("PYCHARM_HOSTED") is not None:
 #     """This is for testing purposes only"""
 #     APP_STORAGE = Path("../Test-AppData-Dir")
 #     DOWNLOAD_STORAGE = Path("../Test-Download-Dir")
