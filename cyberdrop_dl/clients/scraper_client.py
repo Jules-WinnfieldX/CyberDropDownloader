@@ -90,9 +90,12 @@ class ScraperClient:
             return await response.text()
 
     @limiter
-    async def post_data(self, domain: str, url: URL, client_session: ClientSession, data: Dict) -> Dict:
+    async def post_data(self, domain: str, url: URL, client_session: ClientSession, data: Dict, req_resp: bool = True) -> Dict:
         """Returns a JSON object from the given URL when posting data"""
         async with client_session.post(url, headers=self._headers, ssl=self.client_manager.ssl_context,
                                        proxy=self.client_manager.proxy, data=data) as response:
             await self.client_manager.check_http_status(response.status, response.headers, response.url)
-            return json.loads(await response.content.read())
+            if req_resp:
+                return json.loads(await response.content.read())
+            else:
+                return {}

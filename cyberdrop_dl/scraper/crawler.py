@@ -130,7 +130,7 @@ class Crawler(ABC):
                         "password": password,
                         "_xfRedirect": str(URL("https://" + login_url.host))
                     })
-                    await self.client.post_data(self.domain, login_url / "login", data=data)
+                    await self.client.post_data(self.domain, login_url / "login", data=data, req_resp=False)
                     await asyncio.sleep(wait_time)
                     text = await self.client.get_text(self.domain, login_url)
                     if "You are already logged in" not in text:
