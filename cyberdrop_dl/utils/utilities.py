@@ -63,12 +63,15 @@ def error_handling_wrapper(func):
             if hasattr(e, 'status'):
                 if hasattr(e, 'message'):
                     await log(f"Scrape Error: {link} ({e.status} - {e.message})")
+                    await self.manager.file_manager.write_scrape_error_log(link, f"{e.status} - {e.message}")
                 else:
                     await log(f"Scrape Error: {link} ({e.status})")
+                    await self.manager.file_manager.write_scrape_error_log(link, f"{e.status}")
                 await self.manager.progress_manager.scrape_stats_progress.add_failure(e.status)
             else:
                 await log(f"Scrape Error: {link} ({e})")
                 await log(traceback.format_exc())
+                await self.manager.file_manager.write_scrape_error_log(link, "See Log for Details")
                 await self.manager.progress_manager.scrape_stats_progress.add_failure("Unknown")
     return wrapper
 

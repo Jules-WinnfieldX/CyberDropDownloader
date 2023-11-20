@@ -216,6 +216,16 @@ class ScrapeMapper:
             if not scrape_item.url.host:
                 continue
 
+            skip = False
+            for skip_host in self.manager.config_manager.settings_data['Ignore_Options']['skip_hosts']:
+                if skip_host in scrape_item.url.host:
+                    skip = True
+                    break
+            for only_host in self.manager.config_manager.settings_data['Ignore_Options']['only_hosts']:
+                if only_host not in scrape_item.url.host:
+                    skip = True
+                    break
+
             if str(scrape_item.url).endswith("/"):
                 scrape_item.url = scrape_item.url.with_path(scrape_item.url.path[:-1])
 
@@ -224,7 +234,7 @@ class ScrapeMapper:
             if any(re.search(domain, str(scrape_item.url.host.lower())) for domain in self.sharex_domains):
                 download_key = "sharex"
 
-            if key:
+            if key and not skip:
                 """If the crawler doesn't exist, create it, finally add the scrape item to it's queue"""
                 if not self.existing_crawlers.get(key):
                     start_handler = self.mapping[key]
@@ -235,8 +245,11 @@ class ScrapeMapper:
                 await self.existing_crawlers[key].scraper_queue.put(scrape_item)
                 await asyncio.sleep(0)
                 continue
+            elif skip:
+                await log(f"Skipping URL by Config Selections: {scrape_item.url}")
             else:
                 await log(f"Unsupported URL: {scrape_item.url}")
+                await self.manager.file_manager.write_unsupported_urls_log(scrape_item.url)
 
             if self.complete:
                 break

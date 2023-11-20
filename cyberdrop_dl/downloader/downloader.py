@@ -50,12 +50,21 @@ def retry(f):
 
                 if e.status != 999:
                     media_item.current_attempt += 1
+                    await log(f"Download retrying: {media_item.url} with attempt {media_item.current_attempt}")
                 elif not self.manager.config_manager.settings_data['Download_Options']['disable_download_attempt_limit']:
                     if media_item.current_attempt >= self.manager.config_manager.global_settings_data['Rate_Limiting_Options']['download_attempts']:
                         if hasattr(e, "status"):
                             await self.manager.progress_manager.download_stats_progress.add_failure(e.status)
+                            if hasattr(e, "message"):
+                                await log(f"Download failed: {media_item.url} with status {e.status} and message {e.message}")
+                                await self.manager.file_manager.write_download_error_log(media_item.url, f"{e.status} - {e.message}")
+                            else:
+                                await log(f"Download failed: {media_item.url} with status {e.status}")
+                                await self.manager.file_manager.write_download_error_log(media_item.url, f"{e.status}")
                         else:
                             await self.manager.progress_manager.download_stats_progress.add_failure("Unknown")
+                            await self.manager.file_manager.write_download_error_log(media_item.url, f"See Log for Details")
+                            await log(f"Download failed: {media_item.url} with error {e}")
                         await self.manager.progress_manager.download_progress.add_failed()
                         break
             except Exception as e:
