@@ -27,8 +27,9 @@ class ScrapeMapper:
                         "jpg.pet": self.jpgchurch, "jpeg.pet": self.jpgchurch, "jpg1.su": self.jpgchurch,
                         "jpg2.su": self.jpgchurch, "jpg3.su": self.jpgchurch, "kemono": self.kemono,
                         "nudostar": self.nudostar, "pimpandhost": self.pimpandhost, "pixeldrain": self.pixeldrain,
-                        "postimg": self.postimg, "reddit": self.reddit, "redgifs": self.redgifs, "saint": self.saint,
-                        "socialmediagirls": self.socialmediagirls, "simpcity": self.simpcity, "xbunker": self.xbunker}
+                        "postimg": self.postimg, "reddit": self.reddit, "redd.it": self.reddit, "redgifs": self.redgifs,
+                        "saint": self.saint, "socialmediagirls": self.socialmediagirls, "simpcity": self.simpcity,
+                        "xbunker": self.xbunker}
         self.sharex_domains = ["img.kiwi", "jpg.church", "jpg.homes", "jpg.fish", "jpg.fishing", "jpg.pet",
                                "jpeg.pet", "jpg1.su", "jpg2.su", "jpg3.su"]
         self.existing_crawlers = {}
@@ -133,6 +134,7 @@ class ScrapeMapper:
         """Creates a Reddit Crawler instance"""
         from cyberdrop_dl.scraper.crawlers.reddit_crawler import RedditCrawler
         self.existing_crawlers['reddit'] = RedditCrawler(self.manager)
+        self.existing_crawlers['redd.it'] = self.existing_crawlers['reddit']
 
     async def redgifs(self) -> None:
         """Creates a RedGifs Crawler instance"""
