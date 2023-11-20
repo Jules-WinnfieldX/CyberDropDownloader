@@ -197,24 +197,17 @@ async def check_partials_and_empty_folders(manager: Manager):
 
 async def check_latest_pypi():
     """Checks if the current version is the latest version"""
-    import subprocess
-    import sys
+    from cyberdrop_dl import __version__ as current_version
     import json
     import urllib.request
-
-    # create dictionary of package versions
-    pkgs = subprocess.check_output([sys.executable, '-m', 'pip', 'freeze'])
-    keys = [p.decode().split('==')[0] for p in pkgs.split()]
-    values = [p.decode().split('==')[1] for p in pkgs.split()]
-    d = dict(zip(keys, values))
 
     # retrieve info on latest version
     contents = urllib.request.urlopen('https://pypi.org/pypi/cyberdrop-dl/json').read()
     data = json.loads(contents)
     latest_version = data['info']['version']
 
-    if "cyberdrop-dl" not in d:
+    if current_version.split(".")[0] > latest_version.split(".")[0]:
         return
 
-    if d['cyberdrop-dl'] != latest_version:
+    if current_version != latest_version:
         await log_with_color(f"New version of cyberdrop-dl available: {latest_version}", "bold_red")
