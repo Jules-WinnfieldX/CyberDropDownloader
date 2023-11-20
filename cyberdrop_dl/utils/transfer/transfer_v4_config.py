@@ -39,9 +39,9 @@ def transfer_v4_config(manager: Manager, old_config_path: Path, new_config_name:
     new_auth_data['Forums']['xbunker_username'] = old_data['Authentication']['xbunker_username']
     new_auth_data['Forums']['xbunker_password'] = old_data['Authentication']['xbunker_password']
 
-    new_auth_data['JDownloader']['jdownloader_username'] = old_data['Authentication']['jdownloader_username']
-    new_auth_data['JDownloader']['jdownloader_password'] = old_data['Authentication']['jdownloader_password']
-    new_auth_data['JDownloader']['jdownloader_device'] = old_data['Authentication']['jdownloader_device']
+    new_auth_data['JDownloader']['jdownloader_username'] = old_data['JDownloader']['jdownloader_username']
+    new_auth_data['JDownloader']['jdownloader_password'] = old_data['JDownloader']['jdownloader_password']
+    new_auth_data['JDownloader']['jdownloader_device'] = old_data['JDownloader']['jdownloader_device']
 
     new_auth_data['Reddit']['reddit_personal_use_script'] = old_data['Authentication']['reddit_personal_use_script']
     new_auth_data['Reddit']['reddit_secret'] = old_data['Authentication']['reddit_secret']
@@ -100,6 +100,6 @@ def transfer_v4_config(manager: Manager, old_config_path: Path, new_config_name:
     new_global_data['Rate_Limiting_Options']['max_simultaneous_downloads_per_domain'] = old_data['Runtime']['max_concurrent_downloads_per_domain']
 
     # Save Data
-    _save_yaml(manager.directory_manager.configs / new_config_name, new_user_data)
+    manager.config_manager.create_new_config(new_config_name, new_user_data)
     manager.config_manager.write_updated_authentication_config()
     manager.config_manager.write_updated_global_settings_config()
