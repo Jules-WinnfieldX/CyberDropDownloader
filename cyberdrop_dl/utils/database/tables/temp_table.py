@@ -2,7 +2,7 @@ from typing import List
 
 import aiosqlite
 
-from cyberdrop_dl.utils.db.table_definitions import create_temp
+from cyberdrop_dl.utils.database.table_definitions import create_temp
 
 
 class TempTable:

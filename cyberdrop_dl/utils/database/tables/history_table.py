@@ -4,7 +4,7 @@ import aiosqlite
 from typing import TYPE_CHECKING
 from yarl import URL
 
-from cyberdrop_dl.utils.db.table_definitions import create_history
+from cyberdrop_dl.utils.database.table_definitions import create_history
 
 if TYPE_CHECKING:
     from cyberdrop_dl.utils.dataclasses.url_objects import MediaItem

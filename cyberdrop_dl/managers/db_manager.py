@@ -3,8 +3,8 @@ from pathlib import Path
 
 import aiosqlite
 
-from cyberdrop_dl.utils.db.tables.history_table import HistoryTable
-from cyberdrop_dl.utils.db.tables.temp_table import TempTable
+from cyberdrop_dl.utils.database.tables.history_table import HistoryTable
+from cyberdrop_dl.utils.database.tables.temp_table import TempTable
 
 
 class DBManager:
