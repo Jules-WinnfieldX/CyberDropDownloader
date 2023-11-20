@@ -5,13 +5,12 @@ from typing import ClassVar, Tuple, List
 @dataclass
 class SupportedDomains:
     """The allows options for domains to skip when scraping"""
-    supported_hosts: ClassVar[Tuple[str, ...]] = ("anonfiles", "bayfiles", "bunkr", "coomer.party", "coomer.su",
-                                                  "cyberdrop", "cyberfile", "e-hentai", "erome", "fapello", "gfycat",
-                                                  "gofile", "hgamecg", "img.kiwi", "imgbox", "jpg.church", "jpg.fish",
-                                                  "jpg.fishing", "jpg.pet", "jpg1.su", "gallery.deltaporno.com",
-                                                  "kemono.su", "lovefap", "nsfw.xxx", "pimpandhost", "pixeldrain",
-                                                  "pixl.li", "postimg", "saint", "reddit", "xbunkr", "imgur", "redd.it",
-                                                  "jpeg.pet", "redgifs", "kemono.party")
+    supported_hosts: ClassVar[Tuple[str, ...]] = ("bunkr", "coomer", "coomer", "cyberdrop", "cyberfile", "e-hentai",
+                                                  "erome", "fapello", "gofile", "imgbox", "imgur", "img.kiwi", "jpg.church",
+                                                  "jpg.fish", "jpg.homes", "jpg.fishing", "jpg.pet", "jpeg.pet",
+                                                  "jpg1.su", "jpg2.su", "jpg3.su", "kemono", "pimpandhost",
+                                                  "pixeldrain", "postimg", "saint", "reddit", "redd.it", "redgifs",
+                                                  "xbunkr")
     supported_forums: ClassVar[Tuple[str, ...]] = ("nudostar.com", "simpcity.su", "forums.socialmediagirls.com",
                                                    "xbunker.nu")
     supported_forums_map = {"nudostar.com": "nudostar", "simpcity.su": "simpcity",

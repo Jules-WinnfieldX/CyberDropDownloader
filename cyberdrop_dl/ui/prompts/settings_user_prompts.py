@@ -272,22 +272,28 @@ def edit_ignore_options_prompt(config: Dict) -> None:
     for key in action:
         config["Ignore_Options"][key] = True
 
+    skip_choices = list(SupportedDomains.supported_hosts)
+    skip_choices.insert(0, "None")
     skip_hosts = inquirer.fuzzy(
-        choices=list(SupportedDomains.supported_hosts),
+        choices=skip_choices,
         multiselect=True,
         message="Select any sites you want to ignore while scraping:",
         long_instruction="ARROW KEYS: Move | TYPE: Filter | TAB: Select | ENTER: Confirm",
     ).execute()
 
+    skip_hosts = [host for host in skip_hosts if host in SupportedDomains.supported_hosts]
     config["Ignore_Options"]["skip_hosts"] = skip_hosts
 
+    only_choices = list(SupportedDomains.supported_hosts)
+    only_choices.insert(0, "None")
     only_hosts = inquirer.fuzzy(
-        choices=list(SupportedDomains.supported_hosts),
+        choices=only_choices,
         multiselect=True,
         message="Select only the sites you want to scrape from:",
         long_instruction="ARROW KEYS: Move | TYPE: Filter | TAB: Select | ENTER: Confirm",
     ).execute()
 
+    only_hosts = [host for host in only_hosts if host in SupportedDomains.supported_hosts]
     config["Ignore_Options"]["only_hosts"] = only_hosts
 
 
