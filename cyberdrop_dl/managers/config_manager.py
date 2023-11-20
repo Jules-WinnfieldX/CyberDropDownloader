@@ -82,14 +82,14 @@ class ConfigManager:
 
     def _verify_settings_config(self) -> None:
         """Verifies the settings config file and creates it if it doesn't exist"""
-        default_settings_data = settings
+        default_settings_data = copy.deepcopy(settings)
         existing_settings_data = _load_yaml(self.settings)
         self.settings_data = _match_config_dicts(default_settings_data, existing_settings_data)
         _save_yaml(self.settings, self.settings_data)
 
     def _verify_global_settings_config(self) -> None:
         """Verifies the global settings config file and creates it if it doesn't exist"""
-        default_global_settings_data = global_settings
+        default_global_settings_data = copy.deepcopy(global_settings)
         existing_global_settings_data = _load_yaml(self.global_settings)
         self.global_settings_data = _match_config_dicts(default_global_settings_data, existing_global_settings_data)
         _save_yaml(self.global_settings, self.global_settings_data)
