@@ -45,7 +45,7 @@ class RedditCrawler(Crawler):
                 await self.media(scrape_item)
             else:
                 await log(f"Unknown URL type: {scrape_item.url}")
-                raise ValueError(f"Unknown URL type: {scrape_item.url}")
+                await self.manager.progress_manager.scrape_stats_progress.add_failure("Unknown")
 
         await self.scraping_progress.remove_task(task_id)
 
