@@ -235,6 +235,8 @@ class ScrapeMapper:
             download_key = key
             if any(re.search(domain, str(scrape_item.url.host.lower())) for domain in self.sharex_domains):
                 download_key = "sharex"
+            if "redd.it" in scrape_item.url.host.lower():
+                download_key = "reddit"
 
             if key and not skip:
                 """If the crawler doesn't exist, create it, finally add the scrape item to it's queue"""

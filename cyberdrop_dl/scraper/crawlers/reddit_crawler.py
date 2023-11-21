@@ -41,7 +41,7 @@ class RedditCrawler(Crawler):
                 await self.user(scrape_item, reddit)
             elif "r" in scrape_item.url.parts and "comments" not in scrape_item.url.parts:
                 await self.subreddit(scrape_item, reddit)
-            elif "i.redd.it" in scrape_item.url.host:
+            elif "redd.it" in scrape_item.url.host:
                 await self.media(scrape_item)
             else:
                 await log(f"Unknown URL type: {scrape_item.url}")
@@ -90,7 +90,7 @@ class RedditCrawler(Crawler):
         date = int(str(submission.created_utc).split(".")[0])
 
         media_url = URL(submission.url)
-        if "i.redd.it" in media_url.host or "external-preview.redd.it" in media_url.host:
+        if "redd.it" in media_url.host:
             new_scrape_item = await self.create_new_scrape_item(media_url, scrape_item, title, date)
             await self.media(new_scrape_item)
         elif "gallery" in media_url.parts:
