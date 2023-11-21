@@ -30,8 +30,17 @@ class ScrapeMapper:
                         "postimg": self.postimg, "reddit": self.reddit, "redd.it": self.reddit, "redgifs": self.redgifs,
                         "saint": self.saint, "socialmediagirls": self.socialmediagirls, "simpcity": self.simpcity,
                         "xbunker": self.xbunker}
-        self.sharex_domains = ["img.kiwi", "jpg.church", "jpg.homes", "jpg.fish", "jpg.fishing", "jpg.pet",
-                               "jpeg.pet", "jpg1.su", "jpg2.su", "jpg3.su"]
+        self.download_mapping = {"xbunkr": "xbunkr", "bunkr": "bunkr", "coomer": "coomer", "cyberdrop": "cyberdrop",
+                                 "cyberfile": "cyberfile", "e-hentai": "e-hentai", "erome": "erome",
+                                 "fapello": "fapello", "gofile": "gofile", "imgbox": "imgbox",
+                                 "imgur": "imgur", "img.kiwi": "sharex", "jpg.church": "sharex",
+                                 "jpg.homes": "sharex", "jpg.fish": "sharex", "jpg.fishing": "sharex",
+                                 "jpg.pet": "sharex", "jpeg.pet": "sharex", "jpg1.su": "sharex",
+                                 "jpg2.su": "sharex", "jpg3.su": "sharex", "kemono": "kemono",
+                                 "nudostar": "nudostar", "pimpandhost": "pimpandhost", "pixeldrain": "pixeldrain",
+                                 "postimg": "postimg", "reddit": "reddit", "redd.it": "reddit", "redgifs": "redgifs",
+                                 "saint": "saint", "socialmediagirls": "socialmediagirls", "simpcity": "simpcity",
+                                 "xbunker": "xbunker"}
         self.existing_crawlers = {}
         self.manager = manager
 
@@ -232,11 +241,7 @@ class ScrapeMapper:
                 scrape_item.url = scrape_item.url.with_path(scrape_item.url.path[:-1])
 
             key = next((key for key in self.mapping if key in scrape_item.url.host.lower()), None)
-            download_key = key
-            if any(re.search(domain, str(scrape_item.url.host.lower())) for domain in self.sharex_domains):
-                download_key = "sharex"
-            if "redd.it" in scrape_item.url.host.lower():
-                download_key = "reddit"
+            download_key = next((key for key in self.download_mapping if key in scrape_item.url.host.lower()), None)
 
             if key and not skip:
                 """If the crawler doesn't exist, create it, finally add the scrape item to it's queue"""
