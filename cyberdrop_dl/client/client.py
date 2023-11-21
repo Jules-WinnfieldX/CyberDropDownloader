@@ -44,7 +44,7 @@ def scrape_limit(func):
 class Client:
     """Creates a 'client' that can be referenced by scraping or download sessions"""
     def __init__(self, ratelimit: int, throttle: float, secure: bool, connect_timeout: int, read_timeout: int,
-                 user_agent: str):
+                 user_agent: str, proxy: str):
         self.connect_timeout = connect_timeout
         self.read_timeout = read_timeout
         self.ratelimit = ratelimit
@@ -52,6 +52,7 @@ class Client:
         self.simultaneous_session_limit = asyncio.Semaphore(50)
         self.user_agent = user_agent
         self.verify_ssl = secure
+        self.proxy = proxy
         self.ssl_context = ssl.create_default_context(cafile=certifi.where()) if secure else False
         self.cookies = aiohttp.CookieJar(quote_cookie=False)
 
@@ -69,7 +70,7 @@ class ScrapeSession:
 
     @scrape_limit
     async def get_BS4(self, url: URL) -> BeautifulSoup:
-        async with self.client_session.get(url, ssl=self.client.ssl_context) as response:
+        async with self.client_session.get(url, ssl=self.client.ssl_context, proxy=self.client.proxy) as response:
             content_type = response.headers.get('Content-Type')
             assert content_type is not None
             if not any(s in content_type.lower() for s in ("html", "text")):
@@ -79,7 +80,7 @@ class ScrapeSession:
 
     @scrape_limit
     async def get_BS4_and_url(self, url: URL) -> Tuple[BeautifulSoup, URL]:
-        async with self.client_session.get(url, ssl=self.client.ssl_context) as response:
+        async with self.client_session.get(url, ssl=self.client.ssl_context, proxy=self.client.proxy) as response:
             text = await response.text()
             soup = BeautifulSoup(text, 'html.parser')
             return soup, URL(response.url)
@@ -87,47 +88,51 @@ class ScrapeSession:
     @scrape_limit
     async def get_json(self, url: URL, params: Optional[Dict] = None, headers_inc: Optional[Dict] = None) -> Dict:
         headers = {**self.headers, **headers_inc} if headers_inc else self.headers
-        async with self.client_session.get(url, ssl=self.client.ssl_context, params=params, headers=headers) as response:
+        async with self.client_session.get(url, ssl=self.client.ssl_context, params=params, headers=headers,
+                                           proxy=self.client.proxy) as response:
             return json.loads(await response.content.read())
 
     @scrape_limit
     async def get_json_with_headers(self, url: URL, params: Optional[Dict] = None,
                                     headers_inc: Optional[Dict] = None) -> tuple[Any, CIMultiDictProxy[str]]:
         headers = {**self.headers, **headers_inc} if headers_inc else self.headers
-        async with self.client_session.get(url, ssl=self.client.ssl_context, params=params, headers=headers) as response:
+        async with self.client_session.get(url, ssl=self.client.ssl_context, params=params, headers=headers,
+                                           proxy=self.client.proxy) as response:
             content = await response.content.read()
             return json.loads(content), response.headers
 
     @scrape_limit
     async def get_text(self, url: URL) -> str:
-        async with self.client_session.get(url, ssl=self.client.ssl_context) as response:
+        async with self.client_session.get(url, ssl=self.client.ssl_context, proxy=self.client.proxy) as response:
             return await response.text()
 
     @scrape_limit
     async def post(self, url: URL, data: Dict) -> Dict:
-        async with self.client_session.post(url, data=data, headers=self.headers, ssl=self.client.ssl_context) as response:
+        async with self.client_session.post(url, data=data, headers=self.headers, ssl=self.client.ssl_context,
+                                            proxy=self.client.proxy) as response:
             return json.loads(await response.content.read())
 
     @scrape_limit
     async def post_with_auth(self, url: URL, data: Dict, auth: aiohttp.BasicAuth) -> Dict:
-        async with self.client_session.post(url, data=data, headers=self.headers, ssl=self.client.ssl_context, auth=auth) as response:
+        async with self.client_session.post(url, data=data, headers=self.headers, ssl=self.client.ssl_context, auth=auth,
+                                            proxy=self.client.proxy) as response:
             return json.loads(await response.content.read())
 
     @scrape_limit
     async def get_no_resp(self, url: URL, headers: Dict) -> None:
-        async with self.client_session.get(url, headers=headers, ssl=self.client.ssl_context):
+        async with self.client_session.get(url, headers=headers, ssl=self.client.ssl_context, proxy=self.client.proxy):
             pass
 
     @scrape_limit
     async def post_data_no_resp(self, url: URL, data: Dict) -> None:
-        async with self.client_session.post(url, data=data, headers=self.headers, ssl=self.client.ssl_context):
+        async with self.client_session.post(url, data=data, headers=self.headers, ssl=self.client.ssl_context, proxy=self.client.proxy):
             pass
 
     @scrape_limit
     async def head(self, url: URL, headers_inc: Dict, allow_redirects=True) -> tuple[CIMultiDictProxy[str], URL]:
         headers = {**self.headers, **headers_inc} if headers_inc else self.headers
         async with self.client_session.head(url, headers=headers, ssl=self.client.ssl_context, raise_for_status=False,
-                                            allow_redirects=allow_redirects) as response:
+                                            allow_redirects=allow_redirects, proxy=self.client.proxy) as response:
             return response.headers, response.url
 
     async def exit_handler(self) -> None:
@@ -162,7 +167,7 @@ class DownloadSession:
                 else:
                     update_progress(len(chunk))
 
-    async def _download(self, media: MediaItem, current_throttle: float, proxy: str, headers: Dict,
+    async def _download(self, media: MediaItem, current_throttle: float, headers: Dict,
                         save_content: Callable[[aiohttp.StreamReader], Coroutine[Any, Any, None]], file: Path) -> None:
         headers['Referer'] = str(media.referer)
         headers['user-agent'] = self.client.user_agent
@@ -171,7 +176,7 @@ class DownloadSession:
         await self._throttle(current_throttle, media.url.host)
 
         async with self.client_session.get(media.url, headers=headers, ssl=self.client.ssl_context,
-                                           raise_for_status=True, proxy=proxy) as resp:
+                                           raise_for_status=True, proxy=self.client.proxy) as resp:
             content_type = resp.headers.get('Content-Type')
             if not content_type:
                 raise DownloadFailure(status=CustomHTTPStatus.IM_A_TEAPOT, message="No content-type in response header")
@@ -210,17 +215,16 @@ class DownloadSession:
             await asyncio.sleep(remaining)
 
     async def download_file(self, Progress_Master: ProgressMaster, media: MediaItem, file: Path,
-                            current_throttle: float, resume_point: int, proxy: str, headers: Dict,
-                            file_task: TaskID) -> None:
+                            current_throttle: float, resume_point: int, headers: Dict, file_task: TaskID) -> None:
 
         async def save_content(content: aiohttp.StreamReader) -> None:
             await Progress_Master.FileProgress.advance_file(file_task, resume_point)
             await self._append_content(file, content, functools.partial(Progress_Master.FileProgress.advance_file, file_task))
 
-        await self._download(media, current_throttle, proxy, headers, save_content, file)
+        await self._download(media, current_throttle, headers, save_content, file)
 
     async def old_download_file(self, media: MediaItem, file: Path, current_throttle: float, resume_point: int,
-                                proxy: str, headers: Dict, size: int) -> None:
+                                headers: Dict, size: int) -> None:
 
         async def save_content(content: aiohttp.StreamReader) -> None:
             task_description = adjust_title(f"{media.url.host}: {media.filename}")
@@ -228,16 +232,16 @@ class DownloadSession:
                       initial=resume_point, desc=task_description) as progress:
                 await self._append_content(file, content, lambda chunk_len: progress.update(chunk_len))
 
-        await self._download(media, current_throttle, proxy, headers, save_content, file)
+        await self._download(media, current_throttle, headers, save_content, file)
 
-    async def get_filesize(self, url: URL, referer: str, current_throttle: float, headers: Dict, proxy: str) -> int:
+    async def get_filesize(self, url: URL, referer: str, current_throttle: float, headers: Dict) -> int:
         headers['Referer'] = referer
         headers['user-agent'] = self.client.user_agent
 
         assert url.host is not None
         await self._throttle(current_throttle, url.host)
         async with self.client_session.get(url, headers=headers, ssl=self.client.ssl_context,
-                                           raise_for_status=False, proxy=proxy) as resp:
+                                           raise_for_status=False, proxy=self.client.proxy) as resp:
             if resp.status > 206:
                 if "Server" in resp.headers:
                     if resp.headers["Server"] == "ddos-guard":

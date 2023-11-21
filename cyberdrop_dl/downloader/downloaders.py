@@ -236,7 +236,7 @@ class Downloader:
 
             if not await self.CDL_Helper.SQL_Helper.sql_check_old_existing(url_path) and download_bool:
                 await self.download_session.download_file(self.Progress_Master, media, partial_file, self.throttle,
-                                                          resume_point, self.CDL_Helper.proxy, headers, file_task)
+                                                          resume_point, headers, file_task)
                 partial_file.rename(complete_file)
 
             await self.CDL_Helper.SQL_Helper.mark_complete(url_path, original_filename)
@@ -328,7 +328,7 @@ class Downloader:
         while True:
             if not expected_size:
                 expected_size = await self.download_session.get_filesize(media.url, str(media.referer),
-                                                                         current_throttle, headers, self.CDL_Helper.proxy)
+                                                                         current_throttle, headers)
             if not complete_file.exists() and not partial_file.exists():
                 break
 
