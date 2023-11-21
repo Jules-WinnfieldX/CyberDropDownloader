@@ -100,6 +100,24 @@ def transfer_v4_config(manager: Manager, old_config_path: Path, new_config_name:
     new_global_data['Rate_Limiting_Options']['max_simultaneous_downloads_per_domain'] = old_data['Runtime']['max_concurrent_downloads_per_domain']
 
     # Save Data
-    manager.config_manager.create_new_config(new_config_name, new_user_data)
+    new_settings = manager.directory_manager.configs / new_config_name / "settings.yaml"
+    new_logs = manager.directory_manager.configs / new_config_name / "Logs"
+    new_settings.parent.mkdir(parents=True, exist_ok=True)
+    new_logs.mkdir(parents=True, exist_ok=True)
+
+    old_config_path = Path(old_config_path).parent
+    old_urls_path = Path(old_data['Files']['input_file'])
+
+    new_urls = manager.directory_manager.configs / new_config_name / "URLs.txt"
+    if old_urls_path.is_absolute():
+        old_urls_path = old_urls_path.relative_to(old_config_path)
+        old_urls_path.rename(new_urls)
+    elif len(old_urls_path.parts) == 1:
+        if (old_config_path / old_urls_path.name).is_file():
+            (old_config_path / old_urls_path.name).rename(new_urls)
+    else:
+        new_urls.touch(exist_ok=True)
+
+    manager.config_manager.create_new_config(new_settings, new_user_data)
     manager.config_manager.write_updated_authentication_config()
     manager.config_manager.write_updated_global_settings_config()

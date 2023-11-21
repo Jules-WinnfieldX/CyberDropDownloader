@@ -99,14 +99,8 @@ class ConfigManager:
         self.settings = config_path
         self._verify_settings_config()
 
-    def create_new_config(self, config_name: str, settings_data: Dict) -> None:
+    def create_new_config(self, new_settings: Path, settings_data: Dict) -> None:
         """Creates a new settings config file"""
-        new_settings = self.manager.directory_manager.configs / config_name / "settings.yaml"
-        new_logs = self.manager.directory_manager.configs / config_name / "Logs"
-        new_urls = self.manager.directory_manager.configs / config_name / "URLs.txt"
-        new_settings.parent.mkdir(parents=True, exist_ok=True)
-        new_logs.mkdir(parents=True, exist_ok=True)
-        new_urls.touch(exist_ok=True)
         _save_yaml(new_settings, settings_data)
 
     def write_updated_authentication_config(self) -> None:
