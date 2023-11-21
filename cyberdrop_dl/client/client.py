@@ -230,14 +230,14 @@ class DownloadSession:
 
         await self._download(media, current_throttle, proxy, headers, save_content, file)
 
-    async def get_filesize(self, url: URL, referer: str, current_throttle: float, headers: Dict) -> int:
+    async def get_filesize(self, url: URL, referer: str, current_throttle: float, headers: Dict, proxy: str) -> int:
         headers['Referer'] = referer
         headers['user-agent'] = self.client.user_agent
 
         assert url.host is not None
         await self._throttle(current_throttle, url.host)
         async with self.client_session.get(url, headers=headers, ssl=self.client.ssl_context,
-                                           raise_for_status=False) as resp:
+                                           raise_for_status=False, proxy=proxy) as resp:
             if resp.status > 206:
                 if "Server" in resp.headers:
                     if resp.headers["Server"] == "ddos-guard":
