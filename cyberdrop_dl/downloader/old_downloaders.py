@@ -288,7 +288,7 @@ class Old_Downloader:
         while True:
             if not expected_size:
                 expected_size = await self.download_session.get_filesize(media.url, str(media.referer),
-                                                                         current_throttle, headers)
+                                                                         current_throttle, headers, self.proxy)
 
             if not complete_file.exists() and not partial_file.exists():
                 break
