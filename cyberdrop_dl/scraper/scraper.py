@@ -8,9 +8,10 @@ from typing import TYPE_CHECKING
 import aiofiles
 from yarl import URL
 
+from cyberdrop_dl.clients.errors import NoExtensionFailure
 from cyberdrop_dl.scraper.jdownloader import JDownloader
-from cyberdrop_dl.utils.dataclasses.url_objects import ScrapeItem
-from cyberdrop_dl.utils.utilities import log
+from cyberdrop_dl.utils.dataclasses.url_objects import ScrapeItem, MediaItem
+from cyberdrop_dl.utils.utilities import log, get_filename_and_ext
 
 if TYPE_CHECKING:
     from typing import List
@@ -216,6 +217,14 @@ class ScrapeMapper:
             item = ScrapeItem(url=link, parent_title="")
             await self.manager.queue_manager.url_objects_to_map.put(item)
 
+    async def extension_check(self, url: URL) -> bool:
+        """Checks if the URL has a valid extension"""
+        try:
+            filename, ext = await get_filename_and_ext(url.name)
+            return True
+        except NoExtensionFailure:
+            return False
+
     """~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"""
 
     async def check_complete(self) -> bool:
@@ -266,6 +275,13 @@ class ScrapeMapper:
                 continue
             elif skip:
                 await log(f"Skipping URL by Config Selections: {scrape_item.url}")
+            elif await self.extension_check(scrape_item.url):
+                await self.manager.download_manager.get_download_instance("no_crawler")
+                download_queue = await self.manager.queue_manager.get_download_queue("no_crawler")
+                download_folder = self.manager.directory_manager.downloads / "Loose Files"
+                filename, ext = await get_filename_and_ext(scrape_item.url.name)
+                media_item = MediaItem(scrape_item.url, scrape_item.url, download_folder, filename, ext, filename)
+                await download_queue.put(media_item)
             elif self.jdownloader.enabled:
                 if isinstance(self.jdownloader.jdownloader_agent, Field):
                     await self.jdownloader.jdownloader_setup()
