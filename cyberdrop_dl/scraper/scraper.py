@@ -28,10 +28,10 @@ class ScrapeMapper:
                         "jpg.homes": self.jpgchurch, "jpg.fish": self.jpgchurch, "jpg.fishing": self.jpgchurch,
                         "jpg.pet": self.jpgchurch, "jpeg.pet": self.jpgchurch, "jpg1.su": self.jpgchurch,
                         "jpg2.su": self.jpgchurch, "jpg3.su": self.jpgchurch, "kemono": self.kemono,
-                        "nudostar": self.nudostar, "pimpandhost": self.pimpandhost, "pixeldrain": self.pixeldrain,
-                        "postimg": self.postimg, "reddit": self.reddit, "redd.it": self.reddit, "redgifs": self.redgifs,
-                        "saint": self.saint, "socialmediagirls": self.socialmediagirls, "simpcity": self.simpcity,
-                        "xbunker": self.xbunker}
+                        "nudostar.com": self.nudostar, "nudostar.tv": self.nudostartv, "pimpandhost": self.pimpandhost,
+                        "pixeldrain": self.pixeldrain, "postimg": self.postimg, "reddit": self.reddit,
+                        "redd.it": self.reddit, "redgifs": self.redgifs, "saint": self.saint,
+                        "socialmediagirls": self.socialmediagirls, "simpcity": self.simpcity, "xbunker": self.xbunker}
         self.download_mapping = {"xbunkr": "xbunkr", "bunkr": "bunkr", "coomer": "coomer", "cyberdrop": "cyberdrop",
                                  "cyberfile": "cyberfile", "e-hentai": "e-hentai", "erome": "erome",
                                  "fapello": "fapello", "gofile": "gofile", "imgbox": "imgbox",
@@ -39,10 +39,10 @@ class ScrapeMapper:
                                  "jpg.homes": "sharex", "jpg.fish": "sharex", "jpg.fishing": "sharex",
                                  "jpg.pet": "sharex", "jpeg.pet": "sharex", "jpg1.su": "sharex",
                                  "jpg2.su": "sharex", "jpg3.su": "sharex", "kemono": "kemono",
-                                 "nudostar": "nudostar", "pimpandhost": "pimpandhost", "pixeldrain": "pixeldrain",
-                                 "postimg": "postimg", "reddit": "reddit", "redd.it": "reddit", "redgifs": "redgifs",
-                                 "saint": "saint", "socialmediagirls": "socialmediagirls", "simpcity": "simpcity",
-                                 "xbunker": "xbunker"}
+                                 "nudostar.com": "nudostar", "nudostar.tv": "nudostartv", "pimpandhost": "pimpandhost",
+                                 "pixeldrain": "pixeldrain", "postimg": "postimg", "reddit": "reddit",
+                                 "redd.it": "reddit", "redgifs": "redgifs", "saint": "saint",
+                                 "socialmediagirls": "socialmediagirls", "simpcity": "simpcity", "xbunker": "xbunker"}
         self.existing_crawlers = {}
         self.manager = manager
         self.jdownloader = JDownloader(self.manager)
@@ -126,6 +126,11 @@ class ScrapeMapper:
         """Creates a NudoStar Crawler instance"""
         from cyberdrop_dl.scraper.crawlers.nudostar_crawler import NudoStarCrawler
         self.existing_crawlers['nudostar'] = NudoStarCrawler(self.manager)
+
+    async def nudostartv(self) -> None:
+        """Creates a NudoStarTV Crawler instance"""
+        from cyberdrop_dl.scraper.crawlers.nudostartv_crawler import NudoStarTVCrawler
+        self.existing_crawlers['nudostar.tv'] = NudoStarTVCrawler(self.manager)
 
     async def pimpandhost(self) -> None:
         """Creates a PimpAndHost Crawler instance"""
@@ -244,7 +249,7 @@ class ScrapeMapper:
                 scrape_item.url = scrape_item.url.with_path(scrape_item.url.path[:-1])
 
             key = next((key for key in self.mapping if key in scrape_item.url.host.lower()), None)
-            download_key = next((key for key in self.download_mapping if key in scrape_item.url.host.lower()), None)
+            download_key = next((self.download_mapping[key] for key in self.download_mapping if key in scrape_item.url.host.lower()), None)
 
             if key and not skip:
                 """If the crawler doesn't exist, create it, finally add the scrape item to it's queue"""
