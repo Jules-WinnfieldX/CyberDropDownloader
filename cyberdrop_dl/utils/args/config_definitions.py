@@ -47,6 +47,7 @@ settings: Dict = {
         "disable_download_attempt_limit": False,
         "disable_file_timestamps": False,
         "include_album_id_in_folder_name": False,
+        "include_thread_id_in_folder_name": False,
         "remove_generated_id_from_filenames": False,
         "scrape_single_forum_post": False,
         "separate_posts": False,
