@@ -37,3 +37,10 @@ class FailedLoginFailure(Exception):
         self.message = message
         super().__init__(self.message)
         super().__init__(self.status)
+
+
+class JDownloaderFailure(Exception):
+    """Basic failure template for JDownloader"""
+    def __init__(self, message: str = "Something went wrong"):
+        self.message = message
+        super().__init__(self.message)

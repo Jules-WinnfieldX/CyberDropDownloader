@@ -2,11 +2,13 @@ from __future__ import annotations
 
 import asyncio
 import re
+from dataclasses import Field
 from typing import TYPE_CHECKING
 
 import aiofiles
 from yarl import URL
 
+from cyberdrop_dl.scraper.jdownloader import JDownloader
 from cyberdrop_dl.utils.dataclasses.url_objects import ScrapeItem
 from cyberdrop_dl.utils.utilities import log
 
@@ -43,6 +45,7 @@ class ScrapeMapper:
                                  "xbunker": "xbunker"}
         self.existing_crawlers = {}
         self.manager = manager
+        self.jdownloader = JDownloader(self.manager)
 
         self.complete = False
 
@@ -256,6 +259,14 @@ class ScrapeMapper:
                 continue
             elif skip:
                 await log(f"Skipping URL by Config Selections: {scrape_item.url}")
+            elif self.jdownloader.enabled:
+                if isinstance(self.jdownloader.jdownloader_agent, Field):
+                    await self.jdownloader.jdownloader_setup()
+                    if not self.jdownloader.enabled:
+                        await log(f"Unsupported URL: {scrape_item.url}")
+                        await self.manager.file_manager.write_unsupported_urls_log(scrape_item.url)
+                await log(f"Sending unsupported URL to JDownloader: {scrape_item.url}")
+                await self.jdownloader.direct_unsupported_to_jdownloader(scrape_item.url, scrape_item.parent_title)
             else:
                 await log(f"Unsupported URL: {scrape_item.url}")
                 await self.manager.file_manager.write_unsupported_urls_log(scrape_item.url)
