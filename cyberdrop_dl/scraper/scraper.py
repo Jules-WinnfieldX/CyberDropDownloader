@@ -31,7 +31,8 @@ class ScrapeMapper:
                         "nudostar.com": self.nudostar, "nudostar.tv": self.nudostartv, "pimpandhost": self.pimpandhost,
                         "pixeldrain": self.pixeldrain, "postimg": self.postimg, "reddit": self.reddit,
                         "redd.it": self.reddit, "redgifs": self.redgifs, "saint": self.saint,
-                        "socialmediagirls": self.socialmediagirls, "simpcity": self.simpcity, "xbunker": self.xbunker}
+                        "socialmediagirls": self.socialmediagirls, "simpcity": self.simpcity,
+                        "xbunker": self.xbunker}
         self.download_mapping = {"xbunkr": "xbunkr", "bunkr": "bunkr", "coomer": "coomer", "cyberdrop": "cyberdrop",
                                  "cyberfile": "cyberfile", "e-hentai": "e-hentai", "erome": "erome",
                                  "fapello": "fapello", "gofile": "gofile", "imgbox": "imgbox",
@@ -42,7 +43,8 @@ class ScrapeMapper:
                                  "nudostar.com": "nudostar", "nudostar.tv": "nudostartv", "pimpandhost": "pimpandhost",
                                  "pixeldrain": "pixeldrain", "postimg": "postimg", "reddit": "reddit",
                                  "redd.it": "reddit", "redgifs": "redgifs", "saint": "saint",
-                                 "socialmediagirls": "socialmediagirls", "simpcity": "simpcity", "xbunker": "xbunker"}
+                                 "socialmediagirls": "socialmediagirls", "simpcity": "simpcity",
+                                 "xbunker": "xbunker"}
         self.existing_crawlers = {}
         self.manager = manager
         self.jdownloader = JDownloader(self.manager)

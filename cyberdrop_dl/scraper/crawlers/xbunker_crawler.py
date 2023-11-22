@@ -91,7 +91,7 @@ class XBunkerCrawler(Crawler):
                 elem.decompose()
 
             if self.manager.config_manager.settings_data['Download_Options']['include_thread_id_in_folder_name']:
-                thread_id = thread_url.parts[3].split('.')[-1]
+                thread_id = thread_url.parts[2].split('.')[-1]
                 title = title_block.text.replace("\n", "").strip() + f" {thread_id} ({thread_url.host})"
             else:
                 title = title_block.text.replace("\n", "").strip() + f" ({thread_url.host})"
