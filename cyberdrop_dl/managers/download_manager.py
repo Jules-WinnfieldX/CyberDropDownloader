@@ -78,6 +78,8 @@ class DownloadManager:
             return False
         elif media_item.ext in FILE_FORMATS['Audio'] and self.manager.config_manager.settings_data['Ignore_Options']['exclude_audio']:
             return False
-        elif self.manager.config_manager.settings_data['Ignore_Options']['exclude_other']:
+        elif (self.manager.config_manager.settings_data['Ignore_Options']['exclude_other'] and
+              media_item.ext not in FILE_FORMATS['Images'] and media_item.ext not in FILE_FORMATS['Videos'] and
+              media_item.ext not in FILE_FORMATS['Audio']):
             return False
         return True
