@@ -35,7 +35,7 @@ class NudoStarTVCrawler(Crawler):
         async with self.request_limiter:
             soup = await self.client.get_BS4(self.domain, scrape_item.url)
 
-        title = soup.select_one('div[class=headline]').get_text() + f" ({scrape_item.url.host})"
+        title = soup.select_one('div[class=headline]').get_text().rsplit("page")[0].strip() + f" ({scrape_item.url.host})"
         content = soup.select('div[id=list_videos_common_videos_list_items] div a')
         for page in content:
             link = URL(page.get('href'))

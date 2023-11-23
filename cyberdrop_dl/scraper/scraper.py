@@ -29,22 +29,21 @@ class ScrapeMapper:
                         "jpg.homes": self.jpgchurch, "jpg.fish": self.jpgchurch, "jpg.fishing": self.jpgchurch,
                         "jpg.pet": self.jpgchurch, "jpeg.pet": self.jpgchurch, "jpg1.su": self.jpgchurch,
                         "jpg2.su": self.jpgchurch, "jpg3.su": self.jpgchurch, "kemono": self.kemono,
-                        "nudostar.com": self.nudostar, "nudostar.tv": self.nudostartv, "pimpandhost": self.pimpandhost,
-                        "pixeldrain": self.pixeldrain, "postimg": self.postimg, "reddit": self.reddit,
-                        "redd.it": self.reddit, "redgifs": self.redgifs, "saint": self.saint,
+                        "mediafire": self.mediafire, "nudostar.com": self.nudostar, "nudostar.tv": self.nudostartv,
+                        "pimpandhost": self.pimpandhost, "pixeldrain": self.pixeldrain, "postimg": self.postimg,
+                        "reddit": self.reddit, "redd.it": self.reddit, "redgifs": self.redgifs, "saint": self.saint,
                         "socialmediagirls": self.socialmediagirls, "simpcity": self.simpcity,
                         "xbunker": self.xbunker}
         self.download_mapping = {"xbunkr": "xbunkr", "bunkr": "bunkr", "coomer": "coomer", "cyberdrop": "cyberdrop",
                                  "cyberfile": "cyberfile", "e-hentai": "e-hentai", "erome": "erome",
-                                 "fapello": "fapello", "gofile": "gofile", "imgbox": "imgbox",
-                                 "imgur": "imgur", "img.kiwi": "sharex", "jpg.church": "sharex",
-                                 "jpg.homes": "sharex", "jpg.fish": "sharex", "jpg.fishing": "sharex",
-                                 "jpg.pet": "sharex", "jpeg.pet": "sharex", "jpg1.su": "sharex",
-                                 "jpg2.su": "sharex", "jpg3.su": "sharex", "kemono": "kemono",
-                                 "nudostar.com": "nudostar", "nudostar.tv": "nudostartv", "pimpandhost": "pimpandhost",
-                                 "pixeldrain": "pixeldrain", "postimg": "postimg", "reddit": "reddit",
-                                 "redd.it": "reddit", "redgifs": "redgifs", "saint": "saint",
-                                 "socialmediagirls": "socialmediagirls", "simpcity": "simpcity",
+                                 "fapello": "fapello", "gofile": "gofile", "imgbox": "imgbox", "imgur": "imgur",
+                                 "img.kiwi": "sharex", "jpg.church": "sharex", "jpg.homes": "sharex",
+                                 "jpg.fish": "sharex", "jpg.fishing": "sharex", "jpg.pet": "sharex",
+                                 "jpeg.pet": "sharex", "jpg1.su": "sharex", "jpg2.su": "sharex", "jpg3.su": "sharex",
+                                 "kemono": "kemono", "mediafire": "mediafire", "nudostar.com": "nudostar",
+                                 "nudostar.tv": "nudostartv", "pimpandhost": "pimpandhost", "pixeldrain": "pixeldrain",
+                                 "postimg": "postimg", "reddit": "reddit", "redd.it": "reddit", "redgifs": "redgifs",
+                                 "saint": "saint", "socialmediagirls": "socialmediagirls", "simpcity": "simpcity",
                                  "xbunker": "xbunker"}
         self.existing_crawlers = {}
         self.manager = manager
@@ -124,6 +123,11 @@ class ScrapeMapper:
         """Creates a Kemono Crawler instance"""
         from cyberdrop_dl.scraper.crawlers.kemono_crawler import KemonoCrawler
         self.existing_crawlers['kemono'] = KemonoCrawler(self.manager)
+
+    async def mediafire(self) -> None:
+        """Creates a MediaFire Crawler instance"""
+        from cyberdrop_dl.scraper.crawlers.mediafire_crawler import MediaFireCrawler
+        self.existing_crawlers['mediafire'] = MediaFireCrawler(self.manager)
 
     async def nudostar(self) -> None:
         """Creates a NudoStar Crawler instance"""

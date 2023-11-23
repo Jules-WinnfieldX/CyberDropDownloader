@@ -8,7 +8,7 @@ class SupportedDomains:
     supported_hosts: ClassVar[Tuple[str, ...]] = ("xbunkr", "bunkr", "coomer", "cyberdrop", "cyberfile", "e-hentai",
                                                   "erome", "fapello", "gofile", "imgbox", "imgur", "img.kiwi",
                                                   "jpg.church", "jpg.homes", "jpg.fish", "jpg.fishing", "jpg.pet",
-                                                  "jpeg.pet", "jpg1.su", "jpg2.su", "jpg3.su", "kemono",
+                                                  "jpeg.pet", "jpg1.su", "jpg2.su", "jpg3.su", "kemono", "mediafire",
                                                   "nudostar.com", "nudostar.tv", "pimpandhost", "pixeldrain",
                                                   "postimg", "reddit", "redd.it", "redgifs", "saint",
                                                   "socialmediagirls", "simpcity", "xbunker")

@@ -25,6 +25,7 @@ aiosqlite = "0.17.0"
 aiofiles = "0.8.0"
 asyncpraw = "^7.7.1"
 myjdapi = "^1.1.7"
+mediafire = "^0.6.1"
 
 [tool.poetry.scripts]
 cyberdrop-dl = "cyberdrop_dl.main:main"
