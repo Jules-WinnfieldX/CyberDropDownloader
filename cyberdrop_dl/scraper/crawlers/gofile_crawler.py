@@ -66,7 +66,7 @@ class GoFileCrawler(Crawler):
             raise ScrapeFailure(404, "Does Not Exist")
 
         JSON_Resp = JSON_Resp['data']
-        title = JSON_Resp["name"] + f" ({scrape_item.url.host})"
+        title = await self.create_title(JSON_Resp["name"], content_id, None)
 
         contents = JSON_Resp["contents"]
         for content_id in contents:

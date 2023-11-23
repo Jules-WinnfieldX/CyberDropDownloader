@@ -42,7 +42,7 @@ class CyberdropCrawler(Crawler):
         async with self.request_limiter:
             soup = await self.client.get_BS4(self.domain, scrape_item.url)
 
-        title = soup.select_one("h1[id=title]").text + f" ({scrape_item.url.host})"
+        title = await self.create_title(soup.select_one("h1[id=title]").text, scrape_item.url.parts[2], None)
         date = await self.parse_datetime(soup.select("p[class=title]")[-1].text)
 
         links = soup.select("div[class*=image-container] a")

@@ -68,7 +68,7 @@ class RedGifsCrawler(Crawler):
         async with self.request_limiter:
             JSON_Resp = await self.client.get_json(self.domain, self.redgifs_api / "v2/gifs" / post_id, headers_inc=self.headers)
 
-        title = JSON_Resp["gif"]["userName"] + f" ({scrape_item.url.host})"
+        title = await self.create_title(JSON_Resp["gif"]["title"], None, None)
         links = JSON_Resp["gif"]["urls"]
         date = JSON_Resp["gif"]["createDate"]
 

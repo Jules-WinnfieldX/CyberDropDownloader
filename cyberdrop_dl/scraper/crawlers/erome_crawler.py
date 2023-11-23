@@ -37,7 +37,7 @@ class EromeCrawler(Crawler):
         async with self.request_limiter:
             soup = await self.client.get_BS4(self.domain, scrape_item.url)
 
-        title = scrape_item.url.name + f" ({scrape_item.url.host})"
+        title = await self.create_title(scrape_item.url.name, None, None)
         albums = soup.select('a[class=album-link]')
 
         for album in albums:
@@ -58,9 +58,10 @@ class EromeCrawler(Crawler):
         async with self.request_limiter:
             soup = await self.client.get_BS4(self.domain, scrape_item.url)
 
-        title = soup.select_one('div[class="col-sm-12 page-content"] h1').get_text()
-        if not title:
-            title = scrape_item.url.name
+        title_portion = soup.select_one('h1[class="album-title"]').get_text()
+        if not title_portion:
+            title_portion = scrape_item.url.name
+        title = await self.create_title(title_portion, scrape_item.url.parts[2], None)
         await scrape_item.add_to_parent_title(title)
 
         images = soup.select('img[class="img-front lasyload"]')

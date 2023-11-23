@@ -42,7 +42,7 @@ class FapelloCrawler(Crawler):
             if response_url != scrape_item.url:
                 return
 
-        title = soup.select_one('h2[class="font-semibold lg:text-2xl text-lg mb-2 mt-4"]').get_text() + f" ({scrape_item.url.host})"
+        title = await self.create_title(soup.select_one('h2[class="font-semibold lg:text-2xl text-lg mb-2 mt-4"]').get_text(), None, None)
 
         content = soup.select("div[id=content] a")
         for post in content:

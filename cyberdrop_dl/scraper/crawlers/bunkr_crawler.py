@@ -47,7 +47,8 @@ class BunkrCrawler(Crawler):
         title = soup.select_one('h1[class="text-[24px] font-bold text-dark dark:text-white"]')
         for elem in title.find_all("span"):
             elem.decompose()
-        title = title.get_text() + f" ({scrape_item.url.host})"
+
+        title = await self.create_title(title.get_text().strip(), scrape_item.url.parts[2], None)
         await scrape_item.add_to_parent_title(title)
 
         card_listings = soup.select('div[class*="grid-images_box rounded-lg"]')

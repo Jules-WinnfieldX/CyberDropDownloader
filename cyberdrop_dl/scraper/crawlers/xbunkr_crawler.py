@@ -39,7 +39,8 @@ class XBunkrCrawler(Crawler):
         async with self.request_limiter:
             soup = await self.client.get_BS4(self.domain, scrape_item.url)
 
-        title = soup.select_one("h1[id=title]").text + f" ({scrape_item.url.host})"
+        title = await self.create_title(soup.select_one("h1[id=title]").text, scrape_item.url.parts[2])
+
         links = soup.select("a[class=image]")
         for link in links:
             link = URL(link.get('href'))

@@ -53,7 +53,7 @@ class RedditCrawler(Crawler):
     async def user(self, scrape_item: ScrapeItem, reddit: asyncpraw.Reddit) -> None:
         """Scrapes user pages"""
         username = scrape_item.url.name
-        title = username + f" ({scrape_item.url.host})"
+        title = await self.create_title(username, None, None)
         await scrape_item.add_to_parent_title(title)
         scrape_item.part_of_album = True
 
@@ -65,7 +65,7 @@ class RedditCrawler(Crawler):
     async def subreddit(self, scrape_item: ScrapeItem, reddit: asyncpraw.Reddit) -> None:
         """Scrapes subreddit pages"""
         subreddit = scrape_item.url.name
-        title = subreddit + f" ({scrape_item.url.host})"
+        title = await self.create_title(subreddit, None, None)
         await scrape_item.add_to_parent_title(title)
         scrape_item.part_of_album = True
 

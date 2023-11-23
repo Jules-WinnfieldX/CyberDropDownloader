@@ -42,7 +42,7 @@ class ImgKiwiCrawler(Crawler):
         async with self.request_limiter:
             soup = await self.client.get_BS4(self.domain, scrape_item.url)
 
-        title = soup.select_one("a[data-text=album-name]").get_text() + f" ({scrape_item.url.host})"
+        title = await self.create_title(soup.select_one("a[data-text=album-name]").get_text(), scrape_item.url.parts[2], None)
         link_next = URL(soup.select_one("a[id=list-most-recent-link]").get("href"))
 
         while True:

@@ -9,7 +9,7 @@ from yarl import URL
 
 from cyberdrop_dl.scraper.crawler import Crawler
 from cyberdrop_dl.utils.dataclasses.url_objects import ScrapeItem
-from cyberdrop_dl.utils.utilities import error_handling_wrapper, log, get_filename_and_ext
+from cyberdrop_dl.utils.utilities import error_handling_wrapper, get_filename_and_ext
 
 if TYPE_CHECKING:
     from cyberdrop_dl.managers.manager import Manager
@@ -40,7 +40,8 @@ class PixelDrainCrawler(Crawler):
         async with self.request_limiter:
             JSON_Resp = await self.client.get_json(self.domain, self.api_address / "list" / scrape_item.url.parts[-1])
 
-        title = JSON_Resp['title'] + f" ({scrape_item.url.host})"
+        title = await self.create_title(JSON_Resp['title'], scrape_item.url.parts[2], None)
+
         for file in JSON_Resp['files']:
             link = await self.create_download_link(file['id'])
             date = await self.parse_datetime(file['date_upload'].replace("T", " ").split(".")[0])

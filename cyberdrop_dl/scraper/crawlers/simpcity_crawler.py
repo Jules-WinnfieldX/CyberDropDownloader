@@ -86,11 +86,8 @@ class SimpCityCrawler(Crawler):
             for elem in title_block.find_all(self.title_trash_selector):
                 elem.decompose()
 
-            if self.manager.config_manager.settings_data['Download_Options']['include_thread_id_in_folder_name']:
-                thread_id = thread_url.parts[2].split('.')[-1]
-                title = title_block.text.replace("\n", "").strip() + f" {thread_id} ({thread_url.host})"
-            else:
-                title = title_block.text.replace("\n", "").strip() + f" ({thread_url.host})"
+            thread_id = thread_url.parts[2].split('.')[-1]
+            title = await self.create_title(title_block.text.replace("\n", ""), None, thread_id)
 
             new_scrape_item = ScrapeItem(thread_url, scrape_item.parent_title)
             await new_scrape_item.add_to_parent_title(title)

@@ -3,7 +3,7 @@ from __future__ import annotations
 import asyncio
 from abc import ABC, abstractmethod
 from dataclasses import field
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 from bs4 import BeautifulSoup
 from yarl import URL
@@ -140,3 +140,19 @@ class Crawler(ABC):
                 except asyncio.exceptions.TimeoutError:
                     attempt += 1
                     continue
+
+    """~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"""
+
+    async def create_title(self, title: str, album_id: Optional[str], thread_id: Optional[str]) -> str:
+        """Creates the title for the scrape item"""
+        if self.manager.config_manager.settings_data['Download_Options']['include_album_id_in_folder_name']:
+            if not album_id:
+                return title.strip() + f" ({self.folder_domain})"
+            return title.strip() + f" {album_id} ({self.folder_domain})"
+
+        if self.manager.config_manager.settings_data['Download_Options']['include_thread_id_in_folder_name']:
+            if not thread_id:
+                return title.strip() + f" ({self.folder_domain})"
+            return title.strip() + f" {thread_id} ({self.folder_domain})"
+
+        return title.strip() + f" ({self.folder_domain})"

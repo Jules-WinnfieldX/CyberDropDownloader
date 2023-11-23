@@ -45,7 +45,7 @@ class PostImgCrawler(Crawler):
             async with self.request_limiter:
                 JSON_Resp = await self.client.post_data(self.domain, self.api_address, data=data)
 
-            title = scrape_item.url.raw_name + f" ({scrape_item.url.host})"
+            title = await self.create_title(scrape_item.url.raw_name, scrape_item.url.parts[2], None)
 
             for image in JSON_Resp['images']:
                 link = URL(image[4])

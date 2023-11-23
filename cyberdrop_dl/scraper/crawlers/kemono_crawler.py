@@ -141,6 +141,6 @@ class KemonoCrawler(Crawler):
                 post_title = post_id + " - " + post_title
 
         new_scrape_item = ScrapeItem(link, old_scrape_item.parent_title, True, possible_datetime=await self.parse_datetime(date))
-        await new_scrape_item.add_to_parent_title(f"{user} ({old_scrape_item.url.host})")
+        await new_scrape_item.add_to_parent_title(f"{user} ({self.folder_domain})")
         await new_scrape_item.add_to_parent_title(post_title)
         await self.scraper_queue.put(new_scrape_item)

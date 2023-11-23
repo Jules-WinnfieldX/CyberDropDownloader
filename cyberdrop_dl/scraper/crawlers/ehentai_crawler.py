@@ -41,7 +41,8 @@ class EHentaiCrawler(Crawler):
         """Scrapes an album"""
         async with self.request_limiter:
             soup = await self.client.get_BS4(self.domain, scrape_item.url)
-        title = soup.select_one("h1[id=gn]").get_text()
+
+        title = await self.create_title(soup.select_one("h1[id=gn]").get_text(), None, None)
         date = await self.parse_datetime(soup.select_one("td[class=gdt2]").get_text())
 
         images = soup.select("div[class=gdtm] div a")

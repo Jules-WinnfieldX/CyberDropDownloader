@@ -54,7 +54,7 @@ class CyberfileCrawler(Crawler):
             async with self.request_limiter:
                 ajax_dict = await self.client.post_data(self.domain, self.api_files, data=data)
                 ajax_soup = BeautifulSoup(ajax_dict['html'].replace("\\", ""), 'html.parser')
-            title = ajax_dict['page_title']
+            title = await self.create_title(ajax_dict['page_title'], scrape_item.url.parts[2], None)
             num_pages = int(ajax_soup.select("a[onclick*=loadImages]")[-1].get('onclick').split(',')[2].split(")")[0].strip())
 
             tile_listings = ajax_soup.select("div[class=fileListing] div[class*=fileItem]")
@@ -90,7 +90,7 @@ class CyberfileCrawler(Crawler):
             async with self.request_limiter:
                 ajax_dict = await self.client.post_data("cyberfile", self.api_files, data=data)
                 ajax_soup = BeautifulSoup(ajax_dict['html'].replace("\\", ""), 'html.parser')
-            title = ajax_dict['page_title']
+            title = await self.create_title(ajax_dict['page_title'], scrape_item.url.parts[2], None)
             num_pages = int(ajax_soup.select_one('input[id=rspTotalPages]').get('value'))
 
             tile_listings = ajax_soup.select("div[class=fileListing] div[class*=fileItem]")

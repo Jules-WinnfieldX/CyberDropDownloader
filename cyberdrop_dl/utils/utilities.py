@@ -142,9 +142,9 @@ async def get_download_path(manager: Manager, scrape_item: ScrapeItem, domain: s
     if scrape_item.parent_title and scrape_item.part_of_album:
         return manager.directory_manager.downloads / scrape_item.parent_title
     elif scrape_item.parent_title:
-        return manager.directory_manager.downloads / scrape_item.parent_title / f"Loose {domain} Files"
+        return manager.directory_manager.downloads / scrape_item.parent_title / f"Loose Files ({domain})"
     else:
-        return manager.directory_manager.downloads / f"Loose {domain} Files"
+        return manager.directory_manager.downloads / f"Loose Files ({domain})"
 
 
 async def remove_id(manager: Manager, filename: str, ext: str) -> Tuple[str, str]:

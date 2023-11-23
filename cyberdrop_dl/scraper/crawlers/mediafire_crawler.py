@@ -4,17 +4,13 @@ import calendar
 import datetime
 from typing import TYPE_CHECKING
 
-import aiohttp
-import asyncpraw
-import asyncprawcore
 from aiolimiter import AsyncLimiter
 from mediafire import MediaFireApi
 from yarl import URL
 
-from cyberdrop_dl.clients.errors import ScrapeFailure
 from cyberdrop_dl.scraper.crawler import Crawler
 from cyberdrop_dl.utils.dataclasses.url_objects import ScrapeItem
-from cyberdrop_dl.utils.utilities import error_handling_wrapper, log, get_filename_and_ext
+from cyberdrop_dl.utils.utilities import error_handling_wrapper, get_filename_and_ext
 
 if TYPE_CHECKING:
     from cyberdrop_dl.managers.manager import Manager
@@ -45,10 +41,7 @@ class MediaFireCrawler(Crawler):
         folder_key = scrape_item.url.parts[2]
         folder_details = self.api.folder_get_info(folder_key=folder_key)
 
-        if self.manager.config_manager.settings_data['Download_Options']['include_album_id_in_folder_name']:
-            title = folder_details['folder_info']['name'] + f" {folder_key} ({scrape_item.url.host})"
-        else:
-            title = folder_details['folder_info']['name'] + f" ({scrape_item.url.host})"
+        title = await self.create_title(folder_details['folder_info']['name'], folder_key, None)
 
         chunk = 1
         chunk_size = 100
