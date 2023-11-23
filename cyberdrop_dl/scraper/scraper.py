@@ -24,7 +24,7 @@ class ScrapeMapper:
     def __init__(self, manager: Manager):
         self.mapping = {"xbunkr": self.xbunkr, "bunkr": self.bunkr, "coomer": self.coomer, "cyberdrop": self.cyberdrop,
                         "cyberfile": self.cyberfile, "e-hentai": self.ehentai, "erome": self.erome,
-                        "fapello": self.fapello, "gofile": self.gofile, "imgbox": self.imgbox,
+                        "fapello": self.fapello, "gofile": self.gofile, "imageban": self.imageban, "imgbox": self.imgbox,
                         "imgur": self.imgur, "img.kiwi": self.imgwiki, "jpg.church": self.jpgchurch,
                         "jpg.homes": self.jpgchurch, "jpg.fish": self.jpgchurch, "jpg.fishing": self.jpgchurch,
                         "jpg.pet": self.jpgchurch, "jpeg.pet": self.jpgchurch, "jpg1.su": self.jpgchurch,
@@ -36,7 +36,7 @@ class ScrapeMapper:
                         "xbunker": self.xbunker}
         self.download_mapping = {"xbunkr": "xbunkr", "bunkr": "bunkr", "coomer": "coomer", "cyberdrop": "cyberdrop",
                                  "cyberfile": "cyberfile", "e-hentai": "e-hentai", "erome": "erome",
-                                 "fapello": "fapello", "gofile": "gofile", "imgbox": "imgbox", "imgur": "imgur",
+                                 "fapello": "fapello", "gofile": "gofile", "imageban": "imageban", "imgbox": "imgbox", "imgur": "imgur",
                                  "img.kiwi": "sharex", "jpg.church": "sharex", "jpg.homes": "sharex",
                                  "jpg.fish": "sharex", "jpg.fishing": "sharex", "jpg.pet": "sharex",
                                  "jpeg.pet": "sharex", "jpg1.su": "sharex", "jpg2.su": "sharex", "jpg3.su": "sharex",
@@ -90,6 +90,11 @@ class ScrapeMapper:
         """Creates a GoFile Crawler instance"""
         from cyberdrop_dl.scraper.crawlers.gofile_crawler import GoFileCrawler
         self.existing_crawlers['gofile'] = GoFileCrawler(self.manager)
+
+    async def imageban(self) -> None:
+        """Creates a ImageBan Crawler instance"""
+        from cyberdrop_dl.scraper.crawlers.imageban_crawler import ImageBanCrawler
+        self.existing_crawlers['imageban'] = ImageBanCrawler(self.manager)
 
     async def imgbox(self) -> None:
         """Creates a ImgBox Crawler instance"""

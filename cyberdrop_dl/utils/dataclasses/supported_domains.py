@@ -6,7 +6,7 @@ from typing import ClassVar, Tuple, List
 class SupportedDomains:
     """The allows options for domains to skip when scraping"""
     supported_hosts: ClassVar[Tuple[str, ...]] = ("xbunkr", "bunkr", "coomer", "cyberdrop", "cyberfile", "e-hentai",
-                                                  "erome", "fapello", "gofile", "imgbox", "imgur", "img.kiwi",
+                                                  "erome", "fapello", "gofile", "imageban", "imgbox", "imgur", "img.kiwi",
                                                   "jpg.church", "jpg.homes", "jpg.fish", "jpg.fishing", "jpg.pet",
                                                   "jpeg.pet", "jpg1.su", "jpg2.su", "jpg3.su", "kemono", "mediafire",
                                                   "nudostar.com", "nudostar.tv", "pimpandhost", "pixeldrain",
