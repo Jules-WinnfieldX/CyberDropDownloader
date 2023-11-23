@@ -47,12 +47,11 @@ class ImgurCrawler(Crawler):
         await self.check_imgur_credits()
 
         album_id = scrape_item.url.parts[-1]
-        title = album_id + f" {scrape_item.url.host}"
 
         async with self.request_limiter:
             JSON_Obj = await self.client.get_json(self.domain, self.imgur_api / f"album/{album_id}", headers_inc=self.headers)
         if "title" in JSON_Obj["data"].keys():
-            title_part = JSON_Obj["data"]["title"] + f" {scrape_item.url.host}"
+            title_part = JSON_Obj["data"]["title"]
         else:
             title_part = album_id
         title = await self.create_title(title_part, scrape_item.url.parts[2], None)
