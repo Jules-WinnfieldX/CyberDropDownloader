@@ -30,10 +30,11 @@ class ScrapeMapper:
                         "jpg.fish": self.jpgchurch, "jpg.fishing": self.jpgchurch, "jpg.pet": self.jpgchurch,
                         "jpeg.pet": self.jpgchurch, "jpg1.su": self.jpgchurch, "jpg2.su": self.jpgchurch,
                         "jpg3.su": self.jpgchurch, "kemono": self.kemono, "mediafire": self.mediafire,
-                        "nudostar.com": self.nudostar, "nudostar.tv": self.nudostartv, "pimpandhost": self.pimpandhost,
-                        "pixeldrain": self.pixeldrain, "postimg": self.postimg, "reddit": self.reddit,
-                        "redd.it": self.reddit, "redgifs": self.redgifs, "saint": self.saint,
-                        "socialmediagirls": self.socialmediagirls, "simpcity": self.simpcity, "xbunker": self.xbunker}
+                        "nudostar.com": self.nudostar, "nudostar.tv": self.nudostartv, "omegascans": self.omegascans,
+                        "pimpandhost": self.pimpandhost, "pixeldrain": self.pixeldrain, "postimg": self.postimg,
+                        "reddit": self.reddit, "redd.it": self.reddit, "redgifs": self.redgifs, "saint": self.saint,
+                        "socialmediagirls": self.socialmediagirls, "simpcity": self.simpcity, "toonily": self.toonily,
+                        "xbunker": self.xbunker}
         self.download_mapping = {"xbunkr": "xbunkr", "bunkr": "bunkr", "celebforum": "celebforum", "coomer": "coomer",
                                  "cyberdrop": "cyberdrop", "cyberfile": "cyberfile", "e-hentai": "e-hentai",
                                  "erome": "erome", "fapello": "fapello", "gofile": "gofile", "ibb.co": "imgbb",
@@ -42,9 +43,10 @@ class ScrapeMapper:
                                  "jpg.fishing": "sharex", "jpg.pet": "sharex", "jpeg.pet": "sharex",
                                  "jpg1.su": "sharex", "jpg2.su": "sharex", "jpg3.su": "sharex", "kemono": "kemono",
                                  "mediafire": "mediafire", "nudostar.com": "nudostar", "nudostar.tv": "nudostartv",
-                                 "pimpandhost": "pimpandhost", "pixeldrain": "pixeldrain", "postimg": "postimg",
-                                 "reddit": "reddit", "redd.it": "reddit", "redgifs": "redgifs", "saint": "saint",
-                                 "socialmediagirls": "socialmediagirls", "simpcity": "simpcity", "xbunker": "xbunker"}
+                                 "omegascans": "omegascans", "pimpandhost": "pimpandhost", "pixeldrain": "pixeldrain",
+                                 "postimg": "postimg", "reddit": "reddit", "redd.it": "reddit", "redgifs": "redgifs",
+                                 "saint": "saint", "socialmediagirls": "socialmediagirls", "simpcity": "simpcity",
+                                 "toonily": "toonily", "xbunker": "xbunker"}
         self.existing_crawlers = {}
         self.manager = manager
         self.jdownloader = JDownloader(self.manager)
@@ -154,6 +156,11 @@ class ScrapeMapper:
         from cyberdrop_dl.scraper.crawlers.nudostartv_crawler import NudoStarTVCrawler
         self.existing_crawlers['nudostar.tv'] = NudoStarTVCrawler(self.manager)
 
+    async def omegascans(self) -> None:
+        """Creates a OmegaScans Crawler instance"""
+        from cyberdrop_dl.scraper.crawlers.omegascans_crawler import OmegaScansCrawler
+        self.existing_crawlers['omegascans'] = OmegaScansCrawler(self.manager)
+
     async def pimpandhost(self) -> None:
         """Creates a PimpAndHost Crawler instance"""
         from cyberdrop_dl.scraper.crawlers.pimpandhost_crawler import PimpAndHostCrawler
@@ -194,6 +201,11 @@ class ScrapeMapper:
         """Creates a SimpCity Crawler instance"""
         from cyberdrop_dl.scraper.crawlers.simpcity_crawler import SimpCityCrawler
         self.existing_crawlers['simpcity'] = SimpCityCrawler(self.manager)
+
+    async def toonily(self) -> None:
+        """Creates a Toonily Crawler instance"""
+        from cyberdrop_dl.scraper.crawlers.toonily_crawler import ToonilyCrawler
+        self.existing_crawlers['toonily'] = ToonilyCrawler(self.manager)
 
     async def xbunker(self) -> None:
         """Creates a XBunker Crawler instance"""
