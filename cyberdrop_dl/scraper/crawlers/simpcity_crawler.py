@@ -25,6 +25,8 @@ class SimpCityCrawler(Crawler):
         self.title_selector = "h1[class=p-title-value]"
         self.title_trash_selector = "a"
         self.posts_selector = "div[class*=message-main]"
+        self.post_date_selector = "time"
+        self.post_date_attribute = "data-time"
         self.posts_number_selector = "li[class=u-concealed] a"
         self.posts_number_attribute = "href"
         self.quotes_selector = "blockquote"
@@ -89,14 +91,17 @@ class SimpCityCrawler(Crawler):
             thread_id = thread_url.parts[2].split('.')[-1]
             title = await self.create_title(title_block.text.replace("\n", ""), None, thread_id)
 
-            new_scrape_item = ScrapeItem(thread_url, scrape_item.parent_title)
-            await new_scrape_item.add_to_parent_title(title)
-
             posts = soup.select(self.posts_selector)
             for post in posts:
                 current_post_number = int(post.select_one(self.posts_number_selector).get(self.posts_number_attribute).split('/')[-1].split('post-')[-1])
                 if post_number > current_post_number:
                     continue
+
+                new_scrape_item = ScrapeItem(thread_url, scrape_item.parent_title)
+                await new_scrape_item.add_to_parent_title(title)
+
+                date = int(post.select_one(self.post_date_selector).get(self.post_date_attribute))
+                new_scrape_item.possible_datetime = date
 
                 for elem in post.find_all(self.quotes_selector):
                     elem.decompose()
@@ -128,7 +133,7 @@ class SimpCityCrawler(Crawler):
     async def post(self, scrape_item: ScrapeItem, post_content: Tag, post_number: int) -> None:
         """Scrapes a post"""
         if self.manager.config_manager.settings_data['Download_Options']['separate_posts']:
-            scrape_item = ScrapeItem(scrape_item.url, scrape_item.parent_title)
+            scrape_item = ScrapeItem(scrape_item.url, scrape_item.parent_title, possible_datetime=scrape_item.possible_datetime)
             await scrape_item.add_to_parent_title("post-" + str(post_number))
 
         await self.links(scrape_item, post_content)
@@ -163,7 +168,7 @@ class SimpCityCrawler(Crawler):
 
             try:
                 if self.domain not in link.host:
-                    new_scrape_item = ScrapeItem(link, scrape_item.parent_title)
+                    new_scrape_item = ScrapeItem(link, scrape_item.parent_title, possible_datetime=scrape_item.possible_datetime)
                     await self.handle_external_links(new_scrape_item)
                 elif self.attachment_url_part in link.parts:
                     await self.handle_internal_links(link, scrape_item)
@@ -198,7 +203,7 @@ class SimpCityCrawler(Crawler):
             link = URL(link)
 
             if self.domain not in link.host:
-                new_scrape_item = ScrapeItem(link, scrape_item.parent_title)
+                new_scrape_item = ScrapeItem(link, scrape_item.parent_title, possible_datetime=scrape_item.possible_datetime)
                 await self.handle_external_links(new_scrape_item)
             elif self.attachment_url_part in link.parts:
                 await self.handle_internal_links(link, scrape_item)
@@ -224,7 +229,7 @@ class SimpCityCrawler(Crawler):
                 link = "https:" + link
 
             link = URL(link)
-            new_scrape_item = ScrapeItem(link, scrape_item.parent_title)
+            new_scrape_item = ScrapeItem(link, scrape_item.parent_title, possible_datetime=scrape_item.possible_datetime)
             await self.handle_external_links(new_scrape_item)
 
     @error_handling_wrapper
@@ -248,7 +253,7 @@ class SimpCityCrawler(Crawler):
                 if link.endswith("/"):
                     link = link[:-1]
                 link = URL(link)
-                new_scrape_item = ScrapeItem(link, scrape_item.parent_title)
+                new_scrape_item = ScrapeItem(link, scrape_item.parent_title, possible_datetime=scrape_item.possible_datetime)
                 await self.handle_external_links(new_scrape_item)
 
     @error_handling_wrapper
@@ -274,7 +279,7 @@ class SimpCityCrawler(Crawler):
             link = URL(link)
 
             if self.domain not in link.host:
-                new_scrape_item = ScrapeItem(link, scrape_item.parent_title)
+                new_scrape_item = ScrapeItem(link, scrape_item.parent_title, possible_datetime=scrape_item.possible_datetime)
                 await self.handle_external_links(new_scrape_item)
             elif self.attachment_url_part in link.parts:
                 await self.handle_internal_links(link, scrape_item)
@@ -288,6 +293,6 @@ class SimpCityCrawler(Crawler):
     async def handle_internal_links(self, link: URL, scrape_item: ScrapeItem) -> None:
         """Handles internal links"""
         filename, ext = await get_filename_and_ext(link.name, True)
-        new_scrape_item = ScrapeItem(link, scrape_item.parent_title, True)
+        new_scrape_item = ScrapeItem(link, scrape_item.parent_title, True, scrape_item.possible_datetime)
         await new_scrape_item.add_to_parent_title("Attachments")
         await self.handle_file(link, new_scrape_item, filename, ext)
