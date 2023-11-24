@@ -22,7 +22,8 @@ if TYPE_CHECKING:
 class ScrapeMapper:
     """This class maps links to their respective handlers, or JDownloader if they are unsupported"""
     def __init__(self, manager: Manager):
-        self.mapping = {"xbunkr": self.xbunkr, "bunkr": self.bunkr, "coomer": self.coomer, "cyberdrop": self.cyberdrop,
+        self.mapping = {"xbunkr": self.xbunkr, "bunkr": self.bunkr, "celebforum": self.celebforum,
+                        "coomer": self.coomer, "cyberdrop": self.cyberdrop,
                         "cyberfile": self.cyberfile, "e-hentai": self.ehentai, "erome": self.erome,
                         "fapello": self.fapello, "gofile": self.gofile, "imageban": self.imageban, "imgbox": self.imgbox,
                         "imgur": self.imgur, "img.kiwi": self.imgwiki, "jpg.church": self.jpgchurch,
@@ -34,17 +35,17 @@ class ScrapeMapper:
                         "reddit": self.reddit, "redd.it": self.reddit, "redgifs": self.redgifs, "saint": self.saint,
                         "socialmediagirls": self.socialmediagirls, "simpcity": self.simpcity,
                         "xbunker": self.xbunker}
-        self.download_mapping = {"xbunkr": "xbunkr", "bunkr": "bunkr", "coomer": "coomer", "cyberdrop": "cyberdrop",
-                                 "cyberfile": "cyberfile", "e-hentai": "e-hentai", "erome": "erome",
-                                 "fapello": "fapello", "gofile": "gofile", "imageban": "imageban", "imgbox": "imgbox", "imgur": "imgur",
-                                 "img.kiwi": "sharex", "jpg.church": "sharex", "jpg.homes": "sharex",
-                                 "jpg.fish": "sharex", "jpg.fishing": "sharex", "jpg.pet": "sharex",
-                                 "jpeg.pet": "sharex", "jpg1.su": "sharex", "jpg2.su": "sharex", "jpg3.su": "sharex",
-                                 "kemono": "kemono", "mediafire": "mediafire", "nudostar.com": "nudostar",
-                                 "nudostar.tv": "nudostartv", "pimpandhost": "pimpandhost", "pixeldrain": "pixeldrain",
-                                 "postimg": "postimg", "reddit": "reddit", "redd.it": "reddit", "redgifs": "redgifs",
-                                 "saint": "saint", "socialmediagirls": "socialmediagirls", "simpcity": "simpcity",
-                                 "xbunker": "xbunker"}
+        self.download_mapping = {"xbunkr": "xbunkr", "bunkr": "bunkr", "celebforum": "celebforum", "coomer": "coomer",
+                                 "cyberdrop": "cyberdrop", "cyberfile": "cyberfile", "e-hentai": "e-hentai",
+                                 "erome": "erome", "fapello": "fapello", "gofile": "gofile", "imageban": "imageban",
+                                 "imgbox": "imgbox", "imgur": "imgur", "img.kiwi": "sharex", "jpg.church": "sharex",
+                                 "jpg.homes": "sharex", "jpg.fish": "sharex", "jpg.fishing": "sharex",
+                                 "jpg.pet": "sharex", "jpeg.pet": "sharex", "jpg1.su": "sharex", "jpg2.su": "sharex",
+                                 "jpg3.su": "sharex", "kemono": "kemono", "mediafire": "mediafire",
+                                 "nudostar.com": "nudostar", "nudostar.tv": "nudostartv", "pimpandhost": "pimpandhost",
+                                 "pixeldrain": "pixeldrain", "postimg": "postimg", "reddit": "reddit",
+                                 "redd.it": "reddit", "redgifs": "redgifs", "saint": "saint",
+                                 "socialmediagirls": "socialmediagirls", "simpcity": "simpcity", "xbunker": "xbunker"}
         self.existing_crawlers = {}
         self.manager = manager
         self.jdownloader = JDownloader(self.manager)
@@ -55,6 +56,11 @@ class ScrapeMapper:
         """Creates a Bunkr Crawler instance"""
         from cyberdrop_dl.scraper.crawlers.bunkr_crawler import BunkrCrawler
         self.existing_crawlers['bunkr'] = BunkrCrawler(self.manager)
+
+    async def celebforum(self) -> None:
+        """Creates a CelebForum Crawler instance"""
+        from cyberdrop_dl.scraper.crawlers.celebforum_crawler import CelebForumCrawler
+        self.existing_crawlers['celebforum'] = CelebForumCrawler(self.manager)
 
     async def coomer(self) -> None:
         """Creates a Coomer Crawler instance"""

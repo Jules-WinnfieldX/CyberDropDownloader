@@ -7,6 +7,9 @@ from cyberdrop_dl.managers.directory_manager import APP_STORAGE, DOWNLOAD_STORAG
 
 authentication_settings: Dict = {
     "Forums": {
+        "celebforum_xf_user_cookie": "",
+        "celebforum_username": "",
+        "celebforum_password": "",
         "nudostar_xf_user_cookie": "",
         "nudostar_username": "",
         "nudostar_password": "",
