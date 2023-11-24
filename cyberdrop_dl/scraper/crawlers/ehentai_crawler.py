@@ -48,7 +48,7 @@ class EHentaiCrawler(Crawler):
         images = soup.select("div[class=gdtm] div a")
         for image in images:
             link = URL(image.get('href'))
-            new_scrape_item = ScrapeItem(url=link, parent_title=scrape_item.parent_title, part_of_album=True, possible_datetime=date)
+            new_scrape_item = ScrapeItem(link, scrape_item.parent_title, True, date)
             await new_scrape_item.add_to_parent_title(title)
             await self.scraper_queue.put(new_scrape_item)
 
@@ -61,7 +61,7 @@ class EHentaiCrawler(Crawler):
         if next_page is not None:
             next_page = URL(next_page.get('href'))
             if next_page is not None:
-                new_scrape_item = ScrapeItem(url=next_page, parent_title=scrape_item.parent_title)
+                new_scrape_item = ScrapeItem(next_page, scrape_item.parent_title, possible_datetime=scrape_item.possible_datetime)
                 await self.scraper_queue.put(new_scrape_item)
 
     @error_handling_wrapper

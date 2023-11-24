@@ -72,7 +72,7 @@ class GoFileCrawler(Crawler):
         for content_id in contents:
             content = contents[content_id]
             if content["type"] == "folder":
-                new_scrape_item = ScrapeItem(scrape_item.url.with_name(content["name"]), scrape_item.parent_title, True)
+                new_scrape_item = ScrapeItem(scrape_item.url.with_name(content["name"]), scrape_item.parent_title, True, scrape_item.possible_datetime)
                 await new_scrape_item.add_to_parent_title(title)
                 await self.scraper_queue.put(new_scrape_item)
                 continue

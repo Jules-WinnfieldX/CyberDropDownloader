@@ -57,7 +57,7 @@ class ImageBanCrawler(Crawler):
                 link = URL("https://" + scrape_item.url.host + link_path)
             else:
                 link = URL(link_path)
-            new_scrape_item = ScrapeItem(url=link, parent_title=scrape_item.parent_title, part_of_album=True)
+            new_scrape_item = ScrapeItem(link, scrape_item.parent_title, True, scrape_item.possible_datetime)
             await new_scrape_item.add_to_parent_title(title)
             await self.scraper_queue.put(new_scrape_item)
 
@@ -68,7 +68,7 @@ class ImageBanCrawler(Crawler):
                 link = URL("https://" + scrape_item.url.host + link_path)
             else:
                 link = URL(link_path)
-            new_scrape_item = ScrapeItem(url=link, parent_title=scrape_item.parent_title, part_of_album=True)
+            new_scrape_item = ScrapeItem(link, scrape_item.parent_title, True, scrape_item.possible_datetime)
             await self.scraper_queue.put(new_scrape_item)
 
     @error_handling_wrapper

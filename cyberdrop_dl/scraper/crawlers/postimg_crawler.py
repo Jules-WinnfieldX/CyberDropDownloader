@@ -50,7 +50,7 @@ class PostImgCrawler(Crawler):
             for image in JSON_Resp['images']:
                 link = URL(image[4])
                 filename, ext = image[2], image[3]
-                new_scrape_item = ScrapeItem(link, scrape_item.parent_title, part_of_album=True)
+                new_scrape_item = ScrapeItem(link, scrape_item.parent_title, True, scrape_item.possible_datetime)
                 await new_scrape_item.add_to_parent_title(title)
                 await self.handle_file(link, new_scrape_item, filename, ext)
 

@@ -39,13 +39,13 @@ class NudoStarTVCrawler(Crawler):
         content = soup.select('div[id=list_videos_common_videos_list_items] div a')
         for page in content:
             link = URL(page.get('href'))
-            new_scrape_item = ScrapeItem(link, scrape_item.parent_title, part_of_album=True)
+            new_scrape_item = ScrapeItem(link, scrape_item.parent_title, True, scrape_item.possible_datetime)
             await new_scrape_item.add_to_parent_title(title)
             await self.image(new_scrape_item)
         next_page = soup.select_one('li[class=next] a')
         if next_page:
             link = URL(next_page.get('href'))
-            new_scrape_item = ScrapeItem(link, scrape_item.parent_title)
+            new_scrape_item = ScrapeItem(link, scrape_item.parent_title, possible_datetime=scrape_item.possible_datetime)
             await self.scraper_queue.put(new_scrape_item)
 
     @error_handling_wrapper

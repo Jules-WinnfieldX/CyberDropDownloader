@@ -49,11 +49,11 @@ class FapelloCrawler(Crawler):
             if "javascript" in post.get('href'):
                 video_tag = post.select_one('iframe')
                 video_link = URL(video_tag.get('src'))
-                new_scrape_item = ScrapeItem(video_link, scrape_item.parent_title, part_of_album=True)
+                new_scrape_item = ScrapeItem(video_link, scrape_item.parent_title, True, scrape_item.possible_datetime)
                 await self.manager.queue_manager.url_objects_to_map.put(new_scrape_item)
             else:
                 link = URL(post.get('href'))
-                new_scrape_item = ScrapeItem(link, scrape_item.parent_title, part_of_album=True)
+                new_scrape_item = ScrapeItem(link, scrape_item.parent_title, True, scrape_item.possible_datetime)
                 await new_scrape_item.add_to_parent_title(title)
                 await self.scraper_queue.put(new_scrape_item)
 

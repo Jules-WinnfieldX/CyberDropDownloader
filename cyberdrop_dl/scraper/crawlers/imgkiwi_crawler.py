@@ -51,7 +51,7 @@ class ImgKiwiCrawler(Crawler):
             links = soup.select("a[href*=image]")
             for link in links:
                 link = URL(link.get('href'))
-                new_scrape_item = ScrapeItem(link, parent_title=scrape_item.parent_title, part_of_album=True)
+                new_scrape_item = ScrapeItem(link, scrape_item.parent_title, True, scrape_item.possible_datetime)
                 await new_scrape_item.add_to_parent_title(title)
                 await self.scraper_queue.put(new_scrape_item)
 

@@ -52,7 +52,7 @@ class MediaFireCrawler(Crawler):
             for file in files:
                 date = await self.parse_datetime(file['created'])
                 link = URL(file['links']['normal_download'])
-                new_scrape_item = ScrapeItem(link, parent_title=scrape_item.parent_title, part_of_album=True, possible_datetime=date)
+                new_scrape_item = ScrapeItem(link, scrape_item.parent_title, True, date)
                 await new_scrape_item.add_to_parent_title(title)
                 await self.scraper_queue.put(new_scrape_item)
 

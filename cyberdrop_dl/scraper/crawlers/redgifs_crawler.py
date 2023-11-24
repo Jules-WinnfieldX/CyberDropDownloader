@@ -56,7 +56,7 @@ class RedGifsCrawler(Crawler):
                 else:
                     link = URL(links["sd"])
 
-                new_scrape_item = ScrapeItem(link, parent_title=scrape_item.parent_title, part_of_album=True)
+                new_scrape_item = ScrapeItem(link, scrape_item.parent_title, True, scrape_item.possible_datetime)
                 await self.scraper_queue.put(new_scrape_item)
             page += 1
 

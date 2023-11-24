@@ -62,7 +62,7 @@ class ImgurCrawler(Crawler):
         for image in JSON_Obj["data"]:
             link = URL(image["link"])
             date = image["datetime"]
-            new_scrape_object = ScrapeItem(url=link, parent_title=scrape_item.parent_title, part_of_album=True, possible_datetime=date)
+            new_scrape_object = ScrapeItem(link, scrape_item.parent_title, True, date)
             await new_scrape_object.add_to_parent_title(title)
             await self.handle_direct(new_scrape_object)
 
@@ -80,7 +80,7 @@ class ImgurCrawler(Crawler):
 
         date = JSON_Obj["data"]["datetime"]
         link = URL(JSON_Obj["data"]["link"])
-        new_scrape_object = ScrapeItem(url=link, parent_title=scrape_item.parent_title, possible_datetime=date)
+        new_scrape_object = ScrapeItem(link, scrape_item.parent_title, possible_datetime=date)
         await self.handle_direct(new_scrape_object)
 
     @error_handling_wrapper

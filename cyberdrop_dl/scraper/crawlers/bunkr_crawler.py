@@ -54,13 +54,13 @@ class BunkrCrawler(Crawler):
         card_listings = soup.select('div[class*="grid-images_box rounded-lg"]')
         for card_listing in card_listings:
             file = card_listing.select_one('a[class*="grid-images_box-link"]')
-            date = card_listing.select_one('p[class*="date"]').text
+            date = await self.parse_datetime(card_listing.select_one('p[class*="date"]').text)
             link = file.get("href")
             if link.startswith("/"):
                 link = URL("https://" + scrape_item.url.host + link)
             link = URL(link)
             link = await self.get_stream_link(link)
-            await self.scraper_queue.put(ScrapeItem(url=link, parent_title=scrape_item.parent_title, part_of_album=True, possible_datetime=await self.parse_datetime(date)))
+            await self.scraper_queue.put(ScrapeItem(link, scrape_item.parent_title, True, date))
 
     @error_handling_wrapper
     async def video(self, scrape_item: ScrapeItem) -> None:
