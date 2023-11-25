@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import calendar
 import datetime
-import re
 from typing import TYPE_CHECKING
 
 from aiolimiter import AsyncLimiter
