@@ -105,7 +105,7 @@ class ScrapeMapper:
                         "nsfw.xxx": self.NSFW_XXX, "pimpandhost": self.PimpAndHost, "lovefap": self.LoveFap,
                         "e-hentai": self.EHentai, "gallery.deltaporno": self.ShareX, "vk.com": self.vk_redirect,
                         "coomer.party": self.Coomeno, "coomer.su": self.Coomeno, "kemono.party": self.Coomeno,
-                        "kemono.su": self.Coomeno, "nudostar": self.Xenforo, "simpcity": self.Xenforo,
+                        "kemono.su": self.Coomeno, "nudostar.com": self.Xenforo, "simpcity": self.Xenforo,
                         "socialmediagirls": self.Xenforo, "xbunker": self.Xenforo, "reddit": self.Reddit,
                         "redd.it": self.Reddit, "redgifs": self.RedGifs}
 
