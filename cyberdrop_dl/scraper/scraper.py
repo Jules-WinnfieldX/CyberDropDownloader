@@ -24,23 +24,23 @@ class ScrapeMapper:
     def __init__(self, manager: Manager):
         self.mapping = {"xbunkr": self.xbunkr, "bunkr": self.bunkr, "celebforum": self.celebforum,
                         "coomer": self.coomer, "cyberdrop": self.cyberdrop, "cyberfile": self.cyberfile,
-                        "e-hentai": self.ehentai, "erome": self.erome, "fapello": self.fapello, "gofile": self.gofile,
-                        "hotpic": self.hotpic, "ibb.co": self.imgbb, "imageban": self.imageban, "imgbox": self.imgbox,
-                        "imgur": self.imgur, "img.kiwi": self.imgwiki, "jpg.church": self.jpgchurch,
-                        "jpg.homes": self.jpgchurch, "jpg.fish": self.jpgchurch, "jpg.fishing": self.jpgchurch,
-                        "jpg.pet": self.jpgchurch, "jpeg.pet": self.jpgchurch, "jpg1.su": self.jpgchurch,
-                        "jpg2.su": self.jpgchurch, "jpg3.su": self.jpgchurch, "kemono": self.kemono,
-                        "leakedmodels": self.leakedmodels, "mediafire": self.mediafire, "nudostar.com": self.nudostar,
-                        "nudostar.tv": self.nudostartv, "omegascans": self.omegascans, "pimpandhost": self.pimpandhost,
-                        "pixeldrain": self.pixeldrain, "postimg": self.postimg, "reddit": self.reddit,
-                        "redd.it": self.reddit, "redgifs": self.redgifs, "saint": self.saint,
+                        "e-hentai": self.ehentai, "erome": self.erome, "fapello": self.fapello, "f95zone": self.f95zone,
+                        "gofile": self.gofile, "hotpic": self.hotpic, "ibb.co": self.imgbb, "imageban": self.imageban,
+                        "imgbox": self.imgbox, "imgur": self.imgur, "img.kiwi": self.imgwiki,
+                        "jpg.church": self.jpgchurch, "jpg.homes": self.jpgchurch, "jpg.fish": self.jpgchurch,
+                        "jpg.fishing": self.jpgchurch, "jpg.pet": self.jpgchurch, "jpeg.pet": self.jpgchurch,
+                        "jpg1.su": self.jpgchurch, "jpg2.su": self.jpgchurch, "jpg3.su": self.jpgchurch,
+                        "kemono": self.kemono, "leakedmodels": self.leakedmodels, "mediafire": self.mediafire,
+                        "nudostar.com": self.nudostar, "nudostar.tv": self.nudostartv, "omegascans": self.omegascans,
+                        "pimpandhost": self.pimpandhost, "pixeldrain": self.pixeldrain, "postimg": self.postimg,
+                        "reddit": self.reddit, "redd.it": self.reddit, "redgifs": self.redgifs, "saint": self.saint,
                         "scrolller": self.scrolller, "simpcity": self.simpcity,
                         "socialmediagirls": self.socialmediagirls, "toonily": self.toonily, "xbunker": self.xbunker}
         self.download_mapping = {"xbunkr": "xbunkr", "bunkr": "bunkr", "celebforum": "celebforum", "coomer": "coomer",
                                  "cyberdrop": "cyberdrop", "cyberfile": "cyberfile", "e-hentai": "e-hentai",
-                                 "erome": "erome", "fapello": "fapello", "gofile": "gofile", "hotpic": "hotpic",
-                                 "ibb.co": "imgbb", "imageban": "imageban", "imgbox": "imgbox", "imgur": "imgur",
-                                 "img.kiwi": "sharex", "jpg.church": "sharex", "jpg.homes": "sharex",
+                                 "erome": "erome", "fapello": "fapello", "f95zone": "f95zone", "gofile": "gofile",
+                                 "hotpic": "hotpic", "ibb.co": "imgbb", "imageban": "imageban", "imgbox": "imgbox",
+                                 "imgur": "imgur", "img.kiwi": "sharex", "jpg.church": "sharex", "jpg.homes": "sharex",
                                  "jpg.fish": "sharex", "jpg.fishing": "sharex", "jpg.pet": "sharex",
                                  "jpeg.pet": "sharex", "jpg1.su": "sharex", "jpg2.su": "sharex", "jpg3.su": "sharex",
                                  "kemono": "kemono", "leakedmodels": "leakedmodels", "mediafire": "mediafire",
@@ -94,6 +94,11 @@ class ScrapeMapper:
         """Creates a Fappelo Crawler instance"""
         from cyberdrop_dl.scraper.crawlers.fapello_crawler import FapelloCrawler
         self.existing_crawlers['fapello'] = FapelloCrawler(self.manager)
+
+    async def f95zone(self) -> None:
+        """Creates a F95Zone Crawler instance"""
+        from cyberdrop_dl.scraper.crawlers.f95zone_crawler import F95ZoneCrawler
+        self.existing_crawlers['f95zone'] = F95ZoneCrawler(self.manager)
 
     async def gofile(self) -> None:
         """Creates a GoFile Crawler instance"""
