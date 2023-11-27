@@ -199,7 +199,7 @@ class Downloader:
 
     async def mark_incomplete(self, media_item: MediaItem) -> None:
         """Marks the media item as incomplete in the database"""
-        await self.manager.db_manager.history_table.insert_uncompleted(self.domain, media_item)
+        await self.manager.db_manager.history_table.insert_incompleted(self.domain, media_item)
 
     async def mark_completed(self, media_item: MediaItem) -> None:
         """Marks the media item as completed in the database"""
@@ -364,9 +364,12 @@ class Downloader:
                     if hasattr(e, "message"):
                         if not e.message:
                             e.message = "Download failed"
+                        await log(f"Download failed: {media_item.url} with status {e.status} and message {e.message}")
                         await self.manager.file_manager.write_download_error_log(media_item.url, f" {e.status} - {e.message}")
                     else:
+                        await log(f"Download failed: {media_item.url} with status {e.status}")
                         await self.manager.file_manager.write_download_error_log(media_item.url, f" {e.status}")
+
                     return
 
                 if e.status == HTTPStatus.SERVICE_UNAVAILABLE or e.status == HTTPStatus.BAD_GATEWAY \
@@ -377,8 +380,10 @@ class Downloader:
                     if hasattr(e, "message"):
                         if not e.message:
                             e.message = "Download failed"
+                        await log(f"Download failed: {media_item.url} with status {e.status} and message {e.message}")
                         await self.manager.file_manager.write_download_error_log(media_item.url, f" {e.status} - {e.message}")
                     else:
+                        await log(f"Download failed: {media_item.url} with status {e.status}")
                         await self.manager.file_manager.write_download_error_log(media_item.url, f" {e.status}")
                     return
 
