@@ -34,8 +34,8 @@ class ScrapeMapper:
                         "nudostar.tv": self.nudostartv, "omegascans": self.omegascans, "pimpandhost": self.pimpandhost,
                         "pixeldrain": self.pixeldrain, "postimg": self.postimg, "reddit": self.reddit,
                         "redd.it": self.reddit, "redgifs": self.redgifs, "saint": self.saint,
-                        "socialmediagirls": self.socialmediagirls, "simpcity": self.simpcity, "toonily": self.toonily,
-                        "xbunker": self.xbunker}
+                        "scrolller": self.scrolller, "simpcity": self.simpcity,
+                        "socialmediagirls": self.socialmediagirls, "toonily": self.toonily, "xbunker": self.xbunker}
         self.download_mapping = {"xbunkr": "xbunkr", "bunkr": "bunkr", "celebforum": "celebforum", "coomer": "coomer",
                                  "cyberdrop": "cyberdrop", "cyberfile": "cyberfile", "e-hentai": "e-hentai",
                                  "erome": "erome", "fapello": "fapello", "gofile": "gofile", "hotpic": "hotpic",
@@ -47,8 +47,8 @@ class ScrapeMapper:
                                  "nudostar.com": "nudostar", "nudostar.tv": "nudostartv", "omegascans": "omegascans",
                                  "pimpandhost": "pimpandhost", "pixeldrain": "pixeldrain", "postimg": "postimg",
                                  "reddit": "reddit", "redd.it": "reddit", "redgifs": "redgifs", "saint": "saint",
-                                 "socialmediagirls": "socialmediagirls", "simpcity": "simpcity", "toonily": "toonily",
-                                 "xbunker": "xbunker"}
+                                 "scrolller": "scrolller", "simpcity": "simpcity",
+                                 "socialmediagirls": "socialmediagirls",  "toonily": "toonily", "xbunker": "xbunker"}
         self.existing_crawlers = {}
         self.manager = manager
         self.jdownloader = JDownloader(self.manager)
@@ -204,15 +204,20 @@ class ScrapeMapper:
         from cyberdrop_dl.scraper.crawlers.saint_crawler import SaintCrawler
         self.existing_crawlers['saint'] = SaintCrawler(self.manager)
 
-    async def socialmediagirls(self) -> None:
-        """Creates a SocialMediaGirls Crawler instance"""
-        from cyberdrop_dl.scraper.crawlers.socialmediagirls_crawler import SocialMediaGirlsCrawler
-        self.existing_crawlers['socialmediagirls'] = SocialMediaGirlsCrawler(self.manager)
+    async def scrolller(self) -> None:
+        """Creates a Scrolller Crawler instance"""
+        from cyberdrop_dl.scraper.crawlers.scrolller_crawler import ScrolllerCrawler
+        self.existing_crawlers['scrolller'] = ScrolllerCrawler(self.manager)
 
     async def simpcity(self) -> None:
         """Creates a SimpCity Crawler instance"""
         from cyberdrop_dl.scraper.crawlers.simpcity_crawler import SimpCityCrawler
         self.existing_crawlers['simpcity'] = SimpCityCrawler(self.manager)
+
+    async def socialmediagirls(self) -> None:
+        """Creates a SocialMediaGirls Crawler instance"""
+        from cyberdrop_dl.scraper.crawlers.socialmediagirls_crawler import SocialMediaGirlsCrawler
+        self.existing_crawlers['socialmediagirls'] = SocialMediaGirlsCrawler(self.manager)
 
     async def toonily(self) -> None:
         """Creates a Toonily Crawler instance"""
