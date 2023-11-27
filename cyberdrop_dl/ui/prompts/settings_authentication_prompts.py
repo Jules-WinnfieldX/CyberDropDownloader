@@ -145,6 +145,15 @@ def edit_forum_authentication_values_prompt(manager: Manager) -> None:
                 default=manager.config_manager.authentication_data["Forums"]["celebforum_password"],
             ).execute()
 
+            leakedmodels_username = inquirer.text(
+                message="Enter your LeakedModels Username:",
+                default=manager.config_manager.authentication_data["Forums"]["leakedmodels_username"],
+            ).execute()
+            leakedmodels_password = inquirer.text(
+                message="Enter your LeakedModels Password:",
+                default=manager.config_manager.authentication_data["Forums"]["leakedmodels_password"],
+            ).execute()
+
             nudostar_username = inquirer.text(
                 message="Enter your NudoStar Username:",
                 default=manager.config_manager.authentication_data["Forums"]["nudostar_username"],
@@ -182,12 +191,14 @@ def edit_forum_authentication_values_prompt(manager: Manager) -> None:
             ).execute()
 
             manager.config_manager.authentication_data["Forums"]["celebforum_username"] = celebforum_username
+            manager.config_manager.authentication_data["Forums"]["leakedmodels_username"] = leakedmodels_username
             manager.config_manager.authentication_data["Forums"]["nudostar_username"] = nudostar_username
             manager.config_manager.authentication_data["Forums"]["simpcity_username"] = simpcity_username
             manager.config_manager.authentication_data["Forums"]["socialmediagirls_username"] = socialmediagirls_username
             manager.config_manager.authentication_data["Forums"]["xbunker_username"] = xbunker_username
 
             manager.config_manager.authentication_data["Forums"]["celebforum_password"] = celebforum_password
+            manager.config_manager.authentication_data["Forums"]["leakedmodels_password"] = leakedmodels_password
             manager.config_manager.authentication_data["Forums"]["nudostar_password"] = nudostar_password
             manager.config_manager.authentication_data["Forums"]["simpcity_password"] = simpcity_password
             manager.config_manager.authentication_data["Forums"]["socialmediagirls_password"] = socialmediagirls_password

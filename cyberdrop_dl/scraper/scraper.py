@@ -30,11 +30,12 @@ class ScrapeMapper:
                         "jpg.homes": self.jpgchurch, "jpg.fish": self.jpgchurch, "jpg.fishing": self.jpgchurch,
                         "jpg.pet": self.jpgchurch, "jpeg.pet": self.jpgchurch, "jpg1.su": self.jpgchurch,
                         "jpg2.su": self.jpgchurch, "jpg3.su": self.jpgchurch, "kemono": self.kemono,
-                        "mediafire": self.mediafire, "nudostar.com": self.nudostar, "nudostar.tv": self.nudostartv,
-                        "omegascans": self.omegascans, "pimpandhost": self.pimpandhost, "pixeldrain": self.pixeldrain,
-                        "postimg": self.postimg, "reddit": self.reddit, "redd.it": self.reddit, "redgifs": self.redgifs,
-                        "saint": self.saint, "socialmediagirls": self.socialmediagirls, "simpcity": self.simpcity,
-                        "toonily": self.toonily, "xbunker": self.xbunker}
+                        "leakedmodels": self.leakedmodels, "mediafire": self.mediafire, "nudostar.com": self.nudostar,
+                        "nudostar.tv": self.nudostartv, "omegascans": self.omegascans, "pimpandhost": self.pimpandhost,
+                        "pixeldrain": self.pixeldrain, "postimg": self.postimg, "reddit": self.reddit,
+                        "redd.it": self.reddit, "redgifs": self.redgifs, "saint": self.saint,
+                        "socialmediagirls": self.socialmediagirls, "simpcity": self.simpcity, "toonily": self.toonily,
+                        "xbunker": self.xbunker}
         self.download_mapping = {"xbunkr": "xbunkr", "bunkr": "bunkr", "celebforum": "celebforum", "coomer": "coomer",
                                  "cyberdrop": "cyberdrop", "cyberfile": "cyberfile", "e-hentai": "e-hentai",
                                  "erome": "erome", "fapello": "fapello", "gofile": "gofile", "hotpic": "hotpic",
@@ -42,10 +43,10 @@ class ScrapeMapper:
                                  "img.kiwi": "sharex", "jpg.church": "sharex", "jpg.homes": "sharex",
                                  "jpg.fish": "sharex", "jpg.fishing": "sharex", "jpg.pet": "sharex",
                                  "jpeg.pet": "sharex", "jpg1.su": "sharex", "jpg2.su": "sharex", "jpg3.su": "sharex",
-                                 "kemono": "kemono", "mediafire": "mediafire", "nudostar.com": "nudostar",
-                                 "nudostar.tv": "nudostartv", "omegascans": "omegascans", "pimpandhost": "pimpandhost",
-                                 "pixeldrain": "pixeldrain", "postimg": "postimg", "reddit": "reddit",
-                                 "redd.it": "reddit", "redgifs": "redgifs", "saint": "saint",
+                                 "kemono": "kemono", "leakedmodels": "leakedmodels", "mediafire": "mediafire",
+                                 "nudostar.com": "nudostar", "nudostar.tv": "nudostartv", "omegascans": "omegascans",
+                                 "pimpandhost": "pimpandhost", "pixeldrain": "pixeldrain", "postimg": "postimg",
+                                 "reddit": "reddit", "redd.it": "reddit", "redgifs": "redgifs", "saint": "saint",
                                  "socialmediagirls": "socialmediagirls", "simpcity": "simpcity", "toonily": "toonily",
                                  "xbunker": "xbunker"}
         self.existing_crawlers = {}
@@ -146,6 +147,11 @@ class ScrapeMapper:
         """Creates a Kemono Crawler instance"""
         from cyberdrop_dl.scraper.crawlers.kemono_crawler import KemonoCrawler
         self.existing_crawlers['kemono'] = KemonoCrawler(self.manager)
+
+    async def leakedmodels(self) -> None:
+        """Creates a LeakedModels Crawler instance"""
+        from cyberdrop_dl.scraper.crawlers.leakedmodels_crawler import LeakedModelsCrawler
+        self.existing_crawlers['leakedmodels'] = LeakedModelsCrawler(self.manager)
 
     async def mediafire(self) -> None:
         """Creates a MediaFire Crawler instance"""
@@ -314,6 +320,11 @@ class ScrapeMapper:
                 await log(f"Skipping URL by Config Selections: {scrape_item.url}")
             elif await self.extension_check(scrape_item.url):
                 await self.manager.download_manager.get_download_instance("no_crawler")
+                check_complete = await self.manager.db_manager.history_table.check_complete("no_crawler", scrape_item.url)
+                if check_complete:
+                    await log(f"Skipping {scrape_item.url} as it has already been downloaded")
+                    await self.manager.progress_manager.download_progress.add_previously_completed()
+                    continue
                 download_queue = await self.manager.queue_manager.get_download_queue("no_crawler")
                 download_folder = self.manager.directory_manager.downloads / "Loose Files"
                 filename, ext = await get_filename_and_ext(scrape_item.url.name)
