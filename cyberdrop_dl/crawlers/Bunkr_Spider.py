@@ -28,8 +28,7 @@ class BunkrCrawler:
         self.quiet = quiet
         self.SQL_Helper = SQL_Helper
         self.remove_bunkr_id = remove_bunkr_id
-        self.limiter = AsyncLimiter(10, 1)
-        self.small_limiter = AsyncLimiter(1, 1)
+        self.limiter = AsyncLimiter(3, 1)
 
         self.error_writer = error_writer
 
@@ -64,7 +63,7 @@ class BunkrCrawler:
         return album_obj
 
     async def get_stream_link(self, url: URL):
-        cdn_possibilities = r"^(?:(?:(?:media-files|cdn|c|pizza|cdn-burger)[0-9]{0,2})|(?:(?:big-taco-|cdn-pizza|cdn-meatballs)[0-9]{0,2}(?:redir)?))\.bunkr?\.[a-z]{2,3}$"
+        cdn_possibilities = r"^(?:(?:(?:media-files|cdn|c|pizza|cdn-burger)[0-9]{0,2})|(?:(?:big-taco-|cdn-pizza|cdn-meatballs|cdn-milkshake)[0-9]{0,2}(?:redir)?))\.bunkr?\.[a-z]{2,3}$"
 
         if not re.match(cdn_possibilities, url.host):
             return url

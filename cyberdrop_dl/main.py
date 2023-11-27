@@ -301,7 +301,7 @@ async def director(args: Dict, links: List) -> None:
     links = await consolidate_links(args, links)
     client = Client(args['Ratelimiting']['ratelimit'], args['Ratelimiting']['throttle'],
                     args['Runtime']['allow_insecure_connections'], args["Ratelimiting"]["connection_timeout"],
-                    args["Ratelimiting"]["read_timeout"], args['Runtime']['user_agent'])
+                    args["Ratelimiting"]["read_timeout"], args['Runtime']['user_agent'], args['Runtime']['proxy'])
     SQL_Helper = SQLHelper(args['Ignore']['ignore_history'], args['Ignore']['ignore_cache'], args['Files']['db_file'])
     Scraper = ScrapeMapper(args, client, SQL_Helper, False, error_writer, cache_manager)
 

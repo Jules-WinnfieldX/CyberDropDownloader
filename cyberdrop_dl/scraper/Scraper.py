@@ -89,6 +89,7 @@ class ScrapeMapper:
         self.jdownloader = JDownloader(args['JDownloader'], quiet)
 
         self.bunkr_semaphore = asyncio.Semaphore(1)
+        self.cyberdrop_semaphore = asyncio.Semaphore(1)
         self.coomero_semaphore = asyncio.Semaphore(4)
         self.gofile_semaphore = asyncio.Semaphore(1)
         self.nudostar_semaphore = asyncio.Semaphore(1)
@@ -106,7 +107,7 @@ class ScrapeMapper:
                         "nsfw.xxx": self.NSFW_XXX, "pimpandhost": self.PimpAndHost, "lovefap": self.LoveFap,
                         "e-hentai": self.EHentai, "gallery.deltaporno": self.ShareX, "vk.com": self.vk_redirect,
                         "coomer.party": self.Coomeno, "coomer.su": self.Coomeno, "kemono.party": self.Coomeno,
-                        "kemono.su": self.Coomeno, "nudostar": self.Xenforo, "simpcity": self.Xenforo,
+                        "kemono.su": self.Coomeno, "nudostar.com": self.Xenforo, "simpcity": self.Xenforo,
                         "socialmediagirls": self.Xenforo, "xbunker": self.Xenforo, "reddit": self.Reddit,
                         "redd.it": self.Reddit, "redgifs": self.RedGifs}
 
@@ -159,7 +160,8 @@ class ScrapeMapper:
         if not self.cyberdrop_crawler:
             self.cyberdrop_crawler = CyberdropCrawler(include_id=self.include_id, quiet=self.quiet,
                                                       SQL_Helper=self.SQL_Helper, error_writer=self.error_writer)
-        album_obj = await self.cyberdrop_crawler.fetch(cyberdrop_session, url)
+        async with self.cyberdrop_semaphore:
+            album_obj = await self.cyberdrop_crawler.fetch(cyberdrop_session, url)
         await self._handle_album_additions("cyberdrop", album_obj, title)
         await cyberdrop_session.exit_handler()
 
