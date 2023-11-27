@@ -17,6 +17,9 @@ async def get_db_path(url: URL, referer: str = "") -> str:
     if referer and "e-hentai" in referer:
         url_path = url_path.split('keystamp')[0][:-1]
 
+    if referer and "mediafire" in referer:
+        url_path = url.name
+
     return url_path
 
 
@@ -40,7 +43,7 @@ class HistoryTable:
         sql_file_check = await result.fetchone()
         return sql_file_check and sql_file_check[0] != 0
 
-    async def insert_uncompleted(self, domain: str, media_item: MediaItem) -> None:
+    async def insert_incompleted(self, domain: str, media_item: MediaItem) -> None:
         """Inserts an uncompleted file into the database"""
         url_path = await get_db_path(media_item.url, str(media_item.referer))
         download_filename = media_item.download_filename if isinstance(media_item.download_filename, str) else ""
@@ -50,7 +53,6 @@ class HistoryTable:
     async def mark_complete(self, domain: str, media_item: MediaItem) -> None:
         """Mark a download as completed in the database"""
         url_path = await get_db_path(media_item.url, str(media_item.referer))
-        download_filename = media_item.download_filename if isinstance(media_item.download_filename, str) else ""
         await self.db_conn.execute("""UPDATE media SET completed = 1 WHERE domain = ? and url_path = ?""", (domain, url_path))
         await self.db_conn.commit()
 
