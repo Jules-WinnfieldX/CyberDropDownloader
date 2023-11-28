@@ -70,7 +70,7 @@ def retry(f):
             except Exception as e:
                 media_item = args[0]
                 await log(f"Download Error: {media_item.url} with error {e}")
-                if isinstance(media_item.download_task_id, TaskID):
+                if not isinstance(media_item.download_task_id, Field):
                     await self.manager.progress_manager.file_progress.remove_file(media_item.download_task_id)
                 await log(traceback.format_exc())
                 await self.manager.progress_manager.download_stats_progress.add_failure("Unknown")
@@ -360,7 +360,8 @@ class Downloader:
                 if await is_4xx_client_error(e.status) and e.status != HTTPStatus.TOO_MANY_REQUESTS:
                     await self.manager.progress_manager.download_progress.add_failed()
                     await self.manager.progress_manager.download_stats_progress.add_failure(e.status)
-                    await self.manager.progress_manager.file_progress.remove_file(media_item.download_task_id)
+                    if not isinstance(media_item.download_task_id, Field):
+                        await self.manager.progress_manager.file_progress.remove_file(media_item.download_task_id)
                     if hasattr(e, "message"):
                         if not e.message:
                             e.message = "Download failed"
@@ -376,7 +377,8 @@ class Downloader:
                         or e.status == CustomHTTPStatus.WEB_SERVER_IS_DOWN:
                     await self.manager.progress_manager.download_progress.add_failed()
                     await self.manager.progress_manager.download_stats_progress.add_failure(e.status)
-                    await self.manager.progress_manager.file_progress.remove_file(media_item.download_task_id)
+                    if not isinstance(media_item.download_task_id, Field):
+                        await self.manager.progress_manager.file_progress.remove_file(media_item.download_task_id)
                     if hasattr(e, "message"):
                         if not e.message:
                             e.message = "Download failed"
