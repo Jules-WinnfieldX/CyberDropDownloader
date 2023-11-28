@@ -12,8 +12,8 @@ class SupportedDomains:
                                                   "jpg1.su", "jpg2.su", "jpg3.su", "kemono", "leakedmodels",
                                                   "mediafire", "nudostar.com", "nudostar.tv", "omegascans",
                                                   "pimpandhost", "pixeldrain", "postimg", "reddit", "redd.it",
-                                                  "redgifs", "saint", "scrolller", "simpcity", "socialmediagirls",
-                                                  "toonily", "xbunker")
+                                                  "redgifs", "rule34.xxx", "rule34.xyz", "saint", "scrolller",
+                                                  "simpcity", "socialmediagirls", "toonily", "xbunker")
     supported_forums: ClassVar[Tuple[str, ...]] = ("celebforum.to", "f95zone.to", "leakedmodels.com", "nudostar.com",
                                                    "simpcity.su", "forums.socialmediagirls.com", "xbunker.nu")
     supported_forums_map = {"celebforum.to": "celebforum", "f95zone.to": "f95zone", "leakedmodels.com": "leakedmodels",

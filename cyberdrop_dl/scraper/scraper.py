@@ -33,7 +33,8 @@ class ScrapeMapper:
                         "kemono": self.kemono, "leakedmodels": self.leakedmodels, "mediafire": self.mediafire,
                         "nudostar.com": self.nudostar, "nudostar.tv": self.nudostartv, "omegascans": self.omegascans,
                         "pimpandhost": self.pimpandhost, "pixeldrain": self.pixeldrain, "postimg": self.postimg,
-                        "reddit": self.reddit, "redd.it": self.reddit, "redgifs": self.redgifs, "saint": self.saint,
+                        "reddit": self.reddit, "redd.it": self.reddit, "redgifs": self.redgifs,
+                        "rule34.xxx": self.rule34xxx, "rule34.xyz": self.rule34xyz, "saint": self.saint,
                         "scrolller": self.scrolller, "simpcity": self.simpcity,
                         "socialmediagirls": self.socialmediagirls, "toonily": self.toonily, "xbunker": self.xbunker}
         self.download_mapping = {"xbunkr": "xbunkr", "bunkr": "bunkr", "celebforum": "celebforum", "coomer": "coomer",
@@ -46,7 +47,8 @@ class ScrapeMapper:
                                  "kemono": "kemono", "leakedmodels": "leakedmodels", "mediafire": "mediafire",
                                  "nudostar.com": "nudostar", "nudostar.tv": "nudostartv", "omegascans": "omegascans",
                                  "pimpandhost": "pimpandhost", "pixeldrain": "pixeldrain", "postimg": "postimg",
-                                 "reddit": "reddit", "redd.it": "reddit", "redgifs": "redgifs", "saint": "saint",
+                                 "reddit": "reddit", "redd.it": "reddit", "redgifs": "redgifs",
+                                 "rule34.xxx": "rule34.xxx", "rule34.xyz": "rule34.xyz", "saint": "saint",
                                  "scrolller": "scrolller", "simpcity": "simpcity",
                                  "socialmediagirls": "socialmediagirls",  "toonily": "toonily", "xbunker": "xbunker"}
         self.existing_crawlers = {}
@@ -204,6 +206,16 @@ class ScrapeMapper:
         from cyberdrop_dl.scraper.crawlers.redgifs_crawler import RedGifsCrawler
         self.existing_crawlers['redgifs'] = RedGifsCrawler(self.manager)
 
+    async def rule34xxx(self) -> None:
+        """Creates a Rule34XXX Crawler instance"""
+        from cyberdrop_dl.scraper.crawlers.rule34xxx_crawler import Rule34XXXCrawler
+        self.existing_crawlers['rule34.xxx'] = Rule34XXXCrawler(self.manager)
+
+    async def rule34xyz(self) -> None:
+        """Creates a Rule34XYZ Crawler instance"""
+        from cyberdrop_dl.scraper.crawlers.rule34xyz_crawler import Rule34XYZCrawler
+        self.existing_crawlers['rule34.xyz'] = Rule34XYZCrawler(self.manager)
+
     async def saint(self) -> None:
         """Creates a Saint Crawler instance"""
         from cyberdrop_dl.scraper.crawlers.saint_crawler import SaintCrawler
@@ -310,7 +322,11 @@ class ScrapeMapper:
                     break
 
             if str(scrape_item.url).endswith("/"):
-                scrape_item.url = scrape_item.url.with_path(scrape_item.url.path[:-1])
+                if scrape_item.url.query_string:
+                    query = scrape_item.url.query_string[:-1]
+                    scrape_item.url = scrape_item.url.with_query(query)
+                else:
+                    scrape_item.url = scrape_item.url.with_path(scrape_item.url.path[:-1])
 
             key = next((key for key in self.mapping if key in scrape_item.url.host.lower()), None)
             download_key = next((self.download_mapping[key] for key in self.download_mapping if key in scrape_item.url.host.lower()), None)
