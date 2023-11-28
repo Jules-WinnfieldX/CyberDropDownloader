@@ -1,5 +1,5 @@
 aiofiles==0.8.0
-aiohttp==3.8.6
+aiohttp==3.9.1
 aiolimiter==1.1.0
 aiorun==2023.7.2
 asyncpraw==7.7.1
