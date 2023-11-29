@@ -14,10 +14,14 @@ class SupportedDomains:
                                                   "pimpandhost", "pixeldrain", "postimg", "reddit", "redd.it",
                                                   "redgifs", "rule34.xxx", "rule34.xyz", "saint", "scrolller",
                                                   "simpcity", "socialmediagirls", "toonily", "xbunker")
+
     supported_forums: ClassVar[Tuple[str, ...]] = ("celebforum.to", "f95zone.to", "leakedmodels.com", "nudostar.com",
                                                    "simpcity.su", "forums.socialmediagirls.com", "xbunker.nu")
     supported_forums_map = {"celebforum.to": "celebforum", "f95zone.to": "f95zone", "leakedmodels.com": "leakedmodels",
                             "nudostar.com": "nudostar", "simpcity.su": "simpcity",
                             "forums.socialmediagirls.com": "socialmediagirls", "xbunker.nu": "xbunker"}
+
+    supported_ddos_guard: ClassVar[Tuple[str, ...]] = (".bunkrr.su", ".coomer.su", ".kemono.su")
+    supported_ddos_guard_map = {".bunkrr.su": "bunkrr", ".coomer.su": "coomer", ".kemono.su": "kemono"}
 
     sites: List[str]

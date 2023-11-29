@@ -6,6 +6,13 @@ from cyberdrop_dl.managers.directory_manager import APP_STORAGE, DOWNLOAD_STORAG
 
 
 authentication_settings: Dict = {
+    "DDOS-Guard": {
+        "bunkrr_ddg1": "",
+        "bunkrr_ddg2": "",
+        "bunkrr_ddgid": "",
+        "coomer_ddg1": "",
+        "kemono_ddg1": "",
+    },
     "Forums": {
         "celebforum_xf_user_cookie": "",
         "celebforum_username": "",

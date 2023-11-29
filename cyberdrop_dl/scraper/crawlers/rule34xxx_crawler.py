@@ -19,12 +19,15 @@ class Rule34XXXCrawler(Crawler):
         self.primary_base_url = URL("https://rule34.xxx")
         self.request_limiter = AsyncLimiter(10, 1)
 
+        self.cookies_set = False
+
     """~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"""
 
     async def fetch(self, scrape_item: ScrapeItem) -> None:
         """Determines where to send the scrape item based on the url"""
         task_id = await self.scraping_progress.add_task(scrape_item.url)
-        self.client.client_manager.cookies.update_cookies({"resize-original": "1"}, response_url=self.primary_base_url)
+
+        await self.set_cookies()
 
         if "tags" in scrape_item.url.query_string:
             await self.tag(scrape_item)
@@ -80,3 +83,14 @@ class Rule34XXXCrawler(Crawler):
             link = URL(video.get('src'))
             filename, ext = await get_filename_and_ext(link.name)
             await self.handle_file(link, scrape_item, filename, ext)
+
+    """~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"""
+
+    async def set_cookies(self):
+        """Sets the cookies for the client"""
+        if self.cookies_set:
+            return
+
+        self.client.client_manager.cookies.update_cookies({"resize-original": "1"}, response_url=self.primary_base_url)
+
+        self.cookies_set = True
