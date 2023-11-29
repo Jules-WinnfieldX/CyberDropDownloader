@@ -315,7 +315,7 @@ class Downloader:
 
             if not proceed:
                 await log(f"Skipping {media_item.url} as it has already been downloaded")
-                await self.manager.progress_manager.download_progress.add_previously_completed()
+                await self.manager.progress_manager.download_progress.add_previously_completed(False)
                 await self.mark_completed(media_item)
                 await self._file_lock.remove_lock(media_item.original_filename)
                 return

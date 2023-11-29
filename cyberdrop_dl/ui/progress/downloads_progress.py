@@ -42,8 +42,10 @@ class DownloadsProgress:
         self.progress.advance(self.completed_files_task_id, 1)
         self.completed_files += 1
 
-    async def add_previously_completed(self) -> None:
+    async def add_previously_completed(self, increase_total: bool = True) -> None:
         """Adds a previously completed file to the progress bar"""
+        if increase_total:
+            await self.update_total()
         self.previously_completed_files += 1
         self.progress.advance(self.previously_completed_files_task_id, 1)
 
