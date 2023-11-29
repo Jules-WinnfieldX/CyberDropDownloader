@@ -314,6 +314,10 @@ class Downloader:
             await self.mark_incomplete(media_item)
 
             if not proceed:
+                await log(f"Skipping {media_item.url} as it has already been downloaded")
+                await self.manager.progress_manager.download_progress.add_previously_completed()
+                await self.mark_completed(media_item)
+                await self._file_lock.remove_lock(media_item.original_filename)
                 return
 
             resume_point = partial_file.stat().st_size if partial_file.exists() else 0
