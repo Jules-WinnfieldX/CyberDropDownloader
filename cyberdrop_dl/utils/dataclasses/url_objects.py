@@ -25,14 +25,17 @@ class MediaItem:
 
 
 class ScrapeItem:
-    def __init__(self, url: "URL", parent_title: str, part_of_album: bool = False, possible_datetime: int = None):
+    def __init__(self, url: "URL", parent_title: str, part_of_album: bool = False, possible_datetime: int = None,
+                 retry: bool = False, retry_path: Path = None):
         self.url: URL = url
         self.parent_title: str = parent_title
         self.part_of_album: bool = part_of_album
         self.possible_datetime: int = possible_datetime
+        self.retry: bool = retry
+        self.retry_path: Path = retry_path
 
     async def add_to_parent_title(self, title: str) -> None:
-        if not title:
+        if not title or self.retry:
             return
         title = await sanitize_folder(title)
         self.parent_title = (self.parent_title + "/" + title) if self.parent_title else title

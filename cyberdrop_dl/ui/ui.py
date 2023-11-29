@@ -32,22 +32,28 @@ def program_ui(manager: Manager):
         if action == 1:
             break
 
+        # Download (All Configs)
         if action == 2:
             manager.args_manager.all_configs = True
             break
 
-        # Edit URLs
+        # Retry Failed Downloads
         elif action == 3:
+            manager.args_manager.retry = True
+            break
+
+        # Edit URLs
+        elif action == 4:
             edit_urls_prompt(manager.file_manager.input_file)
 
         # Select Config
-        elif action == 4:
+        elif action == 5:
             configs = manager.config_manager.get_configs()
             selected_config = select_config_prompt(configs)
             manager.config_manager.load_config(selected_config)
 
         # Manage Configs
-        elif action == 5:
+        elif action == 6:
             while True:
                 console.clear()
                 console.print("[bold]Manage Configs[/bold]")
@@ -100,13 +106,13 @@ def program_ui(manager: Manager):
                     break
 
         # Import Cyberdrop_V4 Items
-        elif action == 6:
+        elif action == 7:
             import_cyberdrop_v4_items_prompt(manager)
 
         # Donate
-        elif action == 7:
+        elif action == 8:
             donations_prompt()
 
         # Exit
-        elif action == 8:
+        elif action == 9:
             exit(0)

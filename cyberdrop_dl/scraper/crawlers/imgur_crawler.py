@@ -62,9 +62,8 @@ class ImgurCrawler(Crawler):
         for image in JSON_Obj["data"]:
             link = URL(image["link"])
             date = image["datetime"]
-            new_scrape_object = ScrapeItem(link, scrape_item.parent_title, True, date)
-            await new_scrape_object.add_to_parent_title(title)
-            await self.handle_direct(new_scrape_object)
+            new_scrape_item = await self.create_scrape_item(scrape_item, link, title, True, date)
+            await self.handle_direct(new_scrape_item)
 
     @error_handling_wrapper
     async def image(self, scrape_item: ScrapeItem) -> None:
@@ -80,8 +79,8 @@ class ImgurCrawler(Crawler):
 
         date = JSON_Obj["data"]["datetime"]
         link = URL(JSON_Obj["data"]["link"])
-        new_scrape_object = ScrapeItem(link, scrape_item.parent_title, possible_datetime=date)
-        await self.handle_direct(new_scrape_object)
+        new_scrape_item = await self.create_scrape_item(scrape_item, link, "", True, date)
+        await self.handle_direct(new_scrape_item)
 
     @error_handling_wrapper
     async def handle_direct(self, scrape_item: ScrapeItem) -> None:

@@ -46,8 +46,7 @@ class PixelDrainCrawler(Crawler):
             link = await self.create_download_link(file['id'])
             date = await self.parse_datetime(file['date_upload'].replace("T", " ").split(".")[0])
             filename, ext = await get_filename_and_ext(file['name'])
-            new_scrape_item = ScrapeItem(link, scrape_item.parent_title, True, date)
-            await new_scrape_item.add_to_parent_title(title)
+            new_scrape_item = await self.create_scrape_item(scrape_item, link, title, True, date)
             await self.handle_file(link, new_scrape_item, filename, ext)
 
     @error_handling_wrapper
@@ -59,7 +58,7 @@ class PixelDrainCrawler(Crawler):
         link = await self.create_download_link(JSON_Resp['id'])
         date = await self.parse_datetime(JSON_Resp['date_upload'].replace("T", " ").split(".")[0])
         filename, ext = await get_filename_and_ext(JSON_Resp['name'])
-        new_scrape_item = ScrapeItem(link, scrape_item.parent_title, scrape_item.part_of_album, date)
+        new_scrape_item = await self.create_scrape_item(scrape_item, link, "", False, date)
         await self.handle_file(link, new_scrape_item, filename, ext)
 
     """~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"""

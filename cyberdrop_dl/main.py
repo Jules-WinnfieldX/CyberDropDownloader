@@ -49,7 +49,11 @@ async def runtime(manager: Manager) -> None:
     download_manager = manager.download_manager
     asyncio.create_task(scrape_mapper.map_urls())
 
-    await scrape_mapper.load_links()
+    if not manager.args_manager.retry:
+        await scrape_mapper.load_links()
+    else:
+        await scrape_mapper.load_failed_links()
+
     while True:
         if await scrape_mapper.check_complete() and await download_manager.check_complete():
             break

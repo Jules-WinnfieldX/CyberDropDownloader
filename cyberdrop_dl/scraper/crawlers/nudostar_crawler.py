@@ -97,11 +97,8 @@ class NudoStarCrawler(Crawler):
                 if post_number > current_post_number:
                     continue
 
-                new_scrape_item = ScrapeItem(thread_url, scrape_item.parent_title)
-                await new_scrape_item.add_to_parent_title(title)
-
                 date = int(post.select_one(self.post_date_selector).get(self.post_date_attribute))
-                new_scrape_item.possible_datetime = date
+                new_scrape_item = await self.create_scrape_item(new_scrape_item, thread_url, title, True, date)
 
                 for elem in post.find_all(self.quotes_selector):
                     elem.decompose()
@@ -133,7 +130,7 @@ class NudoStarCrawler(Crawler):
     async def post(self, scrape_item: ScrapeItem, post_content: Tag, post_number: int) -> None:
         """Scrapes a post"""
         if self.manager.config_manager.settings_data['Download_Options']['separate_posts']:
-            scrape_item = ScrapeItem(scrape_item.url, scrape_item.parent_title, possible_datetime=scrape_item.possible_datetime)
+            scrape_item = await self.create_scrape_item(scrape_item, scrape_item.url, "")
             await scrape_item.add_to_parent_title("post-" + str(post_number))
 
         await self.links(scrape_item, post_content)
@@ -165,7 +162,7 @@ class NudoStarCrawler(Crawler):
 
             try:
                 if self.domain not in link.host:
-                    new_scrape_item = ScrapeItem(link, scrape_item.parent_title, possible_datetime=scrape_item.possible_datetime)
+                    new_scrape_item = await self.create_scrape_item(scrape_item, link, "")
                     await self.handle_external_links(new_scrape_item)
                 elif self.attachment_url_part in link.parts:
                     await self.handle_internal_links(link, scrape_item)
@@ -197,7 +194,7 @@ class NudoStarCrawler(Crawler):
             link = URL(link)
 
             if self.domain not in link.host:
-                new_scrape_item = ScrapeItem(link, scrape_item.parent_title, possible_datetime=scrape_item.possible_datetime)
+                new_scrape_item = await self.create_scrape_item(scrape_item, link, "")
                 await self.handle_external_links(new_scrape_item)
             elif self.attachment_url_part in link.parts:
                 await self.handle_internal_links(link, scrape_item)
@@ -220,7 +217,7 @@ class NudoStarCrawler(Crawler):
                 link = "https:" + link
 
             link = URL(link)
-            new_scrape_item = ScrapeItem(link, scrape_item.parent_title, possible_datetime=scrape_item.possible_datetime)
+            new_scrape_item = await self.create_scrape_item(scrape_item, link, "")
             await self.handle_external_links(new_scrape_item)
 
     @error_handling_wrapper
@@ -244,7 +241,7 @@ class NudoStarCrawler(Crawler):
                 if link.endswith("/"):
                     link = link[:-1]
                 link = URL(link)
-                new_scrape_item = ScrapeItem(link, scrape_item.parent_title, possible_datetime=scrape_item.possible_datetime)
+                new_scrape_item = await self.create_scrape_item(scrape_item, link, "")
                 await self.handle_external_links(new_scrape_item)
 
     @error_handling_wrapper
@@ -267,7 +264,7 @@ class NudoStarCrawler(Crawler):
             link = URL(link)
 
             if self.domain not in link.host:
-                new_scrape_item = ScrapeItem(link, scrape_item.parent_title, possible_datetime=scrape_item.possible_datetime)
+                new_scrape_item = await self.create_scrape_item(scrape_item, link, "")
                 await self.handle_external_links(new_scrape_item)
             elif self.attachment_url_part in link.parts:
                 await self.handle_internal_links(link, scrape_item)
@@ -282,6 +279,5 @@ class NudoStarCrawler(Crawler):
         """Handles internal links"""
         temp_link = URL(str(link)[:-1]) if str(link).endswith("/") else link
         filename, ext = await get_filename_and_ext(temp_link.name, True)
-        new_scrape_item = ScrapeItem(link, scrape_item.parent_title, True, scrape_item.possible_datetime)
-        await new_scrape_item.add_to_parent_title("Attachments")
+        new_scrape_item = await self.create_scrape_item(scrape_item, link, "Attachments", True)
         await self.handle_file(link, new_scrape_item, filename, ext)

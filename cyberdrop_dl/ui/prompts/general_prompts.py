@@ -28,14 +28,15 @@ def main_prompt(manager: Manager) -> int:
         choices=[
             Choice(1, "Download"),
             Choice(2, "Download (All Configs)"),
-            Choice(3, "Edit URLs File"),
+            Choice(3, "Retry Failed Downloads"),
+            Choice(4, "Edit URLs File"),
             Separator(),
-            Choice(4, f"Select Config (Current: {manager.config_manager.loaded_config})"),
-            Choice(5, "Manage Configs"),
+            Choice(5, f"Select Config (Current: {manager.config_manager.loaded_config})"),
+            Choice(6, "Manage Configs"),
             Separator(),
-            Choice(6, "Import Cyberdrop_V4 Items"),
-            Choice(7, "Donate"),
-            Choice(8, "Exit"),
+            Choice(7, "Import Cyberdrop_V4 Items"),
+            Choice(8, "Donate"),
+            Choice(9, "Exit"),
         ], long_instruction="ARROW KEYS: Navigate | ENTER: Select",
     ).execute()
 

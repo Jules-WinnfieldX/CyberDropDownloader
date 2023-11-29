@@ -42,14 +42,13 @@ class EromeCrawler(Crawler):
 
         for album in albums:
             link = URL(album['href'])
-            new_scrape_item = ScrapeItem(link, scrape_item.parent_title, True, scrape_item.possible_datetime)
-            await new_scrape_item.add_to_parent_title(title)
+            new_scrape_item = await self.create_scrape_item(scrape_item, link, title, True)
             await self.scraper_queue.put(new_scrape_item)
 
         next_page = soup.select_one('a[rel="next"]')
         if next_page:
             next_page = next_page.get("href").split("page=")[-1]
-            new_scrape_item = ScrapeItem(scrape_item.url.with_query(f"page={next_page}"), scrape_item.parent_title, possible_datetime=scrape_item.possible_datetime)
+            new_scrape_item = await self.create_scrape_item(scrape_item, scrape_item.url.with_query(f"page={next_page}"), "")
             await self.scraper_queue.put(new_scrape_item)
 
     @error_handling_wrapper

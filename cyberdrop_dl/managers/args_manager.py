@@ -7,6 +7,9 @@ class ArgsManager:
     def __init__(self):
         self.parsed_args = {}
 
+        self.all_configs = False
+        self.retry = False
+
         self.immediate_download = False
         self.load_config_from_args = False
         self.load_config_name = ""

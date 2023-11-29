@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import re
 from dataclasses import Field
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 import aiofiles
@@ -280,6 +281,16 @@ class ScrapeMapper:
             await log("No valid links found.")
         for link in links:
             item = ScrapeItem(url=link, parent_title="")
+            await self.manager.queue_manager.url_objects_to_map.put(item)
+
+    async def load_failed_links(self) -> None:
+        """Loads failed links from db"""
+        items = await self.manager.db_manager.history_table.get_failed_items()
+        for item in items:
+            link = URL(item[2])
+            retry_path = Path(item[3])
+
+            item = ScrapeItem(link, parent_title="", part_of_album=True, retry=True, retry_path=retry_path)
             await self.manager.queue_manager.url_objects_to_map.put(item)
 
     async def extension_check(self, url: URL) -> bool:

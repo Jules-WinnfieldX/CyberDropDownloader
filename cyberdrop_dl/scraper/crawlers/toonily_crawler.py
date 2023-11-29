@@ -51,7 +51,7 @@ class ToonilyCrawler(Crawler):
                 chapter_path = self.primary_base_domain / chapter_path[1:]
             else:
                 chapter_path = URL(chapter_path)
-            new_scrape_item = ScrapeItem(chapter_path, scrape_item.parent_title, True, scrape_item.possible_datetime)
+            new_scrape_item = await self.create_scrape_item(scrape_item, chapter_path, "", True)
             await self.scraper_queue.put(new_scrape_item)
 
     @error_handling_wrapper

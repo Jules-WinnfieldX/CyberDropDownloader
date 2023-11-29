@@ -140,7 +140,6 @@ class KemonoCrawler(Crawler):
             if self.manager.config_manager.settings_data['Download_Options']['include_album_id_in_folder_name']:
                 post_title = post_id + " - " + post_title
 
-        new_scrape_item = ScrapeItem(link, old_scrape_item.parent_title, True, await self.parse_datetime(date))
-        await new_scrape_item.add_to_parent_title(f"{user} ({self.folder_domain})")
+        new_scrape_item = await self.create_scrape_item(old_scrape_item, link, f"{user} ({self.folder_domain})", True, await self.parse_datetime(date))
         await new_scrape_item.add_to_parent_title(post_title)
         await self.scraper_queue.put(new_scrape_item)

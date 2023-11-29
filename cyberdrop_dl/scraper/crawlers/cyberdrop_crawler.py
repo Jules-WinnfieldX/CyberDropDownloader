@@ -52,8 +52,7 @@ class CyberdropCrawler(Crawler):
                 link = self.primary_base_url.with_path(link)
             link = URL(link)
 
-            new_scrape_item = ScrapeItem(link, scrape_item.parent_title, True, date)
-            await new_scrape_item.add_to_parent_title(title)
+            new_scrape_item = await self.create_scrape_item(scrape_item, link, title, True, date)
             await self.scraper_queue.put(new_scrape_item)
 
     @error_handling_wrapper

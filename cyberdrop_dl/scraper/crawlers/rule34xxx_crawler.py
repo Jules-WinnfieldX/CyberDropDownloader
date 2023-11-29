@@ -51,8 +51,7 @@ class Rule34XXXCrawler(Crawler):
             if link.startswith("/"):
                 link = f"{self.primary_base_url}{link}"
             link = URL(link, encoded=True)
-            new_scrape_item = ScrapeItem(link, scrape_item.parent_title, True, scrape_item.possible_datetime)
-            await new_scrape_item.add_to_parent_title(title)
+            new_scrape_item = await self.create_scrape_item(scrape_item, link, title, True)
             await self.scraper_queue.put(new_scrape_item)
 
         next_page = soup.select_one("a[alt=next]")
@@ -63,7 +62,7 @@ class Rule34XXXCrawler(Crawler):
                     next_page = scrape_item.url.with_query(next_page[1:])
                 else:
                     next_page = URL(next_page)
-                new_scrape_item = ScrapeItem(next_page, scrape_item.parent_title, possible_datetime=scrape_item.possible_datetime)
+                new_scrape_item = await self.create_scrape_item(scrape_item, next_page, "")
                 await self.scraper_queue.put(new_scrape_item)
 
     @error_handling_wrapper

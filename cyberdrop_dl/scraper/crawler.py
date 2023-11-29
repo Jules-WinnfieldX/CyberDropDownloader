@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import copy
 from abc import ABC, abstractmethod
 from dataclasses import field
 from typing import TYPE_CHECKING, Optional
@@ -142,6 +143,19 @@ class Crawler(ABC):
                     continue
 
     """~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"""
+
+    async def create_scrape_item(self, parent_scrape_item: ScrapeItem, url: URL, new_title_part: str,
+                                 part_of_album: bool = False,
+                                 possible_datetime: Optional[int] = None) -> ScrapeItem:
+        """Creates a scrape item"""
+        scrape_item = copy.deepcopy(parent_scrape_item)
+        scrape_item.url = url
+        if new_title_part:
+            await scrape_item.add_to_parent_title(new_title_part)
+        scrape_item.part_of_album = part_of_album if part_of_album else scrape_item.part_of_album
+        if possible_datetime:
+            scrape_item.possible_datetime = possible_datetime
+        return scrape_item
 
     async def create_title(self, title: str, album_id: Optional[str], thread_id: Optional[str]) -> str:
         """Creates the title for the scrape item"""

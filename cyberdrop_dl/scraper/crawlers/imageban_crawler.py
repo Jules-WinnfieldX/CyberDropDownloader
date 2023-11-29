@@ -9,7 +9,7 @@ from yarl import URL
 
 from cyberdrop_dl.scraper.crawler import Crawler
 from cyberdrop_dl.utils.dataclasses.url_objects import ScrapeItem
-from cyberdrop_dl.utils.utilities import get_filename_and_ext, error_handling_wrapper, log
+from cyberdrop_dl.utils.utilities import get_filename_and_ext, error_handling_wrapper
 
 if TYPE_CHECKING:
     from cyberdrop_dl.managers.manager import Manager
@@ -57,8 +57,8 @@ class ImageBanCrawler(Crawler):
                 link = URL("https://" + scrape_item.url.host + link_path)
             else:
                 link = URL(link_path)
-            new_scrape_item = ScrapeItem(link, scrape_item.parent_title, True, scrape_item.possible_datetime)
-            await new_scrape_item.add_to_parent_title(title)
+
+            new_scrape_item = await self.create_scrape_item(scrape_item, link, title, True)
             await self.scraper_queue.put(new_scrape_item)
 
         next_page = soup.select_one('a[class*="page-link next"]')
@@ -68,7 +68,7 @@ class ImageBanCrawler(Crawler):
                 link = URL("https://" + scrape_item.url.host + link_path)
             else:
                 link = URL(link_path)
-            new_scrape_item = ScrapeItem(link, scrape_item.parent_title, True, scrape_item.possible_datetime)
+            new_scrape_item = await self.create_scrape_item(scrape_item, link, "", True)
             await self.scraper_queue.put(new_scrape_item)
 
     @error_handling_wrapper
