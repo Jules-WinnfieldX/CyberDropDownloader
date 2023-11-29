@@ -28,14 +28,6 @@ def startup() -> Manager:
         if not manager.args_manager.immediate_download:
             program_ui(manager)
 
-        logger = logging.getLogger("cyberdrop_dl")
-        logger.setLevel(logging.DEBUG)
-        file_handler = logging.FileHandler(manager.file_manager.main_log, mode="w")
-        file_handler.setLevel(logging.DEBUG)
-        formatter = logging.Formatter("%(asctime)s:%(filename)s:%(lineno)d:%(message)s")
-        file_handler.setFormatter(formatter)
-        logger.addHandler(file_handler)
-
         return manager
 
     except KeyboardInterrupt:
@@ -62,25 +54,44 @@ async def runtime(manager: Manager) -> None:
 
 async def director(manager: Manager) -> None:
     """Runs the program and handles the UI"""
-    await manager.async_startup()
+    configs = manager.config_manager.get_configs()
+    configs_ran = []
+    while True:
+        if manager.args_manager.all_configs:
+            configs_to_run = list(set(configs) - set(configs_ran))
+            manager.config_manager.change_config(configs_to_run[0])
+            configs_ran.append(configs_to_run[0])
 
-    with Live(manager.progress_manager.layout, refresh_per_second=10):
-        await runtime(manager)
+        logger = logging.getLogger("cyberdrop_dl")
+        logger.setLevel(logging.DEBUG)
+        file_handler = logging.FileHandler(manager.file_manager.main_log, mode="w")
+        file_handler.setLevel(logging.DEBUG)
+        formatter = logging.Formatter("%(asctime)s:%(filename)s:%(lineno)d:%(message)s")
+        file_handler.setFormatter(formatter)
+        logger.addHandler(file_handler)
 
-    clear_screen_proc = await asyncio.create_subprocess_shell('cls' if os.name == 'nt' else 'clear')
-    await clear_screen_proc.wait()
+        await manager.async_startup()
 
-    if manager.config_manager.settings_data['Sorting']['sort_downloads']:
-        sorter = Sorter(manager)
-        await sorter.sort()
-    await check_partials_and_empty_folders(manager)
+        with Live(manager.progress_manager.layout, refresh_per_second=10):
+            await runtime(manager)
 
-    await manager.progress_manager.print_stats()
-    await check_latest_pypi()
+        clear_screen_proc = await asyncio.create_subprocess_shell('cls' if os.name == 'nt' else 'clear')
+        await clear_screen_proc.wait()
 
-    await manager.close()
+        if manager.config_manager.settings_data['Sorting']['sort_downloads']:
+            sorter = Sorter(manager)
+            await sorter.sort()
+        await check_partials_and_empty_folders(manager)
 
-    await log_with_color("\nFinished downloading. Enjoy :)", 'green')
+        await manager.progress_manager.print_stats()
+        await check_latest_pypi()
+
+        await manager.close()
+
+        await log_with_color("\nFinished downloading. Enjoy :)", 'green')
+
+        if not manager.args_manager.all_configs or not list(set(configs) - set(configs_ran)):
+            break
 
     asyncio.get_event_loop().stop()
 
@@ -91,7 +102,6 @@ def main():
     with contextlib.suppress(RuntimeError, asyncio.CancelledError):
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
-
         aiorun.run(director(manager), stop_on_unhandled_errors=True)
         sys.exit(0)
 
