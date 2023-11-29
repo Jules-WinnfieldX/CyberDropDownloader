@@ -67,11 +67,7 @@ async def director(manager: Manager) -> None:
     await clear_screen_proc.wait()
 
     if manager.config_manager.settings_data['Sorting']['sort_downloads']:
-        sorter = Sorter(manager.directory_manager.downloads, manager.directory_manager.sorted_downloads,
-                        manager.config_manager.settings_data['Sorting']['sorted_audio_folder'],
-                        manager.config_manager.settings_data['Sorting']['sorted_image_folder'],
-                        manager.config_manager.settings_data['Sorting']['sorted_video_folder'],
-                        manager.config_manager.settings_data['Sorting']['sorted_other_folder'])
+        sorter = Sorter(manager)
         await sorter.sort()
     await check_partials_and_empty_folders(manager)
 

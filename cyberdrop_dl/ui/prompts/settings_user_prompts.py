@@ -342,6 +342,11 @@ def edit_sort_options_prompt(config: Dict) -> None:
             default=config['Sort_Options']['sort_folder'],
             validate=PathValidator(is_dir=True, message="Input is not a directory"),
         ).execute()
+        sort_incremementer_format = inquirer.text(
+            message="Enter the sort incrementer format:",
+            default=config['Sort_Options']['sort_incremementer_format'],
+            validate=EmptyInputValidator("Input should not be empty")
+        ).execute()
         sorted_audio_folder = inquirer.text(
             message="Enter the folder you want to sort audio files into:",
             default=config['Sort_Options']['sorted_audio_folder'],
@@ -364,6 +369,7 @@ def edit_sort_options_prompt(config: Dict) -> None:
         ).execute()
 
         config['Sort_Options']['sort_folder'] = sort_folder
+        config['Sort_Options']['sort_incremementer_format'] = sort_incremementer_format
         config['Sort_Options']['sorted_audio_folder'] = sorted_audio_folder
         config['Sort_Options']['sorted_video_folder'] = sorted_video_folder
         config['Sort_Options']['sorted_image_folder'] = sorted_image_folder

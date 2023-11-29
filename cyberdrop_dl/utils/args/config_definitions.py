@@ -101,10 +101,11 @@ settings: Dict = {
     "Sorting": {
         "sort_downloads": False,
         "sort_folder": str(DOWNLOAD_STORAGE / "Cyberdrop-DL Sorted Downloads"),
-        "sorted_audio_folder": "{sort_dir}/{base_dir}/Audio",
-        "sorted_image_folder": "{sort_dir}/{base_dir}/Images",
-        "sorted_other_folder": "{sort_dir}/{base_dir}/Other",
-        "sorted_video_folder": "{sort_dir}/{base_dir}/Videos",
+        "sort_incremementer_format": " ({i})",
+        "sorted_audio": "{sort_dir}/{base_dir}/Audio/{filename}{ext}",
+        "sorted_image": "{sort_dir}/{base_dir}/Images/{filename}{ext}",
+        "sorted_other": "{sort_dir}/{base_dir}/Other/{filename}{ext}",
+        "sorted_video": "{sort_dir}/{base_dir}/Videos/{filename}{ext}",
     }
 }
 

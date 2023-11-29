@@ -27,6 +27,9 @@ asyncpraw = "^7.7.1"
 myjdapi = "^1.1.7"
 mediafire = "^0.6.1"
 poetryup = "^0.12.7"
+mutagen = "^1.47.0"
+pillow = "^10.1.0"
+opencv-python = "^4.8.1.78"
 
 [tool.poetry.scripts]
 cyberdrop-dl = "cyberdrop_dl.main:main"
