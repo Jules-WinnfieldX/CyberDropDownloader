@@ -1,6 +1,7 @@
 create_history = """CREATE TABLE IF NOT EXISTS media (domain TEXT,
                                                url_path TEXT,
                                                referer TEXT,
+                                               download_path TEXT,
                                                download_filename TEXT,
                                                original_filename TEXT,
                                                completed INTEGER NOT NULL,

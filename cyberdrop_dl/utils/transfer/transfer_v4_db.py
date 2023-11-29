@@ -12,10 +12,16 @@ def transfer_v4_db(db_path: Path, new_db_path: Path) -> None:
     new_db_connection.execute(create_history)
     new_db_connection.execute(create_temp)
 
-    query = "SELECT domain, url_path, referer, download_filename, original_filename, completed FROM media WHERE completed = 1"
+    query = "SELECT domain, url_path, referer, download_path, download_filename, original_filename, completed FROM media WHERE completed = 1"
     old_data_history = old_db_connection.execute(query).fetchall()
 
-    new_db_connection.executemany("insert into media values (?, ?, ?, ?, ?, ?)", old_data_history)
+    old_data_revised = []
+    for row in old_data_history:
+        row = list(row)
+        row[3] = str(Path(row[3]).parent)
+        old_data_revised.append(tuple(row))
+
+    new_db_connection.executemany("insert or ignore into media values (?, ?, ?, ?, ?, ?, ?)", old_data_revised)
     del old_data_history
 
     new_db_connection.commit()
