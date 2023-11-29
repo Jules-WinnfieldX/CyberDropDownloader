@@ -43,7 +43,7 @@ class Sorter:
     async def move_cd(self, file: Path, dest: Path) -> None:
         """Moves a file to a destination folder"""
         try:
-            file.parent.mkdir(parents=True, exist_ok=True)
+            dest.parent.mkdir(parents=True, exist_ok=True)
             file.rename(dest)
         except FileExistsError:
             if file.stat().st_size == dest.stat().st_size:
@@ -57,6 +57,7 @@ class Sorter:
 
     async def sort(self) -> None:
         """Sorts the files in the download directory into their respective folders"""
+        await log_with_color("\nSorting Downloads: Please Wait", "cyan")
         for folder in self.download_dir.iterdir():
             if not folder.is_dir():
                 continue
