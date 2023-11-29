@@ -25,6 +25,10 @@ def transfer_v4_config(manager: Manager, old_config_path: Path, new_config_name:
     """Transfers a V4 config into V5 possession"""
     new_auth_data = manager.config_manager.authentication_data
     new_user_data = copy.deepcopy(settings)
+
+    new_user_data['Files']['input_file'] = new_user_data['Files']['input_file'].format(config=new_config_name)
+    new_user_data["Logs"]["log_folder"] = new_user_data["Logs"]["log_folder"].format(config=new_config_name)
+
     new_global_data = manager.config_manager.global_settings_data
     old_data = _load_yaml(old_config_path)
     old_data = old_data['Configuration']
@@ -79,10 +83,6 @@ def transfer_v4_config(manager: Manager, old_config_path: Path, new_config_name:
     new_user_data['Runtime_Options']['send_unsupported_to_jdownloader'] = old_data['JDownloader']['apply_jdownloader']
 
     new_user_data['Sorting']['sort_downloads'] = old_data['Sorting']['sort_downloads']
-    new_user_data['Sorting']['sorted_audio_folder'] = old_data['Sorting']['sorted_audio']
-    new_user_data['Sorting']['sorted_image_folder'] = old_data['Sorting']['sorted_images']
-    new_user_data['Sorting']['sorted_other_folder'] = old_data['Sorting']['sorted_others']
-    new_user_data['Sorting']['sorted_video_folder'] = old_data['Sorting']['sorted_videos']
 
     # Global data transfer
     new_global_data['General']['allow_insecure_connections'] = old_data['Runtime']['allow_insecure_connections']
@@ -110,7 +110,6 @@ def transfer_v4_config(manager: Manager, old_config_path: Path, new_config_name:
 
     new_urls = manager.directory_manager.configs / new_config_name / "URLs.txt"
     if old_urls_path.is_absolute():
-        old_urls_path = old_urls_path.relative_to(old_config_path)
         old_urls_path.rename(new_urls)
     elif len(old_urls_path.parts) == 1:
         if (old_config_path / old_urls_path.name).is_file():
@@ -121,3 +120,4 @@ def transfer_v4_config(manager: Manager, old_config_path: Path, new_config_name:
     manager.config_manager.create_new_config(new_settings, new_user_data)
     manager.config_manager.write_updated_authentication_config()
     manager.config_manager.write_updated_global_settings_config()
+    manager.config_manager.change_config(new_config_name)

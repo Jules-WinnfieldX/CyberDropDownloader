@@ -50,7 +50,7 @@ def program_ui(manager: Manager):
         elif action == 5:
             configs = manager.config_manager.get_configs()
             selected_config = select_config_prompt(configs)
-            manager.config_manager.load_config(selected_config)
+            manager.config_manager.change_config(selected_config)
 
         # Manage Configs
         elif action == 6:

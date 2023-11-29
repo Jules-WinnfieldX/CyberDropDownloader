@@ -29,10 +29,11 @@ def create_new_config_prompt(manager: Manager) -> None:
         console.print(f"Config with name '{config_name}' already exists!")
         inquirer.confirm(message="Press enter to return to the main menu.").execute()
         return
-    edit_config_values_prompt(manager, new_conf=True, new_conf_name=config_name)
+    manager.config_manager.change_config(config_name)
+    edit_config_values_prompt(manager)
 
 
-def edit_config_values_prompt(manager: Manager, new_conf: bool = False, new_conf_name: str = "") -> None:
+def edit_config_values_prompt(manager: Manager) -> None:
     """Edit the config values"""
     config = manager.config_manager.settings_data
 
@@ -83,10 +84,7 @@ def edit_config_values_prompt(manager: Manager, new_conf: bool = False, new_conf
 
         # Done
         elif action == 8:
-            if not new_conf:
-                manager.config_manager.write_updated_settings_config()
-            else:
-                manager.config_manager.new_config(new_conf_name)
+            manager.config_manager.write_updated_settings_config()
             return
 
 

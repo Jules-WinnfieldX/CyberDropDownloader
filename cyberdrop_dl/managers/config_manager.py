@@ -94,11 +94,6 @@ class ConfigManager:
         self.global_settings_data = _match_config_dicts(default_global_settings_data, existing_global_settings_data)
         _save_yaml(self.global_settings, self.global_settings_data)
 
-    def set_new_settings_config(self, config_path: Path) -> None:
-        """Sets a new settings config file"""
-        self.settings = config_path
-        self._verify_settings_config()
-
     def create_new_config(self, new_settings: Path, settings_data: Dict) -> None:
         """Creates a new settings config file"""
         _save_yaml(new_settings, settings_data)
@@ -121,22 +116,9 @@ class ConfigManager:
         """Returns a list of all the configs"""
         return [config.name for config in self.manager.directory_manager.configs.iterdir() if config.is_dir()]
 
-    def load_config(self, config_name: str) -> None:
-        """Loads a config"""
-        self.loaded_config = config_name
-        self.manager.startup()
-
     def change_default_config(self, config_name: str) -> None:
         """Changes the default config"""
         self.manager.cache_manager.save("default_config", config_name)
-
-    def new_config(self, config_name: str) -> None:
-        """Creates a new config"""
-        (self.manager.directory_manager.configs / config_name).mkdir(exist_ok=True, parents=True)
-        self.loaded_config = config_name
-        self.settings = self.manager.directory_manager.configs / config_name / "settings.yaml"
-        self.write_updated_settings_config()
-        self.manager.startup()
 
     def delete_config(self, config_name: str) -> None:
         """Deletes a config"""
@@ -146,3 +128,21 @@ class ConfigManager:
 
         config = self.manager.directory_manager.configs / config_name
         shutil.rmtree(config)
+
+    def change_config(self, config_name: str) -> None:
+        """Changes the config"""
+        self.loaded_config = config_name
+        if (self.manager.directory_manager.configs / config_name).is_dir():
+            self.manager.startup()
+        else:
+            self.loaded_config = config_name
+            (self.manager.directory_manager.configs / config_name).mkdir(exist_ok=True, parents=True)
+            self.settings_data = copy.deepcopy(settings)
+            self.settings_data['Files']['input_file'] = self.settings_data['Files']['input_file'].format(config=config_name)
+            self.settings_data["Logs"]["log_folder"] = self.settings_data["Logs"]["log_folder"].format(config=config_name)
+            self.settings = self.manager.directory_manager.configs / config_name / "settings.yaml"
+            self.write_updated_settings_config()
+            self.manager.startup()
+
+
+

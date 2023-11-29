@@ -63,11 +63,11 @@ settings: Dict = {
         "skip_download_mark_completed": False,
     },
     "Files": {
-        "input_file": str(APP_STORAGE / "Configs" / "Default" / "URLs.txt"),
+        "input_file": str(APP_STORAGE / "Configs" / "{config}" / "URLs.txt"),
         "download_folder": str(DOWNLOAD_STORAGE / "Cyberdrop-DL Downloads"),
     },
     "Logs": {
-        "log_folder": str(APP_STORAGE / "Configs" / "Default" / "Logs"),
+        "log_folder": str(APP_STORAGE / "Configs" / "{config}" / "Logs"),
         "main_log_filename": "downloader.log",
         "last_forum_post_filename": "Last_Scraped_Forum_Posts.txt",
         "unsupported_urls_filename": "Unsupported_URLs.csv",
