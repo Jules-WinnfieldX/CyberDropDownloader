@@ -77,7 +77,7 @@ settings: Dict = {
         "log_folder": str(APP_STORAGE / "Configs" / "{config}" / "Logs"),
         "main_log_filename": "downloader.log",
         "last_forum_post_filename": "Last_Scraped_Forum_Posts.txt",
-        "unsupported_urls_filename": "Unsupported_URLs.csv",
+        "unsupported_urls_filename": "Unsupported_URLs.txt",
         "download_error_urls_filename": "Download_Error_URLs.csv",
         "scrape_error_urls_filename": "Scrape_Error_URLs.csv",
     },

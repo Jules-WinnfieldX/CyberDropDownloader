@@ -13,7 +13,6 @@ from typing import TYPE_CHECKING
 
 import aiohttp
 import filedate
-from rich.progress import TaskID
 
 from cyberdrop_dl.clients.download_client import is_4xx_client_error
 from cyberdrop_dl.clients.errors import DownloadFailure
