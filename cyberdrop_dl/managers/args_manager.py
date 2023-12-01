@@ -39,4 +39,3 @@ class ArgsManager:
         del self.parsed_args['config']
         del self.parsed_args['portable']
         del self.parsed_args['links']
-

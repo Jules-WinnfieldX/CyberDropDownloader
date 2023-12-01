@@ -64,7 +64,7 @@ async def director(manager: Manager) -> None:
 
         logger = logging.getLogger("cyberdrop_dl")
         logger.setLevel(logging.DEBUG)
-        file_handler = logging.FileHandler(manager.file_manager.main_log, mode="w")
+        file_handler = logging.FileHandler(manager.path_manager.main_log, mode="w")
         file_handler.setLevel(logging.DEBUG)
         formatter = logging.Formatter("%(asctime)s:%(filename)s:%(lineno)d:%(message)s")
         file_handler.setFormatter(formatter)

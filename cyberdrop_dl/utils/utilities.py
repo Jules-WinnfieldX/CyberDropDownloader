@@ -63,15 +63,15 @@ def error_handling_wrapper(func):
             if hasattr(e, 'status'):
                 if hasattr(e, 'message'):
                     await log(f"Scrape Error: {link} ({e.status} - {e.message})")
-                    await self.manager.file_manager.write_scrape_error_log(link, f" {e.status} - {e.message}")
+                    await self.manager.log_manager.write_scrape_error_log(link, f" {e.status} - {e.message}")
                 else:
                     await log(f"Scrape Error: {link} ({e.status})")
-                    await self.manager.file_manager.write_scrape_error_log(link, f" {e.status}")
+                    await self.manager.log_manager.write_scrape_error_log(link, f" {e.status}")
                 await self.manager.progress_manager.scrape_stats_progress.add_failure(e.status)
             else:
                 await log(f"Scrape Error: {link} ({e})")
                 await log(traceback.format_exc())
-                await self.manager.file_manager.write_scrape_error_log(link, " See Log for Details")
+                await self.manager.log_manager.write_scrape_error_log(link, " See Log for Details")
                 await self.manager.progress_manager.scrape_stats_progress.add_failure("Unknown")
     return wrapper
 
@@ -143,11 +143,11 @@ async def get_download_path(manager: Manager, scrape_item: ScrapeItem, domain: s
         return scrape_item.retry_path
 
     if scrape_item.parent_title and scrape_item.part_of_album:
-        return manager.directory_manager.downloads / scrape_item.parent_title
+        return manager.path_manager.download_dir / scrape_item.parent_title
     elif scrape_item.parent_title:
-        return manager.directory_manager.downloads / scrape_item.parent_title / f"Loose Files ({domain})"
+        return manager.path_manager.download_dir / scrape_item.parent_title / f"Loose Files ({domain})"
     else:
-        return manager.directory_manager.downloads / f"Loose Files ({domain})"
+        return manager.path_manager.download_dir / f"Loose Files ({domain})"
 
 
 async def remove_id(manager: Manager, filename: str, ext: str) -> Tuple[str, str]:
@@ -182,12 +182,12 @@ async def check_partials_and_empty_folders(manager: Manager):
     """Checks for partial downloads and empty folders"""
     if manager.config_manager.settings_data['Runtime_Options']['delete_partial_files']:
         await log_with_color("Deleting partial downloads...", "bold_red")
-        partial_downloads = manager.directory_manager.downloads.rglob("*.part")
+        partial_downloads = manager.path_manager.download_dir.rglob("*.part")
         for file in partial_downloads:
             file.unlink(missing_ok=True)
     elif not manager.config_manager.settings_data['Runtime_Options']['skip_check_for_partial_files']:
         await log_with_color("Checking for partial downloads...", "yellow")
-        partial_downloads = any(f.is_file() for f in manager.directory_manager.downloads.rglob("*.part"))
+        partial_downloads = any(f.is_file() for f in manager.path_manager.download_dir.rglob("*.part"))
         if partial_downloads:
             await log_with_color("There are partial downloads in the downloads folder", "yellow")
         temp_downloads = any(Path(f).is_file() for f in await manager.db_manager.temp_table.get_temp_names())
@@ -196,9 +196,9 @@ async def check_partials_and_empty_folders(manager: Manager):
 
     if not manager.config_manager.settings_data['Runtime_Options']['skip_check_for_empty_folders']:
         await log_with_color("Checking for empty folders...", "yellow")
-        await purge_dir(manager.directory_manager.downloads)
-        if isinstance(manager.directory_manager.sorted_downloads, Path):
-            await purge_dir(manager.directory_manager.sorted_downloads)
+        await purge_dir(manager.path_manager.download_dir)
+        if isinstance(manager.path_manager.sorted_dir, Path):
+            await purge_dir(manager.path_manager.sorted_dir)
 
 
 async def check_latest_pypi():

@@ -44,7 +44,7 @@ def program_ui(manager: Manager):
 
         # Edit URLs
         elif action == 4:
-            edit_urls_prompt(manager.file_manager.input_file)
+            edit_urls_prompt(manager.path_manager.input_file)
 
         # Select Config
         elif action == 5:

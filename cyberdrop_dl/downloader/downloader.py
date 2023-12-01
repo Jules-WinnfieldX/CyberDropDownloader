@@ -56,13 +56,13 @@ def retry(f):
                             await self.manager.progress_manager.download_stats_progress.add_failure(e.status)
                             if hasattr(e, "message"):
                                 await log(f"Download failed: {media_item.url} with status {e.status} and message {e.message}")
-                                await self.manager.file_manager.write_download_error_log(media_item.url, f" {e.status} - {e.message}")
+                                await self.manager.log_manager.write_download_error_log(media_item.url, f" {e.status} - {e.message}")
                             else:
                                 await log(f"Download failed: {media_item.url} with status {e.status}")
-                                await self.manager.file_manager.write_download_error_log(media_item.url, f" {e.status}")
+                                await self.manager.log_manager.write_download_error_log(media_item.url, f" {e.status}")
                         else:
                             await self.manager.progress_manager.download_stats_progress.add_failure("Unknown")
-                            await self.manager.file_manager.write_download_error_log(media_item.url, f" See Log for Details")
+                            await self.manager.log_manager.write_download_error_log(media_item.url, f" See Log for Details")
                             await log(f"Download failed: {media_item.url} with error {e}")
                         await self.manager.progress_manager.download_progress.add_failed()
                         break
@@ -192,7 +192,7 @@ class Downloader:
         """Returns the download directory for the media item"""
         download_folder = media_item.download_folder
         if self.manager.config_manager.settings_data['Download_Options']['block_download_sub_folders']:
-            while download_folder.parent != self.manager.directory_manager.downloads:
+            while download_folder.parent != self.manager.path_manager.download_dir:
                 download_folder = download_folder.parent
         return download_folder
 
@@ -369,10 +369,10 @@ class Downloader:
                         if not e.message:
                             e.message = "Download failed"
                         await log(f"Download failed: {media_item.url} with status {e.status} and message {e.message}")
-                        await self.manager.file_manager.write_download_error_log(media_item.url, f" {e.status} - {e.message}")
+                        await self.manager.log_manager.write_download_error_log(media_item.url, f" {e.status} - {e.message}")
                     else:
                         await log(f"Download failed: {media_item.url} with status {e.status}")
-                        await self.manager.file_manager.write_download_error_log(media_item.url, f" {e.status}")
+                        await self.manager.log_manager.write_download_error_log(media_item.url, f" {e.status}")
 
                     return
 
@@ -386,10 +386,10 @@ class Downloader:
                         if not e.message:
                             e.message = "Download failed"
                         await log(f"Download failed: {media_item.url} with status {e.status} and message {e.message}")
-                        await self.manager.file_manager.write_download_error_log(media_item.url, f" {e.status} - {e.message}")
+                        await self.manager.log_manager.write_download_error_log(media_item.url, f" {e.status} - {e.message}")
                     else:
                         await log(f"Download failed: {media_item.url} with status {e.status}")
-                        await self.manager.file_manager.write_download_error_log(media_item.url, f" {e.status}")
+                        await self.manager.log_manager.write_download_error_log(media_item.url, f" {e.status}")
                     return
 
             raise DownloadFailure(status=getattr(e, "status", 1), message=getattr(e, "message", repr(e)))

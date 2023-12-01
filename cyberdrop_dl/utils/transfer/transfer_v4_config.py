@@ -26,8 +26,11 @@ def transfer_v4_config(manager: Manager, old_config_path: Path, new_config_name:
     new_auth_data = manager.config_manager.authentication_data
     new_user_data = copy.deepcopy(settings)
 
-    new_user_data['Files']['input_file'] = new_user_data['Files']['input_file'].format(config=new_config_name)
-    new_user_data["Logs"]["log_folder"] = new_user_data["Logs"]["log_folder"].format(config=new_config_name)
+    from cyberdrop_dl.managers.path_manager import APP_STORAGE, DOWNLOAD_STORAGE
+    new_user_data['Files']['input_file'] = APP_STORAGE / "Configs" / new_config_name / "URLs.txt"
+    new_user_data['Files']['download_folder'] = DOWNLOAD_STORAGE / "Cyberdrop-DL Downloads"
+    new_user_data["Logs"]["log_folder"] = APP_STORAGE / "Configs" / new_config_name / "Logs"
+    new_user_data['Sorting']['sort_folder'] = DOWNLOAD_STORAGE / "Cyberdrop-DL Sorted Downloads"
 
     new_global_data = manager.config_manager.global_settings_data
     old_data = _load_yaml(old_config_path)
@@ -100,15 +103,15 @@ def transfer_v4_config(manager: Manager, old_config_path: Path, new_config_name:
     new_global_data['Rate_Limiting_Options']['max_simultaneous_downloads_per_domain'] = old_data['Runtime']['max_concurrent_downloads_per_domain']
 
     # Save Data
-    new_settings = manager.directory_manager.configs / new_config_name / "settings.yaml"
-    new_logs = manager.directory_manager.configs / new_config_name / "Logs"
+    new_settings = manager.path_manager.config_dir / new_config_name / "settings.yaml"
+    new_logs = manager.path_manager.config_dir / new_config_name / "Logs"
     new_settings.parent.mkdir(parents=True, exist_ok=True)
     new_logs.mkdir(parents=True, exist_ok=True)
 
     old_config_path = Path(old_config_path).parent
     old_urls_path = Path(old_data['Files']['input_file'])
 
-    new_urls = manager.directory_manager.configs / new_config_name / "URLs.txt"
+    new_urls = manager.path_manager.config_dir / new_config_name / "URLs.txt"
     if old_urls_path.is_absolute():
         old_urls_path.rename(new_urls)
     elif len(old_urls_path.parts) == 1:

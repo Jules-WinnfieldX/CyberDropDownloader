@@ -270,7 +270,7 @@ class ScrapeMapper:
     async def load_links(self) -> None:
         """Loads links from args / input file"""
         links = []
-        async with aiofiles.open(self.manager.file_manager.input_file, "r", encoding="utf8") as f:
+        async with aiofiles.open(self.manager.path_manager.input_file, "r", encoding="utf8") as f:
             async for line in f:
                 assert isinstance(line, str)
                 links.extend(await self.regex_links(line))
@@ -363,7 +363,7 @@ class ScrapeMapper:
                     await self.manager.progress_manager.download_progress.add_previously_completed()
                     continue
                 download_queue = await self.manager.queue_manager.get_download_queue("no_crawler")
-                download_folder = self.manager.directory_manager.downloads / "Loose Files"
+                download_folder = self.manager.path_manager.download_dir / "Loose Files"
                 filename, ext = await get_filename_and_ext(scrape_item.url.name)
                 media_item = MediaItem(scrape_item.url, scrape_item.url, download_folder, filename, ext, filename)
                 await download_queue.put(media_item)
@@ -372,12 +372,12 @@ class ScrapeMapper:
                     await self.jdownloader.jdownloader_setup()
                     if not self.jdownloader.enabled:
                         await log(f"Unsupported URL: {scrape_item.url}")
-                        await self.manager.file_manager.write_unsupported_urls_log(scrape_item.url)
+                        await self.manager.log_manager.write_unsupported_urls_log(scrape_item.url)
                 await log(f"Sending unsupported URL to JDownloader: {scrape_item.url}")
                 await self.jdownloader.direct_unsupported_to_jdownloader(scrape_item.url, scrape_item.parent_title)
             else:
                 await log(f"Unsupported URL: {scrape_item.url}")
-                await self.manager.file_manager.write_unsupported_urls_log(scrape_item.url)
+                await self.manager.log_manager.write_unsupported_urls_log(scrape_item.url)
 
             if self.complete:
                 break

@@ -98,7 +98,7 @@ class NudoStarCrawler(Crawler):
                     continue
 
                 date = int(post.select_one(self.post_date_selector).get(self.post_date_attribute))
-                new_scrape_item = await self.create_scrape_item(new_scrape_item, thread_url, title, True, date)
+                new_scrape_item = await self.create_scrape_item(scrape_item, thread_url, title, True, date)
 
                 for elem in post.find_all(self.quotes_selector):
                     elem.decompose()
@@ -124,7 +124,7 @@ class NudoStarCrawler(Crawler):
             last_post_url = scrape_item.url.parent / post_string
         else:
             last_post_url = scrape_item.url / post_string
-        await self.manager.file_manager.write_last_post_log(last_post_url)
+        await self.manager.log_manager.write_last_post_log(last_post_url)
 
     @error_handling_wrapper
     async def post(self, scrape_item: ScrapeItem, post_content: Tag, post_number: int) -> None:

@@ -25,7 +25,7 @@ def create_new_config_prompt(manager: Manager) -> None:
         message="Enter the name of the config:",
         validate=EmptyInputValidator("Input should not be empty")
     ).execute()
-    if (manager.directory_manager.configs / config_name).is_dir():
+    if (manager.path_manager.config_dir / config_name).is_dir():
         console.print(f"Config with name '{config_name}' already exists!")
         inquirer.confirm(message="Press enter to return to the main menu.").execute()
         return
@@ -137,11 +137,6 @@ def edit_input_output_file_paths_prompt(config: Dict) -> None:
         default=config['Files']['input_file'],
         validate=PathValidator(is_file=True, message="Input is not a file")
     ).execute()
-    input_password_file = inquirer.filepath(
-        message="Enter the input password file path:",
-        default=config['Files']['input_password_file'],
-        validate=PathValidator(is_file=True, message="Input is not a file"),
-    ).execute()
     download_folder = inquirer.text(
         message="Enter the download folder path:",
         default=config['Files']['download_folder'],
@@ -149,7 +144,6 @@ def edit_input_output_file_paths_prompt(config: Dict) -> None:
     ).execute()
 
     config['Files']['input_file'] = input_file
-    config['Files']['input_password_file'] = input_password_file
     config['Files']['download_folder'] = download_folder
 
 

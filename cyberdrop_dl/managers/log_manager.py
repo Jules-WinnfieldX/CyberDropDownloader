@@ -1,4 +1,3 @@
-from dataclasses import field
 from typing import TYPE_CHECKING
 
 import aiofiles
@@ -7,22 +6,19 @@ if TYPE_CHECKING:
     from pathlib import Path
     from yarl import URL
 
+    from cyberdrop_dl.managers.manager import Manager
 
-class FileManager:
-    def __init__(self):
-        self.input_file: Path = field(init=False)
-        self.history_db: Path = field(init=False)
 
-        self.main_log: Path = field(init=False)
-        self.last_post_log: Path = field(init=False)
-        self.unsupported_urls_log: Path = field(init=False)
-        self.download_error_log: Path = field(init=False)
-        self.scrape_error_log: Path = field(init=False)
+class LogManager:
+    def __init__(self, manager: 'Manager'):
+        self.main_log: Path = manager.path_manager.main_log
+        self.last_post_log: Path = manager.path_manager.last_post_log
+        self.unsupported_urls_log: Path = manager.path_manager.unsupported_urls_log
+        self.download_error_log: Path = manager.path_manager.download_error_log
+        self.scrape_error_log: Path = manager.path_manager.scrape_error_log
 
     def startup(self) -> None:
         """Startup process for the file manager"""
-        self.input_file.touch(exist_ok=True)
-
         self.main_log.unlink(missing_ok=True)
         self.main_log.touch(exist_ok=True)
         self.last_post_log.unlink(missing_ok=True)

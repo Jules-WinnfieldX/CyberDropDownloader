@@ -98,7 +98,7 @@ def import_cyberdrop_v4_items_prompt(manager: Manager) -> None:
                 validate=EmptyInputValidator("Input should not be empty")
             ).execute()
 
-            if (manager.directory_manager.configs / new_config_name).is_dir():
+            if (manager.path_manager.config_dir / new_config_name).is_dir():
                 console.print(f"Config with name '{new_config_name}' already exists!")
                 inquirer.confirm(message="Press enter to return to the import menu.").execute()
                 continue
@@ -121,7 +121,7 @@ def import_cyberdrop_v4_items_prompt(manager: Manager) -> None:
                 validate=PathValidator(is_file=True, message="Input is not a file"),
             ).execute()
 
-            transfer_v4_db(import_download_history_path, manager.file_manager.history_db)
+            transfer_v4_db(import_download_history_path, manager.path_manager.history_db)
 
         # Done
         elif action == 3:

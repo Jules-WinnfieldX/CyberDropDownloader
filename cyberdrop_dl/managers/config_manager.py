@@ -38,40 +38,54 @@ def _load_yaml(file: Path) -> Dict:
 class ConfigManager:
     def __init__(self, manager: 'Manager'):
         self.manager = manager
+        self.loaded_config: str = field(init=False)
 
         self.authentication_settings: Path = field(init=False)
         self.settings: Path = field(init=False)
         self.global_settings: Path = field(init=False)
-
-        self.loaded_config: str = field(init=False)
 
         self.authentication_data: Dict = field(init=False)
         self.settings_data: Dict = field(init=False)
         self.global_settings_data: Dict = field(init=False)
 
     def startup(self) -> None:
-        """Startup process for the config manager"""
-        self.authentication_settings.parent.mkdir(parents=True, exist_ok=True)
-        self.settings.parent.mkdir(parents=True, exist_ok=True)
-        self.global_settings.parent.mkdir(parents=True, exist_ok=True)
+        """Pre-startup process for the config manager"""
+        if not isinstance(self.loaded_config, str):
+            self.loaded_config = self.manager.cache_manager.get("default_config")
+            if self.manager.args_manager.load_config_from_args:
+                self.loaded_config = self.manager.args_manager.parsed_args.config
 
-        if not self.authentication_settings.exists():
-            _save_yaml(self.authentication_settings, authentication_settings)
-            self.authentication_data = copy.deepcopy(authentication_settings)
-        else:
+        self.authentication_settings = self.manager.path_manager.config_dir / "authentication.yaml"
+        self.global_settings = self.manager.path_manager.config_dir / "global_settings.yaml"
+        self.settings = self.manager.path_manager.config_dir / self.loaded_config / "settings.yaml"
+
+        self.settings.mkdir(parents=True, exist_ok=True)
+        self.load_configs()
+
+    def load_configs(self) -> None:
+        """Loads all the configs"""
+        if self.authentication_settings.is_file():
             self._verify_authentication_config()
-
-        if not self.settings.exists():
-            _save_yaml(self.settings, settings)
-            self.settings_data = copy.deepcopy(settings)
         else:
-            self._verify_settings_config()
+            self.authentication_data = copy.deepcopy(authentication_settings)
+            _save_yaml(self.authentication_settings, self.authentication_data)
 
-        if not self.global_settings.exists():
-            _save_yaml(self.global_settings, global_settings)
-            self.global_settings_data = copy.deepcopy(global_settings)
-        else:
+        if self.global_settings.is_file():
             self._verify_global_settings_config()
+        else:
+            self.global_settings_data = copy.deepcopy(global_settings)
+            _save_yaml(self.global_settings, self.global_settings_data)
+
+        if self.settings.is_file():
+            self._verify_settings_config()
+        else:
+            from cyberdrop_dl.managers.path_manager import APP_STORAGE, DOWNLOAD_STORAGE
+            self.settings_data = copy.deepcopy(settings)
+            self.settings_data['Files']['input_file'] = APP_STORAGE / "Configs" / self.loaded_config / "URLs.txt"
+            self.settings_data['Files']['download_folder'] = DOWNLOAD_STORAGE / "Cyberdrop-DL Downloads"
+            self.settings_data["Logs"]["log_folder"] = APP_STORAGE / "Configs" / self.loaded_config / "Logs"
+            self.settings_data['Sorting']['sort_folder'] = DOWNLOAD_STORAGE / "Cyberdrop-DL Sorted Downloads"
+            self.write_updated_settings_config()
 
     def _verify_authentication_config(self) -> None:
         """Verifies the authentication config file and creates it if it doesn't exist"""
@@ -85,6 +99,10 @@ class ConfigManager:
         default_settings_data = copy.deepcopy(settings)
         existing_settings_data = _load_yaml(self.settings)
         self.settings_data = _match_config_dicts(default_settings_data, existing_settings_data)
+        self.settings_data['Files']['input_file'] = Path(self.settings_data['Files']['input_file'])
+        self.settings_data['Files']['download_folder'] = Path(self.settings_data['Files']['download_folder'])
+        self.settings_data["Logs"]["log_folder"] = Path(self.settings_data["Logs"]["log_folder"])
+        self.settings_data['Sorting']['sort_folder'] = Path(self.settings_data['Sorting']['sort_folder'])
         _save_yaml(self.settings, self.settings_data)
 
     def _verify_global_settings_config(self) -> None:
@@ -93,6 +111,8 @@ class ConfigManager:
         existing_global_settings_data = _load_yaml(self.global_settings)
         self.global_settings_data = _match_config_dicts(default_global_settings_data, existing_global_settings_data)
         _save_yaml(self.global_settings, self.global_settings_data)
+
+    """~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"""
 
     def create_new_config(self, new_settings: Path, settings_data: Dict) -> None:
         """Creates a new settings config file"""
@@ -104,6 +124,11 @@ class ConfigManager:
 
     def write_updated_settings_config(self) -> None:
         """Write updated settings data"""
+        settings_data = copy.deepcopy(settings)
+        settings_data['Files']['input_file'] = str(settings_data['Files']['input_file'])
+        settings_data['Files']['download_folder'] = str(settings_data['Files']['download_folder'])
+        settings_data["Logs"]["log_folder"] = str(settings_data["Logs"]["log_folder"])
+        settings_data['Sorting']['sort_folder'] = str(settings_data['Sorting']['sort_folder'])
         _save_yaml(self.settings, self.settings_data)
 
     def write_updated_global_settings_config(self) -> None:
@@ -114,7 +139,7 @@ class ConfigManager:
 
     def get_configs(self) -> List:
         """Returns a list of all the configs"""
-        return [config.name for config in self.manager.directory_manager.configs.iterdir() if config.is_dir()]
+        return [config.name for config in self.manager.path_manager.config_dir.iterdir() if config.is_dir()]
 
     def change_default_config(self, config_name: str) -> None:
         """Changes the default config"""
@@ -124,25 +149,11 @@ class ConfigManager:
         """Deletes a config"""
         configs = self.get_configs()
         configs.remove(config_name)
-        self.startup()
 
-        config = self.manager.directory_manager.configs / config_name
+        config = self.manager.path_manager.config_dir / config_name
         shutil.rmtree(config)
 
     def change_config(self, config_name: str) -> None:
         """Changes the config"""
         self.loaded_config = config_name
-        if (self.manager.directory_manager.configs / config_name).is_dir():
-            self.manager.startup()
-        else:
-            self.loaded_config = config_name
-            (self.manager.directory_manager.configs / config_name).mkdir(exist_ok=True, parents=True)
-            self.settings_data = copy.deepcopy(settings)
-            self.settings_data['Files']['input_file'] = self.settings_data['Files']['input_file'].format(config=config_name)
-            self.settings_data["Logs"]["log_folder"] = self.settings_data["Logs"]["log_folder"].format(config=config_name)
-            self.settings = self.manager.directory_manager.configs / config_name / "settings.yaml"
-            self.write_updated_settings_config()
-            self.manager.startup()
-
-
-
+        self.startup()

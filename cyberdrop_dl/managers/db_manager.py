@@ -1,18 +1,22 @@
 from dataclasses import field
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import aiosqlite
 
 from cyberdrop_dl.utils.database.tables.history_table import HistoryTable
 from cyberdrop_dl.utils.database.tables.temp_table import TempTable
 
+if TYPE_CHECKING:
+    from cyberdrop_dl.managers.manager import Manager
+
 
 class DBManager:
-    def __init__(self, db_path: Path):
+    def __init__(self, manager: 'Manager', db_path: Path):
+        self.manager = manager
         self._db_conn: aiosqlite.Connection = field(init=False)
         self._db_path: Path = db_path
 
-        self.ignore_cache: bool = False
         self.ignore_history: bool = False
 
         self.history_table: HistoryTable = field(init=False)
@@ -21,6 +25,8 @@ class DBManager:
     async def startup(self) -> None:
         """Startup process for the DBManager"""
         self._db_conn = await aiosqlite.connect(self._db_path)
+
+        self.ignore_history = self.manager.config_manager.settings_data['Runtime_Options']['ignore_history']
 
         self.history_table = HistoryTable(self._db_conn)
         self.temp_table = TempTable(self._db_conn)

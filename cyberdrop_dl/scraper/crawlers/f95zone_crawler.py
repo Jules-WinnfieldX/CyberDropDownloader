@@ -123,7 +123,7 @@ class F95ZoneCrawler(Crawler):
             last_post_url = scrape_item.url.parent / post_string
         else:
             last_post_url = scrape_item.url / post_string
-        await self.manager.file_manager.write_last_post_log(last_post_url)
+        await self.manager.log_manager.write_last_post_log(last_post_url)
 
     @error_handling_wrapper
     async def post(self, scrape_item: ScrapeItem, post_content: Tag, post_number: int) -> None:

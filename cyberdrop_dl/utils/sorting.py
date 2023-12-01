@@ -16,8 +16,8 @@ if TYPE_CHECKING:
 
 class Sorter:
     def __init__(self, manager: 'Manager'):
-        self.download_dir = manager.directory_manager.downloads
-        self.sorted_downloads = manager.directory_manager.sorted_downloads
+        self.download_dir = manager.path_manager.download_dir
+        self.sorted_downloads = manager.path_manager.sorted_dir
         self.incrementer_format = manager.config_manager.settings_data['Sorting']['sort_incremementer_format']
 
         self.audio_format = manager.config_manager.settings_data['Sorting']['sorted_audio']

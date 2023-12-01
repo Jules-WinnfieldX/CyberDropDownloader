@@ -21,7 +21,7 @@ class JDownloader:
         self.jdownloader_device = manager.config_manager.authentication_data['JDownloader']['jdownloader_device']
         self.jdownloader_username = manager.config_manager.authentication_data['JDownloader']['jdownloader_username']
         self.jdownloader_password = manager.config_manager.authentication_data['JDownloader']['jdownloader_password']
-        self.download_directory = manager.directory_manager.downloads
+        self.download_directory = manager.path_manager.download_dir
         self.jdownloader_agent = field(init=False)
 
     async def jdownloader_setup(self) -> None:

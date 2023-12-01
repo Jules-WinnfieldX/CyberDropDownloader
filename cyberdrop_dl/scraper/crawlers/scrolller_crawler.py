@@ -31,7 +31,7 @@ class ScrolllerCrawler(Crawler):
             await self.subreddit(scrape_item)
         else:
             await log(f"Unsupported URL: {scrape_item.url}")
-            await self.manager.file_manager.write_unsupported_urls_log(scrape_item.url)
+            await self.manager.log_manager.write_unsupported_urls_log(scrape_item.url)
 
         await self.scraping_progress.remove_task(task_id)
 
