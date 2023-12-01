@@ -299,7 +299,7 @@ class ScrapeMapper:
             filename, ext = await get_filename_and_ext(url.name)
 
             from cyberdrop_dl.utils.utilities import FILE_FORMATS
-            if ext in FILE_FORMATS['image'] or ext in FILE_FORMATS['video'] or ext in FILE_FORMATS['audio']:
+            if ext in FILE_FORMATS['Images'] or ext in FILE_FORMATS['Videos'] or ext in FILE_FORMATS['Audio']:
                 return True
             return False
         except NoExtensionFailure:
