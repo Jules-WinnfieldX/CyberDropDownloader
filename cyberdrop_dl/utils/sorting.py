@@ -110,6 +110,7 @@ class Sorter:
         image = Image.open(file)
         width, height = image.size
         resolution = f"{width}x{height}"
+        image.close()
 
         parent_name = file.parent.name
         filename, ext = file.stem, file.suffix
