@@ -123,6 +123,10 @@ class ConfigManager:
 
     def create_new_config(self, new_settings: Path, settings_data: Dict) -> None:
         """Creates a new settings config file"""
+        settings_data['Files']['input_file'] = str(settings_data['Files']['input_file'])
+        settings_data['Files']['download_folder'] = str(settings_data['Files']['download_folder'])
+        settings_data["Logs"]["log_folder"] = str(settings_data["Logs"]["log_folder"])
+        settings_data['Sorting']['sort_folder'] = str(settings_data['Sorting']['sort_folder'])
         _save_yaml(new_settings, settings_data)
 
     def write_updated_authentication_config(self) -> None:
