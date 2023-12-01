@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 from InquirerPy import inquirer
@@ -134,17 +135,17 @@ def edit_input_output_file_paths_prompt(config: Dict) -> None:
     console.print("Editing Input / Output File Paths")
     input_file = inquirer.filepath(
         message="Enter the input file path:",
-        default=config['Files']['input_file'],
+        default=str(config['Files']['input_file']),
         validate=PathValidator(is_file=True, message="Input is not a file")
     ).execute()
     download_folder = inquirer.text(
         message="Enter the download folder path:",
-        default=config['Files']['download_folder'],
+        default=str(config['Files']['download_folder']),
         validate=PathValidator(is_dir=True, message="Input is not a directory")
     ).execute()
 
-    config['Files']['input_file'] = input_file
-    config['Files']['download_folder'] = download_folder
+    config['Files']['input_file'] = Path(input_file)
+    config['Files']['download_folder'] = Path(download_folder)
 
 
 def edit_log_file_naming_path_prompt(config: Dict) -> None:
@@ -153,7 +154,7 @@ def edit_log_file_naming_path_prompt(config: Dict) -> None:
     console.print("Editing Log File Naming / Path")
     log_folder = inquirer.filepath(
         message="Enter the log folder path:",
-        default=config['Logs']['log_folder'],
+        default=str(config['Logs']['log_folder']),
         validate=PathValidator(is_dir=True, message="Input is not a directory")
     ).execute()
     main_log_filename = inquirer.text(
@@ -182,7 +183,7 @@ def edit_log_file_naming_path_prompt(config: Dict) -> None:
         validate=EmptyInputValidator("Input should not be empty")
     ).execute()
 
-    config['Logs']['log_folder'] = log_folder
+    config['Logs']['log_folder'] = Path(log_folder)
     config['Logs']['main_log_filename'] = main_log_filename
     config['Logs']['last_forum_post_filename'] = last_forum_post_filename
     config['Logs']['unsupported_urls_filename'] = unsupported_urls_filename
