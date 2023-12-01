@@ -5,7 +5,7 @@ description = "Bulk downloader for multiple file hosts"
 authors = ["Jules Winnfield <juleswinnfieldII@protonmail.com>"]
 readme = "README.md"
 repository = "https://github.com/Jules-WinnfieldX/CyberDropDownloader"
-documentation = "https://github.com/Jules-WinnfieldX/CyberDropDownloader/wiki"
+documentation = "https://jules-winnfieldx.gitbook.io/cyberdrop-dl/"
 packages = [{include = "cyberdrop_dl"}]
 
 [tool.poetry.dependencies]
