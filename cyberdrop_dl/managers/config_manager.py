@@ -6,6 +6,7 @@ from typing import Dict, List, TYPE_CHECKING
 
 import yaml
 
+from cyberdrop_dl.managers.log_manager import LogManager
 from cyberdrop_dl.utils.args.config_definitions import authentication_settings, settings, global_settings
 
 if TYPE_CHECKING:
@@ -59,7 +60,7 @@ class ConfigManager:
         self.global_settings = self.manager.path_manager.config_dir / "global_settings.yaml"
         self.settings = self.manager.path_manager.config_dir / self.loaded_config / "settings.yaml"
 
-        self.settings.mkdir(parents=True, exist_ok=True)
+        self.settings.parent.mkdir(parents=True, exist_ok=True)
         self.load_configs()
 
     def load_configs(self) -> None:
@@ -103,7 +104,13 @@ class ConfigManager:
         self.settings_data['Files']['download_folder'] = Path(self.settings_data['Files']['download_folder'])
         self.settings_data["Logs"]["log_folder"] = Path(self.settings_data["Logs"]["log_folder"])
         self.settings_data['Sorting']['sort_folder'] = Path(self.settings_data['Sorting']['sort_folder'])
-        _save_yaml(self.settings, self.settings_data)
+
+        save_data = copy.deepcopy(self.settings_data)
+        save_data['Files']['input_file'] = str(save_data['Files']['input_file'])
+        save_data['Files']['download_folder'] = str(save_data['Files']['download_folder'])
+        save_data["Logs"]["log_folder"] = str(save_data["Logs"]["log_folder"])
+        save_data['Sorting']['sort_folder'] = str(save_data['Sorting']['sort_folder'])
+        _save_yaml(self.settings, save_data)
 
     def _verify_global_settings_config(self) -> None:
         """Verifies the global settings config file and creates it if it doesn't exist"""
@@ -124,12 +131,12 @@ class ConfigManager:
 
     def write_updated_settings_config(self) -> None:
         """Write updated settings data"""
-        settings_data = copy.deepcopy(settings)
+        settings_data = copy.deepcopy(self.settings_data)
         settings_data['Files']['input_file'] = str(settings_data['Files']['input_file'])
         settings_data['Files']['download_folder'] = str(settings_data['Files']['download_folder'])
         settings_data["Logs"]["log_folder"] = str(settings_data["Logs"]["log_folder"])
         settings_data['Sorting']['sort_folder'] = str(settings_data['Sorting']['sort_folder'])
-        _save_yaml(self.settings, self.settings_data)
+        _save_yaml(self.settings, settings_data)
 
     def write_updated_global_settings_config(self) -> None:
         """Write updated global settings data"""
@@ -150,6 +157,10 @@ class ConfigManager:
         configs = self.get_configs()
         configs.remove(config_name)
 
+        if self.manager.cache_manager.get("default_config") == config_name:
+            configs.remove(config_name)
+            self.manager.cache_manager.save("default_config", configs[0])
+
         config = self.manager.path_manager.config_dir / config_name
         shutil.rmtree(config)
 
@@ -157,3 +168,7 @@ class ConfigManager:
         """Changes the config"""
         self.loaded_config = config_name
         self.startup()
+
+        self.manager.path_manager.startup()
+        self.manager.log_manager = LogManager(self.manager)
+        self.manager.log_manager.startup()

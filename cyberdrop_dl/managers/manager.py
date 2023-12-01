@@ -37,7 +37,7 @@ class Manager:
         self.path_manager = PathManager(self)
         self.path_manager.pre_startup()
 
-        self.cache_manager.startup(self.directory_manager.cache / "cache.yaml")
+        self.cache_manager.startup(self.path_manager.cache_dir / "cache.yaml")
         self.config_manager = ConfigManager(self)
         self.config_manager.startup()
 
@@ -66,7 +66,7 @@ class Manager:
         """Async startup process for the manager"""
         await self.args_consolidation()
 
-        self.db_manager = DBManager(self, self.file_manager.history_db)
+        self.db_manager = DBManager(self, self.path_manager.history_db)
         self.client_manager = ClientManager(self)
         self.download_manager = DownloadManager(self)
         self.progress_manager = ProgressManager()

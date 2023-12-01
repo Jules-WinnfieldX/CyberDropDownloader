@@ -19,6 +19,9 @@ class ArgsManager:
 
     def startup(self) -> None:
         """Parses arguments and sets variables accordingly"""
+        if self.parsed_args:
+            return
+
         self.parsed_args = parse_args().__dict__
 
         self.immediate_download = self.parsed_args['download']
