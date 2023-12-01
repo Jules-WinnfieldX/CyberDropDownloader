@@ -12,7 +12,7 @@ from yarl import URL
 from cyberdrop_dl.clients.errors import NoExtensionFailure
 from cyberdrop_dl.scraper.jdownloader import JDownloader
 from cyberdrop_dl.utils.dataclasses.url_objects import ScrapeItem, MediaItem
-from cyberdrop_dl.utils.utilities import log, get_filename_and_ext
+from cyberdrop_dl.utils.utilities import log, get_filename_and_ext, get_download_path
 
 if TYPE_CHECKING:
     from typing import List
@@ -297,6 +297,8 @@ class ScrapeMapper:
         """Checks if the URL has a valid extension"""
         try:
             filename, ext = await get_filename_and_ext(url.name)
+            if ext == ".php":
+                return False
             return True
         except NoExtensionFailure:
             return False
@@ -363,7 +365,9 @@ class ScrapeMapper:
                     await self.manager.progress_manager.download_progress.add_previously_completed()
                     continue
                 download_queue = await self.manager.queue_manager.get_download_queue("no_crawler")
-                download_folder = self.manager.path_manager.download_dir / "Loose Files"
+                await scrape_item.add_to_parent_title("Loose Files")
+                scrape_item.part_of_album = True
+                download_folder = await get_download_path(self.manager, scrape_item, "no_crawler")
                 filename, ext = await get_filename_and_ext(scrape_item.url.name)
                 media_item = MediaItem(scrape_item.url, scrape_item.url, download_folder, filename, ext, filename)
                 await download_queue.put(media_item)
