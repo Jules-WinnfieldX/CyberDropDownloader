@@ -297,9 +297,11 @@ class ScrapeMapper:
         """Checks if the URL has a valid extension"""
         try:
             filename, ext = await get_filename_and_ext(url.name)
-            if ext == ".php":
-                return False
-            return True
+
+            from cyberdrop_dl.utils.utilities import FILE_FORMATS
+            if ext in FILE_FORMATS['image'] or ext in FILE_FORMATS['video'] or ext in FILE_FORMATS['audio']:
+                return True
+            return False
         except NoExtensionFailure:
             return False
 
