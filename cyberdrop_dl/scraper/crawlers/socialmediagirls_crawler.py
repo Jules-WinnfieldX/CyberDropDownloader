@@ -64,6 +64,9 @@ class SocialMediaGirlsCrawler(Crawler):
 
         if self.logged_in:
             await self.forum(scrape_item)
+        else:
+            await log("SocialMediaGirls login failed. Skipping.")
+            await self.manager.progress_manager.scrape_stats_progress.add_failure(401)
 
         await self.scraping_progress.remove_task(task_id)
 
@@ -98,7 +101,7 @@ class SocialMediaGirlsCrawler(Crawler):
                     continue
 
                 date = int(post.select_one(self.post_date_selector).get(self.post_date_attribute))
-                new_scrape_item = await self.create_scrape_item(scrape_item, thread_url, title, True, date)
+                new_scrape_item = await self.create_scrape_item(scrape_item, thread_url, title, False, date)
 
                 for elem in post.find_all(self.quotes_selector):
                     elem.decompose()

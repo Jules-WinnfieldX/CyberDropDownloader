@@ -64,6 +64,9 @@ class LeakedModelsCrawler(Crawler):
 
             if self.logged_in:
                 await self.forum(scrape_item)
+            else:
+                await log("LeakedModels login failed. Skipping.")
+                await self.manager.progress_manager.scrape_stats_progress.add_failure(401)
         else:
             await log(f"Unsupported URL: {scrape_item.url}")
             await self.manager.log_manager.write_unsupported_urls_log(scrape_item.url)

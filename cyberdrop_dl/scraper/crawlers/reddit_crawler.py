@@ -30,6 +30,12 @@ class RedditCrawler(Crawler):
         """Determines where to send the scrape item based on the url"""
         task_id = await self.scraping_progress.add_task(scrape_item.url)
 
+        if not self.reddit_personal_use_script or not self.reddit_secret:
+            await log("Reddit API credentials not found. Skipping.")
+            await self.manager.progress_manager.scrape_stats_progress.add_failure(401)
+            await self.scraping_progress.remove_task(task_id)
+            return
+
         async with aiohttp.ClientSession() as reddit_session:
             reddit = asyncpraw.Reddit(client_id=self.reddit_personal_use_script,
                                       client_secret=self.reddit_secret,
