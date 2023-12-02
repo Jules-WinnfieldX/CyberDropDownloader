@@ -39,12 +39,12 @@ class KemonoCrawler(Crawler):
             link = URL(f"https://{scrape_item.url.host}/{'/'.join(parts)}")
             scrape_item.url = link
             await self.handle_direct_link(scrape_item)
-        elif any(self.services) in scrape_item.url.parts:
-            await self.profile(scrape_item)
         elif "discord" in scrape_item.url.parts:
             await self.discord(scrape_item)
         elif "post" in scrape_item.url.parts:
             await self.post(scrape_item)
+        elif any(x in scrape_item.url.parts for x in self.services):
+            await self.profile(scrape_item)
         else:
             await self.handle_direct_link(scrape_item)
 
