@@ -137,7 +137,14 @@ class RedditCrawler(Crawler):
         except NoExtensionFailure:
             head = await self.client.get_head(self.domain, scrape_item.url)
             head = await self.client.get_head(self.domain, head['location'])
-            post = await reddit.submission(url=head['location'])
+
+            try:
+                post = await reddit.submission(url=head['location'])
+            except asyncprawcore.exceptions.Forbidden:
+                raise ScrapeFailure(403, "Forbidden")
+            except asyncprawcore.exceptions.NotFound:
+                raise ScrapeFailure(404, "Not Found")
+
             await self.post(scrape_item, post, reddit)
             return
 
