@@ -23,22 +23,22 @@ if TYPE_CHECKING:
 class ScrapeMapper:
     """This class maps links to their respective handlers, or JDownloader if they are unsupported"""
     def __init__(self, manager: Manager):
-        self.mapping = {"xbunkr": self.xbunkr, "bunkr": self.bunkr, "celebforum": self.celebforum,
-                        "coomer": self.coomer, "cyberdrop": self.cyberdrop, "cyberfile": self.cyberfile,
-                        "e-hentai": self.ehentai, "erome": self.erome, "fapello": self.fapello, "f95zone": self.f95zone,
-                        "gofile": self.gofile, "hotpic": self.hotpic, "ibb.co": self.imgbb, "imageban": self.imageban,
-                        "imgbox": self.imgbox, "imgur": self.imgur, "img.kiwi": self.imgwiki,
-                        "jpg.church": self.jpgchurch, "jpg.homes": self.jpgchurch, "jpg.fish": self.jpgchurch,
-                        "jpg.fishing": self.jpgchurch, "jpg.pet": self.jpgchurch, "jpeg.pet": self.jpgchurch,
-                        "jpg1.su": self.jpgchurch, "jpg2.su": self.jpgchurch, "jpg3.su": self.jpgchurch,
-                        "kemono": self.kemono, "leakedmodels": self.leakedmodels, "mediafire": self.mediafire,
-                        "nudostar.com": self.nudostar, "nudostar.tv": self.nudostartv, "omegascans": self.omegascans,
-                        "pimpandhost": self.pimpandhost, "pixeldrain": self.pixeldrain, "postimg": self.postimg,
-                        "reddit": self.reddit, "redd.it": self.reddit, "redgifs": self.redgifs,
-                        "rule34.xxx": self.rule34xxx, "rule34.xyz": self.rule34xyz, "saint": self.saint,
-                        "scrolller": self.scrolller, "simpcity": self.simpcity,
-                        "socialmediagirls": self.socialmediagirls, "toonily": self.toonily, "xbunker": self.xbunker}
-        self.download_mapping = {"xbunkr": "xbunkr", "bunkr": "bunkr", "celebforum": "celebforum", "coomer": "coomer",
+        self.mapping = {"bunkrr": self.bunkrr, "celebforum": self.celebforum, "coomer": self.coomer,
+                        "cyberdrop": self.cyberdrop, "cyberfile": self.cyberfile, "e-hentai": self.ehentai,
+                        "erome": self.erome, "fapello": self.fapello, "f95zone": self.f95zone, "gofile": self.gofile,
+                        "hotpic": self.hotpic, "ibb.co": self.imgbb, "imageban": self.imageban, "imgbox": self.imgbox,
+                        "imgur": self.imgur, "img.kiwi": self.imgwiki, "jpg.church": self.jpgchurch,
+                        "jpg.homes": self.jpgchurch, "jpg.fish": self.jpgchurch, "jpg.fishing": self.jpgchurch,
+                        "jpg.pet": self.jpgchurch, "jpeg.pet": self.jpgchurch, "jpg1.su": self.jpgchurch,
+                        "jpg2.su": self.jpgchurch, "jpg3.su": self.jpgchurch, "kemono": self.kemono,
+                        "leakedmodels": self.leakedmodels, "mediafire": self.mediafire, "nudostar.com": self.nudostar,
+                        "nudostar.tv": self.nudostartv, "omegascans": self.omegascans, "pimpandhost": self.pimpandhost,
+                        "pixeldrain": self.pixeldrain, "postimg": self.postimg, "reddit": self.reddit,
+                        "redd.it": self.reddit, "redgifs": self.redgifs, "rule34.xxx": self.rule34xxx,
+                        "rule34.xyz": self.rule34xyz, "saint": self.saint, "scrolller": self.scrolller,
+                        "simpcity": self.simpcity, "socialmediagirls": self.socialmediagirls,
+                        "toonily": self.toonily, "xbunker": self.xbunker, "xbunkr": self.xbunkr}
+        self.download_mapping = {"bunkrr": "bunkrr", "celebforum": "celebforum", "coomer": "coomer",
                                  "cyberdrop": "cyberdrop", "cyberfile": "cyberfile", "e-hentai": "e-hentai",
                                  "erome": "erome", "fapello": "fapello", "f95zone": "f95zone", "gofile": "gofile",
                                  "hotpic": "hotpic", "ibb.co": "imgbb", "imageban": "imageban", "imgbox": "imgbox",
@@ -51,17 +51,18 @@ class ScrapeMapper:
                                  "reddit": "reddit", "redd.it": "reddit", "redgifs": "redgifs",
                                  "rule34.xxx": "rule34.xxx", "rule34.xyz": "rule34.xyz", "saint": "saint",
                                  "scrolller": "scrolller", "simpcity": "simpcity",
-                                 "socialmediagirls": "socialmediagirls",  "toonily": "toonily", "xbunker": "xbunker"}
+                                 "socialmediagirls": "socialmediagirls",  "toonily": "toonily", "xbunker": "xbunker",
+                                 "xbunkr": "xbunkr"}
         self.existing_crawlers = {}
         self.manager = manager
         self.jdownloader = JDownloader(self.manager)
 
         self.complete = False
 
-    async def bunkr(self) -> None:
+    async def bunkrr(self) -> None:
         """Creates a Bunkr Crawler instance"""
-        from cyberdrop_dl.scraper.crawlers.bunkr_crawler import BunkrCrawler
-        self.existing_crawlers['bunkr'] = BunkrCrawler(self.manager)
+        from cyberdrop_dl.scraper.crawlers.bunkrr_crawler import BunkrrCrawler
+        self.existing_crawlers['bunkrr'] = BunkrrCrawler(self.manager)
 
     async def celebforum(self) -> None:
         """Creates a CelebForum Crawler instance"""

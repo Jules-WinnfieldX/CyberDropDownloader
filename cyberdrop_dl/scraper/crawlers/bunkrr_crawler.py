@@ -17,9 +17,9 @@ if TYPE_CHECKING:
     from cyberdrop_dl.managers.manager import Manager
 
 
-class BunkrCrawler(Crawler):
+class BunkrrCrawler(Crawler):
     def __init__(self, manager: Manager):
-        super().__init__(manager, "bunkr", "Bunkr")
+        super().__init__(manager, "bunkrr", "Bunkrr")
         self.primary_base_domain = URL("https://bunkrr.su")
         self.ddos_guard_domain = URL("https://*.bunkrr.su")
         self.request_limiter = AsyncLimiter(10, 1)
