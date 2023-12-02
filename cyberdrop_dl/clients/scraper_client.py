@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING, Dict, Optional
 
 from aiohttp import ClientSession
 from bs4 import BeautifulSoup
+from multidict import CIMultiDictProxy
 from yarl import URL
 
 from cyberdrop_dl.clients.errors import InvalidContentTypeFailure
@@ -99,3 +100,10 @@ class ScraperClient:
                 return json.loads(await response.content.read())
             else:
                 return {}
+
+    @limiter
+    async def get_head(self, domain: str, url: URL, client_session: ClientSession) -> CIMultiDictProxy[str]:
+        """Returns the headers from the given URL"""
+        async with client_session.head(url, headers=self._headers, ssl=self.client_manager.ssl_context,
+                                       proxy=self.client_manager.proxy) as response:
+            return response.headers
