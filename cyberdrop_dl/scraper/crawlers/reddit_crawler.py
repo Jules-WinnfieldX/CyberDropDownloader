@@ -8,7 +8,7 @@ import asyncprawcore
 from aiolimiter import AsyncLimiter
 from yarl import URL
 
-from cyberdrop_dl.clients.errors import ScrapeFailure
+from cyberdrop_dl.clients.errors import ScrapeFailure, NoExtensionFailure
 from cyberdrop_dl.scraper.crawler import Crawler
 from cyberdrop_dl.utils.dataclasses.url_objects import ScrapeItem
 from cyberdrop_dl.utils.utilities import error_handling_wrapper, log, get_filename_and_ext
@@ -48,7 +48,7 @@ class RedditCrawler(Crawler):
             elif "r" in scrape_item.url.parts and "comments" not in scrape_item.url.parts:
                 await self.subreddit(scrape_item, reddit)
             elif "redd.it" in scrape_item.url.host:
-                await self.media(scrape_item)
+                await self.media(scrape_item, reddit)
             else:
                 await log(f"Unknown URL type: {scrape_item.url}")
                 await self.manager.progress_manager.scrape_stats_progress.add_failure("Unknown")
@@ -65,7 +65,7 @@ class RedditCrawler(Crawler):
 
         user = await reddit.redditor(username)
         submissions = user.submissions.new(limit=None)
-        await self.get_posts(scrape_item, submissions)
+        await self.get_posts(scrape_item, submissions, reddit)
 
     @error_handling_wrapper
     async def subreddit(self, scrape_item: ScrapeItem, reddit: asyncpraw.Reddit) -> None:
@@ -77,37 +77,49 @@ class RedditCrawler(Crawler):
 
         subreddit = await reddit.subreddit(subreddit)
         submissions = subreddit.new(limit=None)
-        await self.get_posts(scrape_item, submissions)
+        await self.get_posts(scrape_item, submissions, reddit)
 
     @error_handling_wrapper
-    async def get_posts(self, scrape_item: ScrapeItem, submissions) -> None:
+    async def get_posts(self, scrape_item: ScrapeItem, submissions, reddit: asyncpraw.Reddit) -> None:
         try:
             submissions = [submission async for submission in submissions]
         except asyncprawcore.exceptions.Forbidden:
             raise ScrapeFailure(403, "Forbidden")
+        except asyncprawcore.exceptions.NotFound:
+            raise ScrapeFailure(404, "Not Found")
 
         for submission in submissions:
-            await self.post(scrape_item, submission)
+            await self.post(scrape_item, submission, reddit)
 
     @error_handling_wrapper
-    async def post(self, scrape_item: ScrapeItem, submission) -> None:
+    async def post(self, scrape_item: ScrapeItem, submission, reddit: asyncpraw.Reddit) -> None:
         """Scrapes posts"""
         title = submission.title
         date = int(str(submission.created_utc).split(".")[0])
 
-        media_url = URL(submission.url)
+        try:
+            media_url = URL(submission.media['reddit_video']['fallback_url'])
+        except KeyError:
+            media_url = URL(submission.url)
+
+        if "v.redd.it" in media_url.host:
+            try:
+                filename, ext = await get_filename_and_ext(media_url.name)
+            except NoExtensionFailure:
+                raise ScrapeFailure(404, "Can't determine link")
+
         if "redd.it" in media_url.host:
             new_scrape_item = await self.create_new_scrape_item(media_url, scrape_item, title, date)
-            await self.media(new_scrape_item)
+            await self.media(new_scrape_item, reddit)
         elif "gallery" in media_url.parts:
             new_scrape_item = await self.create_new_scrape_item(media_url, scrape_item, title, date)
-            await self.gallery(new_scrape_item, submission)
+            await self.gallery(new_scrape_item, submission, reddit)
         else:
             if not "reddit.com" in media_url.host:
                 new_scrape_item = await self.create_new_scrape_item(media_url, scrape_item, title, date)
                 await self.handle_external_links(new_scrape_item)
 
-    async def gallery(self, scrape_item: ScrapeItem, submission) -> None:
+    async def gallery(self, scrape_item: ScrapeItem, submission, reddit: asyncpraw.Reddit) -> None:
         """Scrapes galleries"""
         if not hasattr(submission, "media_metadata") or submission.media_metadata is None:
             return
@@ -115,12 +127,20 @@ class RedditCrawler(Crawler):
         links = [URL(item["s"]["u"]).with_host("i.redd.it").with_query(None) for item in items]
         for link in links:
             new_scrape_item = await self.create_new_scrape_item(link, scrape_item, scrape_item.parent_title, scrape_item.possible_datetime)
-            await self.media(new_scrape_item)
+            await self.media(new_scrape_item, reddit)
 
     @error_handling_wrapper
-    async def media(self, scrape_item: ScrapeItem) -> None:
+    async def media(self, scrape_item: ScrapeItem, reddit: asyncpraw.Reddit) -> None:
         """Handles media links"""
-        filename, ext = await get_filename_and_ext(scrape_item.url.name)
+        try:
+            filename, ext = await get_filename_and_ext(scrape_item.url.name)
+        except NoExtensionFailure:
+            head = await self.client.get_head(self.domain, scrape_item.url)
+            head = await self.client.get_head(self.domain, head['location'])
+            post = await reddit.submission(url=head['location'])
+            await self.post(scrape_item, post, reddit)
+            return
+
         await self.handle_file(scrape_item.url, scrape_item, filename, ext)
 
     """~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"""
