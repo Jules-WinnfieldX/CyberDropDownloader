@@ -51,13 +51,20 @@ class RedGifsCrawler(Crawler):
             gifs = JSON_Resp["gifs"]
             for gif in gifs:
                 links = gif["urls"]
-                if "hd" in links:
+                date = gif["createDate"]
+                title_part = gif["title"] if "title" in gif else "Loose Files"
+                title = await self.create_title(title_part, None, None)
+
+                try:
                     link = URL(links["hd"])
-                else:
+                except (KeyError, TypeError):
                     link = URL(links["sd"])
 
-                new_scrape_item = await self.create_scrape_item(scrape_item, link, "", True)
-                await self.scraper_queue.put(new_scrape_item)
+                filename, ext = await get_filename_and_ext(link.name)
+                scrape_item.part_of_album = True
+                scrape_item.possible_datetime = date
+                await scrape_item.add_to_parent_title(title)
+                await self.handle_file(link, scrape_item, filename, ext)
             page += 1
 
     @error_handling_wrapper
