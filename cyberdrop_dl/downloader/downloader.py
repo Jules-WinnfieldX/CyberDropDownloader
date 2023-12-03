@@ -75,7 +75,6 @@ def retry(f):
                     break
 
                 if hasattr(e, "status"):
-                    await self.manager.progress_manager.download_stats_progress.add_failure(e.status)
                     if hasattr(e, "message"):
                         await log(f"Download failed: {media_item.url} with status {e.status} and message {e.message}")
                     else:
