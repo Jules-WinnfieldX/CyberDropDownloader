@@ -50,7 +50,7 @@ class Sorter:
                 file.unlink()
                 return
             for i in itertools.count(1):
-                dest = dest.parent / f"{dest.stem}{copy.deepcopy(self.incrementer_format).format(i=i)}{dest.suffix}"
+                dest = dest.parent / f"{dest.stem}{self.incrementer_format.format(i=i)}{dest.suffix}"
                 if not dest.is_file():
                     break
             file.rename(dest)
