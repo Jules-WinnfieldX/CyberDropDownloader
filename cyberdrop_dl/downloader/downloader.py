@@ -227,6 +227,7 @@ class Downloader:
         if self.manager.config_manager.settings_data['Download_Options']['block_download_sub_folders']:
             while download_folder.parent != self.manager.path_manager.download_dir:
                 download_folder = download_folder.parent
+            media_item.download_folder = download_folder
         return download_folder
 
     async def mark_incomplete(self, media_item: MediaItem) -> None:
