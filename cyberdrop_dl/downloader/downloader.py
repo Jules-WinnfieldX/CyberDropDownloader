@@ -130,7 +130,20 @@ class Downloader:
             media_item.current_attempt = 0
             if not (media_item.url in self.processed_items):
                 self.processed_items.append(media_item.url)
-                await self.download(media_item)
+
+                try:
+                    await self.download(media_item)
+                except Exception as e:
+                    await log(f"Download Error: {media_item.url} with error {e}")
+                    await log(traceback.format_exc())
+                    await self.manager.progress_manager.download_stats_progress.add_failure("Unknown")
+                    await self.manager.progress_manager.download_progress.add_failed()
+                    if self._unfinished_count == 0 and self.download_queue.empty():
+                        self.complete = True
+                    self._unfinished_count -= 1
+                    self.download_queue.task_done()
+                    continue
+
                 await log(f"Download Finished: {media_item.url}")
             self.download_queue.task_done()
             self._unfinished_count -= 1
@@ -297,11 +310,12 @@ class Downloader:
 
         partial_file = None
         complete_file = None
+        FL_Filename = media_item.filename
 
         try:
-            while await self._file_lock.check_lock(media_item.original_filename):
+            while await self._file_lock.check_lock(FL_Filename):
                 await asyncio.sleep(gauss(1, 1.5))
-            await self._file_lock.add_lock(media_item.filename)
+            await self._file_lock.add_lock(FL_Filename)
 
             if not isinstance(media_item.current_attempt, int):
                 media_item.current_attempt = 1
@@ -316,7 +330,7 @@ class Downloader:
                 await log(f"Skipping {media_item.url} as it has already been downloaded")
                 await self.manager.progress_manager.download_progress.add_previously_completed(False)
                 await self.mark_completed(media_item)
-                await self._file_lock.remove_lock(media_item.original_filename)
+                await self._file_lock.remove_lock(FL_Filename)
                 return
 
             resume_point = partial_file.stat().st_size if partial_file.exists() else 0
@@ -334,12 +348,12 @@ class Downloader:
             await self.mark_completed(media_item)
             await self.manager.progress_manager.file_progress.mark_task_completed(media_item.download_task_id)
             await self.manager.progress_manager.download_progress.add_completed()
-            await self._file_lock.remove_lock(media_item.original_filename)
+            await self._file_lock.remove_lock(FL_Filename)
             return
 
         except (aiohttp.ServerDisconnectedError, asyncio.TimeoutError, aiohttp.ServerTimeoutError) as e:
-            if await self._file_lock.check_lock(media_item.original_filename):
-                await self._file_lock.remove_lock(media_item.original_filename)
+            if await self._file_lock.check_lock(FL_Filename):
+                await self._file_lock.remove_lock(FL_Filename)
 
             if partial_file:
                 if partial_file.is_file():
@@ -356,8 +370,8 @@ class Downloader:
 
         except (aiohttp.ClientPayloadError, aiohttp.ClientOSError, aiohttp.ClientResponseError, DownloadFailure,
                 FileNotFoundError, PermissionError) as e:
-            if await self._file_lock.check_lock(media_item.original_filename):
-                await self._file_lock.remove_lock(media_item.original_filename)
+            if await self._file_lock.check_lock(FL_Filename):
+                await self._file_lock.remove_lock(FL_Filename)
 
             if hasattr(e, "status"):
                 if await is_4xx_client_error(e.status) and e.status != HTTPStatus.TOO_MANY_REQUESTS:
