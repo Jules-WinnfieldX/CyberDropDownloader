@@ -44,7 +44,7 @@ class PixelDrainCrawler(Crawler):
 
         for file in JSON_Resp['files']:
             link = await self.create_download_link(file['id'])
-            date = await self.parse_datetime(file['date_upload'].replace("T", " ").split(".")[0])
+            date = await self.parse_datetime(file['date_upload'].replace("T", " ").split(".")[0].strip("Z"))
             filename, ext = await get_filename_and_ext(file['name'])
             new_scrape_item = await self.create_scrape_item(scrape_item, link, title, True, date)
             await self.handle_file(link, new_scrape_item, filename, ext)
