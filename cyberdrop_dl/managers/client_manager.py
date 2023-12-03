@@ -40,7 +40,8 @@ class ClientManager:
         self.domain_rate_limits = {
             "bunkr": AsyncLimiter(10, 1),
             "cyberdrop": AsyncLimiter(10, 1),
-            "other": AsyncLimiter(100, 1)
+            "pixeldrain": AsyncLimiter(10, 1),
+            "other": AsyncLimiter(25, 1)
         }
         self.global_rate_limiter = AsyncLimiter(self.rate_limit, 1)
         self.session_limit = asyncio.Semaphore(50)
@@ -75,4 +76,9 @@ class ClientManager:
         if HTTPStatus.OK <= status < HTTPStatus.BAD_REQUEST:
             return
 
-        raise DownloadFailure(status=status, message=f"HTTP status code {status}: {HTTPStatus(status).phrase}")
+        try:
+            phrase = HTTPStatus(status).phrase
+        except ValueError:
+            phrase = "Unknown"
+
+        raise DownloadFailure(status=status, message=f"HTTP status code {status}: {phrase}")
