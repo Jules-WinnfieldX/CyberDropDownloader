@@ -32,7 +32,7 @@ class JPGChurchCrawler(Crawler):
             await self.handle_direct_link(scrape_item)
         else:
             scrape_item.url = self.primary_base_domain / scrape_item.url.path[1:]
-            if "a" in scrape_item.url.parts:
+            if "a" in scrape_item.url.parts or "album" in scrape_item.url.parts:
                 await self.album(scrape_item)
             else:
                 await self.image(scrape_item)
