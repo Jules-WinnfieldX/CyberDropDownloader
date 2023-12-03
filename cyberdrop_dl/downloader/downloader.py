@@ -39,17 +39,8 @@ def retry(f):
                 if not isinstance(media_item.download_task_id, Field):
                     await self.manager.progress_manager.file_progress.remove_file(media_item.download_task_id)
 
-                if hasattr(e, "status"):
-                    if hasattr(e, "message"):
-                        await log(f"Download failed: {media_item.url} with status {e.status} and message {e.message}")
-                    else:
-                        await log(f"Download failed: {media_item.url} with status {e.status}")
-                else:
-                    await log(f"Download failed: {media_item.url} with error {e}")
-
                 if e.status != 999:
                     media_item.current_attempt += 1
-                    await log(f"Download retrying: {media_item.url} with attempt {media_item.current_attempt}")
                 elif not self.manager.config_manager.settings_data['Download_Options']['disable_download_attempt_limit']:
                     if media_item.current_attempt >= self.manager.config_manager.global_settings_data['Rate_Limiting_Options']['download_attempts']:
                         if hasattr(e, "status"):
@@ -66,6 +57,23 @@ def retry(f):
                             await log(f"Download failed: {media_item.url} with error {e}")
                         await self.manager.progress_manager.download_progress.add_failed()
                         break
+                elif media_item.current_attempt == self.manager.config_manager.global_settings_data['Rate_Limiting_Options']['download_attempts']:
+                    if hasattr(e, "status"):
+                        await self.manager.progress_manager.download_stats_progress.add_failure(e.status)
+                        if hasattr(e, "message"):
+                            await log(f"Download failed: {media_item.url} with status {e.status} and message {e.message}")
+                            await self.manager.log_manager.write_download_error_log(media_item.url, f" {e.status} - {e.message}")
+                        else:
+                            await log(f"Download failed: {media_item.url} with status {e.status}")
+                            await self.manager.log_manager.write_download_error_log(media_item.url, f" {e.status}")
+                    else:
+                        await self.manager.progress_manager.download_stats_progress.add_failure("Unknown")
+                        await self.manager.log_manager.write_download_error_log(media_item.url, f" See Log for Details")
+                        await log(f"Download failed: {media_item.url} with error {e}")
+                    await self.manager.progress_manager.download_progress.add_failed()
+                    break
+                await log(f"Download retrying: {media_item.url} with attempt {media_item.current_attempt}")
+
             except Exception as e:
                 media_item = args[0]
                 await log(f"Download Error: {media_item.url} with error {e}")
@@ -130,21 +138,23 @@ class Downloader:
             media_item.current_attempt = 0
             if not (media_item.url in self.processed_items):
                 self.processed_items.append(media_item.url)
+                await self.manager.progress_manager.download_progress.update_total()
 
-                try:
-                    await self.download(media_item)
-                except Exception as e:
-                    await log(f"Download Error: {media_item.url} with error {e}")
-                    await log(traceback.format_exc())
-                    await self.manager.progress_manager.download_stats_progress.add_failure("Unknown")
-                    await self.manager.progress_manager.download_progress.add_failed()
-                    if self._unfinished_count == 0 and self.download_queue.empty():
-                        self.complete = True
-                    self._unfinished_count -= 1
-                    self.download_queue.task_done()
-                    continue
+                async with self.manager.client_manager.download_session_limit:
+                    try:
+                        await self.download(media_item)
+                    except Exception as e:
+                        await log(f"Download Error: {media_item.url} with error {e}")
+                        await log(traceback.format_exc())
+                        await self.manager.progress_manager.download_stats_progress.add_failure("Unknown")
+                        await self.manager.progress_manager.download_progress.add_failed()
+                        if self._unfinished_count == 0 and self.download_queue.empty():
+                            self.complete = True
+                        self._unfinished_count -= 1
+                        self.download_queue.task_done()
+                        continue
 
-                await log(f"Download Finished: {media_item.url}")
+                    await log(f"Download Finished: {media_item.url}")
             self.download_queue.task_done()
             self._unfinished_count -= 1
             if self._unfinished_count == 0 and self.download_queue.empty():
@@ -296,12 +306,6 @@ class Downloader:
     @retry
     async def download(self, media_item: MediaItem) -> None:
         """Downloads the media item"""
-        await self.manager.progress_manager.download_progress.update_total()
-        if media_item.current_attempt == self.manager.config_manager.global_settings_data['Rate_Limiting_Options']['download_attempts']:
-            await self.manager.progress_manager.download_stats_progress.add_failure("Attempt Limit Reached")
-            await self.manager.progress_manager.download_progress.add_failed()
-            return
-
         if not await self.check_file_can_download(media_item):
             await self.manager.progress_manager.download_progress.add_skipped()
             return
