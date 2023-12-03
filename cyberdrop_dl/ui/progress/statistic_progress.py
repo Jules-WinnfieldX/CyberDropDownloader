@@ -30,6 +30,9 @@ class DownloadStatsProgress:
     async def add_failure(self, failure_type: [str, int]) -> None:
         """Adds a failed file to the progress bar"""
         self.failed_files += 1
+        if isinstance(failure_type, int):
+            failure_type = str(failure_type) + " HTTP Status"
+
         if failure_type in self.failure_types:
             self.progress.advance(self.failure_types[failure_type], 1)
         else:
@@ -69,6 +72,9 @@ class ScrapeStatsProgress:
     async def add_failure(self, failure_type: [str, int]) -> None:
         """Adds a failed site to the progress bar"""
         self.failed_files += 1
+        if isinstance(failure_type, int):
+            failure_type = str(failure_type) + " HTTP Status"
+
         if failure_type in self.failure_types:
             self.progress.advance(self.failure_types[failure_type], 1)
         else:
