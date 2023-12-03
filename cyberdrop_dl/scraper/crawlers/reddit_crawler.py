@@ -99,7 +99,7 @@ class RedditCrawler(Crawler):
 
         try:
             media_url = URL(submission.media['reddit_video']['fallback_url'])
-        except KeyError:
+        except (KeyError, TypeError):
             media_url = URL(submission.url)
 
         if "v.redd.it" in media_url.host:
