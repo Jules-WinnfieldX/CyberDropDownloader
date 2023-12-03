@@ -1,4 +1,5 @@
 from dataclasses import field
+from typing import TYPE_CHECKING
 
 from rich.layout import Layout
 
@@ -8,14 +9,17 @@ from cyberdrop_dl.ui.progress.scraping_progress import ScrapingProgress
 from cyberdrop_dl.ui.progress.statistic_progress import DownloadStatsProgress, ScrapeStatsProgress
 from cyberdrop_dl.utils.utilities import log_with_color
 
+if TYPE_CHECKING:
+    from cyberdrop_dl.managers.manager import Manager
+
 
 class ProgressManager:
-    def __init__(self):
+    def __init__(self, manager: 'Manager'):
         # File Download Bars
-        self.file_progress: FileProgress = FileProgress(5)
+        self.file_progress: FileProgress = FileProgress(5, manager)
 
         # Scraping Printout
-        self.scraping_progress: ScrapingProgress = ScrapingProgress(5)
+        self.scraping_progress: ScrapingProgress = ScrapingProgress(5, manager)
 
         # Overall Progress Bars & Stats
         self.download_progress: DownloadsProgress = DownloadsProgress()

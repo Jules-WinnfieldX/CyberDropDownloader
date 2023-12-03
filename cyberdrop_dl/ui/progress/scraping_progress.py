@@ -1,9 +1,12 @@
-from typing import List
+from typing import List, TYPE_CHECKING
 
 from rich.console import Group
 from rich.panel import Panel
 from rich.progress import Progress, SpinnerColumn, TaskID
 from yarl import URL
+
+if TYPE_CHECKING:
+    from cyberdrop_dl.managers.manager import Manager
 
 
 async def adjust_title(s: str, length: int = 40, placeholder: str = "...") -> str:
@@ -13,18 +16,22 @@ async def adjust_title(s: str, length: int = 40, placeholder: str = "...") -> st
 
 class ScrapingProgress:
     """Class that manages the download progress of individual files"""
-    def __init__(self, visible_tasks_limit: int):
+    def __init__(self, visible_tasks_limit: int, manager: 'Manager'):
+        self.manager = manager
 
         self.progress = Progress(SpinnerColumn(),
                                  "[progress.description]{task.description}")
         self.overflow = Progress("[progress.description]{task.description}")
-        self.progress_group = Group(self.progress, self.overflow)
+        self.queue = Progress("[progress.description]{task.description}")
+        self.progress_group = Group(self.progress, self.overflow, self.queue)
 
         self.color = "plum3"
         self.type_str = "Files"
         self.progress_str = "[{color}]{description}"
         self.overflow_str = "[{color}]... And {number} Other Links"
+        self.queue_str = "[{color}]... And {number} Links In Scrape Queue"
         self.overflow_task_id = self.overflow.add_task(self.overflow_str.format(color=self.color, number=0, type_str=self.type_str), visible=False)
+        self.queue_task_id = self.queue.add_task(self.queue_str.format(color=self.color, number=0, type_str=self.type_str), visible=False)
 
         self.visible_tasks: List[TaskID] = []
         self.invisible_tasks: List[TaskID] = []
@@ -33,6 +40,16 @@ class ScrapingProgress:
     async def get_progress(self) -> Panel:
         """Returns the progress bar"""
         return Panel(self.progress_group, title="Scraping", border_style="green", padding=(1, 1))
+
+    async def get_queue_length(self) -> int:
+        """Returns the number of tasks in the scraper queue"""
+        total = 0
+
+        total += self.manager.queue_manager.url_objects_to_map.qsize()
+        for queue in self.manager.queue_manager.scraper_queues.values():
+            total += queue.qsize()
+
+        return total
 
     async def redraw(self) -> None:
         """Redraws the progress bar"""
@@ -44,10 +61,17 @@ class ScrapingProgress:
             task_id = self.invisible_tasks.pop(0)
             self.visible_tasks.append(task_id)
             self.progress.update(task_id, visible=True)
+
         if len(self.invisible_tasks) > 0:
             self.overflow.update(self.overflow_task_id, description=self.overflow_str.format(color=self.color, number=len(self.invisible_tasks), type_str=self.type_str), visible=True)
         else:
             self.overflow.update(self.overflow_task_id, visible=False)
+
+        queue_length = await self.get_queue_length()
+        if queue_length > 0:
+            self.queue.update(self.queue_task_id, description=self.queue_str.format(color=self.color, number=queue_length, type_str=self.type_str), visible=True)
+        else:
+            self.queue.update(self.queue_task_id, visible=False)
 
     async def add_task(self, url: URL) -> TaskID:
         """Adds a new task to the progress bar"""
