@@ -162,7 +162,6 @@ class ConfigManager:
         configs.remove(config_name)
 
         if self.manager.cache_manager.get("default_config") == config_name:
-            configs.remove(config_name)
             self.manager.cache_manager.save("default_config", configs[0])
 
         config = self.manager.path_manager.config_dir / config_name
