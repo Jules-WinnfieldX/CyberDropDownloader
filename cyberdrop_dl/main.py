@@ -57,6 +57,8 @@ async def director(manager: Manager) -> None:
     """Runs the program and handles the UI"""
     configs = manager.config_manager.get_configs()
     configs_ran = []
+    manager.path_manager.startup()
+
     while True:
         if manager.args_manager.all_configs:
             configs_to_run = list(set(configs) - set(configs_ran))
