@@ -326,44 +326,44 @@ def edit_sort_options_prompt(config: Dict) -> None:
     """Edit the sort options"""
     console.clear()
     console.print("Editing Sort Options")
-    config["Sort_Options"]["sort_downloads"] = False
+    config["Sorting"]["sort_downloads"] = False
     sort_downloads = inquirer.confirm(message="Do you want Cyberdrop-DL to sort files for you?").execute()
     if sort_downloads:
-        config["Sort_Options"]["sort_downloads"] = True
+        config["Sorting"]["sort_downloads"] = True
         sort_folder = inquirer.filepath(
             message="Enter the folder you want to sort files into:",
-            default=config['Sort_Options']['sort_folder'],
+            default=str(config['Sorting']['sort_folder']),
             validate=PathValidator(is_dir=True, message="Input is not a directory"),
         ).execute()
         sort_incremementer_format = inquirer.text(
             message="Enter the sort incrementer format:",
-            default=config['Sort_Options']['sort_incremementer_format'],
+            default=config['Sorting']['sort_incremementer_format'],
             validate=EmptyInputValidator("Input should not be empty")
         ).execute()
         sorted_audio_folder = inquirer.text(
-            message="Enter the folder you want to sort audio files into:",
-            default=config['Sort_Options']['sorted_audio_folder'],
+            message="Enter the format you want to sort audio files into:",
+            default=config['Sorting']['sorted_audio_folder'],
             validate=EmptyInputValidator("Input should not be empty")
         ).execute()
         sorted_video_folder = inquirer.text(
-            message="Enter the folder you want to sort video files into:",
-            default=config['Sort_Options']['sorted_video_folder'],
+            message="Enter the format you want to sort video files into:",
+            default=config['Sorting']['sorted_video_folder'],
             validate=EmptyInputValidator("Input should not be empty")
         ).execute()
         sorted_image_folder = inquirer.text(
-            message="Enter the folder you want to sort image files into:",
-            default=config['Sort_Options']['sorted_image_folder'],
+            message="Enter the format you want to sort image files into:",
+            default=config['Sorting']['sorted_image_folder'],
             validate=EmptyInputValidator("Input should not be empty")
         ).execute()
         sorted_other_folder = inquirer.text(
-            message="Enter the folder you want to sort other files into:",
-            default=config['Sort_Options']['sorted_other_folder'],
+            message="Enter the format you want to sort other files into:",
+            default=config['Sorting']['sorted_other_folder'],
             validate=EmptyInputValidator("Input should not be empty")
         ).execute()
 
-        config['Sort_Options']['sort_folder'] = sort_folder
-        config['Sort_Options']['sort_incremementer_format'] = sort_incremementer_format
-        config['Sort_Options']['sorted_audio_folder'] = sorted_audio_folder
-        config['Sort_Options']['sorted_video_folder'] = sorted_video_folder
-        config['Sort_Options']['sorted_image_folder'] = sorted_image_folder
-        config['Sort_Options']['sorted_other_folder'] = sorted_other_folder
+        config['Sorting']['sort_folder'] = Path(sort_folder)
+        config['Sorting']['sort_incremementer_format'] = sort_incremementer_format
+        config['Sorting']['sorted_audio'] = sorted_audio_folder
+        config['Sorting']['sorted_video'] = sorted_video_folder
+        config['Sorting']['sorted_image'] = sorted_image_folder
+        config['Sorting']['sorted_other'] = sorted_other_folder
