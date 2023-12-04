@@ -79,6 +79,7 @@ class ImgKiwiCrawler(Crawler):
         filename, ext = await get_filename_and_ext(link.name)
         await self.handle_file(link, scrape_item, filename, ext)
 
+    @error_handling_wrapper
     async def handle_direct_link(self, scrape_item: ScrapeItem) -> None:
         """Handles a direct link"""
         filename, ext = await get_filename_and_ext(scrape_item.url.name)

@@ -105,6 +105,25 @@ class ConfigManager:
         self.settings_data["Logs"]["log_folder"] = Path(self.settings_data["Logs"]["log_folder"])
         self.settings_data['Sorting']['sort_folder'] = Path(self.settings_data['Sorting']['sort_folder'])
 
+        # change to ints
+        self.settings_data['File_Size_Limits']['maximum_image_size'] = int(self.settings_data['File_Size_Limits']['maximum_image_size'])
+        self.settings_data['File_Size_Limits']['maximum_video_size'] = int(self.settings_data['File_Size_Limits']['maximum_video_size'])
+        self.settings_data['File_Size_Limits']['maximum_other_size'] = int(self.settings_data['File_Size_Limits']['maximum_other_size'])
+        self.settings_data['File_Size_Limits']['minimum_image_size'] = int(self.settings_data['File_Size_Limits']['minimum_image_size'])
+        self.settings_data['File_Size_Limits']['minimum_video_size'] = int(self.settings_data['File_Size_Limits']['minimum_video_size'])
+        self.settings_data['File_Size_Limits']['minimum_other_size'] = int(self.settings_data['File_Size_Limits']['minimum_other_size'])
+
+        self.global_settings_data['General']['max_file_name_length'] = int(self.global_settings_data['General']['max_file_name_length'])
+        self.global_settings_data['General']['max_folder_name_length'] = int(self.global_settings_data['General']['max_folder_name_length'])
+        self.global_settings_data['Rate_Limiting_Options']['connection_timeout'] = int(self.global_settings_data['Rate_Limiting_Options']['connection_timeout'])
+        self.global_settings_data['Rate_Limiting_Options']['download_attempts'] = int(self.global_settings_data['Rate_Limiting_Options']['download_attempts'])
+        self.global_settings_data['Rate_Limiting_Options']['download_delay'] = int(self.global_settings_data['Rate_Limiting_Options']['download_delay'])
+        self.global_settings_data['Rate_Limiting_Options']['max_simultaneous_downloads'] = int(self.global_settings_data['Rate_Limiting_Options']['max_simultaneous_downloads'])
+        self.global_settings_data['Rate_Limiting_Options']['max_simultaneous_downloads_per_domain'] = int(self.global_settings_data['Rate_Limiting_Options']['max_simultaneous_downloads_per_domain'])
+        self.global_settings_data['Rate_Limiting_Options']['rate_limit'] = int(self.global_settings_data['Rate_Limiting_Options']['rate_limit'])
+        self.global_settings_data['Rate_Limiting_Options']['read_timeout'] = int(self.global_settings_data['Rate_Limiting_Options']['read_timeout'])
+
+
         save_data = copy.deepcopy(self.settings_data)
         save_data['Files']['input_file'] = str(save_data['Files']['input_file'])
         save_data['Files']['download_folder'] = str(save_data['Files']['download_folder'])

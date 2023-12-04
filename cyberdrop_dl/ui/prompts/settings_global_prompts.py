@@ -59,19 +59,16 @@ def edit_general_settings_prompt(manager: Manager) -> None:
         message="Max Filename Length:",
         default=int(manager.config_manager.global_settings_data['General']['max_file_name_length']),
         float_allowed=False,
-        validate=NumberValidator("Input should be a number")
     ).execute()
     max_folder_name_length = inquirer.number(
         message="Max Folder Name Length:",
         default=int(manager.config_manager.global_settings_data['General']['max_folder_name_length']),
         float_allowed=False,
-        validate=NumberValidator("Input should be a number")
     ).execute()
     required_free_space = inquirer.number(
         message="Required Free Space (in GB):",
         default=int(manager.config_manager.global_settings_data['General']['required_free_space']),
         float_allowed=False,
-        validate=NumberValidator("Input should be a number")
     ).execute()
 
     manager.config_manager.global_settings_data['General']['allow_insecure_connections'] = allow_insecure_connections
@@ -90,7 +87,6 @@ def edit_progress_settings_prompt(manager: Manager) -> None:
         message="Refresh Rate:",
         default=int(manager.config_manager.global_settings_data['Progress_Options']['refresh_rate']),
         float_allowed=False,
-        validate=NumberValidator("Input should be a number")
     ).execute()
 
     manager.config_manager.global_settings_data['Progress_Options']['refresh_rate'] = int(refresh_rate)
@@ -104,42 +100,35 @@ def edit_rate_limiting_settings_prompt(manager: Manager) -> None:
         message="Connection Timeout (in seconds):",
         default=int(manager.config_manager.global_settings_data['Rate_Limiting_Options']['connection_timeout']),
         float_allowed=True,
-        validate=NumberValidator("Input should be a number")
     ).execute()
     read_timeout = inquirer.number(
         message="Read Timeout (in seconds):",
         default=int(manager.config_manager.global_settings_data['Rate_Limiting_Options']['read_timeout']),
         float_allowed=True,
-        validate=NumberValidator("Input should be a number")
     ).execute()
     download_attempts = inquirer.number(
         message="Download Attempts:",
         default=int(manager.config_manager.global_settings_data['Rate_Limiting_Options']['download_attempts']),
         float_allowed=False,
-        validate=NumberValidator("Input should be a number")
     ).execute()
     rate_limit = inquirer.number(
         message="Maximum number of requests per second:",
         default=int(manager.config_manager.global_settings_data['Rate_Limiting_Options']['rate_limit']),
         float_allowed=False,
-        validate=NumberValidator("Input should be a number")
     ).execute()
     throttle = inquirer.number(
         message="Delay between requests during the download stage:",
         default=int(manager.config_manager.global_settings_data['Rate_Limiting_Options']['download_delay']),
         float_allowed=False,
-        validate=NumberValidator("Input should be a number")
     ).execute()
 
     max_simultaneous_downloads = inquirer.text(
         message="Maximum number of simultaneous downloads:",
         default=int(manager.config_manager.global_settings_data['Rate_Limiting_Options']['max_simultaneous_downloads']),
-        validate=NumberValidator("Input should be a number")
     ).execute()
     max_simultaneous_downloads_per_domain = inquirer.text(
         message="Maximum number of simultaneous downloads per domain:",
         default=int(manager.config_manager.global_settings_data['Rate_Limiting_Options']['max_simultaneous_downloads_per_domain']),
-        validate=NumberValidator("Input should be a number")
     ).execute()
 
     manager.config_manager.global_settings_data['Rate_Limiting_Options']['connection_timeout'] = int(connection_timeout)
