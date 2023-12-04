@@ -96,6 +96,7 @@ class Crawler(ABC):
 
     @error_handling_wrapper
     async def forum_login(self, login_url: URL, session_cookie: str, username: str, password: str, wait_time: int = 0) -> None:
+        """Logs into a forum"""
         if session_cookie:
             self.client.client_manager.cookies.update_cookies({"xf_user": session_cookie},
                                                               response_url=URL("https://" + login_url.host))

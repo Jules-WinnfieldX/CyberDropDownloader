@@ -21,6 +21,7 @@ if TYPE_CHECKING:
 
 
 def program_ui(manager: Manager):
+    """Program UI"""
     while True:
         console.clear()
         console.print("[bold]Cyberdrop Downloader[/bold]")

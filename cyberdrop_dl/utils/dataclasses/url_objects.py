@@ -35,6 +35,7 @@ class ScrapeItem:
         self.retry_path: Path = retry_path
 
     async def add_to_parent_title(self, title: str) -> None:
+        """Adds a title to the parent title"""
         if not title or self.retry:
             return
         title = await sanitize_folder(title)

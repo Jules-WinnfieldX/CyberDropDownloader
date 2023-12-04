@@ -1,5 +1,4 @@
 import asyncio
-import copy
 import itertools
 from pathlib import Path
 from typing import TYPE_CHECKING

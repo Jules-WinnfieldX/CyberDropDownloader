@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING
 import aiofiles
 from yarl import URL
 
-from cyberdrop_dl.clients.errors import NoExtensionFailure
+from cyberdrop_dl.clients.errors import NoExtensionFailure, JDownloaderFailure
 from cyberdrop_dl.scraper.jdownloader import JDownloader
 from cyberdrop_dl.utils.dataclasses.url_objects import ScrapeItem, MediaItem
 from cyberdrop_dl.utils.utilities import log, get_filename_and_ext, get_download_path
@@ -381,7 +381,12 @@ class ScrapeMapper:
                         await log(f"Unsupported URL: {scrape_item.url}")
                         await self.manager.log_manager.write_unsupported_urls_log(scrape_item.url)
                 await log(f"Sending unsupported URL to JDownloader: {scrape_item.url}")
-                await self.jdownloader.direct_unsupported_to_jdownloader(scrape_item.url, scrape_item.parent_title)
+                try:
+                    await self.jdownloader.direct_unsupported_to_jdownloader(scrape_item.url, scrape_item.parent_title)
+                except JDownloaderFailure as e:
+                    await log(f"Failed to send {scrape_item.url} to JDownloader")
+                    await log(e.message)
+                    await self.manager.log_manager.write_unsupported_urls_log(scrape_item.url)
             else:
                 await log(f"Unsupported URL: {scrape_item.url}")
                 await self.manager.log_manager.write_unsupported_urls_log(scrape_item.url)

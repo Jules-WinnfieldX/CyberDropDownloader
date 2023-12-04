@@ -30,6 +30,7 @@ def get_forum_cookies(manager: Manager, browser: str) -> None:
     manager.cache_manager.save("browser", browser)
 
 
+# noinspection PyProtectedMember
 def get_ddos_guard_cookies(manager: Manager, browser: str) -> None:
     """Get the cookies for DDOS-Guard"""
     auth_args: Dict = manager.config_manager.authentication_data

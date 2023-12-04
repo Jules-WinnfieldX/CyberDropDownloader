@@ -4,7 +4,7 @@ from typing import ClassVar, Tuple, List
 
 @dataclass
 class SupportedDomains:
-    """The allows options for domains to skip when scraping"""
+    """The allows options for domains to skip when scraping and mappings"""
     supported_hosts: ClassVar[Tuple[str, ...]] = ("bunkrr", "celebforum", "coomer", "cyberdrop", "cyberfile",
                                                   "e-hentai", "erome", "fapello", "f95zone", "gofile", "hotpic",
                                                   "ibb.co", "imageban", "imgbox", "imgur", "img.kiwi", "jpg.church",
