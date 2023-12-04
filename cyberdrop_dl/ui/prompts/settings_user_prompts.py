@@ -197,47 +197,47 @@ def edit_file_size_limits_prompt(config: Dict) -> None:
     console.print("Editing File Size Limits")
     maximum_image_size = inquirer.number(
         message="Enter the maximum image size:",
-        default=config['File_Size_Limits']['maximum_image_size'],
+        default=int(config['File_Size_Limits']['maximum_image_size']),
         validate=NumberValidator(),
         long_instruction="This value is in bytes (0 is no limit)",
     ).execute()
     maximum_video_size = inquirer.number(
         message="Enter the maximum video size:",
-        default=config['File_Size_Limits']['maximum_video_size'],
+        default=int(config['File_Size_Limits']['maximum_video_size']),
         validate=NumberValidator(),
         long_instruction="This value is in bytes (0 is no limit)",
     ).execute()
     maximum_other_size = inquirer.number(
         message="Enter the maximum other file type size:",
-        default=config['File_Size_Limits']['maximum_other_size'],
+        default=int(config['File_Size_Limits']['maximum_other_size']),
         validate=NumberValidator(),
         long_instruction="This value is in bytes (0 is no limit)",
     ).execute()
     minimum_image_size = inquirer.number(
         message="Enter the minimum image size:",
-        default=config['File_Size_Limits']['minimum_image_size'],
+        default=int(config['File_Size_Limits']['minimum_image_size']),
         validate=NumberValidator(),
         long_instruction="This value is in bytes (0 is no limit)",
     ).execute()
     minimum_video_size = inquirer.number(
         message="Enter the minimum video size:",
-        default=config['File_Size_Limits']['minimum_video_size'],
+        default=int(config['File_Size_Limits']['minimum_video_size']),
         validate=NumberValidator(),
         long_instruction="This value is in bytes (0 is no limit)",
     ).execute()
     minimum_other_size = inquirer.number(
         message="Enter the minimum other file type size:",
-        default=config['File_Size_Limits']['minimum_other_size'],
+        default=int(config['File_Size_Limits']['minimum_other_size']),
         validate=NumberValidator(),
         long_instruction="This value is in bytes (0 is no limit)",
     ).execute()
 
-    config['File_Size_Limits']['maximum_image_size'] = maximum_image_size
-    config['File_Size_Limits']['maximum_video_size'] = maximum_video_size
-    config['File_Size_Limits']['maximum_other_size'] = maximum_other_size
-    config['File_Size_Limits']['minimum_image_size'] = minimum_image_size
-    config['File_Size_Limits']['minimum_video_size'] = minimum_video_size
-    config['File_Size_Limits']['minimum_other_size'] = minimum_other_size
+    config['File_Size_Limits']['maximum_image_size'] = int(maximum_image_size)
+    config['File_Size_Limits']['maximum_video_size'] = int(maximum_video_size)
+    config['File_Size_Limits']['maximum_other_size'] = int(maximum_other_size)
+    config['File_Size_Limits']['minimum_image_size'] = int(minimum_image_size)
+    config['File_Size_Limits']['minimum_video_size'] = int(minimum_video_size)
+    config['File_Size_Limits']['minimum_other_size'] = int(minimum_other_size)
 
 
 def edit_ignore_options_prompt(config: Dict) -> None:
