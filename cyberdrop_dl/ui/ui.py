@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 from InquirerPy import inquirer
 from rich.console import Console
 
-
+from cyberdrop_dl import __version__
 from cyberdrop_dl.ui.prompts.settings_authentication_prompts import edit_authentication_values_prompt
 from cyberdrop_dl.ui.prompts.general_prompts import (
     main_prompt, select_config_prompt, donations_prompt,
@@ -24,7 +24,7 @@ def program_ui(manager: Manager):
     """Program UI"""
     while True:
         console.clear()
-        console.print("[bold]Cyberdrop Downloader[/bold]")
+        console.print(f"[bold]Cyberdrop Downloader (V{str(__version__)})[/bold]")
         console.print(f"[bold]Current Config:[/bold] {manager.config_manager.loaded_config}")
 
         action = main_prompt(manager)
