@@ -57,13 +57,13 @@ def edit_general_settings_prompt(manager: Manager) -> None:
     ).execute()
     max_filename_length = inquirer.number(
         message="Max Filename Length:",
-        default=manager.config_manager.global_settings_data['General']['max_file_name_length'],
+        default=int(manager.config_manager.global_settings_data['General']['max_file_name_length']),
         float_allowed=False,
         validate=NumberValidator("Input should be a number")
     ).execute()
     max_folder_name_length = inquirer.number(
         message="Max Folder Name Length:",
-        default=manager.config_manager.global_settings_data['General']['max_folder_name_length'],
+        default=int(manager.config_manager.global_settings_data['General']['max_folder_name_length']),
         float_allowed=False,
         validate=NumberValidator("Input should be a number")
     ).execute()
