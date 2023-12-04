@@ -1,17 +1,3 @@
 # Project stuff
-Downloads/
-*.log
-*.sqlite
-config.yaml
-Unsupported_Urls.txt
-URLs_last_post.txt
-internal_variable_cache.yaml
-URLs.txt
-
-# Python stuff
-.venv/
-__pycache__/
-*.egg-info/
-build/
-release/
-start_dev.py
+/Test-Download-Dir/
+/Test-AppData-Dir/
