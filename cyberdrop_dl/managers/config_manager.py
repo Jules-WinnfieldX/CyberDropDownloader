@@ -54,7 +54,7 @@ class ConfigManager:
         if not isinstance(self.loaded_config, str):
             self.loaded_config = self.manager.cache_manager.get("default_config")
             if self.manager.args_manager.load_config_from_args:
-                self.loaded_config = self.manager.args_manager.parsed_args.config
+                self.loaded_config = self.manager.args_manager.load_config_name
 
         self.authentication_settings = self.manager.path_manager.config_dir / "authentication.yaml"
         self.global_settings = self.manager.path_manager.config_dir / "global_settings.yaml"
