@@ -27,7 +27,7 @@ XMR: 46vMP5MXVZqQeGzkA1mbX9WQKU8fbWRBJGAktDcjYkCMRDY7HMdLzi1DFsHCPLgms968cyUz1gC
 
 ## Installation and More Information
 
-Read the
+Read the [Wiki!](https://jules-winnfieldx.gitbook.io/cyberdrop-dl/)
 
 You can find how to install the program and how to use it there. You can also find a list of supported hosts, and frequently asked questions.
 
