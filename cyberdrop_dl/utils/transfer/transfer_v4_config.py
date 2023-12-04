@@ -112,11 +112,19 @@ def transfer_v4_config(manager: Manager, old_config_path: Path, new_config_name:
     old_urls_path = Path(old_data['Files']['input_file'])
 
     new_urls = manager.path_manager.config_dir / new_config_name / "URLs.txt"
+    new_urls.touch(exist_ok=True)
+
     if old_urls_path.is_absolute():
-        old_urls_path.rename(new_urls)
+        with open(str(old_urls_path), 'r') as urls_file:
+            urls = urls_file.readlines()
+        with open(new_urls, 'w') as urls_file:
+            urls_file.writelines(urls)
     elif len(old_urls_path.parts) == 1:
         if (old_config_path / old_urls_path.name).is_file():
-            (old_config_path / old_urls_path.name).rename(new_urls)
+            with open(str(old_config_path / old_urls_path.name), 'r') as urls_file:
+                urls = urls_file.readlines()
+            with open(new_urls, 'w') as urls_file:
+                urls_file.writelines(urls)
     else:
         new_urls.touch(exist_ok=True)
 

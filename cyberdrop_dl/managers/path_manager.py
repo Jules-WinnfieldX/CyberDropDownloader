@@ -49,7 +49,6 @@ class PathManager:
         self.download_dir = self.manager.config_manager.settings_data['Files']['download_folder']
         self.sorted_dir = self.manager.config_manager.settings_data['Sorting']['sort_folder']
         self.log_dir = self.manager.config_manager.settings_data['Logs']['log_folder']
-
         self.input_file = self.manager.config_manager.settings_data['Files']['input_file']
         self.history_db = self.cache_dir / "cyberdrop.db"
 
@@ -66,5 +65,3 @@ class PathManager:
 
         self.input_file.touch(exist_ok=True)
         self.history_db.touch(exist_ok=True)
-
-
