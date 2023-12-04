@@ -125,6 +125,9 @@ def edit_download_options_prompt(config: Dict) -> None:
         ], long_instruction="ARROW KEYS: Navigate | TAB: Select | ENTER: Confirm"
     ).execute()
 
+    for key in config["Download_Options"].keys():
+        config["Download_Options"][key] = False
+
     for key in action:
         config["Download_Options"][key] = True
 
@@ -265,6 +268,9 @@ def edit_ignore_options_prompt(config: Dict) -> None:
         ], long_instruction="ARROW KEYS: Move | TAB: Select | ENTER: Confirm",
     ).execute()
 
+    for key in config["Ignore_Options"].keys():
+        config["Ignore_Options"][key] = False
+
     for key in action:
         config["Ignore_Options"][key] = True
 
@@ -317,6 +323,9 @@ def edit_runtime_options_prompt(config: Dict) -> None:
                    enabled=config["Runtime_Options"]["send_unsupported_to_jdownloader"]),
         ], long_instruction="ARROW KEYS: Move | TAB: Select | ENTER: Confirm",
     ).execute()
+
+    for key in config["Runtime_Options"].keys():
+        config["Runtime_Options"][key] = False
 
     for key in action:
         config["Runtime_Options"][key] = True
