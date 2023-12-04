@@ -324,7 +324,16 @@ class ScrapeMapper:
 
             if not scrape_item.url:
                 continue
-            if not scrape_item.url.host:
+            if not isinstance(scrape_item.url, URL):
+                try:
+                    scrape_item.url = URL(scrape_item.url)
+                except Exception as e:
+                    continue
+
+            try:
+                if not scrape_item.url.host:
+                    continue
+            except Exception as e:
                 continue
 
             skip = False
