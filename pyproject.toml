@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "cyberdrop-dl"
-version = "5.0.14"
+version = "5.0.15"
 description = "Bulk downloader for multiple file hosts"
 authors = ["Jules Winnfield <juleswinnfieldII@protonmail.com>"]
 readme = "README.md"
@@ -9,7 +9,7 @@ documentation = "https://jules-winnfieldx.gitbook.io/cyberdrop-dl/"
 packages = [{include = "cyberdrop_dl"}]
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = "^3.10"
 aiohttp = "^3.9.1"
 aiolimiter = "^1.1.0"
 inquirerpy = "^0.3.4"
