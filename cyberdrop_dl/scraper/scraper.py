@@ -46,7 +46,7 @@ class ScrapeMapper:
                                  "jpg.fish": "sharex", "jpg.fishing": "sharex", "jpg.pet": "sharex",
                                  "jpeg.pet": "sharex", "jpg1.su": "sharex", "jpg2.su": "sharex", "jpg3.su": "sharex",
                                  "kemono": "kemono", "leakedmodels": "leakedmodels", "mediafire": "mediafire",
-                                 "nudostar.com": "nudostar", "nudostar.tv": "nudostartv", "omegascans": "omegascans",
+                                 "nudostar.com": "nudostar.com", "nudostar.tv": "nudostartv", "omegascans": "omegascans",
                                  "pimpandhost": "pimpandhost", "pixeldrain": "pixeldrain", "postimg": "postimg",
                                  "reddit": "reddit", "redd.it": "reddit", "redgifs": "redgifs",
                                  "rule34.xxx": "rule34.xxx", "rule34.xyz": "rule34.xyz", "saint": "saint",
@@ -170,7 +170,7 @@ class ScrapeMapper:
     async def nudostar(self) -> None:
         """Creates a NudoStar Crawler instance"""
         from cyberdrop_dl.scraper.crawlers.nudostar_crawler import NudoStarCrawler
-        self.existing_crawlers['nudostar'] = NudoStarCrawler(self.manager)
+        self.existing_crawlers['nudostar.com'] = NudoStarCrawler(self.manager)
 
     async def nudostartv(self) -> None:
         """Creates a NudoStarTV Crawler instance"""
