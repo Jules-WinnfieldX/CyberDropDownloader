@@ -1,3 +1,5 @@
+import copy
+import json
 from dataclasses import field
 from pathlib import Path
 
@@ -12,6 +14,8 @@ from cyberdrop_dl.managers.path_manager import PathManager
 from cyberdrop_dl.managers.progress_manager import ProgressManager
 from cyberdrop_dl.managers.queue_manager import QueueManager
 from cyberdrop_dl.utils.args import config_definitions
+from cyberdrop_dl.utils.dataclasses.supported_domains import SupportedDomains
+from cyberdrop_dl.utils.utilities import log
 
 
 class Manager:
@@ -65,6 +69,7 @@ class Manager:
     async def async_startup(self) -> None:
         """Async startup process for the manager"""
         await self.args_consolidation()
+        await self.args_logging()
 
         self.db_manager = DBManager(self, self.path_manager.history_db)
         self.client_manager = ClientManager(self)
@@ -94,6 +99,72 @@ class Manager:
             elif arg in config_definitions.settings['Runtime_Options']:
                 if self.args_manager.parsed_args[arg] != config_definitions.settings['Runtime_Options'][arg]:
                     self.config_manager.settings_data['Runtime_Options'][arg] = self.args_manager.parsed_args[arg]
+
+    async def args_logging(self) -> None:
+        """Logs the runtime arguments"""
+        forum_xf_cookies_provided = {}
+        forum_credentials_provided = {}
+
+        for forum in SupportedDomains.supported_forums_map.values():
+            if self.config_manager.authentication_data["Forums"][f"{forum}_xf_user_cookie"]:
+                forum_xf_cookies_provided[f"{forum} XF Cookie Provided"] = True
+            else:
+                forum_xf_cookies_provided[f"{forum} XF Cookie Provided"] = False
+
+            if self.config_manager.authentication_data["Forums"][f"{forum}_username"] and self.config_manager.authentication_data["Forums"][f"{forum}_password"]:
+                forum_credentials_provided[f"{forum} Credentials Provided"] = True
+            else:
+                forum_credentials_provided[f"{forum} Credentials Provided"] = False
+
+        gofile_credentials_provided = True if self.config_manager.authentication_data["GoFile"]['gofile_api_key'] else False
+        bunkr_ddg_credentials_provided = False
+        coomer_ddg_credentials_provided = False
+        kemono_ddg_credentials_provided = False
+
+        if self.config_manager.authentication_data["DDOS-Guard"]['bunkrr_ddg1'] and self.config_manager.authentication_data["DDOS-Guard"]['bunkrr_ddg2'] and self.config_manager.authentication_data["DDOS-Guard"]['bunkrr_ddgid']:
+            bunkr_ddg_credentials_provided = True
+        if self.config_manager.authentication_data["DDOS-Guard"]['coomer_ddg1']:
+            coomer_ddg_credentials_provided = True
+        if self.config_manager.authentication_data["DDOS-Guard"]['kemono_ddg1']:
+            kemono_ddg_credentials_provided = True
+
+        imgur_credentials_provided = True if self.config_manager.authentication_data["Imgur"]['imgur_client_id'] else False
+        jdownloader_credentials_provided = False
+
+        if self.config_manager.authentication_data["JDownloader"]['jdownloader_username'] and self.config_manager.authentication_data["JDownloader"]['jdownloader_password'] and self.config_manager.authentication_data["JDownloader"]['jdownloader_device']:
+            jdownloader_credentials_provided = True
+
+        pixeldrain_credentials_provided = True if self.config_manager.authentication_data["PixelDrain"]['pixeldrain_api_key'] else False
+        reddit_credentials_provided = False
+
+        if self.config_manager.authentication_data["Reddit"]['reddit_personal_use_script'] and self.config_manager.authentication_data["Reddit"]['reddit_secret']:
+            reddit_credentials_provided = True
+
+        auth_provided = {
+            "Forums Credentials": forum_credentials_provided,
+            "Forums XF Cookies": forum_xf_cookies_provided,
+            "GoFile Provided": gofile_credentials_provided,
+            "DDOS-Guard": {
+                "Bunkrr Provided": bunkr_ddg_credentials_provided,
+                "Coomer Provided": coomer_ddg_credentials_provided,
+                "Kemono Provided": kemono_ddg_credentials_provided
+            },
+            "Imgur Provided": imgur_credentials_provided,
+            "JDownloader Provided": jdownloader_credentials_provided,
+            "PixelDrain Provided": pixeldrain_credentials_provided,
+            "Reddit Provided": reddit_credentials_provided
+        }
+
+        print_settings = copy.deepcopy(self.config_manager.settings_data)
+        print_settings['Files']['input_file'] = str(print_settings['Files']['input_file'])
+        print_settings['Files']['download_folder'] = str(print_settings['Files']['download_folder'])
+        print_settings["Logs"]["log_folder"] = str(print_settings["Logs"]["log_folder"])
+        print_settings['Sorting']['sort_folder'] = str(print_settings['Sorting']['sort_folder'])
+
+        await log(f"Starting Cyberdrop-DL Process for {self.config_manager.loaded_config} Config")
+        await log(f"Using Authentication: \n{json.dumps(auth_provided, indent=4, sort_keys=True)}")
+        await log(f"Using Settings: \n{json.dumps(print_settings, indent=4, sort_keys=True)}")
+        await log(f"Using Global Settings: \n{json.dumps(self.config_manager.global_settings_data, indent=4, sort_keys=True)}")
 
     async def close(self) -> None:
         """Closes the manager"""
