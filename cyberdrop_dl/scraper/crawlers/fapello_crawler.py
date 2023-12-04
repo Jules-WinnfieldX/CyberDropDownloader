@@ -25,7 +25,7 @@ class FapelloCrawler(Crawler):
         task_id = await self.scraping_progress.add_task(scrape_item.url)
 
         if not str(scrape_item.url).endswith("/"):
-            scrape_item.url = scrape_item.url / ""
+            scrape_item.url = URL(str(scrape_item.url) + "/")
 
         if scrape_item.url.parts[-2].isnumeric():
             await self.post(scrape_item)
