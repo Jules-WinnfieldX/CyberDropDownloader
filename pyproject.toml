@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "cyberdrop-dl"
-version = "5.0.23"
+version = "5.0.24"
 description = "Bulk downloader for multiple file hosts"
 authors = ["Jules Winnfield <juleswinnfieldII@protonmail.com>"]
 readme = "README.md"
@@ -28,7 +28,7 @@ myjdapi = "^1.1.7"
 mediafire = "^0.6.1"
 mutagen = "^1.47.0"
 pillow = "^10.1.0"
-opencv-python = "^4.8.1.78"
+get-video-properties = "^0.1.1"
 
 [tool.poetry.scripts]
 cyberdrop-dl = "cyberdrop_dl.main:main"

@@ -3,8 +3,8 @@ import itertools
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-import cv2
 import mutagen
+from videoprops import get_video_properties
 from PIL import Image
 
 from cyberdrop_dl.utils.utilities import FILE_FORMATS, purge_dir, log_with_color
@@ -123,14 +123,12 @@ class Sorter:
         """Sorts a video file into the sorted video folder"""
         self.video_count += 1
 
-        cv2video = cv2.VideoCapture(str(file))
-        height = str(cv2video.get(cv2.CAP_PROP_FRAME_HEIGHT)).split('.')[0]
-        width = str(cv2video.get(cv2.CAP_PROP_FRAME_WIDTH)).split('.')[0]
+        props = get_video_properties(str(file))
+        height = str(props['height'])
+        width = str(props['width'])
         resolution = f"{width}x{height}"
-        frames_per_sec = str(round(cv2video.get(cv2.CAP_PROP_FPS)))
-        codec = int(cv2video.get(cv2.CAP_PROP_FOURCC))
-        codec = chr(codec & 0xff) + chr((codec >> 8) & 0xff) + chr((codec >> 16) & 0xff) + chr((codec >> 24) & 0xff)
-        cv2video.release()
+        frames_per_sec = str(props['avg_frame_rate'])
+        codec = str(props['codec_name'])
 
         parent_name = file.parent.name
         filename, ext = file.stem, file.suffix
