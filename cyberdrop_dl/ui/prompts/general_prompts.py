@@ -32,11 +32,12 @@ def main_prompt(manager: Manager) -> int:
             Choice(4, "Edit URLs File"),
             Separator(),
             Choice(5, f"Select Config (Current: {manager.config_manager.loaded_config})"),
-            Choice(6, "Manage Configs"),
+            Choice(6, "Change URLs.txt file and Download Location"),
+            Choice(7, "Manage Configs"),
             Separator(),
-            Choice(7, "Import Cyberdrop_V4 Items"),
-            Choice(8, "Donate"),
-            Choice(9, "Exit"),
+            Choice(8, "Import Cyberdrop_V4 Items"),
+            Choice(9, "Donate"),
+            Choice(10, "Exit"),
         ], long_instruction="ARROW KEYS: Navigate | ENTER: Select",
     ).execute()
 

@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 from InquirerPy import inquirer
+from InquirerPy.validator import PathValidator
 from rich.console import Console
 
 from cyberdrop_dl import __version__
@@ -53,8 +55,25 @@ def program_ui(manager: Manager):
             selected_config = select_config_prompt(configs)
             manager.config_manager.change_config(selected_config)
 
-        # Manage Configs
         elif action == 6:
+            console.clear()
+            console.print("Editing Input / Output File Paths")
+            input_file = inquirer.filepath(
+                message="Enter the input file path:",
+                default=str(manager.config_manager.settings_data['Files']['input_file']),
+                validate=PathValidator(is_file=True, message="Input is not a file")
+            ).execute()
+            download_folder = inquirer.text(
+                message="Enter the download folder path:",
+                default=str(manager.config_manager.settings_data['Files']['download_folder']),
+                validate=PathValidator(is_dir=True, message="Input is not a directory")
+            ).execute()
+
+            manager.config_manager.settings_data['Files']['input_file'] = Path(input_file)
+            manager.config_manager.settings_data['Files']['download_folder'] = Path(download_folder)
+
+        # Manage Configs
+        elif action == 7:
             while True:
                 console.clear()
                 console.print("[bold]Manage Configs[/bold]")
@@ -107,13 +126,13 @@ def program_ui(manager: Manager):
                     break
 
         # Import Cyberdrop_V4 Items
-        elif action == 7:
+        elif action == 8:
             import_cyberdrop_v4_items_prompt(manager)
 
         # Donate
-        elif action == 8:
+        elif action == 9:
             donations_prompt()
 
         # Exit
-        elif action == 9:
+        elif action == 10:
             exit(0)
