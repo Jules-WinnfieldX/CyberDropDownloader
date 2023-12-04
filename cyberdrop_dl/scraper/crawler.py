@@ -106,42 +106,41 @@ class Crawler(ABC):
         attempt = 0
 
         while True:
-            while True:
-                try:
-                    if attempt == 5:
-                        raise FailedLoginFailure(status=403, message="Failed to login after 5 attempts")
+            try:
+                if attempt == 5:
+                    raise FailedLoginFailure(status=403, message="Failed to login after 5 attempts")
 
-                    assert login_url.host is not None
+                assert login_url.host is not None
 
-                    text = await self.client.get_text(self.domain, login_url)
-                    if "You are already logged in" in text:
-                        self.logged_in = True
-                        return
-
-                    await asyncio.sleep(wait_time)
-                    soup = BeautifulSoup(text, 'html.parser')
-
-                    inputs = soup.select('form input')
-                    data = {
-                        elem['name']: elem['value']
-                        for elem in inputs
-                        if elem.get('name') and elem.get('value')
-                    }
-                    data.update({
-                        "login": username,
-                        "password": password,
-                        "_xfRedirect": str(URL("https://" + login_url.host))
-                    })
-                    await self.client.post_data(self.domain, login_url / "login", data=data, req_resp=False)
-                    await asyncio.sleep(wait_time)
-                    text = await self.client.get_text(self.domain, login_url)
-                    if "You are already logged in" not in text:
-                        continue
-
+                text = await self.client.get_text(self.domain, login_url)
+                if "You are already logged in" in text:
                     self.logged_in = True
-                except asyncio.exceptions.TimeoutError:
-                    attempt += 1
+                    return
+
+                await asyncio.sleep(wait_time)
+                soup = BeautifulSoup(text, 'html.parser')
+
+                inputs = soup.select('form input')
+                data = {
+                    elem['name']: elem['value']
+                    for elem in inputs
+                    if elem.get('name') and elem.get('value')
+                }
+                data.update({
+                    "login": username,
+                    "password": password,
+                    "_xfRedirect": str(URL("https://" + login_url.host))
+                })
+                await self.client.post_data(self.domain, login_url / "login", data=data, req_resp=False)
+                await asyncio.sleep(wait_time)
+                text = await self.client.get_text(self.domain, login_url)
+                if "You are already logged in" not in text:
                     continue
+
+                self.logged_in = True
+            except asyncio.exceptions.TimeoutError:
+                attempt += 1
+                continue
 
     """~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"""
 
