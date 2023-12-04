@@ -82,6 +82,7 @@ class JPGChurchCrawler(Crawler):
             soup = await self.client.get_BS4(self.domain, scrape_item.url)
 
         link = URL(soup.select_one("div[id=image-viewer-container] img").get('src'))
+        link = link.with_name(link.name.replace('.md.', '.').replace('.th.', '.'))
         date = soup.select_one("p[class*=description-meta] span").get("title")
         date = await self.parse_datetime(date)
         scrape_item.possible_datetime = date
