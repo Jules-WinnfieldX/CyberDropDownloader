@@ -52,6 +52,7 @@ class CoomerCrawler(Crawler):
         """Scrapes a profile"""
         offset = 0
         service, user = await self.get_service_and_user(scrape_item)
+        user_str = await self.get_user_str_from_profile(scrape_item)
         api_call = self.api_url / service / "user" / user
         while True:
             async with self.request_limiter:
@@ -61,19 +62,20 @@ class CoomerCrawler(Crawler):
                     break
 
             for post in JSON_Resp:
-                await self.handle_post_content(post, scrape_item, user)
+                await self.handle_post_content(post, scrape_item, user, user_str)
 
     @error_handling_wrapper
     async def post(self, scrape_item: ScrapeItem) -> None:
         """Scrapes a post"""
         service, user, post_id = await self.get_service_user_and_post(scrape_item)
+        user_str = await self.get_user_str_from_post(scrape_item)
         api_call = self.api_url / service / "user" / user / "post" / post_id
         async with self.request_limiter:
             post = await self.client.get_json(self.domain, api_call)
-        await self.handle_post_content(post, scrape_item, user)
+        await self.handle_post_content(post, scrape_item, user, user_str)
 
     @error_handling_wrapper
-    async def handle_post_content(self, post: Dict, scrape_item: ScrapeItem, user: str) -> None:
+    async def handle_post_content(self, post: Dict, scrape_item: ScrapeItem, user: str, user_str: str) -> None:
         """Handles the content of a post"""
         if "#ad" in post['content'] and self.manager.config_manager.settings_data['Ignore_Options']['ignore_coomer_ads']:
             return
@@ -81,11 +83,13 @@ class CoomerCrawler(Crawler):
         date = post["published"].replace("T", " ")
         post_id = post["id"]
         post_title = post["title"]
+        if not post_title:
+            post_title = "Untitled"
 
         async def handle_file(file_obj):
             link = self.primary_base_domain / ("data" + file_obj['path'])
             link = link.with_query({"f": file_obj['name']})
-            await self.create_new_scrape_item(link, scrape_item, user, post_title, post_id, date)
+            await self.create_new_scrape_item(link, scrape_item, user_str, post_title, post_id, date)
 
         if post['file']:
             await handle_file(post['file'])
@@ -105,6 +109,22 @@ class CoomerCrawler(Crawler):
         """Parses a datetime string"""
         date = datetime.datetime.strptime(date, "%Y-%m-%d %H:%M:%S")
         return calendar.timegm(date.timetuple())
+
+    @error_handling_wrapper
+    async def get_user_str_from_post(self, scrape_item: ScrapeItem) -> str:
+        """Gets the user string from a scrape item"""
+        async with self.request_limiter:
+            soup = await self.client.get_BS4(self.domain, scrape_item.url)
+        user = soup.select_one("a[class=post__user-name]").text
+        return user
+
+    @error_handling_wrapper
+    async def get_user_str_from_profile(self, scrape_item: ScrapeItem) -> str:
+        """Gets the user string from a scrape item"""
+        async with self.request_limiter:
+            soup = await self.client.get_BS4(self.domain, scrape_item.url)
+        user = soup.select_one("span[itemprop=name]").text
+        return user
 
     async def get_service_and_user(self, scrape_item: ScrapeItem) -> Tuple[str, str]:
         """Gets the service and user from a scrape item"""
