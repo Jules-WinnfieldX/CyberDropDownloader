@@ -27,7 +27,7 @@ XMR: 46vMP5MXVZqQeGzkA1mbX9WQKU8fbWRBJGAktDcjYkCMRDY7HMdLzi1DFsHCPLgms968cyUz1gC
 
 ## Installation and More Information
 
-Read the [Wiki](https://cdn12.bunkr.ru/0h2c3qpfqd0t7ja3myww0_source-q5QvWanx.mp4)
+Read the
 
 You can find how to install the program and how to use it there. You can also find a list of supported hosts, and frequently asked questions.
 
