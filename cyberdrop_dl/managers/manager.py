@@ -78,8 +78,8 @@ class Manager:
         self.progress_manager = ProgressManager(self)
 
         from cyberdrop_dl.utils.utilities import MAX_NAME_LENGTHS
-        MAX_NAME_LENGTHS['FILE'] = self.config_manager.global_settings_data['General']['max_file_name_length']
-        MAX_NAME_LENGTHS['FOLDER'] = self.config_manager.global_settings_data['General']['max_folder_name_length']
+        MAX_NAME_LENGTHS['FILE'] = int(self.config_manager.global_settings_data['General']['max_file_name_length'])
+        MAX_NAME_LENGTHS['FOLDER'] = int(self.config_manager.global_settings_data['General']['max_folder_name_length'])
 
         self.db_manager.ignore_history = self.config_manager.settings_data['Runtime_Options']['ignore_history']
         await self.db_manager.startup()
