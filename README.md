@@ -11,6 +11,8 @@
 
 Brand new and improved! Cyberdrop-DL now has an updated paint job, fantastic new look. It's now easier to use than ever before!
 
+![Screenshot 2023-12-03 190747](https://github.com/Jules-WinnfieldX/CyberDropDownloader/assets/61347133/aa6b7e21-a039-42e9-9308-ca62750a49cf)
+
 ## Support Cyberdrop-DL Development
 
 <a href="https://www.buymeacoffee.com/juleswinnft" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
