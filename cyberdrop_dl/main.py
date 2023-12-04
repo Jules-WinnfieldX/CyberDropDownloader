@@ -2,6 +2,7 @@ import asyncio
 import contextlib
 import logging
 import os
+import signal
 import sys
 
 import aiorun
@@ -96,13 +97,24 @@ async def director(manager: Manager) -> None:
     asyncio.get_event_loop().stop()
 
 
+class GracefulExit:
+    def __enter__(self):
+        signal.signal(signal.SIGINT, self.exit_gracefully)
+        return self
+
+    @staticmethod
+    def exit_gracefully(signum, frame):
+        exit(0)
+
+
 def main():
     manager = startup()
 
     with contextlib.suppress(RuntimeError, asyncio.CancelledError):
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
-        aiorun.run(director(manager), stop_on_unhandled_errors=True)
+        with GracefulExit():
+            aiorun.run(director(manager), stop_on_unhandled_errors=True)
         sys.exit(0)
 
 

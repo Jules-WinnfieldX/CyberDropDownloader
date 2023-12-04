@@ -3,6 +3,7 @@ import json
 from dataclasses import field
 from pathlib import Path
 
+from cyberdrop_dl import __version__
 from cyberdrop_dl.managers.args_manager import ArgsManager
 from cyberdrop_dl.managers.client_manager import ClientManager
 from cyberdrop_dl.managers.db_manager import DBManager
@@ -162,6 +163,7 @@ class Manager:
         print_settings['Sorting']['sort_folder'] = str(print_settings['Sorting']['sort_folder'])
 
         await log(f"Starting Cyberdrop-DL Process for {self.config_manager.loaded_config} Config")
+        await log(f"Running version {__version__}")
         await log(f"Using Authentication: \n{json.dumps(auth_provided, indent=4, sort_keys=True)}")
         await log(f"Using Settings: \n{json.dumps(print_settings, indent=4, sort_keys=True)}")
         await log(f"Using Global Settings: \n{json.dumps(self.config_manager.global_settings_data, indent=4, sort_keys=True)}")
