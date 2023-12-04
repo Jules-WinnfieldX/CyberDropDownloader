@@ -68,7 +68,7 @@ class LeakedModelsCrawler(Crawler):
                 await log("LeakedModels login failed. Skipping.")
                 await self.manager.progress_manager.scrape_stats_progress.add_failure(401)
         else:
-            await log(f"Unsupported URL: {scrape_item.url}")
+            await log(f"Scrape Failed: Unknown URL Path for {scrape_item.url}")
             await self.manager.log_manager.write_unsupported_urls_log(scrape_item.url)
 
         await self.scraping_progress.remove_task(task_id)
@@ -179,7 +179,7 @@ class LeakedModelsCrawler(Crawler):
                     await log(f"Unknown link type: {link}")
                     continue
             except TypeError:
-                await log(f"Scrape Error: encountered while handling {link}")
+                await log(f"Scrape Failed: encountered while handling {link}")
 
     @error_handling_wrapper
     async def images(self, scrape_item: ScrapeItem, post_content: Tag) -> None:

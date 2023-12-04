@@ -60,7 +60,7 @@ class OmegaScansCrawler(Crawler):
             soup = await self.client.get_BS4(self.domain, scrape_item.url)
 
         if "This chapter is premium" in soup.get_text():
-            await log("Scrape Error: This chapter is premium")
+            await log("Scrape Failed: This chapter is premium")
             raise ScrapeFailure(401, "This chapter is premium")
 
         title_parts = soup.select_one("title").get_text().split(" - ")

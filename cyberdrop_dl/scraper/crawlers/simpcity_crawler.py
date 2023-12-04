@@ -176,7 +176,7 @@ class SimpCityCrawler(Crawler):
                     await log(f"Unknown link type: {link}")
                     continue
             except TypeError:
-                await log(f"Scrape Error: encountered while handling {link}")
+                await log(f"Scrape Failed: encountered while handling {link}")
 
     @error_handling_wrapper
     async def images(self, scrape_item: ScrapeItem, post_content: Tag) -> None:

@@ -31,7 +31,7 @@ class EHentaiCrawler(Crawler):
         elif "s" in scrape_item.url.parts:
             await self.image(scrape_item)
         else:
-            await log(f"Scrape Error: Unknown URL Path for {scrape_item.url}")
+            await log(f"Scrape Failed: Unknown URL Path for {scrape_item.url}")
             await self.manager.progress_manager.scrape_stats_progress.add_failure("Unknown")
 
         await self.scraping_progress.remove_task(task_id)
