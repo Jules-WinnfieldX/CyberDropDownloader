@@ -3,8 +3,6 @@ from dataclasses import field
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-import platformdirs
-
 if TYPE_CHECKING:
     from cyberdrop_dl.managers.manager import Manager
 
@@ -15,6 +13,7 @@ if os.getenv("PYCHARM_HOSTED") is not None:
 else:
     APP_STORAGE = Path("./AppData")
     DOWNLOAD_STORAGE = Path("./Downloads")
+
 
 class PathManager:
     def __init__(self, manager: 'Manager'):
@@ -37,6 +36,10 @@ class PathManager:
         self.scrape_error_log: Path = field(init=False)
 
     def pre_startup(self):
+        if self.manager.args_manager.appdata_dir:
+            global APP_STORAGE
+            APP_STORAGE = Path(self.manager.args_manager.appdata_dir)
+
         self.cache_dir = APP_STORAGE / "Cache"
         self.config_dir = APP_STORAGE / "Configs"
 
@@ -62,5 +65,6 @@ class PathManager:
             self.sorted_dir.mkdir(parents=True, exist_ok=True)
         self.log_dir.mkdir(parents=True, exist_ok=True)
 
-        self.input_file.touch(exist_ok=True)
+        if not self.input_file.is_file():
+            self.input_file.touch(exist_ok=True)
         self.history_db.touch(exist_ok=True)

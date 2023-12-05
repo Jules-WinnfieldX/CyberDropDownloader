@@ -23,7 +23,7 @@ from cyberdrop_dl.utils.utilities import log
 class Manager:
     def __init__(self):
         self.args_manager: ArgsManager = ArgsManager()
-        self.cache_manager: CacheManager = CacheManager()
+        self.cache_manager: CacheManager = CacheManager(self)
         self.path_manager: PathManager = field(init=False)
         self.config_manager: ConfigManager = field(init=False)
         self.log_manager: LogManager = field(init=False)
@@ -34,7 +34,6 @@ class Manager:
         self.progress_manager: ProgressManager = field(init=False)
 
         self.first_time_setup: TransitionManager = TransitionManager(self)
-        self.first_time_setup.startup()
 
         self._loaded_args_config: bool = False
         self._made_portable: bool = False
@@ -42,6 +41,9 @@ class Manager:
     def startup(self) -> None:
         """Startup process for the manager"""
         self.args_startup()
+
+        if not self.args_manager.appdata_dir:
+            self.first_time_setup.startup()
 
         self.path_manager = PathManager(self)
         self.path_manager.pre_startup()

@@ -2,9 +2,12 @@ from __future__ import annotations
 
 from dataclasses import field
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any, Dict, TYPE_CHECKING
 
 import yaml
+
+if TYPE_CHECKING:
+    from cyberdrop_dl.managers.manager import Manager
 
 
 def _save_yaml(file: Path, data: Dict) -> None:
@@ -21,7 +24,9 @@ def _load_yaml(file: Path) -> Dict:
 
 
 class CacheManager:
-    def __init__(self):
+    def __init__(self, manager: 'Manager'):
+        self.manager = manager
+
         self.cache_file: Path = field(init=False)
         self._cache = {}
 
@@ -30,8 +35,10 @@ class CacheManager:
         self.cache_file = cache_file
         if not self.cache_file.is_file():
             self.save('default_config', "Default")
-        else:
-            self.load()
+
+        if self.manager.args_manager.appdata_dir:
+            self.save('first_startup_completed', True)
+        self.load()
 
     def load(self) -> None:
         """Loads the cache file into memory"""

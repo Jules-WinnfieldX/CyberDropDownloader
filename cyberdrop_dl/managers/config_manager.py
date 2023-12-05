@@ -79,6 +79,10 @@ class ConfigManager:
             self.global_settings_data = copy.deepcopy(global_settings)
             _save_yaml(self.global_settings, self.global_settings_data)
 
+        if self.manager.args_manager.config_file:
+            self.settings = Path(self.manager.args_manager.config_file)
+            self.loaded_config = "CLI-Arg Specified"
+
         if self.settings.is_file():
             self._verify_settings_config()
         else:

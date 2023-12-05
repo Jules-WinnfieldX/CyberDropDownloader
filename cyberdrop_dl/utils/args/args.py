@@ -12,6 +12,14 @@ def parse_args() -> argparse.Namespace:
     general.add_argument("--config", type=str, help="name of config to load", default="")
     general.add_argument("--download", action="store_true", help="Skip the UI and go straight to downloading", default=False)
     general.add_argument("--download-all-configs", action="store_true", help="Skip the UI and go straight to downloading (runs all configs sequentially)", default=False)
+    general.add_argument("--retry-failed", action="store_true", help="retry failed downloads", default=False)
+
+    # File Paths
+    file_paths = parser.add_argument_group("File_Paths")
+    file_paths.add_argument("-i", "--input-file", type=str, help="path to txt file containing urls to download", default="")
+    file_paths.add_argument("-d", "--output-folder", type=str, help="path to download folder", default="")
+    file_paths.add_argument("--config-file", type=str, help="path to the CDL settings.yaml file to load", default="")
+    file_paths.add_argument("--appdata-folder", type=str, help="path to where you want CDL to store it's AppData folder", default="")
 
     # Settings
     download_options = parser.add_argument_group("Download_Options")

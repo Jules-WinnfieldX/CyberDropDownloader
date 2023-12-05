@@ -271,8 +271,12 @@ class ScrapeMapper:
 
     async def load_links(self) -> None:
         """Loads links from args / input file"""
+        input_file = self.manager.path_manager.input_file
+        if self.manager.args_manager.input_file:
+            input_file = Path(self.manager.args_manager.input_file)
+
         links = []
-        async with aiofiles.open(self.manager.path_manager.input_file, "r", encoding="utf8") as f:
+        async with aiofiles.open(input_file, "r", encoding="utf8") as f:
             async for line in f:
                 assert isinstance(line, str)
                 links.extend(await self.regex_links(line))
