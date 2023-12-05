@@ -88,7 +88,7 @@ class Sorter:
         """Sorts an audio file into the sorted audio folder"""
         self.audio_count += 1
 
-        file_info = mutagen.FileType(file).info
+        file_info = mutagen.File(file).info
         length = file_info.length
         bitrate = file_info.bitrate
         sample_rate = file_info.sample_rate
