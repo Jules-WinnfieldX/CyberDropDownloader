@@ -159,14 +159,16 @@ class Crawler(ABC):
 
     async def create_title(self, title: str, album_id: Optional[str], thread_id: Optional[str]) -> str:
         """Creates the title for the scrape item"""
+        title = title.strip()
         if self.manager.config_manager.settings_data['Download_Options']['include_album_id_in_folder_name']:
-            if not album_id:
-                return title.strip() + f" ({self.folder_domain})"
-            return title.strip() + f" {album_id} ({self.folder_domain})"
+            if album_id:
+                title = f"{title} {album_id}"
 
         if self.manager.config_manager.settings_data['Download_Options']['include_thread_id_in_folder_name']:
-            if not thread_id:
-                return title.strip() + f" ({self.folder_domain})"
-            return title.strip() + f" {thread_id} ({self.folder_domain})"
+            if thread_id:
+                title = f"{title} {thread_id}"
 
-        return title.strip() + f" ({self.folder_domain})"
+        if not self.manager.config_manager.settings_data['Download_Options']['remove_domains_from_folder_names']:
+            title = f"{title} ({self.folder_domain})"
+
+        return title

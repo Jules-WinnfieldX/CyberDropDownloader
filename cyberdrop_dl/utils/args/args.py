@@ -28,6 +28,7 @@ def parse_args() -> argparse.Namespace:
     download_options.add_argument("--disable-file-timestamps", action="store_true", help="disable file timestamps", default=False)
     download_options.add_argument("--include-album-id-in-folder-name", action="store_true", help="include album id in folder name", default=False)
     download_options.add_argument("--include-thread-id-in-folder-name", action="store_true", help="include thread id in folder name", default=False)
+    download_options.add_argument("--remove-domains-from-folder-names", action="store_true", help="remove website domains from folder names", default=False)
     download_options.add_argument("--remove-generated-id-from-filenames", action="store_true", help="remove site generated id from filenames", default=False)
     download_options.add_argument("--skip-download-mark-completed", action="store_true", help="skip download and mark as completed in history", default=False)
 
