@@ -71,7 +71,7 @@ settings: Dict = {
     },
     "Files": {
         "input_file": str(APP_STORAGE / "Configs" / "{config}" / "URLs.txt"),
-        "download_folder": str(DOWNLOAD_STORAGE / "Cyberdrop-DL Downloads"),
+        "download_folder": str(DOWNLOAD_STORAGE),
     },
     "Logs": {
         "log_folder": str(APP_STORAGE / "Configs" / "{config}" / "Logs"),

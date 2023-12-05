@@ -10,12 +10,11 @@ if TYPE_CHECKING:
 
 if os.getenv("PYCHARM_HOSTED") is not None:
     """This is for testing purposes only"""
-    APP_STORAGE = Path("../Test-AppData-Dir")
-    DOWNLOAD_STORAGE = Path("../Test-Download-Dir")
+    APP_STORAGE = Path("../AppData")
+    DOWNLOAD_STORAGE = Path("../Downloads")
 else:
-    APP_STORAGE: Path = Path(platformdirs.user_config_dir("Cyberdrop-DL"))
-    DOWNLOAD_STORAGE = Path(platformdirs.user_downloads_path())
-
+    APP_STORAGE = Path("./AppData")
+    DOWNLOAD_STORAGE = Path("./Downloads")
 
 class PathManager:
     def __init__(self, manager: 'Manager'):

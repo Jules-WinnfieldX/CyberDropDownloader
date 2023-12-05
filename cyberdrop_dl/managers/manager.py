@@ -16,6 +16,7 @@ from cyberdrop_dl.managers.progress_manager import ProgressManager
 from cyberdrop_dl.managers.queue_manager import QueueManager
 from cyberdrop_dl.utils.args import config_definitions
 from cyberdrop_dl.utils.dataclasses.supported_domains import SupportedDomains
+from cyberdrop_dl.utils.transfer.first_time_setup import TransitionManager
 from cyberdrop_dl.utils.utilities import log
 
 
@@ -31,6 +32,9 @@ class Manager:
         self.client_manager: ClientManager = field(init=False)
         self.download_manager: DownloadManager = field(init=False)
         self.progress_manager: ProgressManager = field(init=False)
+
+        self.first_time_setup: TransitionManager = TransitionManager(self)
+        self.first_time_setup.startup()
 
         self._loaded_args_config: bool = False
         self._made_portable: bool = False
@@ -54,16 +58,6 @@ class Manager:
         """Start the args manager"""
         if not self.args_manager.parsed_args:
             self.args_manager.startup()
-
-        if self.args_manager.portable and not self._made_portable:
-            self.make_portable()
-            self._made_portable = True
-
-    def make_portable(self) -> None:
-        """Makes the program portable"""
-        from cyberdrop_dl.managers import path_manager
-        path_manager.APP_STORAGE = Path.cwd() / "AppData"
-        path_manager.DOWNLOAD_STORAGE = Path.cwd() / "Downloads"
 
     """~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"""
 

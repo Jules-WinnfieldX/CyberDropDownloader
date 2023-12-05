@@ -85,6 +85,7 @@ def edit_config_values_prompt(manager: Manager) -> None:
 
         # Done
         elif action == 8:
+            manager.config_manager.settings_data = config
             manager.config_manager.write_updated_settings_config()
             return
 

@@ -13,7 +13,6 @@ class ArgsManager:
         self.immediate_download = False
         self.load_config_from_args = False
         self.load_config_name = ""
-        self.portable = False
 
         self.other_links: list = []
 
@@ -33,12 +32,10 @@ class ArgsManager:
 
         if self.load_config_name:
             self.load_config_from_args = True
-        self.portable = self.parsed_args['portable']
 
         self.other_links = self.parsed_args['links']
 
         del self.parsed_args['download']
         del self.parsed_args['download_all_configs']
         del self.parsed_args['config']
-        del self.parsed_args['portable']
         del self.parsed_args['links']

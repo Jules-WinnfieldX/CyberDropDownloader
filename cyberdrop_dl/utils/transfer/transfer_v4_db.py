@@ -7,6 +7,9 @@ from cyberdrop_dl.utils.database.table_definitions import create_history, create
 def transfer_v4_db(db_path: Path, new_db_path: Path) -> None:
     """Transfers a V4 database into V5 possession"""
     old_db_connection = sqlite3.connect(db_path)
+    if not new_db_path.exists():
+        new_db_path.parent.mkdir(parents=True, exist_ok=True)
+        new_db_path.touch()
     new_db_connection = sqlite3.connect(new_db_path)
 
     new_db_connection.execute(create_history)
