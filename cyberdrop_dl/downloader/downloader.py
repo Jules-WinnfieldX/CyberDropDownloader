@@ -382,8 +382,8 @@ class Downloader:
 
             raise DownloadFailure(status=getattr(e, "status", 1), message=repr(e))
 
-        except (aiohttp.ClientPayloadError, aiohttp.ClientOSError, aiohttp.ClientResponseError, DownloadFailure,
-                FileNotFoundError, PermissionError) as e:
+        except (aiohttp.ClientPayloadError, aiohttp.ClientOSError, aiohttp.ClientResponseError, ConnectionResetError,
+                DownloadFailure, FileNotFoundError, PermissionError) as e:
             if await self._file_lock.check_lock(FL_Filename):
                 await self._file_lock.remove_lock(FL_Filename)
 
