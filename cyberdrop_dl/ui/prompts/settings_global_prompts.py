@@ -99,12 +99,12 @@ def edit_rate_limiting_settings_prompt(manager: Manager) -> None:
     connection_timeout = inquirer.number(
         message="Connection Timeout (in seconds):",
         default=int(manager.config_manager.global_settings_data['Rate_Limiting_Options']['connection_timeout']),
-        float_allowed=True,
+        float_allowed=False,
     ).execute()
     read_timeout = inquirer.number(
         message="Read Timeout (in seconds):",
         default=int(manager.config_manager.global_settings_data['Rate_Limiting_Options']['read_timeout']),
-        float_allowed=True,
+        float_allowed=False,
     ).execute()
     download_attempts = inquirer.number(
         message="Download Attempts:",
@@ -122,13 +122,15 @@ def edit_rate_limiting_settings_prompt(manager: Manager) -> None:
         float_allowed=False,
     ).execute()
 
-    max_simultaneous_downloads = inquirer.text(
+    max_simultaneous_downloads = inquirer.number(
         message="Maximum number of simultaneous downloads:",
         default=int(manager.config_manager.global_settings_data['Rate_Limiting_Options']['max_simultaneous_downloads']),
+        float_allowed=False,
     ).execute()
-    max_simultaneous_downloads_per_domain = inquirer.text(
+    max_simultaneous_downloads_per_domain = inquirer.number(
         message="Maximum number of simultaneous downloads per domain:",
         default=int(manager.config_manager.global_settings_data['Rate_Limiting_Options']['max_simultaneous_downloads_per_domain']),
+        float_allowed=False,
     ).execute()
 
     manager.config_manager.global_settings_data['Rate_Limiting_Options']['connection_timeout'] = int(connection_timeout)
