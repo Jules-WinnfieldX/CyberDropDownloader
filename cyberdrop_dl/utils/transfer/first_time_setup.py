@@ -36,11 +36,15 @@ class TransitionManager:
 
         if OLD_APP_STORAGE.exists():
             if APP_STORAGE.exists():
+                if APP_STORAGE.with_name("AppData_OLD").exists():
+                    APP_STORAGE.rename(APP_STORAGE.with_name("AppData_OLD2"))
                 APP_STORAGE.rename(APP_STORAGE.with_name("AppData_OLD"))
-            OLD_APP_STORAGE.rename(APP_STORAGE)
+            shutil.copytree(OLD_APP_STORAGE, APP_STORAGE, dirs_exist_ok=True)
+            shutil.rmtree(OLD_APP_STORAGE)
 
         if OLD_DOWNLOAD_STORAGE.exists():
             shutil.copytree(OLD_DOWNLOAD_STORAGE, DOWNLOAD_STORAGE, dirs_exist_ok=True)
+            shutil.rmtree(OLD_DOWNLOAD_STORAGE)
 
         if Path("./download_history.sqlite").is_file():
             transfer_v4_db(Path("./download_history.sqlite"), APP_STORAGE / "Cache" / "cyberdrop.db")
