@@ -53,6 +53,8 @@ class ConfigManager:
         """Pre-startup process for the config manager"""
         if not isinstance(self.loaded_config, str):
             self.loaded_config = self.manager.cache_manager.get("default_config")
+            if not self.loaded_config:
+                self.loaded_config = "Default"
             if self.manager.args_manager.load_config_from_args:
                 self.loaded_config = self.manager.args_manager.load_config_name
 
