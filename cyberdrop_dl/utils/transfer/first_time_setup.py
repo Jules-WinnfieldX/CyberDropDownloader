@@ -80,8 +80,11 @@ class TransitionManager:
 
     def update_cache(self, cache_file: Path) -> None:
         """Updates the cache to reflect the new location"""
+        cache_file.parent.mkdir(parents=True, exist_ok=True)
         with open(cache_file, 'r') as yaml_file:
             cache = yaml.load(yaml_file.read(), Loader=yaml.FullLoader)
+        if cache is None:
+            cache = {"first_startup_completed": False}
         cache['first_startup_completed'] = True
         with open(cache_file, 'w') as yaml_file:
             yaml.dump(cache, yaml_file)
