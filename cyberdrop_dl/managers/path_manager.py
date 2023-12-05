@@ -38,7 +38,7 @@ class PathManager:
     def pre_startup(self):
         if self.manager.args_manager.appdata_dir:
             global APP_STORAGE
-            APP_STORAGE = Path(self.manager.args_manager.appdata_dir)
+            APP_STORAGE = Path(self.manager.args_manager.appdata_dir) / "AppData"
 
         self.cache_dir = APP_STORAGE / "Cache"
         self.config_dir = APP_STORAGE / "Configs"
