@@ -34,6 +34,7 @@ class HistoryTable:
         """Startup process for the HistoryTable"""
         await self.db_conn.execute(create_history)
         await self.db_conn.commit()
+        await self.fix_bunkr_v4_entries()
 
     async def check_complete(self, domain: str, url: URL) -> bool:
         """Checks whether an individual file has completed given its domain and url path"""
@@ -79,3 +80,9 @@ class HistoryTable:
         result = await cursor.execute("""SELECT * FROM media WHERE completed = 0""")
         failed_files = await result.fetchall()
         return failed_files
+
+    """~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"""
+
+    async def fix_bunkr_v4_entries(self) -> None:
+        """Fixes bunkr v4 entries in the database"""
+        await self.db_conn.execute("""UPDATE media SET domain = 'bunkrr' WHERE domain = 'bunkr'""")

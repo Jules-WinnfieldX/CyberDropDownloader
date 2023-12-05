@@ -37,7 +37,7 @@ class ScrapeMapper:
                         "redd.it": self.reddit, "redgifs": self.redgifs, "rule34.xxx": self.rule34xxx,
                         "rule34.xyz": self.rule34xyz, "saint": self.saint, "scrolller": self.scrolller,
                         "simpcity": self.simpcity, "socialmediagirls": self.socialmediagirls,
-                        "toonily": self.toonily, "xbunker": self.xbunker, "xbunkr": self.xbunkr}
+                        "toonily": self.toonily, "xbunker": self.xbunker, "xbunkr": self.xbunkr, "bunkr": self.bunkrr}
         self.download_mapping = {"bunkrr": "bunkrr", "celebforum": "celebforum", "coomer": "coomer",
                                  "cyberdrop": "cyberdrop", "cyberfile": "cyberfile", "e-hentai": "e-hentai",
                                  "erome": "erome", "fapello": "fapello", "f95zone": "f95zone", "gofile": "gofile",
@@ -52,7 +52,7 @@ class ScrapeMapper:
                                  "rule34.xxx": "rule34.xxx", "rule34.xyz": "rule34.xyz", "saint": "saint",
                                  "scrolller": "scrolller", "simpcity": "simpcity",
                                  "socialmediagirls": "socialmediagirls",  "toonily": "toonily", "xbunker": "xbunker",
-                                 "xbunkr": "xbunkr"}
+                                 "xbunkr": "xbunkr", "bunkr": "bunkrr"}
         self.existing_crawlers = {}
         self.manager = manager
         self.jdownloader = JDownloader(self.manager)
@@ -63,6 +63,7 @@ class ScrapeMapper:
         """Creates a Bunkr Crawler instance"""
         from cyberdrop_dl.scraper.crawlers.bunkrr_crawler import BunkrrCrawler
         self.existing_crawlers['bunkrr'] = BunkrrCrawler(self.manager)
+        self.existing_crawlers['bunkr'] = self.existing_crawlers['bunkrr']
 
     async def celebforum(self) -> None:
         """Creates a CelebForum Crawler instance"""
