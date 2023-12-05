@@ -3,11 +3,10 @@ import itertools
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-import mutagen
-from videoprops import get_video_properties
 from PIL import Image
+from videoprops import get_audio_properties, get_video_properties
 
-from cyberdrop_dl.utils.utilities import FILE_FORMATS, purge_dir, log_with_color
+from cyberdrop_dl.utils.utilities import FILE_FORMATS, log_with_color, purge_dir
 
 if TYPE_CHECKING:
     from cyberdrop_dl.managers.manager import Manager
@@ -88,10 +87,10 @@ class Sorter:
         """Sorts an audio file into the sorted audio folder"""
         self.audio_count += 1
 
-        file_info = mutagen.File(file).info
-        length = file_info.length
-        bitrate = file_info.bitrate
-        sample_rate = file_info.sample_rate
+        props = get_audio_properties(str(file))
+        length = str(props['duration'])
+        bitrate = str(props['bit_rate'])
+        sample_rate = str(props['sample_rate'])
 
         parent_name = file.parent.name
         filename, ext = file.stem, file.suffix
