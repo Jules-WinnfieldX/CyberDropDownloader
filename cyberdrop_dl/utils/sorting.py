@@ -105,6 +105,11 @@ class Sorter:
         """Sorts an image file into the sorted image folder"""
         self.image_count += 1
 
+        if ".gif" in file.suffix.lower():
+            await self.sort_other(file, base_name)
+            self.other_count -= 1
+            return
+
         image = Image.open(file)
         width, height = image.size
         resolution = f"{width}x{height}"
