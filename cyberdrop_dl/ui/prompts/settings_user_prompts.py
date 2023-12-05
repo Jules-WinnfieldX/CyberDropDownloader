@@ -121,7 +121,7 @@ def edit_download_options_prompt(config: Dict) -> None:
                    name="Separate Posts Into Folders",
                    enabled=config["Download_Options"]["separate_posts"]),
             Choice(value="skip_download_mark_completed",
-                   name="Skip Download If Marked Completed",
+                   name="Skip Download and Mark it as Completed",
                    enabled=config["Download_Options"]["skip_download_mark_completed"]),
         ], long_instruction="ARROW KEYS: Navigate | TAB: Select | ENTER: Confirm"
     ).execute()
