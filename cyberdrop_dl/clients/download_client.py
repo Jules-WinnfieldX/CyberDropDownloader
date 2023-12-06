@@ -74,6 +74,8 @@ class DownloadClient:
         headers['Referer'] = str(media_item.referer)
         headers.update(headers_inc)
 
+        await asyncio.sleep(self.client_manager.download_delay)
+
         async with client_session.get(media_item.url, headers=headers, ssl=self.client_manager.ssl_context,
                                       proxy=self.client_manager.proxy) as resp:
             await self.client_manager.check_http_status(resp.status, resp.headers, resp.url, download=True)

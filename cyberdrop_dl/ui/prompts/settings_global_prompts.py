@@ -118,8 +118,8 @@ def edit_rate_limiting_settings_prompt(manager: Manager) -> None:
     ).execute()
     throttle = inquirer.number(
         message="Delay between requests during the download stage:",
-        default=int(manager.config_manager.global_settings_data['Rate_Limiting_Options']['download_delay']),
-        float_allowed=False,
+        default=float(manager.config_manager.global_settings_data['Rate_Limiting_Options']['download_delay']),
+        float_allowed=True,
     ).execute()
 
     max_simultaneous_downloads = inquirer.number(
@@ -137,6 +137,6 @@ def edit_rate_limiting_settings_prompt(manager: Manager) -> None:
     manager.config_manager.global_settings_data['Rate_Limiting_Options']['read_timeout'] = int(read_timeout)
     manager.config_manager.global_settings_data['Rate_Limiting_Options']['download_attempts'] = int(download_attempts)
     manager.config_manager.global_settings_data['Rate_Limiting_Options']['rate_limit'] = int(rate_limit)
-    manager.config_manager.global_settings_data['Rate_Limiting_Options']['download_delay'] = int(throttle)
+    manager.config_manager.global_settings_data['Rate_Limiting_Options']['download_delay'] = float(throttle)
     manager.config_manager.global_settings_data['Rate_Limiting_Options']['max_simultaneous_downloads'] = int(max_simultaneous_downloads)
     manager.config_manager.global_settings_data['Rate_Limiting_Options']['max_simultaneous_downloads_per_domain'] = int(max_simultaneous_downloads_per_domain)

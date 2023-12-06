@@ -38,7 +38,7 @@ class ClientManager:
         self.proxy = manager.config_manager.global_settings_data['General']['proxy']
 
         self.domain_rate_limits = {
-            "bunkr": AsyncLimiter(5, 1),
+            "bunkrr": AsyncLimiter(5, 1),
             "cyberdrop": AsyncLimiter(10, 1),
             "pixeldrain": AsyncLimiter(10, 1),
             "other": AsyncLimiter(25, 1)
