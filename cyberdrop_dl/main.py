@@ -60,12 +60,13 @@ async def director(manager: Manager) -> None:
     manager.path_manager.startup()
 
     while True:
+        logger = logging.getLogger("cyberdrop_dl")
         if manager.args_manager.all_configs:
             configs_to_run = list(set(configs) - set(configs_ran))
             manager.config_manager.change_config(configs_to_run[0])
             configs_ran.append(configs_to_run[0])
+            logger.removeHandler(logger.handlers[0])
 
-        logger = logging.getLogger("cyberdrop_dl")
         logger.setLevel(logging.DEBUG)
         file_handler = logging.FileHandler(manager.path_manager.main_log, mode="w")
         file_handler.setLevel(logging.DEBUG)
