@@ -1,7 +1,9 @@
+import asyncio
 import copy
 import shutil
 from dataclasses import field
 from pathlib import Path
+from time import sleep
 from typing import Dict, List, TYPE_CHECKING
 
 import yaml
@@ -197,5 +199,7 @@ class ConfigManager:
         self.startup()
 
         self.manager.path_manager.startup()
+        sleep(1)
         self.manager.log_manager = LogManager(self.manager)
+        sleep(1)
         self.manager.log_manager.startup()

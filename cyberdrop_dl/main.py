@@ -63,7 +63,6 @@ async def director(manager: Manager) -> None:
         if manager.args_manager.all_configs:
             configs_to_run = list(set(configs) - set(configs_ran))
             manager.config_manager.change_config(configs_to_run[0])
-            manager.startup()
             configs_ran.append(configs_to_run[0])
 
         logger = logging.getLogger("cyberdrop_dl")
