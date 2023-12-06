@@ -35,7 +35,7 @@ class GoFileCrawler(Crawler):
         task_id = await self.scraping_progress.add_task(scrape_item.url)
 
         await self.get_token(self.client)
-        await self.get_website_token(self.client)
+        await self.get_website_token(self.js_address, self.client)
 
         await self.album(scrape_item)
 
@@ -57,7 +57,7 @@ class GoFileCrawler(Crawler):
             if e.status == http.HTTPStatus.UNAUTHORIZED:
                 self.websiteToken = ""
                 self.manager.cache_manager.remove("gofile_website_token")
-                await self.get_website_token(self.client)
+                await self.get_website_token(self.js_address, self.client)
                 params["websiteToken"] = self.websiteToken
                 async with self.request_limiter:
                     JSON_Resp = await self.client.get_json(self.domain, self.api_address / "getContent", params)
@@ -110,7 +110,7 @@ class GoFileCrawler(Crawler):
                 raise ScrapeFailure(403, "Couldn't generate GoFile token")
 
     @error_handling_wrapper
-    async def get_website_token(self, session: ScraperClient) -> None:
+    async def get_website_token(self, js_address: URL, session: ScraperClient) -> None:
         """Creates an anon gofile account to use."""
         if self.websiteToken:
             return
@@ -121,7 +121,7 @@ class GoFileCrawler(Crawler):
             return
 
         async with self.request_limiter:
-            text = await session.get_text(self.domain, self.js_address)
+            text = await session.get_text(self.domain, js_address)
         text = str(text)
         self.websiteToken = re.search(r'fetchData\.websiteToken\s*=\s*"(.*?)"', text).group(1)
         if not self.websiteToken:
