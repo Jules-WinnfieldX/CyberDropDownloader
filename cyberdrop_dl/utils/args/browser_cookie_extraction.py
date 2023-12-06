@@ -1,8 +1,11 @@
 from __future__ import annotations
 
+from functools import wraps
 from typing import TYPE_CHECKING
 
 import browser_cookie3
+from InquirerPy import inquirer
+from rich.console import Console
 
 from cyberdrop_dl.utils.dataclasses.supported_domains import SupportedDomains
 
@@ -12,7 +15,25 @@ if TYPE_CHECKING:
     from cyberdrop_dl.managers.manager import Manager
 
 
+def cookie_wrapper(func):
+    """Wrapper handles errors for url scraping"""
+    @wraps(func)
+    def wrapper(self, *args, **kwargs):
+        try:
+            return func(self, *args, **kwargs)
+        except PermissionError:
+            console = Console()
+            console.clear()
+            console.print(f"We've encountered a Permissions Error. Please close all browsers and try again.", style="bold red")
+            console.print("If you are still having issues, make sure all browsers processes are closed in a Task Manager.", style="bold red")
+            console.print("Nothing has been saved.", style="bold red")
+            inquirer.confirm(message="Press enter to return menu.").execute()
+            return
+    return wrapper
+
+
 # noinspection PyProtectedMember
+@cookie_wrapper
 def get_forum_cookies(manager: Manager, browser: str) -> None:
     """Get the cookies for the forums"""
     auth_args: Dict = manager.config_manager.authentication_data
@@ -31,6 +52,7 @@ def get_forum_cookies(manager: Manager, browser: str) -> None:
 
 
 # noinspection PyProtectedMember
+@cookie_wrapper
 def get_ddos_guard_cookies(manager: Manager, browser: str) -> None:
     """Get the cookies for DDOS-Guard"""
     auth_args: Dict = manager.config_manager.authentication_data
