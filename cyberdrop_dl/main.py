@@ -89,14 +89,15 @@ async def director(manager: Manager) -> None:
         await check_partials_and_empty_folders(manager)
 
         await manager.progress_manager.print_stats()
-        await check_latest_pypi()
-
-        await manager.close()
-
-        await log_with_color("\nFinished downloading. Enjoy :)", 'green')
 
         if not manager.args_manager.all_configs or not list(set(configs) - set(configs_ran)):
             break
+
+    await check_latest_pypi()
+
+    await manager.close()
+
+    await log_with_color("\nFinished downloading. Enjoy :)", 'green')
 
     asyncio.get_event_loop().stop()
 
