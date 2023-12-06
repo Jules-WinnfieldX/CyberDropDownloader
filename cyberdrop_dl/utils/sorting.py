@@ -88,10 +88,15 @@ class Sorter:
         """Sorts an audio file into the sorted audio folder"""
         self.audio_count += 1
 
-        props = get_audio_properties(str(file))
-        length = str(props['duration'])
-        bitrate = str(props['bit_rate'])
-        sample_rate = str(props['sample_rate'])
+        try:
+            props = get_audio_properties(str(file))
+            length = str(props.get('duration', "Unknown"))
+            bitrate = str(props.get('bit_rate', "Unknown"))
+            sample_rate = str(props.get('sample_rate', "Unknown"))
+        except RuntimeError:
+            length = "Unknown"
+            bitrate = "Unknown"
+            sample_rate = "Unknown"
 
         parent_name = file.parent.name
         filename, ext = file.stem, file.suffix
@@ -128,11 +133,14 @@ class Sorter:
 
         try:
             props = get_video_properties(str(file))
-            height = str(props['height'])
-            width = str(props['width'])
-            resolution = f"{width}x{height}"
-            frames_per_sec = str(props['avg_frame_rate'])
-            codec = str(props['codec_name'])
+            if 'width' in props and 'height' in props:
+                width = str(props['width'])
+                height = str(props['height'])
+                resolution = f"{width}x{height}"
+            else:
+                resolution = "Unknown"
+            frames_per_sec = str(props.get('avg_frame_rate', "Unknown"))
+            codec = str(props.get('codec_name', "Unknown"))
         except RuntimeError:
             resolution = "Unknown"
             frames_per_sec = "Unknown"
