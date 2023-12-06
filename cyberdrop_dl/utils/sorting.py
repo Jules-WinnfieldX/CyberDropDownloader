@@ -126,12 +126,17 @@ class Sorter:
         """Sorts a video file into the sorted video folder"""
         self.video_count += 1
 
-        props = get_video_properties(str(file))
-        height = str(props['height'])
-        width = str(props['width'])
-        resolution = f"{width}x{height}"
-        frames_per_sec = str(props['avg_frame_rate'])
-        codec = str(props['codec_name'])
+        try:
+            props = get_video_properties(str(file))
+            height = str(props['height'])
+            width = str(props['width'])
+            resolution = f"{width}x{height}"
+            frames_per_sec = str(props['avg_frame_rate'])
+            codec = str(props['codec_name'])
+        except RuntimeError:
+            resolution = "Unknown"
+            frames_per_sec = "Unknown"
+            codec = "Unknown"
 
         parent_name = file.parent.name
         filename, ext = file.stem, file.suffix
