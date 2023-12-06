@@ -1,5 +1,6 @@
 import asyncio
 import itertools
+import subprocess
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -93,7 +94,7 @@ class Sorter:
             length = str(props.get('duration', "Unknown"))
             bitrate = str(props.get('bit_rate', "Unknown"))
             sample_rate = str(props.get('sample_rate', "Unknown"))
-        except RuntimeError:
+        except (RuntimeError, subprocess.CalledProcessError):
             length = "Unknown"
             bitrate = "Unknown"
             sample_rate = "Unknown"
@@ -141,7 +142,7 @@ class Sorter:
                 resolution = "Unknown"
             frames_per_sec = str(props.get('avg_frame_rate', "Unknown"))
             codec = str(props.get('codec_name', "Unknown"))
-        except RuntimeError:
+        except (RuntimeError, subprocess.CalledProcessError):
             resolution = "Unknown"
             frames_per_sec = "Unknown"
             codec = "Unknown"
