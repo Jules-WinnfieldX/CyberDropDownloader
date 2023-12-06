@@ -353,30 +353,30 @@ def edit_sort_options_prompt(config: Dict) -> None:
             default=config['Sorting']['sort_incremementer_format'],
             validate=EmptyInputValidator("Input should not be empty")
         ).execute()
-        sorted_audio_folder = inquirer.text(
+        sorted_audio = inquirer.text(
             message="Enter the format you want to sort audio files into:",
-            default=config['Sorting']['sorted_audio_folder'],
+            default=config['Sorting']['sorted_audio'],
             validate=EmptyInputValidator("Input should not be empty")
         ).execute()
-        sorted_video_folder = inquirer.text(
+        sorted_video = inquirer.text(
             message="Enter the format you want to sort video files into:",
-            default=config['Sorting']['sorted_video_folder'],
+            default=config['Sorting']['sorted_video'],
             validate=EmptyInputValidator("Input should not be empty")
         ).execute()
-        sorted_image_folder = inquirer.text(
+        sorted_image = inquirer.text(
             message="Enter the format you want to sort image files into:",
-            default=config['Sorting']['sorted_image_folder'],
+            default=config['Sorting']['sorted_image'],
             validate=EmptyInputValidator("Input should not be empty")
         ).execute()
-        sorted_other_folder = inquirer.text(
+        sorted_other = inquirer.text(
             message="Enter the format you want to sort other files into:",
-            default=config['Sorting']['sorted_other_folder'],
+            default=config['Sorting']['sorted_other'],
             validate=EmptyInputValidator("Input should not be empty")
         ).execute()
 
         config['Sorting']['sort_folder'] = Path(sort_folder)
         config['Sorting']['sort_incremementer_format'] = sort_incremementer_format
-        config['Sorting']['sorted_audio'] = sorted_audio_folder
-        config['Sorting']['sorted_video'] = sorted_video_folder
-        config['Sorting']['sorted_image'] = sorted_image_folder
-        config['Sorting']['sorted_other'] = sorted_other_folder
+        config['Sorting']['sorted_audio'] = sorted_audio
+        config['Sorting']['sorted_video'] = sorted_video
+        config['Sorting']['sorted_image'] = sorted_image
+        config['Sorting']['sorted_other'] = sorted_other
