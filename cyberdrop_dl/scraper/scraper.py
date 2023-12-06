@@ -276,11 +276,13 @@ class ScrapeMapper:
             input_file = Path(self.manager.args_manager.input_file)
 
         links = []
-        async with aiofiles.open(input_file, "r", encoding="utf8") as f:
-            async for line in f:
-                assert isinstance(line, str)
-                links.extend(await self.regex_links(line))
-        links.extend(self.manager.args_manager.other_links)
+        if not self.manager.args_manager.other_links:
+            async with aiofiles.open(input_file, "r", encoding="utf8") as f:
+                async for line in f:
+                    assert isinstance(line, str)
+                    links.extend(await self.regex_links(line))
+        else:
+            links.extend(self.manager.args_manager.other_links)
         links = list(filter(None, links))
 
         if not links:
