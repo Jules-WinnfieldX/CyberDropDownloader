@@ -83,7 +83,7 @@ async def director(manager: Manager) -> None:
         clear_screen_proc = await asyncio.create_subprocess_shell('cls' if os.name == 'nt' else 'clear')
         await clear_screen_proc.wait()
 
-        if manager.config_manager.settings_data['Sorting']['sort_downloads']:
+        if manager.config_manager.settings_data['Sorting']['sort_downloads'] and not manager.args_manager.retry:
             sorter = Sorter(manager)
             await sorter.sort()
         await check_partials_and_empty_folders(manager)
