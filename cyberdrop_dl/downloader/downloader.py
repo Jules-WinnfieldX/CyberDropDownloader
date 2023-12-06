@@ -270,8 +270,16 @@ class Downloader:
             if media_item.filename == downloaded_filename:
                 if partial_file.exists():
                     if partial_file.stat().st_size == media_item.filesize:
-                        proceed = False
-                        partial_file.rename(complete_file)
+                        if complete_file.exists():
+                            new_complete_filename, new_partial_file = await self.iterate_filename(complete_file, media_item)
+                            partial_file.rename(new_complete_filename)
+                            proceed = False
+
+                            complete_file = new_complete_filename
+                            partial_file = new_partial_file
+                        else:
+                            proceed = False
+                            partial_file.rename(complete_file)
                 elif complete_file.exists():
                     if complete_file.stat().st_size == media_item.filesize:
                         proceed = False
