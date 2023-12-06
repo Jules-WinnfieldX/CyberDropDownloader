@@ -46,7 +46,7 @@ class ArgsManager:
         if self.parsed_args['input_file']:
             self.input_file = self.parsed_args['input_file']
         if self.parsed_args['output_folder']:
-            self.download_dir = self.parsed_args['download_folder']
+            self.download_dir = self.parsed_args['output_folder']
         if self.parsed_args['appdata_folder']:
             self.appdata_dir = self.parsed_args['appdata_folder']
         if self.parsed_args['config_file']:
