@@ -11,7 +11,7 @@ from cyberdrop_dl.managers.manager import Manager
 from cyberdrop_dl.scraper.scraper import ScrapeMapper
 from cyberdrop_dl.ui.ui import program_ui
 from cyberdrop_dl.utils.sorting import Sorter
-from cyberdrop_dl.utils.utilities import check_latest_pypi, log_with_color, check_partials_and_empty_folders
+from cyberdrop_dl.utils.utilities import check_latest_pypi, log_with_color, check_partials_and_empty_folders, log
 
 
 def startup() -> Manager:
@@ -61,10 +61,14 @@ async def director(manager: Manager) -> None:
     while True:
         logger = logging.getLogger("cyberdrop_dl")
         if manager.args_manager.all_configs:
+            if len(logger.handlers) > 0:
+                await log("Picking new config...")
+
             configs_to_run = list(set(configs) - set(configs_ran))
             manager.config_manager.change_config(configs_to_run[0])
             configs_ran.append(configs_to_run[0])
             if len(logger.handlers) > 0:
+                await log(f"Changing config to {configs_to_run[0]}...")
                 old_file_handler = logger.handlers[0]
                 logger.removeHandler(logger.handlers[0])
                 old_file_handler.close()
@@ -77,27 +81,34 @@ async def director(manager: Manager) -> None:
         file_handler.setFormatter(formatter)
         logger.addHandler(file_handler)
 
+        await log("Starting Async Processes...")
         await manager.async_startup()
 
+        await log("Starting UI...")
         with Live(manager.progress_manager.layout, refresh_per_second=10):
             await runtime(manager)
 
         clear_screen_proc = await asyncio.create_subprocess_shell('cls' if os.name == 'nt' else 'clear')
         await clear_screen_proc.wait()
 
+        await log("Running Post-Download Processes...")
         if manager.config_manager.settings_data['Sorting']['sort_downloads'] and not manager.args_manager.retry:
             sorter = Sorter(manager)
             await sorter.sort()
         await check_partials_and_empty_folders(manager)
 
+        await log("Printing Stats...")
         await manager.progress_manager.print_stats()
 
+        await log("Checking for Program End...")
         if not manager.args_manager.all_configs or not list(set(configs) - set(configs_ran)):
             break
         await asyncio.sleep(5)
 
+    await log("Checking for Updates...")
     await check_latest_pypi()
 
+    await log("Closing Program...")
     await manager.close()
 
     await log_with_color("\nFinished downloading. Enjoy :)", 'green')
