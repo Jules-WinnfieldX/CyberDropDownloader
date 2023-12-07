@@ -363,7 +363,12 @@ class Downloader:
             await self.manager.progress_manager.file_progress.advance_file(media_item.download_task_id, resume_point)
 
             await self.client.download_file(self.manager, self.domain, media_item, partial_file, headers, media_item.download_task_id)
-            partial_file.rename(complete_file)
+
+            try:
+                partial_file.rename(complete_file)
+            except FileExistsError:
+                complete_file, partial_file = await self.iterate_filename(complete_file, media_item)
+                partial_file.rename(complete_file)
 
             await self.set_file_datetime(media_item, complete_file)
 
