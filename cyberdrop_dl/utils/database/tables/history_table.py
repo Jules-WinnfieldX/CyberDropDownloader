@@ -51,6 +51,7 @@ class HistoryTable:
         url_path = await get_db_path(media_item.url, str(media_item.referer))
         download_filename = media_item.download_filename if isinstance(media_item.download_filename, str) else ""
         await self.db_conn.execute("""INSERT OR IGNORE INTO media (domain, url_path, referer, download_path, download_filename, original_filename, completed) VALUES (?, ?, ?, ?, ?, ?, ?)""", (domain, url_path, str(media_item.referer), str(media_item.download_folder), download_filename, media_item.original_filename, 0))
+        await self.db_conn.execute("""UPDATE media SET download_filename = ? WHERE domain = ? and url_path = ?""", (download_filename, domain, url_path))
         await self.db_conn.commit()
 
     async def mark_complete(self, domain: str, media_item: MediaItem) -> None:
