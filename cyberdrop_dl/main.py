@@ -94,6 +94,7 @@ async def director(manager: Manager) -> None:
 
         if not manager.args_manager.all_configs or not list(set(configs) - set(configs_ran)):
             break
+        await asyncio.sleep(5)
 
     await check_latest_pypi()
 
