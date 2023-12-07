@@ -34,10 +34,40 @@ class JPGChurchCrawler(Crawler):
             scrape_item.url = self.primary_base_domain / scrape_item.url.path[1:]
             if "a" in scrape_item.url.parts or "album" in scrape_item.url.parts:
                 await self.album(scrape_item)
-            else:
+            elif 'image' in scrape_item.url.parts or 'img' in scrape_item.url.parts or 'images' in scrape_item.url.parts:
                 await self.image(scrape_item)
+            else:
+                await self.profile(scrape_item)
 
         await self.scraping_progress.remove_task(task_id)
+
+    @error_handling_wrapper
+    async def profile(self, scrape_item: ScrapeItem) -> None:
+        """Scrapes a user profile"""
+        async with self.request_limiter:
+            soup = await self.client.get_BS4(self.domain, scrape_item.url)
+
+        title = await self.create_title(soup.select_one('meta[property="og:title"]').get("content"), None, None)
+        link_next = URL(soup.select_one("a[id=list-most-recent-link]").get("href"))
+
+        while True:
+            async with self.request_limiter:
+                soup = await self.client.get_BS4(self.domain, link_next)
+            links = soup.select("a[href*=img]")
+            for link in links:
+                link = URL(link.get('href'))
+                new_scrape_item = await self.create_scrape_item(scrape_item, link, title, True)
+                await self.scraper_queue.put(new_scrape_item)
+
+            link_next = soup.select_one('a[data-pagination=next]')
+            if link_next is not None:
+                link_next = link_next.get('href')
+                if link_next is not None:
+                    link_next = URL(link_next)
+                else:
+                    break
+            else:
+                break
 
     @error_handling_wrapper
     async def album(self, scrape_item: ScrapeItem) -> None:
