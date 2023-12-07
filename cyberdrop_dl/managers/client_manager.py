@@ -39,7 +39,7 @@ class ClientManager:
 
         self.domain_rate_limits = {
             "bunkrr": AsyncLimiter(5, 1),
-            "cyberdrop": AsyncLimiter(10, 1),
+            "cyberdrop": AsyncLimiter(5, 1),
             "pixeldrain": AsyncLimiter(10, 1),
             "other": AsyncLimiter(25, 1)
         }

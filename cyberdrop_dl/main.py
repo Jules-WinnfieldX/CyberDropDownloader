@@ -2,7 +2,6 @@ import asyncio
 import contextlib
 import logging
 import os
-import signal
 import sys
 
 import aiorun
