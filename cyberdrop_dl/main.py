@@ -66,11 +66,14 @@ async def director(manager: Manager) -> None:
             manager.config_manager.change_config(configs_to_run[0])
             configs_ran.append(configs_to_run[0])
             if len(logger.handlers) > 0:
+                old_file_handler = logger.handlers[0]
                 logger.removeHandler(logger.handlers[0])
+                old_file_handler.close()
 
         logger.setLevel(logging.DEBUG)
         file_handler = logging.FileHandler(manager.path_manager.main_log, mode="w")
         file_handler.setLevel(logging.DEBUG)
+
         formatter = logging.Formatter("%(asctime)s:%(filename)s:%(lineno)d:%(message)s")
         file_handler.setFormatter(formatter)
         logger.addHandler(file_handler)
