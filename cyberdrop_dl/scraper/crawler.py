@@ -55,6 +55,8 @@ class Crawler(ABC):
             await log(f"Scrape Starting: {item.url}")
             if item.url in self.scraped_items:
                 await self.finish_task()
+                if self.scraper_queue.empty():
+                    self.complete = True
                 continue
 
             self.complete = False

@@ -316,31 +316,43 @@ class ScrapeMapper:
     """~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"""
 
     async def check_complete(self) -> bool:
-        if self.manager.queue_manager.url_objects_to_map.empty():
-            for crawler in self.existing_crawlers.values():
-                if not crawler.complete:
-                    return False
-            return True
-        return False
+        await self.manager.queue_manager.url_objects_to_map.join()
+
+        for crawler in self.existing_crawlers.values():
+            await crawler.scraper_queue.join()
+
+        await asyncio.sleep(1)
+        for crawler in self.existing_crawlers.values():
+            if not crawler.complete:
+                return False
+
+        if not self.manager.queue_manager.url_objects_to_map.empty():
+            return False
+
+        self.complete = True
+        return True
 
     async def map_urls(self) -> None:
         """Maps URLs to their respective handlers"""
         while True:
-            self.complete = False
             scrape_item: ScrapeItem = await self.manager.queue_manager.url_objects_to_map.get()
 
             if not scrape_item.url:
+                self.manager.queue_manager.url_objects_to_map.task_done()
                 continue
             if not isinstance(scrape_item.url, URL):
                 try:
                     scrape_item.url = URL(scrape_item.url)
                 except Exception as e:
+                    self.manager.queue_manager.url_objects_to_map.task_done()
                     continue
 
             try:
                 if not scrape_item.url.host:
+                    self.manager.queue_manager.url_objects_to_map.task_done()
                     continue
             except Exception as e:
+                self.manager.queue_manager.url_objects_to_map.task_done()
                 continue
 
             skip = False
@@ -374,7 +386,7 @@ class ScrapeMapper:
                     await self.manager.download_manager.get_download_instance(download_key)
                     asyncio.create_task(self.existing_crawlers[key].run_loop())
                 await self.existing_crawlers[key].scraper_queue.put(scrape_item)
-                await asyncio.sleep(0)
+                self.manager.queue_manager.url_objects_to_map.task_done()
                 continue
             elif skip:
                 await log(f"Skipping URL by Config Selections: {scrape_item.url}")
@@ -384,6 +396,7 @@ class ScrapeMapper:
                 if check_complete:
                     await log(f"Skipping {scrape_item.url} as it has already been downloaded")
                     await self.manager.progress_manager.download_progress.add_previously_completed()
+                    self.manager.queue_manager.url_objects_to_map.task_done()
                     continue
                 download_queue = await self.manager.queue_manager.get_download_queue("no_crawler")
                 await scrape_item.add_to_parent_title("Loose Files")
@@ -409,5 +422,6 @@ class ScrapeMapper:
                 await log(f"Unsupported URL: {scrape_item.url}")
                 await self.manager.log_manager.write_unsupported_urls_log(scrape_item.url)
 
+            self.manager.queue_manager.url_objects_to_map.task_done()
             if self.complete:
                 break

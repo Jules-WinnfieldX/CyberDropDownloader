@@ -46,10 +46,12 @@ async def runtime(manager: Manager) -> None:
     else:
         await scrape_mapper.load_failed_links()
 
+    # Check completion
     while True:
-        if await scrape_mapper.check_complete() and await download_manager.check_complete():
+        scraper_complete = await scrape_mapper.check_complete()
+        downloader_complete = await download_manager.check_complete()
+        if scraper_complete and downloader_complete:
             break
-        await asyncio.sleep(1)
 
 
 async def director(manager: Manager) -> None:
@@ -85,8 +87,16 @@ async def director(manager: Manager) -> None:
         await manager.async_startup()
 
         await log("Starting UI...")
-        with Live(manager.progress_manager.layout, refresh_per_second=10):
-            await runtime(manager)
+        try:
+            with Live(manager.progress_manager.layout, refresh_per_second=10):
+                await runtime(manager)
+        except (KeyboardInterrupt, SystemExit):
+            print("\nExiting...")
+            exit(1)
+        except Exception as e:
+            print("\nAn error occurred, please report this to the developer")
+            print(e)
+            exit(1)
 
         clear_screen_proc = await asyncio.create_subprocess_shell('cls' if os.name == 'nt' else 'clear')
         await clear_screen_proc.wait()

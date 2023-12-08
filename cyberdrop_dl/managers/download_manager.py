@@ -27,8 +27,13 @@ class DownloadManager:
         """Checks if all download instances are complete"""
         if not self._download_instances:
             return True
+
         for instance in self._download_instances.values():
-            if not instance.complete:
+            await instance.download_queue.join()
+
+        await asyncio.sleep(1)
+        for instance in self._download_instances.values():
+            if not instance.download_queue.empty() or not instance.complete:
                 return False
         return True
 
