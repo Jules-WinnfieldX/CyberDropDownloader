@@ -127,8 +127,8 @@ class Downloader:
             self.complete = False
             self._unfinished_count += 1
             media_item.current_attempt = 0
-            if not (media_item.url in self.processed_items):
-                self.processed_items.append(media_item.url)
+            if not (media_item.url.path in self.processed_items):
+                self.processed_items.append(media_item.url.path)
                 await self.manager.progress_manager.download_progress.update_total()
 
                 async with self.manager.client_manager.download_session_limit:
@@ -146,6 +146,7 @@ class Downloader:
                         continue
 
                     await log(f"Download Finished: {media_item.url}")
+
             self.download_queue.task_done()
             self._unfinished_count -= 1
             if self._unfinished_count == 0 and self.download_queue.empty():
