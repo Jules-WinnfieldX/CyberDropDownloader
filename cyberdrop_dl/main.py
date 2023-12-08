@@ -3,6 +3,7 @@ import contextlib
 import logging
 import os
 import sys
+import traceback
 
 import aiorun
 from rich.live import Live
@@ -96,6 +97,7 @@ async def director(manager: Manager) -> None:
         except Exception as e:
             print("\nAn error occurred, please report this to the developer")
             print(e)
+            print(traceback.format_exc())
             exit(1)
 
         clear_screen_proc = await asyncio.create_subprocess_shell('cls' if os.name == 'nt' else 'clear')
