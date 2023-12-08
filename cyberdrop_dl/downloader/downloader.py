@@ -95,24 +95,6 @@ def retry(f):
     return wrapper
 
 
-class FileLock:
-    """Is this necessary? No. But I want it."""
-    def __init__(self):
-        self._locked_files = []
-
-    async def check_lock(self, filename: str) -> bool:
-        """Checks if the file is locked"""
-        return filename in self._locked_files
-
-    async def add_lock(self, filename: str) -> None:
-        """Adds a lock to the file"""
-        self._locked_files.append(filename)
-
-    async def remove_lock(self, filename: str) -> None:
-        """Removes a lock from the file"""
-        self._locked_files.remove(filename)
-
-
 class Downloader:
     def __init__(self, manager: Manager, domain: str):
         self.manager: Manager = manager
@@ -123,7 +105,7 @@ class Downloader:
         self.client: DownloadClient = field(init=False)
         self.download_queue: Queue = field(init=False)
 
-        self._file_lock = FileLock()
+        self._file_lock = manager.download_manager.file_lock
         self._additional_headers = {}
 
         self._unfinished_count = 0

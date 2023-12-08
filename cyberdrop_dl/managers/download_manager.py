@@ -15,11 +15,31 @@ if TYPE_CHECKING:
     from cyberdrop_dl.utils.dataclasses.url_objects import MediaItem
 
 
+class FileLock:
+    """Is this necessary? No. But I want it."""
+    def __init__(self):
+        self._locked_files = []
+
+    async def check_lock(self, filename: str) -> bool:
+        """Checks if the file is locked"""
+        return filename in self._locked_files
+
+    async def add_lock(self, filename: str) -> None:
+        """Adds a lock to the file"""
+        self._locked_files.append(filename)
+
+    async def remove_lock(self, filename: str) -> None:
+        """Removes a lock from the file"""
+        self._locked_files.remove(filename)
+
+
 class DownloadManager:
     def __init__(self, manager: Manager):
         self.manager = manager
         self._download_instances: Dict = {}
         self._download_instance_tasks: Dict = {}
+
+        self.file_lock = FileLock()
 
         self.download_limits = {'bunkr': 1, 'cyberdrop': 1, 'coomer': 8, 'cyberfile': 2, 'kemono': 8, "pixeldrain": 2}
 
