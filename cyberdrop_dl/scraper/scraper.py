@@ -322,8 +322,9 @@ class ScrapeMapper:
             await crawler.scraper_queue.join()
 
         await asyncio.sleep(1)
-        for crawler in self.existing_crawlers.values():
-            if not crawler.complete:
+        keys = list(self.existing_crawlers.keys())
+        for key in keys:
+            if not self.existing_crawlers[key].complete:
                 return False
 
         if not self.manager.queue_manager.url_objects_to_map.empty():

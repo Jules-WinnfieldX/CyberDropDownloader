@@ -32,8 +32,9 @@ class DownloadManager:
             await instance.download_queue.join()
 
         await asyncio.sleep(1)
-        for instance in self._download_instances.values():
-            if not instance.download_queue.empty() or not instance.complete:
+        keys = list(self._download_instances.keys())
+        for key in keys:
+            if not self._download_instances[key].download_queue.empty() or not instance.complete:
                 return False
         return True
 
