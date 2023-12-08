@@ -59,7 +59,7 @@ class CyberdropCrawler(Crawler):
     async def file(self, scrape_item: ScrapeItem) -> None:
         """Scrapes a file"""
         async with self.request_limiter:
-            JSON_Resp = await self.client.get_json(self.domain, self.api_url / scrape_item.url.path[1:])
+            JSON_Resp = await self.client.get_json(self.domain, self.api_url / "f" / scrape_item.url.path[3:])
 
         filename, ext = await get_filename_and_ext(JSON_Resp["name"])
         link = URL(JSON_Resp['url'])
