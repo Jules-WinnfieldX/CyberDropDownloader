@@ -48,6 +48,7 @@ async def runtime(manager: Manager) -> None:
         await scrape_mapper.load_failed_links()
 
     # Check completion
+    await asyncio.sleep(1)
     while True:
         scraper_complete = await scrape_mapper.check_complete()
         downloader_complete = await download_manager.check_complete()
