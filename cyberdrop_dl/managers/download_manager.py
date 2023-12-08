@@ -28,8 +28,9 @@ class DownloadManager:
         if not self._download_instances:
             return True
 
-        for instance in self._download_instances.values():
-            await instance.download_queue.join()
+        keys = list(self._download_instances.keys())
+        for key in keys:
+            await self._download_instances[key].download_queue.join()
 
         await asyncio.sleep(1)
         keys = list(self._download_instances.keys())
