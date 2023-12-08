@@ -36,9 +36,9 @@ class CacheManager:
         if not self.cache_file.is_file():
             self.save('default_config', "Default")
 
+        self.load()
         if self.manager.args_manager.appdata_dir:
             self.save('first_startup_completed', True)
-        self.load()
 
     def load(self) -> None:
         """Loads the cache file into memory"""
