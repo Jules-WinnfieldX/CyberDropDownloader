@@ -55,6 +55,7 @@ class KemonoCrawler(Crawler):
         """Scrapes a profile"""
         offset = 0
         service, user = await self.get_service_and_user(scrape_item)
+        user_str = await self.get_user_str_from_profile(scrape_item)
         api_call = self.api_url / service / "user" / user
         while True:
             async with self.request_limiter:
@@ -64,7 +65,7 @@ class KemonoCrawler(Crawler):
                     break
 
             for post in JSON_Resp:
-                await self.handle_post_content(post, scrape_item, user)
+                await self.handle_post_content(post, scrape_item, user, user_str)
 
     @error_handling_wrapper
     async def discord(self, scrape_item: ScrapeItem) -> None:
@@ -80,19 +81,20 @@ class KemonoCrawler(Crawler):
                     break
 
             for post in JSON_Resp:
-                await self.handle_post_content(post, scrape_item, channel)
+                await self.handle_post_content(post, scrape_item, channel, channel)
 
     @error_handling_wrapper
     async def post(self, scrape_item: ScrapeItem) -> None:
         """Scrapes a post"""
         service, user, post_id = await self.get_service_user_and_post(scrape_item)
+        user_str = await self.get_user_str_from_post(scrape_item)
         api_call = self.api_url / service / "user" / user / "post" / post_id
         async with self.request_limiter:
             post = await self.client.get_json("kemono", api_call)
-        await self.handle_post_content(post, scrape_item, user)
+        await self.handle_post_content(post, scrape_item, user, user_str)
 
     @error_handling_wrapper
-    async def handle_post_content(self, post: Dict, scrape_item: ScrapeItem, user: str) -> None:
+    async def handle_post_content(self, post: Dict, scrape_item: ScrapeItem, user: str, user_str: str) -> None:
         """Handles the content of a post"""
         date = post["published"].replace("T", " ")
         post_id = post["id"]
@@ -101,7 +103,7 @@ class KemonoCrawler(Crawler):
         async def handle_file(file_obj):
             link = self.primary_base_domain / ("data" + file_obj['path'])
             link = link.with_query({"f": file_obj['name']})
-            await self.create_new_scrape_item(link, scrape_item, user, post_title, post_id, date)
+            await self.create_new_scrape_item(link, scrape_item, user_str, post_title, post_id, date)
 
         if "file" in post:
             if post['file']:
@@ -122,6 +124,22 @@ class KemonoCrawler(Crawler):
         """Parses a datetime string into a unix timestamp"""
         date = datetime.datetime.strptime(date, "%Y-%m-%d %H:%M:%S")
         return calendar.timegm(date.timetuple())
+
+    @error_handling_wrapper
+    async def get_user_str_from_post(self, scrape_item: ScrapeItem) -> str:
+        """Gets the user string from a scrape item"""
+        async with self.request_limiter:
+            soup = await self.client.get_BS4(self.domain, scrape_item.url)
+        user = soup.select_one("a[class=post__user-name]").text
+        return user
+
+    @error_handling_wrapper
+    async def get_user_str_from_profile(self, scrape_item: ScrapeItem) -> str:
+        """Gets the user string from a scrape item"""
+        async with self.request_limiter:
+            soup = await self.client.get_BS4(self.domain, scrape_item.url)
+        user = soup.select_one("span[itemprop=name]").text
+        return user
 
     async def get_service_and_user(self, scrape_item: ScrapeItem) -> Tuple[str, str]:
         """Gets the service and user from a scrape item"""
