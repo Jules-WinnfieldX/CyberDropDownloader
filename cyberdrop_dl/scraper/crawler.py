@@ -52,19 +52,17 @@ class Crawler(ABC):
         """Runs the crawler loop"""
         while True:
             item: ScrapeItem = await self.scraper_queue.get()
-            await log(f"Scrape Starting: {item.url}")
-            if item.url in self.scraped_items:
-                await self.finish_task()
-                if self.scraper_queue.empty():
-                    self.complete = True
-                continue
-
             self.complete = False
-            self.scraped_items.append(item.url)
-            await self.fetch(item)
+            await log(f"Scrape Starting: {item.url}")
+            if item.url not in self.scraped_items:
+                self.scraped_items.append(item.url)
+                await self.fetch(item)
 
             await log(f"Scrape Finished: {item.url}")
             await self.finish_task()
+
+            if self.scraper_queue.empty():
+                self.complete = True
 
     """~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"""
 
