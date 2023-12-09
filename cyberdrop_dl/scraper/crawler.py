@@ -57,10 +57,10 @@ class Crawler(ABC):
             self.complete = False
 
             await self._lock.acquire()
-            if item.url not in self.scraped_items:
-                self._lock.release()
+            if item.url.path not in self.scraped_items:
                 await log(f"Scrape Starting: {item.url}")
-                self.scraped_items.append(item.url)
+                self.scraped_items.append(item.url.path)
+                self._lock.release()
                 await self.fetch(item)
                 await log(f"Scrape Finished: {item.url}")
             else:
