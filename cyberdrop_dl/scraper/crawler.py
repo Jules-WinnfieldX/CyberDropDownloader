@@ -117,7 +117,7 @@ class Crawler(ABC):
                 assert login_url.host is not None
 
                 text = await self.client.get_text(self.domain, login_url)
-                if '<span class="p-navgroup-user-linkText">' in text:
+                if '<span class="p-navgroup-user-linkText">' in text or "You are already logged in." in text:
                     self.logged_in = True
                     return
 
@@ -138,7 +138,7 @@ class Crawler(ABC):
                 await self.client.post_data(self.domain, login_url / "login", data=data, req_resp=False)
                 await asyncio.sleep(wait_time)
                 text = await self.client.get_text(self.domain, login_url)
-                if '<span class="p-navgroup-user-linkText">' not in text:
+                if '<span class="p-navgroup-user-linkText">' not in text or "You are already logged in." not in text:
                     continue
                 self.logged_in = True
                 break
