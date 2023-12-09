@@ -110,13 +110,14 @@ class Crawler(ABC):
 
         while True:
             try:
+                attempt += 1
                 if attempt == 5:
                     raise FailedLoginFailure(status=403, message="Failed to login after 5 attempts")
 
                 assert login_url.host is not None
 
                 text = await self.client.get_text(self.domain, login_url)
-                if "You are already logged in" in text:
+                if '<span class="p-navgroup-user-linkText">' in text:
                     self.logged_in = True
                     return
 
@@ -137,12 +138,11 @@ class Crawler(ABC):
                 await self.client.post_data(self.domain, login_url / "login", data=data, req_resp=False)
                 await asyncio.sleep(wait_time)
                 text = await self.client.get_text(self.domain, login_url)
-                if "You are already logged in" not in text:
+                if '<span class="p-navgroup-user-linkText">' not in text:
                     continue
-
                 self.logged_in = True
+                break
             except asyncio.exceptions.TimeoutError:
-                attempt += 1
                 continue
 
     """~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"""
