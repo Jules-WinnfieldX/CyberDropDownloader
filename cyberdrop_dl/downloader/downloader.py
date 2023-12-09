@@ -111,8 +111,8 @@ class Downloader:
         self._unfinished_count = 0
         self._current_attempt_filesize = {}
 
-        self._lock = False
-        self._lock2 = False
+        self._lock = asyncio.Lock()
+        self._lock2 = asyncio.Lock()
 
         self.processed_items: list = []
 
@@ -126,19 +126,17 @@ class Downloader:
         """Runs the download loop"""
         while True:
             media_item: MediaItem = await self.download_queue.get()
-            await log(f"Download Starting: {media_item.url}")
             self.complete = False
             self._unfinished_count += 1
             media_item.current_attempt = 0
 
-            while self._lock:
-                await asyncio.sleep(gauss(0.1, 0.3))
-            self._lock = True
+            await self._lock.acquire()
             if not (media_item.url.path in self.processed_items):
                 self.processed_items.append(media_item.url.path)
-                self._lock = False
+                self._lock.release()
                 await self.manager.progress_manager.download_progress.update_total()
 
+                await log(f"Download Starting: {media_item.url}")
                 async with self.manager.client_manager.download_session_limit:
                     try:
                         await self.download(media_item)
@@ -155,7 +153,7 @@ class Downloader:
 
                     await log(f"Download Finished: {media_item.url}")
             else:
-                self._lock = False
+                self._lock.release()
             self.download_queue.task_done()
             self._unfinished_count -= 1
             if self._unfinished_count == 0 and self.download_queue.empty():
@@ -330,13 +328,11 @@ class Downloader:
         FL_Filename = media_item.filename
 
         try:
-            if self._lock2:
-                await asyncio.sleep(gauss(0.1, 0.3))
-            self._lock2 = True
+            await self._lock2.acquire()
             while await self._file_lock.check_lock(FL_Filename):
                 await asyncio.sleep(gauss(1, 1.5))
             await self._file_lock.add_lock(FL_Filename)
-            self._lock2 = False
+            self._lock2.release()
 
             if not isinstance(media_item.current_attempt, int):
                 media_item.current_attempt = 1

@@ -36,6 +36,8 @@ class Crawler(ABC):
         self.scraper_queue: Queue = field(init=False)
         self.download_queue: Queue = field(init=False)
 
+        self._lock = asyncio.Lock()
+
     async def startup(self) -> None:
         """Starts the crawler"""
         self.scraper_queue = await self.manager.queue_manager.get_scraper_queue(self.domain)
@@ -53,12 +55,18 @@ class Crawler(ABC):
         while True:
             item: ScrapeItem = await self.scraper_queue.get()
             self.complete = False
-            await log(f"Scrape Starting: {item.url}")
+
+            await self._lock.acquire()
             if item.url not in self.scraped_items:
+                self._lock.release()
+                await log(f"Scrape Starting: {item.url}")
                 self.scraped_items.append(item.url)
                 await self.fetch(item)
+                await log(f"Scrape Finished: {item.url}")
+            else:
+                self._lock.release()
+                await log(f"Skipping {item.url} as it has already been scraped")
 
-            await log(f"Scrape Finished: {item.url}")
             await self.finish_task()
 
             if self.scraper_queue.empty():
