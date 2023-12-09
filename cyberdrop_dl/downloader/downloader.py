@@ -152,8 +152,8 @@ class Downloader:
                         continue
 
                     await log(f"Download Finished: {media_item.url}")
-
-            self._lock = False
+            else:
+                self._lock = False
             self.download_queue.task_done()
             self._unfinished_count -= 1
             if self._unfinished_count == 0 and self.download_queue.empty():
