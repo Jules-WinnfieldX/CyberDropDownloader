@@ -32,7 +32,7 @@ class FileLock:
         """Releases the file lock"""
         try:
             self._locked_files[filename].release()
-        except KeyError:
+        except (KeyError, RuntimeError):
             pass
 
 class DownloadManager:
