@@ -18,20 +18,22 @@ if TYPE_CHECKING:
 class FileLock:
     """Is this necessary? No. But I want it."""
     def __init__(self):
-        self._locked_files = []
+        self._locked_files = {}
 
-    async def check_lock(self, filename: str) -> bool:
+    async def check_lock(self, filename: str) -> None:
         """Checks if the file is locked"""
-        return filename in self._locked_files
+        try:
+            self._locked_files[filename].acquire()
+        except KeyError:
+            self._locked_files[filename] = asyncio.Lock()
+            await self._locked_files[filename].acquire()
 
-    async def add_lock(self, filename: str) -> None:
-        """Adds a lock to the file"""
-        self._locked_files.append(filename)
-
-    async def remove_lock(self, filename: str) -> None:
-        """Removes a lock from the file"""
-        self._locked_files.remove(filename)
-
+    async def release_lock(self, filename: str) -> None:
+        """Releases the file lock"""
+        try:
+            self._locked_files[filename].release()
+        except KeyError:
+            pass
 
 class DownloadManager:
     def __init__(self, manager: Manager):
