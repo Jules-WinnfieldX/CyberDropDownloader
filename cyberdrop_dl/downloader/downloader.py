@@ -110,7 +110,9 @@ class Downloader:
 
         self._unfinished_count = 0
         self._current_attempt_filesize = {}
+
         self._lock = False
+        self._lock2 = False
 
         self.processed_items: list = []
 
@@ -328,9 +330,13 @@ class Downloader:
         FL_Filename = media_item.filename
 
         try:
+            if self._lock2:
+                await asyncio.sleep(gauss(0.1, 0.3))
+            self._lock2 = True
             while await self._file_lock.check_lock(FL_Filename):
                 await asyncio.sleep(gauss(1, 1.5))
             await self._file_lock.add_lock(FL_Filename)
+            self._lock2 = False
 
             if not isinstance(media_item.current_attempt, int):
                 media_item.current_attempt = 1
