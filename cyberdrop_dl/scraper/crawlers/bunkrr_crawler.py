@@ -101,7 +101,7 @@ class BunkrrCrawler(Crawler):
 
     async def get_stream_link(self, url: URL) -> URL:
         """Gets the stream link for a given url"""
-        cdn_possibilities = r"^(?:(?:(?:media-files|cdn|c|pizza|cdn-burger)[0-9]{0,2})|(?:(?:big-taco-|cdn-pizza|cdn-meatballs|cdn-milkshake|meatballs)[0-9]{0,2}(?:redir)?))\.bunkr?\.[a-z]{2,3}$"
+        cdn_possibilities = r"^(?:(?:(?:media-files|cdn|c|pizza|cdn-burger)[0-9]{0,2})|(?:(?:big-taco-|cdn-pizza|cdn-meatballs|cdn-milkshake|meatballs|i.kebab|i.fries)[0-9]{0,2}(?:redir)?))\.bunkr?\.[a-z]{2,3}$"
 
         if not re.match(cdn_possibilities, url.host):
             return url
@@ -111,7 +111,7 @@ class BunkrrCrawler(Crawler):
             return url
 
         if ext in FILE_FORMATS['Images']:
-            url = url.with_host(re.sub(r"^cdn(\d*)\.", r"i\1.", url.host))
+            url = self.primary_base_domain / "d" / url.parts[-1]
         elif ext in FILE_FORMATS['Videos']:
             url = self.primary_base_domain / "v" / url.parts[-1]
         else:

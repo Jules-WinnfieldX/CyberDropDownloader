@@ -35,6 +35,7 @@ class FileLock:
         except (KeyError, RuntimeError):
             pass
 
+
 class DownloadManager:
     def __init__(self, manager: Manager):
         self.manager = manager

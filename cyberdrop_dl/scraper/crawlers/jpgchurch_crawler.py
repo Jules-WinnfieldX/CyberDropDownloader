@@ -138,6 +138,7 @@ class JPGChurchCrawler(Crawler):
 
     async def check_direct_link(self, url: URL) -> bool:
         """Determines if the url is a direct link or not"""
-        mapping_direct = [r'jpg.church/images/...', r'simp..jpg.church', r'jpg.fish/images/...',
-                          r'simp..jpg.fish', r'jpg.fishing/images/...', r'simp..jpg.fishing']
-        return any(re.search(domain, str(url)) for domain in mapping_direct)
+        cdn_possibilities = r"(?:(jpg.church\/images\/...)|(simp..jpg.church)|(jpg.fish\/images\/...)|(simp..jpg.fish)|(jpg.fishing\/images\/...)|(simp..jpg.fishing))"
+        if not re.match(cdn_possibilities, url.host):
+            return False
+        return True
