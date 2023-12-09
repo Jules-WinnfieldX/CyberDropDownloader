@@ -145,15 +145,15 @@ class Downloader:
                         await log(traceback.format_exc())
                         await self.manager.progress_manager.download_stats_progress.add_failure("Unknown")
                         await self.manager.progress_manager.download_progress.add_failed()
-                        if self._unfinished_count == 0 and self.download_queue.empty():
-                            self.complete = True
                         self._unfinished_count -= 1
                         self.download_queue.task_done()
+                        if self._unfinished_count == 0 and self.download_queue.empty():
+                            self.complete = True
                         continue
 
                     await log(f"Download Finished: {media_item.url}")
 
-            self._lock = True
+            self._lock = False
             self.download_queue.task_done()
             self._unfinished_count -= 1
             if self._unfinished_count == 0 and self.download_queue.empty():
