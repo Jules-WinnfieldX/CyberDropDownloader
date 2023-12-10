@@ -261,6 +261,8 @@ class Downloader:
 
             if media_item.filename == downloaded_filename:
                 if partial_file.exists():
+                    if partial_file.stat().st_size >= media_item.filesize != 0:
+                        partial_file.unlink()
                     if partial_file.stat().st_size == media_item.filesize:
                         if complete_file.exists():
                             new_complete_filename, new_partial_file = await self.iterate_filename(complete_file, media_item)
