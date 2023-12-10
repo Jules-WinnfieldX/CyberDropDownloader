@@ -23,7 +23,7 @@ class FileLock:
     async def check_lock(self, filename: str) -> None:
         """Checks if the file is locked"""
         try:
-            self._locked_files[filename].acquire()
+            await self._locked_files[filename].acquire()
         except KeyError:
             self._locked_files[filename] = asyncio.Lock()
             await self._locked_files[filename].acquire()
