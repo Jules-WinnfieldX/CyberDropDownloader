@@ -52,7 +52,7 @@ class RedGifsCrawler(Crawler):
             for gif in gifs:
                 links = gif["urls"]
                 date = gif["createDate"]
-                title_part = gif["title"] if "title" in gif else f"Loose Files {self.domain}"
+                title_part = gif["title"] if "title" in gif else f"Loose Files"
                 title = await self.create_title(title_part, None, None)
 
                 try:
