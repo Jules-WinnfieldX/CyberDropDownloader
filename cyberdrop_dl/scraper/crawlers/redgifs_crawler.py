@@ -61,10 +61,8 @@ class RedGifsCrawler(Crawler):
                     link = URL(links["sd"])
 
                 filename, ext = await get_filename_and_ext(link.name)
-                scrape_item.part_of_album = True
-                scrape_item.possible_datetime = date
-                await scrape_item.add_to_parent_title(title)
-                await self.handle_file(link, scrape_item, filename, ext)
+                new_scrape_item = await self.create_scrape_item(scrape_item, link, title, True, date)
+                await self.handle_file(link, new_scrape_item, filename, ext)
             page += 1
 
     @error_handling_wrapper

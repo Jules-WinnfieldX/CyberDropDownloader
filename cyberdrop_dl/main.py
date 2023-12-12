@@ -135,7 +135,7 @@ def main():
     with contextlib.suppress(RuntimeError, asyncio.CancelledError):
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
-        aiorun.run(director(manager), stop_on_unhandled_errors=True)
+        asyncio.run(director(manager))
         sys.exit(0)
 
 
