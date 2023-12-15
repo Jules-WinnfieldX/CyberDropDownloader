@@ -99,6 +99,10 @@ class Crawler(ABC):
 
         await self.download_queue.put(media_item)
 
+        # if domains download limit is 1 join the queue
+        if await self.manager.download_manager.get_download_limit(self.domain) == 1:
+            await self.download_queue.join()
+
     """~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"""
 
     async def handle_external_links(self, scrape_item: ScrapeItem) -> None:
