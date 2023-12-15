@@ -25,6 +25,8 @@ if TYPE_CHECKING:
 
 async def is_4xx_client_error(status_code: int) -> bool:
     """Checks whether the HTTP status code is 4xx client error"""
+    if isinstance(status_code, str):
+        return True
     return HTTPStatus.BAD_REQUEST <= status_code < HTTPStatus.INTERNAL_SERVER_ERROR
 
 
