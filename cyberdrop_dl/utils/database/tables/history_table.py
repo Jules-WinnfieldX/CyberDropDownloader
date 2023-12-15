@@ -25,6 +25,14 @@ async def get_db_path(url: URL, referer: str = "") -> str:
     return url_path
 
 
+async def get_db_domain(domain: str) -> str:
+    """Gets the domain to be put into the DB and checked from the DB"""
+    if domain in ("img.kiwi", "jpg.church", "jpg.homes", "jpg.fish", "jpg.fishing", "jpg.pet", "jpeg.pet", "jpg1.su",
+                  "jpg2.su", "jpg3.su"):
+        domain = "sharex"
+    return domain
+
+
 class HistoryTable:
     def __init__(self, db_conn: aiosqlite.Connection):
         self.db_conn: aiosqlite.Connection = db_conn
@@ -40,25 +48,38 @@ class HistoryTable:
         """Checks whether an individual file has completed given its domain and url path"""
         if self.ignore_history:
             return False
+
+        domain = await get_db_domain(domain)
+
         url_path = await get_db_path(url, domain)
         cursor = await self.db_conn.cursor()
-        result = await cursor.execute("""SELECT completed FROM media WHERE domain = ? and url_path = ?""", (domain, url_path))
+        result = await cursor.execute("""SELECT completed FROM media WHERE domain = ? and url_path = ?""",
+                                      (domain, url_path))
         sql_file_check = await result.fetchone()
         return sql_file_check and sql_file_check[0] != 0
 
     async def insert_incompleted(self, domain: str, media_item: MediaItem) -> None:
         """Inserts an uncompleted file into the database"""
+        domain = await get_db_domain(domain)
         url_path = await get_db_path(media_item.url, str(media_item.referer))
         download_filename = media_item.download_filename if isinstance(media_item.download_filename, str) else ""
-        await self.db_conn.execute("""UPDATE media SET domain = ? WHERE domain = 'no_crawler' and url_path = ? and referer = ?""", (domain, url_path, str(media_item.referer)))
-        await self.db_conn.execute("""INSERT OR IGNORE INTO media (domain, url_path, referer, download_path, download_filename, original_filename, completed) VALUES (?, ?, ?, ?, ?, ?, ?)""", (domain, url_path, str(media_item.referer), str(media_item.download_folder), download_filename, media_item.original_filename, 0))
-        await self.db_conn.execute("""UPDATE media SET download_filename = ? WHERE domain = ? and url_path = ?""", (download_filename, domain, url_path))
+        await self.db_conn.execute(
+            """UPDATE media SET domain = ? WHERE domain = 'no_crawler' and url_path = ? and referer = ?""",
+            (domain, url_path, str(media_item.referer)))
+        await self.db_conn.execute(
+            """INSERT OR IGNORE INTO media (domain, url_path, referer, download_path, download_filename, original_filename, completed) VALUES (?, ?, ?, ?, ?, ?, ?)""",
+            (domain, url_path, str(media_item.referer), str(media_item.download_folder), download_filename,
+             media_item.original_filename, 0))
+        await self.db_conn.execute("""UPDATE media SET download_filename = ? WHERE domain = ? and url_path = ?""",
+                                   (download_filename, domain, url_path))
         await self.db_conn.commit()
 
     async def mark_complete(self, domain: str, media_item: MediaItem) -> None:
         """Mark a download as completed in the database"""
+        domain = await get_db_domain(domain)
         url_path = await get_db_path(media_item.url, str(media_item.referer))
-        await self.db_conn.execute("""UPDATE media SET completed = 1 WHERE domain = ? and url_path = ?""", (domain, url_path))
+        await self.db_conn.execute("""UPDATE media SET completed = 1 WHERE domain = ? and url_path = ?""",
+                                   (domain, url_path))
         await self.db_conn.commit()
 
     async def check_filename_exists(self, filename: str) -> bool:
@@ -70,9 +91,11 @@ class HistoryTable:
 
     async def get_downloaded_filename(self, domain: str, media_item: MediaItem) -> str:
         """Returns the downloaded filename from the database"""
+        domain = await get_db_domain(domain)
         url_path = await get_db_path(media_item.url, str(media_item.referer))
         cursor = await self.db_conn.cursor()
-        result = await cursor.execute("""SELECT download_filename FROM media WHERE domain = ? and url_path = ?""", (domain, url_path))
+        result = await cursor.execute("""SELECT download_filename FROM media WHERE domain = ? and url_path = ?""",
+                                      (domain, url_path))
         sql_file_check = await result.fetchone()
         return sql_file_check[0] if sql_file_check else None
 

@@ -18,7 +18,7 @@ if TYPE_CHECKING:
 
 class ImgKiwiCrawler(Crawler):
     def __init__(self, manager: Manager):
-        super().__init__(manager, "sharex", "ImgKiwi")
+        super().__init__(manager, "img.kiwi", "ImgKiwi")
         self.request_limiter = AsyncLimiter(10, 1)
 
     """~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"""

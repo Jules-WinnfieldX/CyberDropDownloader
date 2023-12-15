@@ -18,7 +18,7 @@ if TYPE_CHECKING:
 
 class JPGChurchCrawler(Crawler):
     def __init__(self, manager: Manager):
-        super().__init__(manager, "sharex", "JPGChurch")
+        super().__init__(manager, "jpg.church", "JPGChurch")
         self.primary_base_domain = URL("https://jpg3.su")
         self.request_limiter = AsyncLimiter(10, 1)
 
@@ -28,7 +28,7 @@ class JPGChurchCrawler(Crawler):
         """Determines where to send the scrape item based on the url"""
         task_id = await self.scraping_progress.add_task(scrape_item.url)
 
-        if await self.check_direct_link(scrape_item.url) or scrape_item.url.suffix in FILE_FORMATS['Images']:
+        if await self.check_direct_link(scrape_item.url):
             await self.handle_direct_link(scrape_item)
         else:
             scrape_item.url = self.primary_base_domain / scrape_item.url.path[1:]
