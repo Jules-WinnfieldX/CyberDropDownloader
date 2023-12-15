@@ -10,18 +10,10 @@ from yarl import URL
 
 from cyberdrop_dl.scraper.crawler import Crawler
 from cyberdrop_dl.utils.dataclasses.url_objects import ScrapeItem
-from cyberdrop_dl.utils.utilities import error_handling_wrapper, get_filename_and_ext
+from cyberdrop_dl.utils.utilities import error_handling_wrapper, get_filename_and_ext, FILE_FORMATS
 
 if TYPE_CHECKING:
     from cyberdrop_dl.managers.manager import Manager
-
-
-def check_direct_link(url: URL) -> bool:
-    """Determines if the url is a direct link or not"""
-    cdn_possibilities = r"(?:(jpg.church\/images\/...)|(simp..jpg.church)|(jpg.fish\/images\/...)|(simp..jpg.fish)|(jpg.fishing\/images\/...)|(simp..jpg.fishing))"
-    if not re.match(cdn_possibilities, url.host):
-        return False
-    return True
 
 
 class JPGChurchCrawler(Crawler):
@@ -36,7 +28,7 @@ class JPGChurchCrawler(Crawler):
         """Determines where to send the scrape item based on the url"""
         task_id = await self.scraping_progress.add_task(scrape_item.url)
 
-        if check_direct_link(scrape_item.url):
+        if await self.check_direct_link(scrape_item.url) or scrape_item.url.suffix in FILE_FORMATS['Images']:
             await self.handle_direct_link(scrape_item)
         else:
             scrape_item.url = self.primary_base_domain / scrape_item.url.path[1:]
@@ -143,3 +135,10 @@ class JPGChurchCrawler(Crawler):
         """Parses a datetime string into a unix timestamp"""
         date = datetime.datetime.strptime(date, "%Y-%m-%d %H:%M:%S")
         return calendar.timegm(date.timetuple())
+
+    async def check_direct_link(self, url: URL) -> bool:
+        """Determines if the url is a direct link or not"""
+        cdn_possibilities = r"^(?:(jpg.church\/images\/...)|(simp..jpg.church)|(jpg.fish\/images\/...)|(simp..jpg.fish)|(jpg.fishing\/images\/...)|(simp..jpg.fishing))"
+        if not re.match(cdn_possibilities, url.host):
+            return False
+        return True
