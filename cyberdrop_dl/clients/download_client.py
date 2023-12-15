@@ -95,6 +95,8 @@ class DownloadClient:
                               update_progress: partial) -> None:
         """Appends content to a file"""
         file.parent.mkdir(parents=True, exist_ok=True)
+        if not file.is_file():
+            file.touch()
         async with aiofiles.open(file, mode='ab') as f:
             async for chunk, _ in content.iter_chunks():
                 await asyncio.sleep(0)
