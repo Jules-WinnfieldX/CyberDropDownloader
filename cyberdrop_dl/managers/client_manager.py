@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING
 
 import aiohttp
 import certifi
+from aiohttp import ClientResponse
 from aiolimiter import AsyncLimiter
 from multidict import CIMultiDictProxy
 from yarl import URL
@@ -60,9 +61,12 @@ class ClientManager:
 
     """~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"""
 
-    async def check_http_status(self, status: int, headers: CIMultiDictProxy, response_url: URL, response_text: str = None,
-                                download: bool = False) -> None:
+    async def check_http_status(self, response: ClientResponse, download: bool = False) -> None:
         """Checks the HTTP status code and raises an exception if it's not acceptable"""
+        status = response.status
+        headers = response.headers
+        response_url = response.url
+
         if not headers.get('Content-Type'):
             raise DownloadFailure(status=CustomHTTPStatus.IM_A_TEAPOT, message="No content-type in response header")
 
@@ -81,6 +85,7 @@ class ClientManager:
         except ValueError:
             phrase = "Unknown"
 
+        response_text = await response.text()
         if "<title>DDoS-Guard</title>" in response_text:
             raise DownloadFailure(status="DDOS-Guard", message="DDoS-Guard detected")
         raise DownloadFailure(status=status, message=f"HTTP status code {status}: {phrase}")
