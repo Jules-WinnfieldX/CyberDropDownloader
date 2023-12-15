@@ -63,6 +63,9 @@ class MediaFireCrawler(Crawler):
     @error_handling_wrapper
     async def file(self, scrape_item: ScrapeItem) -> None:
         """Scrapes a single file"""
+        if await self.check_complete_from_referer(scrape_item):
+            return
+
         async with self.request_limiter:
             soup = await self.client.get_BS4(self.domain, scrape_item.url)
 

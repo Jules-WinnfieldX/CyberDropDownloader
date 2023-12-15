@@ -31,6 +31,9 @@ class SaintCrawler(Crawler):
     @error_handling_wrapper
     async def video(self, scrape_item: ScrapeItem) -> None:
         """Scrapes an album"""
+        if await self.check_complete_from_referer(scrape_item):
+            return
+
         async with self.request_limiter:
             soup = await self.client.get_BS4(self.domain, scrape_item.url)
 

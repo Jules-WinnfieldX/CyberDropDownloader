@@ -45,7 +45,7 @@ class CyberdropCrawler(Crawler):
         title = await self.create_title(soup.select_one("h1[id=title]").text, scrape_item.url.parts[2], None)
         date = await self.parse_datetime(soup.select("p[class=title]")[-1].text)
 
-        links = soup.select("div[class*=image-container] a")
+        links = soup.select("div[class*=image-container] a[class=image]")
         for link in links:
             link = link.get('href')
             if link.startswith("/"):
@@ -58,6 +58,9 @@ class CyberdropCrawler(Crawler):
     @error_handling_wrapper
     async def file(self, scrape_item: ScrapeItem) -> None:
         """Scrapes a file"""
+        if await self.check_complete_from_referer(scrape_item):
+            return
+
         async with self.request_limiter:
             JSON_Resp = await self.client.get_json(self.domain, self.api_url / "f" / scrape_item.url.path[3:])
 

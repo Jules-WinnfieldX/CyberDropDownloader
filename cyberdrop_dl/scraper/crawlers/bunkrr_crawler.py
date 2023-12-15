@@ -70,6 +70,9 @@ class BunkrrCrawler(Crawler):
     @error_handling_wrapper
     async def video(self, scrape_item: ScrapeItem) -> None:
         """Scrapes a video"""
+        if await self.check_complete_from_referer(scrape_item):
+            return
+
         async with self.request_limiter:
             soup = await self.client.get_BS4(self.domain, scrape_item.url)
         link_container = soup.select("a[class*=bg-blue-500]")[-1]
@@ -85,6 +88,9 @@ class BunkrrCrawler(Crawler):
     @error_handling_wrapper
     async def other(self, scrape_item: ScrapeItem) -> None:
         """Scrapes an image/other file"""
+        if await self.check_complete_from_referer(scrape_item):
+            return
+
         async with self.request_limiter:
             soup = await self.client.get_BS4(self.domain, scrape_item.url)
         link_container = soup.select('a[class*="text-white inline-flex"]')[-1]

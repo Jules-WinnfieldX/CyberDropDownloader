@@ -154,6 +154,7 @@ class Downloader:
             return False
         if self.manager.config_manager.settings_data['Download_Options']['skip_download_mark_completed']:
             await log(f"Download Skip {media_item.url} due to mark completed option")
+            await self.mark_incomplete(media_item)
             await self.mark_completed(media_item)
             return False
         return True
