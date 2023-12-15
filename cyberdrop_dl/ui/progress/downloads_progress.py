@@ -12,7 +12,7 @@ class DownloadsProgress:
         self.progress = Progress("[progress.description]{task.description}",
                                  BarColumn(bar_width=None),
                                  "[progress.percentage]{task.percentage:>3.2f}%",
-                                 "{task.completed} of {task.total} Files Completed")
+                                 "{task.completed} of {task.total} Files")
         self.progress_group = Group(self.progress)
 
         self.total_files = 0

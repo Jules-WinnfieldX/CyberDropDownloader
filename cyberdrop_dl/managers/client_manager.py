@@ -60,7 +60,7 @@ class ClientManager:
 
     """~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"""
 
-    async def check_http_status(self, status: int, headers: CIMultiDictProxy, response_url: URL,
+    async def check_http_status(self, status: int, headers: CIMultiDictProxy, response_url: URL, response_text: str = None,
                                 download: bool = False) -> None:
         """Checks the HTTP status code and raises an exception if it's not acceptable"""
         if not headers.get('Content-Type'):
@@ -81,4 +81,6 @@ class ClientManager:
         except ValueError:
             phrase = "Unknown"
 
+        if "<title>DDoS-Guard</title>" in response_text:
+            raise DownloadFailure(status="DDOS-Guard", message="DDoS-Guard detected")
         raise DownloadFailure(status=status, message=f"HTTP status code {status}: {phrase}")

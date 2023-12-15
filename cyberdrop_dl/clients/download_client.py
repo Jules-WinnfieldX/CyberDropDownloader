@@ -60,7 +60,7 @@ class DownloadClient:
 
         async with client_session.get(media_item.url, headers=headers, ssl=self.client_manager.ssl_context,
                                       proxy=self.client_manager.proxy) as resp:
-            await self.client_manager.check_http_status(resp.status, resp.headers, resp.url)
+            await self.client_manager.check_http_status(resp.status, resp.headers, resp.url, await resp.text())
             return int(resp.headers.get('Content-Length', '0'))
 
     """~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"""
@@ -78,7 +78,7 @@ class DownloadClient:
 
         async with client_session.get(media_item.url, headers=headers, ssl=self.client_manager.ssl_context,
                                       proxy=self.client_manager.proxy) as resp:
-            await self.client_manager.check_http_status(resp.status, resp.headers, resp.url, download=True)
+            await self.client_manager.check_http_status(resp.status, resp.headers, resp.url, await resp.text(), download=True)
             content_type = resp.headers.get('Content-Type')
             ext = Path(media_item.filename).suffix.lower()
             if any(s in content_type.lower() for s in ('html', 'text')) and ext not in FILE_FORMATS['Text']:
