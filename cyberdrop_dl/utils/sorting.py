@@ -55,9 +55,20 @@ class Sorter:
                     break
             file.rename(dest)
 
+    async def check_dir_parents(self) -> bool:
+        """Checks if the sort dir is in the download dir"""
+        if self.download_dir in self.sorted_downloads.parents:
+            await log_with_color("Sort Directory cannot be in the Download Directory", "red")
+            return True
+        return False
+
     async def sort(self) -> None:
         """Sorts the files in the download directory into their respective folders"""
         await log_with_color("\nSorting Downloads: Please Wait", "cyan")
+
+        if await self.check_dir_parents():
+            return
+
         for folder in self.download_dir.iterdir():
             if not folder.is_dir():
                 continue
