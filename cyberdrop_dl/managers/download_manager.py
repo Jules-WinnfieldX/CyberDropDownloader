@@ -44,7 +44,7 @@ class DownloadManager:
 
         self.file_lock = FileLock()
 
-        self.download_limits = {'bunkr': 1, 'cyberdrop': 1, 'coomer': 8, 'cyberfile': 2, 'kemono': 8, "pixeldrain": 2}
+        self.download_limits = {'bunkr': 1, 'bunkrr': 1, 'cyberdrop': 1, 'coomer': 8, 'cyberfile': 2, 'kemono': 8, "pixeldrain": 2}
 
     async def check_complete(self) -> bool:
         """Checks if all download instances are complete"""
