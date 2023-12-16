@@ -10,12 +10,11 @@ from bs4 import BeautifulSoup
 from yarl import URL
 
 from cyberdrop_dl.clients.errors import FailedLoginFailure
+from cyberdrop_dl.downloader.downloader import Downloader
 from cyberdrop_dl.utils.dataclasses.url_objects import MediaItem, ScrapeItem
 from cyberdrop_dl.utils.utilities import log, get_download_path, remove_id, error_handling_wrapper
 
 if TYPE_CHECKING:
-    from asyncio import Queue
-
     from cyberdrop_dl.clients.scraper_client import ScraperClient
     from cyberdrop_dl.managers.manager import Manager
 
@@ -23,54 +22,38 @@ if TYPE_CHECKING:
 class Crawler(ABC):
     def __init__(self, manager: Manager, domain: str, folder_domain: str):
         self.manager = manager
+        self.downloader = field(init=False)
         self.scraping_progress = manager.progress_manager.scraping_progress
         self.client: ScraperClient = field(init=False)
+        self._lock = asyncio.Lock()
 
         self.domain = domain
         self.folder_domain = folder_domain
 
-        self.complete = False
         self.logged_in = field(init=False)
 
         self.scraped_items: list = []
-        self.scraper_queue: Queue = field(init=False)
-        self.download_queue: Queue = field(init=False)
-
-        self._lock = asyncio.Lock()
+        self.waiting_items = 0
 
     async def startup(self) -> None:
         """Starts the crawler"""
-        self.scraper_queue = await self.manager.queue_manager.get_scraper_queue(self.domain)
-        self.download_queue = await self.manager.queue_manager.get_download_queue(self.domain)
-
         self.client = self.manager.client_manager.scraper_session
+        self.downloader = Downloader(self.manager, self.domain)
+        await self.downloader.startup()
 
-    async def finish_task(self) -> None:
-        self.scraper_queue.task_done()
-        if self.scraper_queue.empty():
-            self.complete = True
-
-    async def run_loop(self) -> None:
+    async def run(self, item: ScrapeItem) -> None:
         """Runs the crawler loop"""
-        while True:
-            item: ScrapeItem = await self.scraper_queue.get()
-            self.complete = False
-
-            await self._lock.acquire()
-            if item.url.path not in self.scraped_items:
-                await log(f"Scrape Starting: {item.url}")
-                self.scraped_items.append(item.url.path)
-                self._lock.release()
-                await self.fetch(item)
-                await log(f"Scrape Finished: {item.url}")
-            else:
-                self._lock.release()
-                await log(f"Skipping {item.url} as it has already been scraped")
-
-            await self.finish_task()
-
-            if self.scraper_queue.empty():
-                self.complete = True
+        self.waiting_items += 1
+        await self._lock.acquire()
+        self.waiting_items -= 1
+        if item.url.path not in self.scraped_items:
+            await log(f"Scrape Starting: {item.url}")
+            self.scraped_items.append(item.url.path)
+            await self.fetch(item)
+            await log(f"Scrape Finished: {item.url}")
+        else:
+            await log(f"Skipping {item.url} as it has already been scraped")
+        self._lock.release()
 
     """~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"""
 
@@ -80,7 +63,7 @@ class Crawler(ABC):
         raise NotImplementedError("Must override in child class")
 
     async def handle_file(self, url: URL, scrape_item: ScrapeItem, filename: str, ext: str) -> None:
-        """Finishes handling the file and hands it off to the download_queue"""
+        """Finishes handling the file and hands it off to the downloader"""
         if self.domain in ['cyberdrop', 'bunkrr']:
             original_filename, filename = await remove_id(self.manager, filename, ext)
         else:
@@ -97,17 +80,16 @@ class Crawler(ABC):
         if scrape_item.possible_datetime:
             media_item.datetime = scrape_item.possible_datetime
 
-        await self.download_queue.put(media_item)
-
-        # if domains download limit is 1 join the queue
         if await self.manager.download_manager.get_download_limit(self.domain) == 1:
-            await self.download_queue.join()
+            await self.downloader.run(media_item)
+        else:
+            self.manager.task_group.create_task(self.downloader.run(media_item))
 
     """~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"""
 
     async def handle_external_links(self, scrape_item: ScrapeItem) -> None:
         """Maps external links to the scraper class"""
-        await self.manager.queue_manager.url_objects_to_map.put(scrape_item)
+        self.manager.task_group.create_task(self.manager.scrape_mapper.map_url(scrape_item))
 
     @error_handling_wrapper
     async def forum_login(self, login_url: URL, session_cookie: str, username: str, password: str, wait_time: int = 0) -> None:
