@@ -260,6 +260,8 @@ class ScrapeMapper:
         await self.start_scrapers()
         await self.start_jdownloader()
 
+        await self.no_crawler_downloader.startup()
+
         if not self.manager.args_manager.retry:
             await self.load_links()
         else:
