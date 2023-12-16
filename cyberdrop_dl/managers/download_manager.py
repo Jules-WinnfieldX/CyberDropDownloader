@@ -39,17 +39,10 @@ class DownloadManager:
     def __init__(self, manager: Manager):
         self.manager = manager
         self._download_instances: Dict = {}
-        self._download_instance_tasks: Dict = {}
 
         self.file_lock = FileLock()
 
         self.download_limits = {'bunkr': 1, 'bunkrr': 1, 'cyberdrop': 1, 'coomer': 2, 'cyberfile': 2, 'kemono': 2, "pixeldrain": 2}
-
-    async def close(self) -> None:
-        """Closes all download instances"""
-        for downloader in self._download_instance_tasks.values():
-            for task in downloader:
-                task.cancel()
 
     async def get_download_limit(self, key: str) -> int:
         """Returns the download limit for a domain"""

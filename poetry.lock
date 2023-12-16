@@ -119,20 +119,6 @@ files = [
 ]
 
 [[package]]
-name = "aiorun"
-version = "2023.7.2"
-description = "Boilerplate for asyncio applications"
-optional = false
-python-versions = ">=3.7"
-files = [
-    {file = "aiorun-2023.7.2-py3-none-any.whl", hash = "sha256:61f839265d86d3f3b37921eb4a99ef42fa2ee026241b67c54315423d7dac29c9"},
-    {file = "aiorun-2023.7.2.tar.gz", hash = "sha256:95e689dc1b263aaf4556ef8fa73ccae68f38ba0f1c1017fe196ef7da244031f9"},
-]
-
-[package.extras]
-dev = ["pytest", "pytest-cov"]
-
-[[package]]
 name = "aiosignal"
 version = "1.3.1"
 description = "aiosignal: a list of registered asynchronous callbacks"
@@ -1262,4 +1248,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "d1c13e89aae8ce815d3a8d6c387220d4997daa38d7598dfee59935502319b7a6"
+content-hash = "cdf6a262961751639933966f1ea16edd86d494ef7eb483234291e35d2397562d"

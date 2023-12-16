@@ -170,4 +170,3 @@ class Manager:
     async def close(self) -> None:
         """Closes the manager"""
         await self.db_manager.close()
-        await self.download_manager.close()
