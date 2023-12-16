@@ -5,7 +5,6 @@ import os
 import sys
 import traceback
 
-import aiorun
 from rich.live import Live
 from quattro import taskgroup
 
@@ -83,9 +82,6 @@ async def director(manager: Manager) -> None:
         try:
             with Live(manager.progress_manager.layout, refresh_per_second=10):
                 await runtime(manager)
-        except (KeyboardInterrupt, SystemExit):
-            print("\nExiting...")
-            exit(1)
         except Exception as e:
             print("\nAn error occurred, please report this to the developer")
             print(e)
@@ -123,14 +119,19 @@ async def director(manager: Manager) -> None:
 def main():
     manager = startup()
 
-    with contextlib.suppress(RuntimeError, asyncio.CancelledError):
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    with contextlib.suppress(RuntimeError):
         try:
             asyncio.run(director(manager))
         except KeyboardInterrupt:
-            print("\nExiting Gracefully, please wait...")
-        sys.exit(0)
+            print("\nTrying to Exit...")
+            try:
+                asyncio.run(manager.close())
+            except Exception:
+                pass
+            exit(1)
+    sys.exit(0)
 
 
 if __name__ == '__main__':
