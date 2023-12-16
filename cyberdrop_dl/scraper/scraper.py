@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import re
 from dataclasses import Field
 from pathlib import Path
@@ -9,7 +10,6 @@ import aiofiles
 from yarl import URL
 
 from cyberdrop_dl.clients.errors import NoExtensionFailure, JDownloaderFailure
-from cyberdrop_dl.downloader.downloader import Downloader
 from cyberdrop_dl.scraper.jdownloader import JDownloader
 from cyberdrop_dl.utils.dataclasses.url_objects import ScrapeItem, MediaItem
 from cyberdrop_dl.utils.utilities import log, get_filename_and_ext, get_download_path
@@ -23,7 +23,6 @@ if TYPE_CHECKING:
 class ScrapeMapper:
     """This class maps links to their respective handlers, or JDownloader if they are unsupported"""
     def __init__(self, manager: Manager):
-        self.manager = manager
         self.mapping = {"bunkrr": self.bunkrr, "celebforum": self.celebforum, "coomer": self.coomer,
                         "cyberdrop": self.cyberdrop, "cyberfile": self.cyberfile, "e-hentai": self.ehentai,
                         "erome": self.erome, "fapello": self.fapello, "f95zone": self.f95zone, "gofile": self.gofile,
@@ -39,9 +38,27 @@ class ScrapeMapper:
                         "rule34.xyz": self.rule34xyz, "saint": self.saint, "scrolller": self.scrolller,
                         "simpcity": self.simpcity, "socialmediagirls": self.socialmediagirls,
                         "toonily": self.toonily, "xbunker": self.xbunker, "xbunkr": self.xbunkr, "bunkr": self.bunkrr}
+        self.download_mapping = {"bunkrr": "bunkrr", "celebforum": "celebforum", "coomer": "coomer",
+                                 "cyberdrop": "cyberdrop", "cyberfile": "cyberfile", "e-hentai": "e-hentai",
+                                 "erome": "erome", "fapello": "fapello", "f95zone": "f95zone", "gofile": "gofile",
+                                 "hotpic": "hotpic", "ibb.co": "imgbb", "imageban": "imageban", "imgbox": "imgbox",
+                                 "imgur": "imgur", "img.kiwi": "img.kiwi", "jpg.church": "jpg.church",
+                                 "jpg.homes": "jpg.church", "jpg.fish": "jpg.church", "jpg.fishing": "jpg.church",
+                                 "jpg.pet": "jpg.church", "jpeg.pet": "jpg.church", "jpg1.su": "jpg.church",
+                                 "jpg2.su": "jpg.church", "jpg3.su": "jpg.church", "kemono": "kemono",
+                                 "leakedmodels": "leakedmodels", "mediafire": "mediafire",
+                                 "nudostar.com": "nudostar.com", "nudostar.tv": "nudostartv",
+                                 "omegascans": "omegascans", "pimpandhost": "pimpandhost", "pixeldrain": "pixeldrain",
+                                 "postimg": "postimg", "reddit": "reddit", "redd.it": "reddit", "redgifs": "redgifs",
+                                 "rule34.xxx": "rule34.xxx", "rule34.xyz": "rule34.xyz", "saint": "saint",
+                                 "scrolller": "scrolller", "simpcity": "simpcity",
+                                 "socialmediagirls": "socialmediagirls",  "toonily": "toonily", "xbunker": "xbunker",
+                                 "xbunkr": "xbunkr", "bunkr": "bunkrr"}
         self.existing_crawlers = {}
-        self.no_crawler_downloader = Downloader(self.manager, "no_crawler")
+        self.manager = manager
         self.jdownloader = JDownloader(self.manager)
+
+        self.complete = False
 
     async def bunkrr(self) -> None:
         """Creates a Bunkr Crawler instance"""
@@ -240,35 +257,6 @@ class ScrapeMapper:
 
     """~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"""
 
-    async def start_scrapers(self) -> None:
-        """Starts all scrapers"""
-        for key in self.mapping:
-            await self.mapping[key]()
-            crawler = self.existing_crawlers[key]
-            await crawler.startup()
-
-    async def start_jdownloader(self) -> None:
-        """Starts JDownloader"""
-        if self.jdownloader.enabled:
-            if isinstance(self.jdownloader.jdownloader_agent, Field):
-                await self.jdownloader.jdownloader_setup()
-
-    async def start(self) -> None:
-        """Starts the orchestra"""
-        self.manager.scrape_mapper = self
-
-        await self.start_scrapers()
-        await self.start_jdownloader()
-
-        await self.no_crawler_downloader.startup()
-
-        if not self.manager.args_manager.retry:
-            await self.load_links()
-        else:
-            await self.load_failed_links()
-
-    """~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"""
-
     async def regex_links(self, line: str) -> List:
         """Regex grab the links from the URLs.txt file
         This allows code blocks or full paragraphs to be copy and pasted into the URLs.txt"""
@@ -302,7 +290,7 @@ class ScrapeMapper:
             await log("No valid links found.")
         for link in links:
             item = ScrapeItem(url=link, parent_title="")
-            self.manager.task_group.create_task(self.map_url(item))
+            await self.manager.queue_manager.url_objects_to_map.put(item)
 
     async def load_failed_links(self) -> None:
         """Loads failed links from db"""
@@ -312,9 +300,7 @@ class ScrapeMapper:
             retry_path = Path(item[3])
 
             item = ScrapeItem(link, parent_title="", part_of_album=True, retry=True, retry_path=retry_path)
-            self.manager.task_group.create_task(self.map_url(item))
-
-    """~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"""
+            await self.manager.queue_manager.url_objects_to_map.put(item)
 
     async def extension_check(self, url: URL) -> bool:
         """Checks if the URL has a valid extension"""
@@ -328,72 +314,117 @@ class ScrapeMapper:
         except NoExtensionFailure:
             return False
 
-    async def map_url(self, scrape_item: ScrapeItem) -> None:
+    """~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"""
+
+    async def check_complete(self) -> bool:
+        await self.manager.queue_manager.url_objects_to_map.join()
+
+        keys = list(self.existing_crawlers.keys())
+        for key in keys:
+            await self.existing_crawlers[key].scraper_queue.join()
+
+        await asyncio.sleep(1)
+        keys = list(self.existing_crawlers.keys())
+        for key in keys:
+            if not self.existing_crawlers[key].complete:
+                return False
+
+        if not self.manager.queue_manager.url_objects_to_map.empty():
+            return False
+
+        self.complete = True
+        return True
+
+    async def map_urls(self) -> None:
         """Maps URLs to their respective handlers"""
-        if not scrape_item.url:
-            return
-        if not isinstance(scrape_item.url, URL):
+        while True:
+            scrape_item: ScrapeItem = await self.manager.queue_manager.url_objects_to_map.get()
+
+            if not scrape_item.url:
+                self.manager.queue_manager.url_objects_to_map.task_done()
+                continue
+            if not isinstance(scrape_item.url, URL):
+                try:
+                    scrape_item.url = URL(scrape_item.url)
+                except Exception as e:
+                    self.manager.queue_manager.url_objects_to_map.task_done()
+                    continue
+
             try:
-                scrape_item.url = URL(scrape_item.url)
+                if not scrape_item.url.host:
+                    self.manager.queue_manager.url_objects_to_map.task_done()
+                    continue
             except Exception as e:
-                return
-        try:
-            if not scrape_item.url.host:
-                return
-        except Exception as e:
-            return
+                self.manager.queue_manager.url_objects_to_map.task_done()
+                continue
 
-        skip = False
-        if self.manager.config_manager.settings_data['Ignore_Options']['skip_hosts']:
-            for skip_host in self.manager.config_manager.settings_data['Ignore_Options']['skip_hosts']:
-                if skip_host in scrape_item.url.host:
-                    skip = True
-                    break
-        if self.manager.config_manager.settings_data['Ignore_Options']['only_hosts']:
-            for only_host in self.manager.config_manager.settings_data['Ignore_Options']['only_hosts']:
-                if only_host not in scrape_item.url.host:
-                    skip = True
-                    break
+            skip = False
+            if self.manager.config_manager.settings_data['Ignore_Options']['skip_hosts']:
+                for skip_host in self.manager.config_manager.settings_data['Ignore_Options']['skip_hosts']:
+                    if skip_host in scrape_item.url.host:
+                        skip = True
+                        break
+            if self.manager.config_manager.settings_data['Ignore_Options']['only_hosts']:
+                for only_host in self.manager.config_manager.settings_data['Ignore_Options']['only_hosts']:
+                    if only_host not in scrape_item.url.host:
+                        skip = True
+                        break
 
-        if str(scrape_item.url).endswith("/"):
-            if scrape_item.url.query_string:
-                query = scrape_item.url.query_string[:-1]
-                scrape_item.url = scrape_item.url.with_query(query)
+            if str(scrape_item.url).endswith("/"):
+                if scrape_item.url.query_string:
+                    query = scrape_item.url.query_string[:-1]
+                    scrape_item.url = scrape_item.url.with_query(query)
+                else:
+                    scrape_item.url = scrape_item.url.with_path(scrape_item.url.path[:-1])
+
+            key = next((key for key in self.mapping if key in scrape_item.url.host.lower()), None)
+            download_key = next((self.download_mapping[key] for key in self.download_mapping if key in scrape_item.url.host.lower()), None)
+
+            if key and not skip:
+                """If the crawler doesn't exist, create it, finally add the scrape item to it's queue"""
+                if not self.existing_crawlers.get(key):
+                    start_handler = self.mapping[key]
+                    await start_handler()
+                    await self.existing_crawlers[key].startup()
+                    await self.manager.download_manager.get_download_instance(download_key)
+                    asyncio.create_task(self.existing_crawlers[key].run_loop())
+                await self.existing_crawlers[key].scraper_queue.put(scrape_item)
+                self.manager.queue_manager.url_objects_to_map.task_done()
+                continue
+            elif skip:
+                await log(f"Skipping URL by Config Selections: {scrape_item.url}")
+            elif await self.extension_check(scrape_item.url):
+                await self.manager.download_manager.get_download_instance("no_crawler")
+                check_complete = await self.manager.db_manager.history_table.check_complete("no_crawler", scrape_item.url)
+                if check_complete:
+                    await log(f"Skipping {scrape_item.url} as it has already been downloaded")
+                    await self.manager.progress_manager.download_progress.add_previously_completed()
+                    self.manager.queue_manager.url_objects_to_map.task_done()
+                    continue
+                download_queue = await self.manager.queue_manager.get_download_queue("no_crawler")
+                await scrape_item.add_to_parent_title("Loose Files")
+                scrape_item.part_of_album = True
+                download_folder = await get_download_path(self.manager, scrape_item, "no_crawler")
+                filename, ext = await get_filename_and_ext(scrape_item.url.name)
+                media_item = MediaItem(scrape_item.url, scrape_item.url, download_folder, filename, ext, filename)
+                await download_queue.put(media_item)
+            elif self.jdownloader.enabled:
+                if isinstance(self.jdownloader.jdownloader_agent, Field):
+                    await self.jdownloader.jdownloader_setup()
+                    if not self.jdownloader.enabled:
+                        await log(f"Unsupported URL: {scrape_item.url}")
+                        await self.manager.log_manager.write_unsupported_urls_log(scrape_item.url)
+                await log(f"Sending unsupported URL to JDownloader: {scrape_item.url}")
+                try:
+                    await self.jdownloader.direct_unsupported_to_jdownloader(scrape_item.url, scrape_item.parent_title)
+                except JDownloaderFailure as e:
+                    await log(f"Failed to send {scrape_item.url} to JDownloader")
+                    await log(e.message)
+                    await self.manager.log_manager.write_unsupported_urls_log(scrape_item.url)
             else:
-                scrape_item.url = scrape_item.url.with_path(scrape_item.url.path[:-1])
-
-        key = next((key for key in self.mapping if key in scrape_item.url.host.lower()), None)
-
-        if key and not skip:
-            scraper = self.existing_crawlers[key]
-            self.manager.task_group.create_task(scraper.run(scrape_item))
-            return
-
-        elif skip:
-            await log(f"Skipping URL by Config Selections: {scrape_item.url}")
-
-        elif await self.extension_check(scrape_item.url):
-            check_complete = await self.manager.db_manager.history_table.check_complete("no_crawler", scrape_item.url)
-            if check_complete:
-                await log(f"Skipping {scrape_item.url} as it has already been downloaded")
-                await self.manager.progress_manager.download_progress.add_previously_completed()
-                return
-            await scrape_item.add_to_parent_title("Loose Files")
-            scrape_item.part_of_album = True
-            download_folder = await get_download_path(self.manager, scrape_item, "no_crawler")
-            filename, ext = await get_filename_and_ext(scrape_item.url.name)
-            media_item = MediaItem(scrape_item.url, scrape_item.url, download_folder, filename, ext, filename)
-            self.manager.task_group.create_task(self.no_crawler_downloader.run(media_item))
-
-        elif self.jdownloader.enabled:
-            await log(f"Sending unsupported URL to JDownloader: {scrape_item.url}")
-            try:
-                await self.jdownloader.direct_unsupported_to_jdownloader(scrape_item.url, scrape_item.parent_title)
-            except JDownloaderFailure as e:
-                await log(f"Failed to send {scrape_item.url} to JDownloader")
-                await log(e.message)
+                await log(f"Unsupported URL: {scrape_item.url}")
                 await self.manager.log_manager.write_unsupported_urls_log(scrape_item.url)
 
-        else:
-            await log(f"Unsupported URL: {scrape_item.url}")
-            await self.manager.log_manager.write_unsupported_urls_log(scrape_item.url)
+            self.manager.queue_manager.url_objects_to_map.task_done()
+            if self.complete:
+                break

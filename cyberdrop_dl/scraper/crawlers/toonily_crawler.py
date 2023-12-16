@@ -52,7 +52,7 @@ class ToonilyCrawler(Crawler):
             else:
                 chapter_path = URL(chapter_path)
             new_scrape_item = await self.create_scrape_item(scrape_item, chapter_path, "", True)
-            self.manager.task_group.create_task(self.run(new_scrape_item))
+            await self.scraper_queue.put(new_scrape_item)
 
     @error_handling_wrapper
     async def chapter(self, scrape_item: ScrapeItem) -> None:

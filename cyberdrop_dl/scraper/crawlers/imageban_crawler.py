@@ -59,7 +59,7 @@ class ImageBanCrawler(Crawler):
                 link = URL(link_path)
 
             new_scrape_item = await self.create_scrape_item(scrape_item, link, title, True)
-            self.manager.task_group.create_task(self.run(new_scrape_item))
+            await self.scraper_queue.put(new_scrape_item)
 
         next_page = soup.select_one('a[class*="page-link next"]')
         if next_page:
@@ -69,7 +69,7 @@ class ImageBanCrawler(Crawler):
             else:
                 link = URL(link_path)
             new_scrape_item = await self.create_scrape_item(scrape_item, link, "", True)
-            self.manager.task_group.create_task(self.run(new_scrape_item))
+            await self.scraper_queue.put(new_scrape_item)
 
     @error_handling_wrapper
     async def compilation(self, scrape_item: ScrapeItem) -> None:

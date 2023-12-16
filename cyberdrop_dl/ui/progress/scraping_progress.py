@@ -45,8 +45,9 @@ class ScrapingProgress:
         """Returns the number of tasks in the scraper queue"""
         total = 0
 
-        for scraper in self.manager.scrape_mapper.existing_crawlers.values():
-            total += scraper.waiting_items
+        total += self.manager.queue_manager.url_objects_to_map.qsize()
+        for queue in self.manager.queue_manager.scraper_queues.values():
+            total += queue.qsize()
 
         return total
 
@@ -80,7 +81,6 @@ class ScrapingProgress:
         else:
             task_id = self.progress.add_task(self.progress_str.format(color=self.color, description=str(url)))
             self.visible_tasks.append(task_id)
-        await self.redraw()
         return task_id
 
     async def remove_task(self, task_id: TaskID) -> None:

@@ -55,7 +55,7 @@ class Rule34XXXCrawler(Crawler):
                 link = f"{self.primary_base_url}{link}"
             link = URL(link, encoded=True)
             new_scrape_item = await self.create_scrape_item(scrape_item, link, title, True)
-            self.manager.task_group.create_task(self.run(new_scrape_item))
+            await self.scraper_queue.put(new_scrape_item)
 
         next_page = soup.select_one("a[alt=next]")
         if next_page is not None:
@@ -66,7 +66,7 @@ class Rule34XXXCrawler(Crawler):
                 else:
                     next_page = URL(next_page)
                 new_scrape_item = await self.create_scrape_item(scrape_item, next_page, "")
-                self.manager.task_group.create_task(self.run(new_scrape_item))
+                await self.scraper_queue.put(new_scrape_item)
 
     @error_handling_wrapper
     async def file(self, scrape_item: ScrapeItem) -> None:

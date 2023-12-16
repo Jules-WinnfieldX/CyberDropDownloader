@@ -73,7 +73,7 @@ class GoFileCrawler(Crawler):
             content = contents[content_id]
             if content["type"] == "folder":
                 new_scrape_item = await self.create_scrape_item(scrape_item, URL(content["name"]), title, True)
-                self.manager.task_group.create_task(self.run(new_scrape_item))
+                await self.scraper_queue.put(new_scrape_item)
                 continue
             if content["link"] == "overloaded":
                 link = URL(content["directLink"])

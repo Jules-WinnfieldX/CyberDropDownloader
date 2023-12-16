@@ -10,7 +10,7 @@ from yarl import URL
 
 from cyberdrop_dl.scraper.crawler import Crawler
 from cyberdrop_dl.utils.dataclasses.url_objects import ScrapeItem
-from cyberdrop_dl.utils.utilities import error_handling_wrapper, get_filename_and_ext
+from cyberdrop_dl.utils.utilities import error_handling_wrapper, get_filename_and_ext, FILE_FORMATS
 
 if TYPE_CHECKING:
     from cyberdrop_dl.managers.manager import Manager
@@ -57,7 +57,7 @@ class JPGChurchCrawler(Crawler):
             for link in links:
                 link = URL(link.get('href'))
                 new_scrape_item = await self.create_scrape_item(scrape_item, link, title, True)
-                self.manager.task_group.create_task(self.run(new_scrape_item))
+                await self.scraper_queue.put(new_scrape_item)
 
             link_next = soup.select_one('a[data-pagination=next]')
             if link_next is not None:
@@ -80,7 +80,7 @@ class JPGChurchCrawler(Crawler):
         for album in albums:
             sub_album_link = URL(album.get('href'))
             new_scrape_item = await self.create_scrape_item(scrape_item, sub_album_link, title, True)
-            self.manager.task_group.create_task(self.run(new_scrape_item))
+            await self.scraper_queue.put(new_scrape_item)
 
         async with self.request_limiter:
             soup = await self.client.get_BS4(self.domain, scrape_item.url / "sub")
@@ -93,7 +93,7 @@ class JPGChurchCrawler(Crawler):
             for link in links:
                 link = URL(link.get('href'))
                 new_scrape_item = await self.create_scrape_item(scrape_item, link, title, True)
-                self.manager.task_group.create_task(self.run(new_scrape_item))
+                await self.scraper_queue.put(new_scrape_item)
 
             link_next = soup.select_one('a[data-pagination=next]')
             if link_next is not None:

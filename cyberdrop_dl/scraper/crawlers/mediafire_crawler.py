@@ -53,7 +53,7 @@ class MediaFireCrawler(Crawler):
                 date = await self.parse_datetime(file['created'])
                 link = URL(file['links']['normal_download'])
                 new_scrape_item = await self.create_scrape_item(scrape_item, link, title, True, date)
-                self.manager.task_group.create_task(self.run(new_scrape_item))
+                await self.scraper_queue.put(new_scrape_item)
 
             if folder_contents["folder_content"]["more_chunks"] == "yes":
                 chunk += 1

@@ -53,7 +53,7 @@ class CyberdropCrawler(Crawler):
             link = URL(link)
 
             new_scrape_item = await self.create_scrape_item(scrape_item, link, title, True, date)
-            self.manager.task_group.create_task(self.run(new_scrape_item))
+            await self.scraper_queue.put(new_scrape_item)
 
     @error_handling_wrapper
     async def file(self, scrape_item: ScrapeItem) -> None:

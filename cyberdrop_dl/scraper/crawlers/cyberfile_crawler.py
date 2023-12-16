@@ -71,7 +71,7 @@ class CyberfileCrawler(Crawler):
                     continue
 
                 new_scrape_item = await self.create_scrape_item(scrape_item, link, title, True)
-                self.manager.task_group.create_task(self.run(new_scrape_item))
+                await self.scraper_queue.put(new_scrape_item)
 
             page += 1
             if page >= num_pages:
@@ -106,7 +106,7 @@ class CyberfileCrawler(Crawler):
                     continue
 
                 new_scrape_item = await self.create_scrape_item(scrape_item, link, title, True)
-                self.manager.task_group.create_task(self.run(new_scrape_item))
+                await self.scraper_queue.put(new_scrape_item)
 
             page += 1
             if page >= num_pages:

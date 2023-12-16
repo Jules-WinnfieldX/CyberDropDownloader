@@ -47,7 +47,7 @@ class PimpAndHostCrawler(Crawler):
         for file in files:
             link = URL(file.get("href"))
             new_scrape_item = await self.create_scrape_item(scrape_item, link, title, True, date)
-            self.manager.task_group.create_task(self.run(new_scrape_item))
+            await self.scraper_queue.put(new_scrape_item)
 
         next_page = soup.select_one("li[class=next] a")
         if next_page:
@@ -55,7 +55,7 @@ class PimpAndHostCrawler(Crawler):
             if next_page.startswith("/"):
                 next_page = URL("https://pimpandhost.com" + next_page)
             new_scrape_item = await self.create_scrape_item(scrape_item, next_page, "", True, date)
-            self.manager.task_group.create_task(self.run(new_scrape_item))
+            await self.scraper_queue.put(new_scrape_item)
 
     @error_handling_wrapper
     async def image(self, scrape_item: ScrapeItem) -> None:

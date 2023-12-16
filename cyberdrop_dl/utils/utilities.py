@@ -221,4 +221,13 @@ async def check_latest_pypi():
         return
 
     if current_version != latest_version:
-        await log_with_color(f"New version of cyberdrop-dl available: {latest_version}", "bold_red")
+        await log_with_color(f"\nNew version of cyberdrop-dl available: {latest_version}", "bold_red")
+
+    # check python version
+    import sys
+    version = sys.version_info
+    if version.major == 3 and version.minor == 10:
+        await log_with_color("\nNew versions of this program will require python 3.11 specifically to run.", "bold_red")
+        await log_with_color("If you are seeing this message, that means you need to update python to continue getting Cyberdrop-DL updates.", "bold_red")
+        await log_with_color("You can see how to do that here: https://jules-winnfieldx.gitbook.io/cyberdrop-dl/quick-start", "bold_red")
+
