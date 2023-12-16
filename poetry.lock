@@ -380,6 +380,20 @@ files = [
 ]
 
 [[package]]
+name = "exceptiongroup"
+version = "1.2.0"
+description = "Backport of PEP 654 (exception groups)"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "exceptiongroup-1.2.0-py3-none-any.whl", hash = "sha256:4bfd3996ac73b41e9b9628b04e079f193850720ea5945fc96a08633c66912f14"},
+    {file = "exceptiongroup-1.2.0.tar.gz", hash = "sha256:91f5c769735f051a4290d52edd0858999b57e5876e9f85937691bd4c9fa3ed68"},
+]
+
+[package.extras]
+test = ["pytest (>=6)"]
+
+[[package]]
 name = "filedate"
 version = "2.0"
 description = "Simple, convenient and cross-platform file date changing library."
@@ -996,6 +1010,21 @@ files = [
 ]
 
 [[package]]
+name = "quattro"
+version = "23.1.0"
+description = ""
+optional = false
+python-versions = ">=3.9"
+files = [
+    {file = "quattro-23.1.0-py3-none-any.whl", hash = "sha256:da88d26beb3b8cc3ea29d7dedce0f53d17a4a63953c7580156c3aa24bde8878a"},
+    {file = "quattro-23.1.0.tar.gz", hash = "sha256:e04a62194983940447ccf35361194b89b65d8bf9813ee062f68773e4cf5c87f9"},
+]
+
+[package.dependencies]
+attrs = "*"
+exceptiongroup = {version = "*", markers = "python_version < \"3.11\""}
+
+[[package]]
 name = "requests"
 version = "2.31.0"
 description = "Python HTTP for Humans."
@@ -1233,4 +1262,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "87b8f00db4725e9e8dcf7344034e8b0ef62cae7c662809239a996394f854b7ce"
+content-hash = "d1c13e89aae8ce815d3a8d6c387220d4997daa38d7598dfee59935502319b7a6"

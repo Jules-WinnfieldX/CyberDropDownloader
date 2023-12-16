@@ -50,17 +50,18 @@ class FapelloCrawler(Crawler):
                 video_tag = post.select_one('iframe')
                 video_link = URL(video_tag.get('src'))
                 new_scrape_item = await self.create_scrape_item(scrape_item, video_link, "", True)
-                await self.manager.queue_manager.url_objects_to_map.put(new_scrape_item)
+                await self.handle_external_links(new_scrape_item)
             else:
                 link = URL(post.get('href'))
                 new_scrape_item = await self.create_scrape_item(scrape_item, link, title, True)
-                await self.scraper_queue.put(new_scrape_item)
+                await self.handle_external_links(new_scrape_item)
 
         next_page = soup.select_one('div[id="next_page"] a')
         if next_page:
             next_page = next_page.get('href')
             if next_page:
-                await self.scraper_queue.put(ScrapeItem(URL(next_page), scrape_item.parent_title))
+                new_scrape_item = ScrapeItem(URL(next_page), scrape_item.parent_title)
+                self.manager.task_group.create_task(self.run(new_scrape_item))
 
     @error_handling_wrapper
     async def post(self, scrape_item: ScrapeItem) -> None:
