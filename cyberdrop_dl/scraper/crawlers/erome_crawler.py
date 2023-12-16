@@ -43,13 +43,13 @@ class EromeCrawler(Crawler):
         for album in albums:
             link = URL(album['href'])
             new_scrape_item = await self.create_scrape_item(scrape_item, link, title, True)
-            await self.scraper_queue.put(new_scrape_item)
+            self.manager.task_group.create_task(self.run(new_scrape_item))
 
         next_page = soup.select_one('a[rel="next"]')
         if next_page:
             next_page = next_page.get("href").split("page=")[-1]
             new_scrape_item = await self.create_scrape_item(scrape_item, scrape_item.url.with_query(f"page={next_page}"), "")
-            await self.scraper_queue.put(new_scrape_item)
+            self.manager.task_group.create_task(self.run(new_scrape_item))
 
     @error_handling_wrapper
     async def album(self, scrape_item: ScrapeItem) -> None:

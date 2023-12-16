@@ -50,7 +50,7 @@ class Rule34XYZCrawler(Crawler):
                 link = f"{self.primary_base_url}{link}"
             link = URL(link)
             new_scrape_item = await self.create_scrape_item(scrape_item, link, title, True)
-            await self.scraper_queue.put(new_scrape_item)
+            self.manager.task_group.create_task(self.run(new_scrape_item))
         if not content:
             return
 
@@ -60,7 +60,7 @@ class Rule34XYZCrawler(Crawler):
         else:
             next_page = scrape_item.url.with_path(f"/{scrape_item.url.parts[1]}/page/2")
         new_scrape_item = await self.create_scrape_item(scrape_item, next_page, "")
-        await self.scraper_queue.put(new_scrape_item)
+        self.manager.task_group.create_task(self.run(new_scrape_item))
 
     @error_handling_wrapper
     async def file(self, scrape_item: ScrapeItem) -> None:

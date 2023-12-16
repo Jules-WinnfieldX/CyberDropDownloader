@@ -10,6 +10,7 @@ from rich.live import Live
 from cyberdrop_dl.managers.manager import Manager
 from cyberdrop_dl.scraper.scraper import ScrapeMapper
 from cyberdrop_dl.ui.ui import program_ui
+from cyberdrop_dl.utils.backports.taskgroups import TaskGroup
 from cyberdrop_dl.utils.sorting import Sorter
 from cyberdrop_dl.utils.utilities import check_latest_pypi, log_with_color, check_partials_and_empty_folders, log
 
@@ -38,21 +39,11 @@ def startup() -> Manager:
 async def runtime(manager: Manager) -> None:
     """Main runtime loop for the program, this will run until all scraping and downloading is complete"""
     scrape_mapper = ScrapeMapper(manager)
-    download_manager = manager.download_manager
-    asyncio.create_task(scrape_mapper.map_urls())
 
-    if not manager.args_manager.retry:
-        await scrape_mapper.load_links()
-    else:
-        await scrape_mapper.load_failed_links()
-
-    # Check completion
-    await asyncio.sleep(1)
-    while True:
-        scraper_complete = await scrape_mapper.check_complete()
-        downloader_complete = await download_manager.check_complete()
-        if scraper_complete and downloader_complete:
-            break
+    # NEW CODE
+    async with TaskGroup() as task_group:
+        manager.task_group = task_group
+        await scrape_mapper.start()
 
 
 async def director(manager: Manager) -> None:
@@ -91,9 +82,6 @@ async def director(manager: Manager) -> None:
         try:
             with Live(manager.progress_manager.layout, refresh_per_second=10):
                 await runtime(manager)
-        except (KeyboardInterrupt, SystemExit):
-            print("\nExiting...")
-            exit(1)
         except Exception as e:
             print("\nAn error occurred, please report this to the developer")
             print(e)
@@ -131,11 +119,19 @@ async def director(manager: Manager) -> None:
 def main():
     manager = startup()
 
-    with contextlib.suppress(RuntimeError, asyncio.CancelledError):
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        asyncio.run(director(manager))
-        sys.exit(0)
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    with contextlib.suppress(RuntimeError):
+        try:
+            asyncio.run(director(manager))
+        except KeyboardInterrupt:
+            print("\nTrying to Exit...")
+            try:
+                asyncio.run(manager.close())
+            except Exception:
+                pass
+            exit(1)
+    sys.exit(0)
 
 
 if __name__ == '__main__':
