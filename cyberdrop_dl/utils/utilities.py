@@ -111,6 +111,7 @@ async def sanitize_folder(title: str) -> str:
     title = re.sub(' +', ' ', title)
     title = re.sub(r'[\\*?:"<>|/]', "-", title)
     title = re.sub(r'\.{2,}', ".", title)
+    title = title.rstrip(".").strip()
 
     if "(" in title and ")" in title:
         new_title = title.rsplit("(")[0].strip()
