@@ -9,6 +9,7 @@ import aiohttp
 import certifi
 from aiohttp import ClientResponse
 from aiolimiter import AsyncLimiter
+from multidict import CIMultiDictProxy
 from yarl import URL
 
 from cyberdrop_dl.clients.download_client import DownloadClient
@@ -40,8 +41,6 @@ class ClientManager:
         self.domain_rate_limits = {
             "bunkrr": AsyncLimiter(5, 1),
             "cyberdrop": AsyncLimiter(5, 1),
-            "coomer": AsyncLimiter(10, 1),
-            "kemono": AsyncLimiter(10, 1),
             "pixeldrain": AsyncLimiter(10, 1),
             "other": AsyncLimiter(25, 1)
         }

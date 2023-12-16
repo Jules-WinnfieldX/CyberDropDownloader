@@ -45,7 +45,7 @@ class NudoStarTVCrawler(Crawler):
         if next_page:
             link = URL(next_page.get('href'))
             new_scrape_item = await self.create_scrape_item(scrape_item, link, "")
-            self.manager.task_group.create_task(self.run(new_scrape_item))
+            await self.scraper_queue.put(new_scrape_item)
 
     @error_handling_wrapper
     async def image(self, scrape_item: ScrapeItem) -> None:

@@ -65,7 +65,7 @@ class BunkrrCrawler(Crawler):
                 link = URL("https://" + scrape_item.url.host + link)
             link = URL(link)
             link = await self.get_stream_link(link)
-            self.manager.task_group.create_task(self.run(ScrapeItem(link, scrape_item.parent_title, True, date)))
+            await self.scraper_queue.put(ScrapeItem(link, scrape_item.parent_title, True, date))
 
     @error_handling_wrapper
     async def video(self, scrape_item: ScrapeItem) -> None:

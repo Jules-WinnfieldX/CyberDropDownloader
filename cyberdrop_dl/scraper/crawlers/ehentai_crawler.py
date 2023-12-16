@@ -49,7 +49,7 @@ class EHentaiCrawler(Crawler):
         for image in images:
             link = URL(image.get('href'))
             new_scrape_item = await self.create_scrape_item(scrape_item, link, title, True, date)
-            self.manager.task_group.create_task(self.run(new_scrape_item))
+            await self.scraper_queue.put(new_scrape_item)
 
         next_page_opts = soup.select('td[onclick="document.location=this.firstChild.href"]')
         next_page = None
@@ -61,7 +61,7 @@ class EHentaiCrawler(Crawler):
             next_page = URL(next_page.get('href'))
             if next_page is not None:
                 new_scrape_item = await self.create_scrape_item(scrape_item, next_page, "")
-                self.manager.task_group.create_task(self.run(new_scrape_item))
+                await self.scraper_queue.put(new_scrape_item)
 
     @error_handling_wrapper
     async def image(self, scrape_item: ScrapeItem) -> None:

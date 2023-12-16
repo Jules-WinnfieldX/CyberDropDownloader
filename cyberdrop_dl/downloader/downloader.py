@@ -18,6 +18,7 @@ from cyberdrop_dl.clients.errors import DownloadFailure
 from cyberdrop_dl.utils.utilities import CustomHTTPStatus, FILE_FORMATS, log
 
 if TYPE_CHECKING:
+    from asyncio import Queue
     from typing import Tuple
 
     from cyberdrop_dl.clients.download_client import DownloadClient
@@ -83,46 +84,63 @@ class Downloader:
         self.manager: Manager = manager
         self.domain: str = domain
 
+        self.complete = True
+
         self.client: DownloadClient = field(init=False)
+        self.download_queue: Queue = field(init=False)
 
         self._file_lock = manager.download_manager.file_lock
-        self._semaphore: asyncio.Semaphore = field(init=False)
-
         self._additional_headers = {}
 
-        self.processed_items: list = []
-        self.waiting_items = 0
+        self._unfinished_count = 0
         self._current_attempt_filesize = {}
+
+        self._lock = asyncio.Lock()
+
+        self.processed_items: list = []
 
     async def startup(self) -> None:
         """Starts the downloader"""
+        self.download_queue = await self.manager.queue_manager.get_download_queue(self.domain)
         self.client = self.manager.client_manager.downloader_session
         await self.set_additional_headers()
-        self._semaphore = asyncio.Semaphore(await self.manager.download_manager.get_download_limit(self.domain))
 
-    async def run(self, media_item: MediaItem) -> None:
+    async def run_loop(self) -> None:
         """Runs the download loop"""
-        self.waiting_items += 1
-        media_item.current_attempt = 0
+        while True:
+            media_item: MediaItem = await self.download_queue.get()
+            self.complete = False
+            self._unfinished_count += 1
+            media_item.current_attempt = 0
 
-        await self._semaphore.acquire()
-        self.waiting_items -= 1
-        if not (media_item.url.path in self.processed_items):
-            self.processed_items.append(media_item.url.path)
-            await self.manager.progress_manager.download_progress.update_total()
+            await self._lock.acquire()
+            if not (media_item.url.path in self.processed_items):
+                self.processed_items.append(media_item.url.path)
+                self._lock.release()
+                await self.manager.progress_manager.download_progress.update_total()
 
-            await log(f"Download Starting: {media_item.url}")
-            async with self.manager.client_manager.download_session_limit:
-                try:
-                    await self.download(media_item)
-                except Exception as e:
-                    await log(f"Download Failed: {media_item.url} with error {e}")
-                    await log(traceback.format_exc())
-                    await self.manager.progress_manager.download_stats_progress.add_failure("Unknown")
-                    await self.manager.progress_manager.download_progress.add_failed()
-                else:
+                await log(f"Download Starting: {media_item.url}")
+                async with self.manager.client_manager.download_session_limit:
+                    try:
+                        await self.download(media_item)
+                    except Exception as e:
+                        await log(f"Download Failed: {media_item.url} with error {e}")
+                        await log(traceback.format_exc())
+                        await self.manager.progress_manager.download_stats_progress.add_failure("Unknown")
+                        await self.manager.progress_manager.download_progress.add_failed()
+                        self._unfinished_count -= 1
+                        self.download_queue.task_done()
+                        if self._unfinished_count == 0 and self.download_queue.empty():
+                            self.complete = True
+                        continue
+
                     await log(f"Download Finished: {media_item.url}")
-        self._semaphore.release()
+            else:
+                self._lock.release()
+            self.download_queue.task_done()
+            self._unfinished_count -= 1
+            if self._unfinished_count == 0 and self.download_queue.empty():
+                self.complete = True
 
     """~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"""
 

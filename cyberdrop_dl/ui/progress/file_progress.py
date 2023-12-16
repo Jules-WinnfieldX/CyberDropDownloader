@@ -55,8 +55,8 @@ class FileProgress:
         """Returns the number of tasks in the downloader queue"""
         total = 0
 
-        for scraper in self.manager.scrape_mapper.existing_crawlers.values():
-            total += scraper.downloader.waiting_items
+        for queue in self.manager.queue_manager.download_queues.values():
+            total += queue.qsize()
 
         return total
 
@@ -94,7 +94,6 @@ class FileProgress:
         else:
             task_id = self.progress.add_task(self.progress_str.format(color=self.color, description=description), total=expected_size)
             self.visible_tasks.append(task_id)
-        await self.redraw()
         return task_id
 
     async def remove_file(self, task_id: TaskID) -> None:

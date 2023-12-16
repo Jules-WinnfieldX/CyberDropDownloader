@@ -1,8 +1,7 @@
 import copy
 import json
 from dataclasses import field
-
-from quattro import TaskGroup
+from pathlib import Path
 
 from cyberdrop_dl import __version__
 from cyberdrop_dl.managers.args_manager import ArgsManager
@@ -14,6 +13,7 @@ from cyberdrop_dl.managers.download_manager import DownloadManager
 from cyberdrop_dl.managers.log_manager import LogManager
 from cyberdrop_dl.managers.path_manager import PathManager
 from cyberdrop_dl.managers.progress_manager import ProgressManager
+from cyberdrop_dl.managers.queue_manager import QueueManager
 from cyberdrop_dl.utils.args import config_definitions
 from cyberdrop_dl.utils.dataclasses.supported_domains import SupportedDomains
 from cyberdrop_dl.utils.transfer.first_time_setup import TransitionManager
@@ -27,6 +27,7 @@ class Manager:
         self.path_manager: PathManager = field(init=False)
         self.config_manager: ConfigManager = field(init=False)
         self.log_manager: LogManager = field(init=False)
+        self.queue_manager: QueueManager = QueueManager(self)
         self.db_manager: DBManager = field(init=False)
         self.client_manager: ClientManager = field(init=False)
         self.download_manager: DownloadManager = field(init=False)
@@ -36,10 +37,6 @@ class Manager:
 
         self._loaded_args_config: bool = False
         self._made_portable: bool = False
-
-        self.task_group: TaskGroup = field(init=False)
-        self.task_list: list = []
-        self.scrape_mapper = field(init=False)
 
     def startup(self) -> None:
         """Startup process for the manager"""
@@ -170,3 +167,4 @@ class Manager:
     async def close(self) -> None:
         """Closes the manager"""
         await self.db_manager.close()
+        await self.download_manager.close()
