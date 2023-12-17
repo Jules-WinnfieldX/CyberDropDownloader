@@ -34,8 +34,8 @@ class JDownloader:
             jd.connect(self.jdownloader_username, self.jdownloader_password)
             self.jdownloader_agent = jd.get_device(self.jdownloader_device)
         except (myjdapi.MYJDApiException, JDownloaderFailure) as e:
-            await log("Failed JDownloader setup")
-            await log(e.message)
+            await log("Failed JDownloader setup", 40)
+            await log(e.message, 40)
             self.enabled = False
 
     async def direct_unsupported_to_jdownloader(self, url: URL, title: str) -> None:
@@ -54,5 +54,5 @@ class JDownloader:
                 }])
 
         except (JDownloaderFailure, AssertionError) as e:
-            logging.debug(e)
-            await log(f"Failed to send {url} to JDownloader")
+            await log(f"Failed to send {url} to JDownloader", 40)
+            await log(e.message, 40)

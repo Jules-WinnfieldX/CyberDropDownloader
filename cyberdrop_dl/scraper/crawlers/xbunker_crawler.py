@@ -69,7 +69,7 @@ class XBunkerCrawler(Crawler):
         if self.logged_in:
             await self.forum(scrape_item)
         else:
-            await log("XBunker login failed. Skipping.")
+            await log("XBunker login failed. Skipping.", 40)
             await self.manager.progress_manager.scrape_stats_progress.add_failure(401)
 
         await self.scraping_progress.remove_task(task_id)
@@ -176,10 +176,10 @@ class XBunkerCrawler(Crawler):
                 elif self.attachment_url_part in link.parts or self.extra_attachment_url_part in link.parts:
                     await self.handle_internal_links(link, scrape_item)
                 else:
-                    await log(f"Unknown link type: {link}")
+                    await log(f"Unknown link type: {link}", 30)
                     continue
             except TypeError:
-                await log(f"Scrape Failed: encountered while handling {link}")
+                await log(f"Scrape Failed: encountered while handling {link}", 40)
 
     @error_handling_wrapper
     async def images(self, scrape_item: ScrapeItem, post_content: Tag) -> None:
@@ -209,7 +209,7 @@ class XBunkerCrawler(Crawler):
             elif self.attachment_url_part in link.parts or self.extra_attachment_url_part in link.parts:
                 await self.handle_internal_links(link, scrape_item)
             else:
-                await log(f"Unknown image type: {link}")
+                await log(f"Unknown image type: {link}", 30)
                 continue
 
     @error_handling_wrapper
@@ -285,7 +285,7 @@ class XBunkerCrawler(Crawler):
             elif self.attachment_url_part in link.parts or self.extra_attachment_url_part in link.parts:
                 await self.handle_internal_links(link, scrape_item)
             else:
-                await log(f"Unknown image type: {link}")
+                await log(f"Unknown image type: {link}", 30)
                 continue
 
     """~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"""

@@ -62,28 +62,28 @@ def error_handling_wrapper(func):
 
             if hasattr(e, 'status'):
                 if hasattr(e, 'message'):
-                    await log(f"Scrape Failed: {link} ({e.status} - {e.message})")
+                    await log(f"Scrape Failed: {link} ({e.status} - {e.message})", 40)
                     await self.manager.log_manager.write_scrape_error_log(link, f" {e.status} - {e.message}")
                 else:
-                    await log(f"Scrape Failed: {link} ({e.status})")
+                    await log(f"Scrape Failed: {link} ({e.status})", 40)
                     await self.manager.log_manager.write_scrape_error_log(link, f" {e.status}")
                 await self.manager.progress_manager.scrape_stats_progress.add_failure(e.status)
             else:
-                await log(f"Scrape Failed: {link} ({e})")
-                await log(traceback.format_exc())
+                await log(f"Scrape Failed: {link} ({e})", 40)
+                await log(traceback.format_exc(), 40)
                 await self.manager.log_manager.write_scrape_error_log(link, " See Log for Details")
                 await self.manager.progress_manager.scrape_stats_progress.add_failure("Unknown")
     return wrapper
 
 
-async def log(message: [str, Exception]) -> None:
+async def log(message: [str, Exception], level: int) -> None:
     """Simple logging function"""
-    logger.debug(message)
+    logger.log(level, message)
 
 
-async def log_with_color(message: str, style: str) -> None:
+async def log_with_color(message: str, style: str, level: int) -> None:
     """Simple logging function with color"""
-    logger.debug(message)
+    logger.log(level, message)
     rich.print(f"[{style}]{message}[/{style}]")
 
 
@@ -186,21 +186,21 @@ async def purge_dir(dirname: Path) -> None:
 async def check_partials_and_empty_folders(manager: Manager):
     """Checks for partial downloads and empty folders"""
     if manager.config_manager.settings_data['Runtime_Options']['delete_partial_files']:
-        await log_with_color("Deleting partial downloads...", "bold_red")
+        await log_with_color("Deleting partial downloads...", "bold_red", 20)
         partial_downloads = manager.path_manager.download_dir.rglob("*.part")
         for file in partial_downloads:
             file.unlink(missing_ok=True)
     elif not manager.config_manager.settings_data['Runtime_Options']['skip_check_for_partial_files']:
-        await log_with_color("Checking for partial downloads...", "yellow")
+        await log_with_color("Checking for partial downloads...", "yellow", 20)
         partial_downloads = any(f.is_file() for f in manager.path_manager.download_dir.rglob("*.part"))
         if partial_downloads:
-            await log_with_color("There are partial downloads in the downloads folder", "yellow")
+            await log_with_color("There are partial downloads in the downloads folder", "yellow", 20)
         temp_downloads = any(Path(f).is_file() for f in await manager.db_manager.temp_table.get_temp_names())
         if temp_downloads:
-            await log_with_color("There are partial downloads from the previous run, please re-run the program.", "yellow")
+            await log_with_color("There are partial downloads from the previous run, please re-run the program.", "yellow", 20)
 
     if not manager.config_manager.settings_data['Runtime_Options']['skip_check_for_empty_folders']:
-        await log_with_color("Checking for empty folders...", "yellow")
+        await log_with_color("Checking for empty folders...", "yellow", 20)
         await purge_dir(manager.path_manager.download_dir)
         if isinstance(manager.path_manager.sorted_dir, Path):
             await purge_dir(manager.path_manager.sorted_dir)
@@ -221,4 +221,4 @@ async def check_latest_pypi():
         return
 
     if current_version != latest_version:
-        await log_with_color(f"New version of cyberdrop-dl available: {latest_version}", "bold_red")
+        await log_with_color(f"New version of cyberdrop-dl available: {latest_version}", "bold_red", 30)

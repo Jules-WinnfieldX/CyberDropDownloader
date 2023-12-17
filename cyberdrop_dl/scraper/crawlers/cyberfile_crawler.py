@@ -67,7 +67,7 @@ class CyberfileCrawler(Crawler):
                 elif file_id:
                     link = URL(tile.get('dtfullurl'))
                 else:
-                    await log(f"Couldn't find folder or file id for {scrape_item.url} element")
+                    await log(f"Couldn't find folder or file id for {scrape_item.url} element", 30)
                     continue
 
                 new_scrape_item = await self.create_scrape_item(scrape_item, link, title, True)
@@ -102,7 +102,7 @@ class CyberfileCrawler(Crawler):
                 elif file_id:
                     link = URL(tile.get('dtfullurl'))
                 else:
-                    await log(f"Couldn't find folder or file id for {scrape_item.url} element")
+                    await log(f"Couldn't find folder or file id for {scrape_item.url} element", 30)
                     continue
 
                 new_scrape_item = await self.create_scrape_item(scrape_item, link, title, True)

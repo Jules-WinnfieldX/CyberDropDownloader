@@ -30,7 +30,7 @@ class HotPicCrawler(Crawler):
         elif "i" in scrape_item.url.parts:
             await self.image(scrape_item)
         else:
-            await log(f"Scrape Failed: {scrape_item.url} is an unknown for {self.domain}")
+            await log(f"Scrape Failed: {scrape_item.url} is an unknown for {self.domain}", 40)
             await self.manager.progress_manager.scrape_stats_progress.add_failure("Unknown")
 
         await self.scraping_progress.remove_task(task_id)

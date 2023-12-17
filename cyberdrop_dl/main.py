@@ -56,29 +56,29 @@ async def director(manager: Manager) -> None:
         logger = logging.getLogger("cyberdrop_dl")
         if manager.args_manager.all_configs:
             if len(logger.handlers) > 0:
-                await log("Picking new config...")
+                await log("Picking new config...", 20)
 
             configs_to_run = list(set(configs) - set(configs_ran))
             manager.config_manager.change_config(configs_to_run[0])
             configs_ran.append(configs_to_run[0])
             if len(logger.handlers) > 0:
-                await log(f"Changing config to {configs_to_run[0]}...")
+                await log(f"Changing config to {configs_to_run[0]}...", 20)
                 old_file_handler = logger.handlers[0]
                 logger.removeHandler(logger.handlers[0])
                 old_file_handler.close()
 
-        logger.setLevel(logging.DEBUG)
+        logger.setLevel(manager.config_manager.settings_data['Runtime_Options']['log_level'])
         file_handler = logging.FileHandler(manager.path_manager.main_log, mode="w")
-        file_handler.setLevel(logging.DEBUG)
+        file_handler.setLevel(manager.config_manager.settings_data['Runtime_Options']['log_level'])
 
-        formatter = logging.Formatter("%(asctime)s:%(filename)s:%(lineno)d:%(message)s")
+        formatter = logging.Formatter("%(levelname)-8s : %(asctime)s : %(filename)s:%(lineno)d : %(message)s")
         file_handler.setFormatter(formatter)
         logger.addHandler(file_handler)
 
-        await log("Starting Async Processes...")
+        await log("Starting Async Processes...", 20)
         await manager.async_startup()
 
-        await log("Starting UI...")
+        await log("Starting UI...", 20)
         try:
             if not manager.args_manager.no_ui:
                 with Live(manager.progress_manager.layout, refresh_per_second=10):
@@ -94,27 +94,27 @@ async def director(manager: Manager) -> None:
         clear_screen_proc = await asyncio.create_subprocess_shell('cls' if os.name == 'nt' else 'clear')
         await clear_screen_proc.wait()
 
-        await log("Running Post-Download Processes...")
+        await log("Running Post-Download Processes...", 20)
         if manager.config_manager.settings_data['Sorting']['sort_downloads'] and not manager.args_manager.retry:
             sorter = Sorter(manager)
             await sorter.sort()
         await check_partials_and_empty_folders(manager)
 
-        await log("Printing Stats...")
+        await log("Printing Stats...", 20)
         await manager.progress_manager.print_stats()
 
-        await log("Checking for Program End...")
+        await log("Checking for Program End...", 20)
         if not manager.args_manager.all_configs or not list(set(configs) - set(configs_ran)):
             break
         await asyncio.sleep(5)
 
-    await log("Checking for Updates...")
+    await log("Checking for Updates...", 20)
     await check_latest_pypi()
 
-    await log("Closing Program...")
+    await log("Closing Program...", 20)
     await manager.close()
 
-    await log_with_color("\nFinished downloading. Enjoy :)", 'green')
+    await log_with_color("\nFinished downloading. Enjoy :)", 'green', 20)
 
     asyncio.get_event_loop().stop()
 

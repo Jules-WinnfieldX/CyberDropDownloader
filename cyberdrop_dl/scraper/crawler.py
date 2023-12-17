@@ -47,12 +47,12 @@ class Crawler(ABC):
         await self._lock.acquire()
         self.waiting_items -= 1
         if item.url.path not in self.scraped_items:
-            await log(f"Scrape Starting: {item.url}")
+            await log(f"Scrape Starting: {item.url}", 20)
             self.scraped_items.append(item.url.path)
             await self.fetch(item)
-            await log(f"Scrape Finished: {item.url}")
+            await log(f"Scrape Finished: {item.url}", 20)
         else:
-            await log(f"Skipping {item.url} as it has already been scraped")
+            await log(f"Skipping {item.url} as it has already been scraped", 10)
         self._lock.release()
 
     """~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"""
@@ -71,7 +71,7 @@ class Crawler(ABC):
 
         check_complete = await self.manager.db_manager.history_table.check_complete(self.domain, url)
         if check_complete:
-            await log(f"Skipping {url} as it has already been downloaded")
+            await log(f"Skipping {url} as it has already been downloaded", 10)
             await self.manager.progress_manager.download_progress.add_previously_completed()
             return
 
@@ -98,7 +98,7 @@ class Crawler(ABC):
             self.client.client_manager.cookies.update_cookies({"xf_user": session_cookie},
                                                               response_url=URL("https://" + login_url.host))
         if (not username or not password) and not session_cookie:
-            await log(f"Login wasn't provided for {login_url.host}")
+            await log(f"Login wasn't provided for {login_url.host}", 30)
             raise FailedLoginFailure(status=401, message="Login wasn't provided")
         attempt = 0
 
@@ -145,7 +145,7 @@ class Crawler(ABC):
         """Checks if the scrape item has already been scraped"""
         check_complete = await self.manager.db_manager.history_table.check_complete_by_referer(self.domain, scrape_item.url)
         if check_complete:
-            await log(f"Skipping {scrape_item.url} as it has already been downloaded")
+            await log(f"Skipping {scrape_item.url} as it has already been downloaded", 10)
             await self.manager.progress_manager.download_progress.add_previously_completed()
             return True
         return False

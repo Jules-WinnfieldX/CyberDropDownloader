@@ -52,6 +52,7 @@ def parse_args() -> argparse.Namespace:
 
     runtime_options = parser.add_argument_group("Runtime_Options")
     runtime_options.add_argument("--ignore-history", action="store_true", help="ignore history when scraping", default=False)
+    runtime_options.add_argument("--log-level", type=int, help="set the log level (default: %(default)s)", default=10)
     runtime_options.add_argument("--skip-check-for-partial-files", action="store_true", help="skip check for partial downloads", default=False)
     runtime_options.add_argument("--skip-check-for-empty-folders", action="store_true", help="skip check (and removal) for empty folders", default=False)
     runtime_options.add_argument("--delete-partial-files", action="store_true", help="delete partial downloads", default=False)

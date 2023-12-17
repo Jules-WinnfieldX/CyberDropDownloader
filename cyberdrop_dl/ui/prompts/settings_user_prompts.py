@@ -328,11 +328,20 @@ def edit_runtime_options_prompt(config: Dict) -> None:
         ], long_instruction="ARROW KEYS: Move | TAB: Select | ENTER: Confirm",
     ).execute()
 
+    log_level = inquirer.number(
+        message="Enter the log level:",
+        default=int(config['Runtime_Options']['log_level']),
+        validate=NumberValidator(),
+        long_instruction="10 is the default (uses pythons logging numerical levels)",
+    ).execute()
+
     for key in config["Runtime_Options"].keys():
         config["Runtime_Options"][key] = False
 
     for key in action:
         config["Runtime_Options"][key] = True
+
+    config['Runtime_Options']['log_level'] = int(log_level)
 
 
 def edit_sort_options_prompt(config: Dict) -> None:

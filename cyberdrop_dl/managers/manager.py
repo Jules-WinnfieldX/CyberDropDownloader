@@ -159,11 +159,11 @@ class Manager:
         print_settings["Logs"]["log_folder"] = str(print_settings["Logs"]["log_folder"])
         print_settings['Sorting']['sort_folder'] = str(print_settings['Sorting']['sort_folder'])
 
-        await log(f"Starting Cyberdrop-DL Process for {self.config_manager.loaded_config} Config")
-        await log(f"Running version {__version__}")
-        await log(f"Using Authentication: \n{json.dumps(auth_provided, indent=4, sort_keys=True)}")
-        await log(f"Using Settings: \n{json.dumps(print_settings, indent=4, sort_keys=True)}")
-        await log(f"Using Global Settings: \n{json.dumps(self.config_manager.global_settings_data, indent=4, sort_keys=True)}")
+        await log(f"Starting Cyberdrop-DL Process for {self.config_manager.loaded_config} Config", 10)
+        await log(f"Running version {__version__}", 10)
+        await log(f"Using Authentication: \n{json.dumps(auth_provided, indent=4, sort_keys=True)}", 10)
+        await log(f"Using Settings: \n{json.dumps(print_settings, indent=4, sort_keys=True)}", 10)
+        await log(f"Using Global Settings: \n{json.dumps(self.config_manager.global_settings_data, indent=4, sort_keys=True)}", 10)
 
     async def close(self) -> None:
         """Closes the manager"""

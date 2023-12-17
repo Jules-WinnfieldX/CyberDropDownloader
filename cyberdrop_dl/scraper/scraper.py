@@ -299,7 +299,7 @@ class ScrapeMapper:
         links = list(filter(None, links))
 
         if not links:
-            await log("No valid links found.")
+            await log("No valid links found.", 30)
         for link in links:
             item = ScrapeItem(url=link, parent_title="")
             self.manager.task_group.create_task(self.map_url(item))
@@ -370,12 +370,12 @@ class ScrapeMapper:
             return
 
         elif skip:
-            await log(f"Skipping URL by Config Selections: {scrape_item.url}")
+            await log(f"Skipping URL by Config Selections: {scrape_item.url}", 10)
 
         elif await self.extension_check(scrape_item.url):
             check_complete = await self.manager.db_manager.history_table.check_complete("no_crawler", scrape_item.url)
             if check_complete:
-                await log(f"Skipping {scrape_item.url} as it has already been downloaded")
+                await log(f"Skipping {scrape_item.url} as it has already been downloaded", 10)
                 await self.manager.progress_manager.download_progress.add_previously_completed()
                 return
             await scrape_item.add_to_parent_title("Loose Files")
@@ -386,14 +386,14 @@ class ScrapeMapper:
             self.manager.task_group.create_task(self.no_crawler_downloader.run(media_item))
 
         elif self.jdownloader.enabled:
-            await log(f"Sending unsupported URL to JDownloader: {scrape_item.url}")
+            await log(f"Sending unsupported URL to JDownloader: {scrape_item.url}", 10)
             try:
                 await self.jdownloader.direct_unsupported_to_jdownloader(scrape_item.url, scrape_item.parent_title)
             except JDownloaderFailure as e:
-                await log(f"Failed to send {scrape_item.url} to JDownloader")
-                await log(e.message)
+                await log(f"Failed to send {scrape_item.url} to JDownloader", 40)
+                await log(e.message, 40)
                 await self.manager.log_manager.write_unsupported_urls_log(scrape_item.url)
 
         else:
-            await log(f"Unsupported URL: {scrape_item.url}")
+            await log(f"Unsupported URL: {scrape_item.url}", 30)
             await self.manager.log_manager.write_unsupported_urls_log(scrape_item.url)

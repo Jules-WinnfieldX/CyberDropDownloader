@@ -47,7 +47,7 @@ class XBunkrCrawler(Crawler):
             try:
                 filename, ext = await get_filename_and_ext(link.name)
             except NoExtensionFailure:
-                await log(f"Couldn't get extension for {str(link)}")
+                await log(f"Couldn't get extension for {str(link)}", 30)
                 continue
             new_scrape_item = await self.create_scrape_item(scrape_item, link, title, True)
             await self.handle_file(link, new_scrape_item, filename, ext)

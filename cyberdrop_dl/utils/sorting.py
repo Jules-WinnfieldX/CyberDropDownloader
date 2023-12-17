@@ -59,13 +59,13 @@ class Sorter:
     async def check_dir_parents(self) -> bool:
         """Checks if the sort dir is in the download dir"""
         if self.download_dir in self.sorted_downloads.parents:
-            await log_with_color("Sort Directory cannot be in the Download Directory", "red")
+            await log_with_color("Sort Directory cannot be in the Download Directory", "red", 40)
             return True
         return False
 
     async def sort(self) -> None:
         """Sorts the files in the download directory into their respective folders"""
-        await log_with_color("\nSorting Downloads: Please Wait", "cyan")
+        await log_with_color("\nSorting Downloads: Please Wait", "cyan", 20)
 
         if await self.check_dir_parents():
             return
@@ -92,10 +92,10 @@ class Sorter:
         await asyncio.sleep(5)
         await purge_dir(self.download_dir)
 
-        await log_with_color(f"Organized: {self.audio_count} Audio Files", style="green")
-        await log_with_color(f"Organized: {self.image_count} Image Files", style="green")
-        await log_with_color(f"Organized: {self.video_count} Video Files", style="green")
-        await log_with_color(f"Organized: {self.other_count} Other Files", style="green")
+        await log_with_color(f"Organized: {self.audio_count} Audio Files", "green", 20)
+        await log_with_color(f"Organized: {self.image_count} Image Files", "green", 20)
+        await log_with_color(f"Organized: {self.video_count} Video Files", "green", 20)
+        await log_with_color(f"Organized: {self.other_count} Other Files", "green", 20)
 
     async def sort_audio(self, file: Path, base_name: str) -> None:
         """Sorts an audio file into the sorted audio folder"""

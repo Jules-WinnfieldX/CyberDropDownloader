@@ -31,7 +31,7 @@ class RedditCrawler(Crawler):
         task_id = await self.scraping_progress.add_task(scrape_item.url)
 
         if not self.reddit_personal_use_script or not self.reddit_secret:
-            await log("Reddit API credentials not found. Skipping.")
+            await log("Reddit API credentials not found. Skipping.", 30)
             await self.manager.progress_manager.scrape_stats_progress.add_failure(401)
             await self.scraping_progress.remove_task(task_id)
             return
@@ -50,7 +50,7 @@ class RedditCrawler(Crawler):
             elif "redd.it" in scrape_item.url.host:
                 await self.media(scrape_item, reddit)
             else:
-                await log(f"Scrape Failed: Unknown URL Path for {scrape_item.url}")
+                await log(f"Scrape Failed: Unknown URL Path for {scrape_item.url}", 40)
                 await self.manager.progress_manager.scrape_stats_progress.add_failure("Unknown")
 
         await self.scraping_progress.remove_task(task_id)

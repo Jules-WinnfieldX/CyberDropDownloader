@@ -101,6 +101,7 @@ settings: Dict = {
     },
     "Runtime_Options": {
         "ignore_history": False,
+        "log_level": 10,
         "skip_check_for_partial_files": False,
         "skip_check_for_empty_folders": False,
         "delete_partial_files": False,
