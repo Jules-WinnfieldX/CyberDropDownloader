@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 import PIL
+import filedate
 from PIL import Image
 from videoprops import get_audio_properties, get_video_properties
 
@@ -110,12 +111,16 @@ class Sorter:
             bitrate = "Unknown"
             sample_rate = "Unknown"
 
+        file_date = filedate.File(str(file)).get()
+        file_date_us = file_date['modified'].strftime("%Y-%d-%m")
+        file_date_ca = file_date['modified'].strftime("%Y-%m-%d")
+
         parent_name = file.parent.name
         filename, ext = file.stem, file.suffix
 
         new_file = Path(self.audio_format.format(sort_dir=self.sorted_downloads, base_dir=base_name, parent_dir=parent_name,
                                                  filename=filename, ext=ext, length=length, bitrate=bitrate,
-                                                 sample_rate=sample_rate))
+                                                 sample_rate=sample_rate, file_date_us=file_date_us, file_date_ca=file_date_ca))
 
         await self.move_cd(file, new_file)
 
@@ -131,11 +136,16 @@ class Sorter:
         except PIL.UnidentifiedImageError:
             resolution = "Unknown"
 
+        file_date = filedate.File(str(file)).get()
+        file_date_us = file_date['modified'].strftime("%Y-%d-%m")
+        file_date_ca = file_date['modified'].strftime("%Y-%m-%d")
+
         parent_name = file.parent.name
         filename, ext = file.stem, file.suffix
 
         new_file = Path(self.image_format.format(sort_dir=self.sorted_downloads, base_dir=base_name, parent_dir=parent_name,
-                                                 filename=filename, ext=ext, resolution=resolution))
+                                                 filename=filename, ext=ext, resolution=resolution, file_date_us=file_date_us,
+                                                 file_date_ca=file_date_ca))
 
         await self.move_cd(file, new_file)
 
@@ -158,12 +168,16 @@ class Sorter:
             frames_per_sec = "Unknown"
             codec = "Unknown"
 
+        file_date = filedate.File(str(file)).get()
+        file_date_us = file_date['modified'].strftime("%Y-%d-%m")
+        file_date_ca = file_date['modified'].strftime("%Y-%m-%d")
+
         parent_name = file.parent.name
         filename, ext = file.stem, file.suffix
 
         new_file = Path(self.video_format.format(sort_dir=self.sorted_downloads, base_dir=base_name, parent_dir=parent_name,
                                                  filename=filename, ext=ext, resolution=resolution, fps=frames_per_sec,
-                                                 codec=codec))
+                                                 codec=codec, file_date_us=file_date_us, file_date_ca=file_date_ca))
 
         await self.move_cd(file, new_file)
 
@@ -174,7 +188,11 @@ class Sorter:
         parent_name = file.parent.name
         filename, ext = file.stem, file.suffix
 
+        file_date = filedate.File(str(file)).get()
+        file_date_us = file_date['modified'].strftime("%Y-%d-%m")
+        file_date_ca = file_date['modified'].strftime("%Y-%m-%d")
+
         new_file = Path(self.other_format.format(sort_dir=self.sorted_downloads, base_dir=base_name, parent_dir=parent_name,
-                                                 filename=filename, ext=ext))
+                                                 filename=filename, ext=ext, file_date_us=file_date_us, file_date_ca=file_date_ca))
 
         await self.move_cd(file, new_file)
