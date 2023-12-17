@@ -29,13 +29,14 @@ class ImgBBCrawler(Crawler):
         task_id = await self.scraping_progress.add_task(scrape_item.url)
 
         if await self.check_direct_link(scrape_item.url):
-            await self.handle_direct_link(scrape_item)
+            image_id = scrape_item.url.parts[1]
+            scrape_item.url = self.primary_base_domain / image_id
+
+        scrape_item.url = self.primary_base_domain / scrape_item.url.path[1:]
+        if "album" in scrape_item.url.parts:
+            await self.album(scrape_item)
         else:
-            scrape_item.url = self.primary_base_domain / scrape_item.url.path[1:]
-            if "album" in scrape_item.url.parts:
-                await self.album(scrape_item)
-            else:
-                await self.image(scrape_item)
+            await self.image(scrape_item)
 
         await self.scraping_progress.remove_task(task_id)
 
