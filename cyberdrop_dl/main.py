@@ -80,7 +80,10 @@ async def director(manager: Manager) -> None:
 
         await log("Starting UI...")
         try:
-            with Live(manager.progress_manager.layout, refresh_per_second=10):
+            if not manager.args_manager.no_ui:
+                with Live(manager.progress_manager.layout, refresh_per_second=10):
+                    await runtime(manager)
+            else:
                 await runtime(manager)
         except Exception as e:
             print("\nAn error occurred, please report this to the developer")

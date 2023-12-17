@@ -11,6 +11,7 @@ class ArgsManager:
         self.retry = False
 
         self.immediate_download = False
+        self.no_ui = False
         self.load_config_from_args = False
         self.load_config_name = ""
 
@@ -31,6 +32,10 @@ class ArgsManager:
 
         self.immediate_download = self.parsed_args['download']
         self.load_config_name = self.parsed_args['config']
+
+        if self.parsed_args['no_ui']:
+            self.immediate_download = True
+            self.no_ui = True
 
         if self.load_config_name:
             self.load_config_from_args = True
