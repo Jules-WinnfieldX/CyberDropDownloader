@@ -50,6 +50,7 @@ async def director(manager: Manager) -> None:
     configs = manager.config_manager.get_configs()
     configs_ran = []
     manager.path_manager.startup()
+    manager.log_manager.startup()
 
     while True:
         logger = logging.getLogger("cyberdrop_dl")

@@ -56,7 +56,6 @@ class Manager:
 
         self.path_manager.startup()
         self.log_manager = LogManager(self)
-        self.log_manager.startup()
 
     def args_startup(self) -> None:
         """Start the args manager"""
