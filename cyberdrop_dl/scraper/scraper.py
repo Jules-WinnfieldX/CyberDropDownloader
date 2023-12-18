@@ -343,6 +343,11 @@ class ScrapeMapper:
         except Exception as e:
             return
 
+        # blocked domains
+        if any(x in scrape_item.url.host.lower() for x in ["facebook", "instagram", "fbcdn"]):
+            await log(f"Skipping {scrape_item.url} as it is a blocked domain", 10)
+            return
+
         skip = False
         if self.manager.config_manager.settings_data['Ignore_Options']['skip_hosts']:
             for skip_host in self.manager.config_manager.settings_data['Ignore_Options']['skip_hosts']:

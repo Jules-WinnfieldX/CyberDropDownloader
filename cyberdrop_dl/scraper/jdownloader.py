@@ -42,8 +42,6 @@ class JDownloader:
         """Sends links to JDownloader"""
         try:
             assert url.host is not None
-            if "facebook" in url.host.lower() or "instagram" in url.host.lower():
-                raise JDownloaderFailure("Blacklisted META")
             assert self.jdownloader_agent is not None
             self.jdownloader_agent.linkgrabber.add_links([{
                 "autostart": False,
