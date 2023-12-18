@@ -35,7 +35,7 @@ def limiter(func):
     @wraps(func)
     async def wrapper(self, *args, **kwargs):
         domain_limiter = await self.client_manager.get_rate_limiter(args[0])
-        await asyncio.sleep(await self.get_downloader_spacer(args[0]))
+        await asyncio.sleep(await self.client_manager.get_downloader_spacer(args[0]))
         await self._global_limiter.acquire()
         await domain_limiter.acquire()
 

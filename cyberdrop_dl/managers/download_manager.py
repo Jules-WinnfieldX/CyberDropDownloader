@@ -43,13 +43,6 @@ class DownloadManager:
         self.file_lock = FileLock()
 
         self.download_limits = {'bunkr': 1, 'bunkrr': 1, 'cyberdrop': 1, 'coomer': 2, 'cyberfile': 2, 'kemono': 2, "pixeldrain": 2}
-        self.download_spacer = {'bunkr': 0.5, 'bunkrr': 0.5, 'cyberdrop': 0, 'coomer': 0, 'cyberfile': 0, 'kemono': 0, "pixeldrain": 0}
-
-    async def get_downloader_spacer(self, key: str) -> float:
-        """Returns the download spacer for a domain"""
-        if key in self.download_spacer:
-            return self.download_spacer[key]
-        return 0.1
 
     async def get_download_limit(self, key: str) -> int:
         """Returns the download limit for a domain"""

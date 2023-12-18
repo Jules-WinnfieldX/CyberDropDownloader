@@ -45,6 +45,9 @@ class ClientManager:
             "pixeldrain": AsyncLimiter(10, 1),
             "other": AsyncLimiter(25, 1)
         }
+        self.download_spacer = {'bunkr': 0.5, 'bunkrr': 0.5, 'cyberdrop': 0, 'coomer': 0, 'cyberfile': 0, 'kemono': 0,
+                                "pixeldrain": 0}
+
         self.global_rate_limiter = AsyncLimiter(self.rate_limit, 1)
         self.session_limit = asyncio.Semaphore(50)
         self.download_session_limit = asyncio.Semaphore(self.manager.config_manager.global_settings_data['Rate_Limiting_Options']['max_simultaneous_downloads'])
@@ -53,6 +56,12 @@ class ClientManager:
         self.downloader_session = DownloadClient(self)
 
     """~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"""
+
+    async def get_downloader_spacer(self, key: str) -> float:
+        """Returns the download spacer for a domain"""
+        if key in self.download_spacer:
+            return self.download_spacer[key]
+        return 0.1
 
     async def get_rate_limiter(self, domain: str) -> AsyncLimiter:
         """Get a rate limiter for a domain"""
