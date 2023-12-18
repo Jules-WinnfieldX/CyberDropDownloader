@@ -20,7 +20,7 @@ if TYPE_CHECKING:
 class BunkrrCrawler(Crawler):
     def __init__(self, manager: Manager):
         super().__init__(manager, "bunkrr", "Bunkrr")
-        self.primary_base_domain = URL("https://bunkrr.su")
+        self.primary_base_domain = URL("https://www.bunkrr.su")
         self.ddos_guard_domain = URL("https://*.bunkrr.su")
         self.request_limiter = AsyncLimiter(10, 1)
 
@@ -47,6 +47,8 @@ class BunkrrCrawler(Crawler):
     @error_handling_wrapper
     async def album(self, scrape_item: ScrapeItem) -> None:
         """Scrapes an album"""
+        scrape_item.url = self.primary_base_domain.with_path(scrape_item.url.path)
+
         async with self.request_limiter:
             soup = await self.client.get_BS4(self.domain, scrape_item.url)
         title = soup.select_one('h1[class="text-[24px] font-bold text-dark dark:text-white"]')
