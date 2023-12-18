@@ -47,7 +47,8 @@ def program_ui(manager: Manager):
 
         # Edit URLs
         elif action == 4:
-            edit_urls_prompt(manager.path_manager.input_file)
+            input_file = manager.config_manager.settings_data['Files']['input_file'] if not manager.args_manager.input_file else manager.args_manager.input_file
+            edit_urls_prompt(input_file)
 
         # Select Config
         elif action == 5:

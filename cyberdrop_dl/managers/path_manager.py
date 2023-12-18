@@ -65,6 +65,6 @@ class PathManager:
             self.sorted_dir.mkdir(parents=True, exist_ok=True)
         self.log_dir.mkdir(parents=True, exist_ok=True)
 
-        if not self.input_file.is_file():
+        if not self.input_file.is_file() and not self.manager.args_manager.input_file:
             self.input_file.touch(exist_ok=True)
         self.history_db.touch(exist_ok=True)
