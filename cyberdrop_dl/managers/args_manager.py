@@ -22,6 +22,7 @@ class ArgsManager:
         self.download_dir = None
         self.config_file = None
         self.appdata_dir = None
+        self.log_dir = None
 
     def startup(self) -> None:
         """Parses arguments and sets variables accordingly"""
@@ -57,6 +58,8 @@ class ArgsManager:
         if self.parsed_args['config_file']:
             self.config_file = self.parsed_args['config_file']
             self.immediate_download = True
+        if self.parsed_args['log_folder']:
+            self.log_dir = self.parsed_args['log_folder']
 
         self.other_links = self.parsed_args['links']
 

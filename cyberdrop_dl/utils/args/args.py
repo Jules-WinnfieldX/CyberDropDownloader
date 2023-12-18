@@ -21,6 +21,7 @@ def parse_args() -> argparse.Namespace:
     file_paths.add_argument("-d", "--output-folder", type=str, help="path to download folder", default="")
     file_paths.add_argument("--config-file", type=str, help="path to the CDL settings.yaml file to load", default="")
     file_paths.add_argument("--appdata-folder", type=str, help="path to where you want CDL to store it's AppData folder", default="")
+    file_paths.add_argument("--log-folder", type=str, help="path to where you want CDL to store it's log files", default="")
 
     # Settings
     download_options = parser.add_argument_group("Download_Options")

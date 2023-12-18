@@ -50,7 +50,7 @@ class PathManager:
         """Startup process for the Directory Manager"""
         self.download_dir = self.manager.config_manager.settings_data['Files']['download_folder']
         self.sorted_dir = self.manager.config_manager.settings_data['Sorting']['sort_folder']
-        self.log_dir = self.manager.config_manager.settings_data['Logs']['log_folder']
+        self.log_dir = self.manager.config_manager.settings_data['Logs']['log_folder'] if not self.manager.args_manager.log_dir else self.manager.args_manager.log_dir
         self.input_file = self.manager.config_manager.settings_data['Files']['input_file']
         self.history_db = self.cache_dir / "cyberdrop.db"
 
