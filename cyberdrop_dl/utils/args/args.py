@@ -10,6 +10,7 @@ def parse_args() -> argparse.Namespace:
     general = parser.add_argument_group("General")
     general.add_argument("-V", "--version", action="version", version=f"%(prog)s {VERSION}")
     general.add_argument("--config", type=str, help="name of config to load", default="")
+    general.add_argument("--proxy", type=str, help="manually specify proxy string", default="")
     general.add_argument("--no-ui", action="store_true", help="Disables the UI/Progress view entirely", default=False)
     general.add_argument("--download", action="store_true", help="Skip the UI and go straight to downloading", default=False)
     general.add_argument("--download-all-configs", action="store_true", help="Skip the UI and go straight to downloading (runs all configs sequentially)", default=False)

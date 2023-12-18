@@ -1,11 +1,15 @@
 from __future__ import annotations
 
+from pathlib import Path
+
 from cyberdrop_dl.utils.args.args import parse_args
 
 
 class ArgsManager:
     def __init__(self):
         self.parsed_args = {}
+
+        self.proxy = ""
 
         self.all_configs = False
         self.retry = False
@@ -50,20 +54,31 @@ class ArgsManager:
             self.immediate_download = True
 
         if self.parsed_args['input_file']:
-            self.input_file = self.parsed_args['input_file']
+            self.input_file = Path(self.parsed_args['input_file'])
         if self.parsed_args['output_folder']:
-            self.download_dir = self.parsed_args['output_folder']
+            self.download_dir = Path(self.parsed_args['output_folder'])
         if self.parsed_args['appdata_folder']:
-            self.appdata_dir = self.parsed_args['appdata_folder']
+            self.appdata_dir = Path(self.parsed_args['appdata_folder'])
         if self.parsed_args['config_file']:
-            self.config_file = self.parsed_args['config_file']
+            self.config_file = Path(self.parsed_args['config_file'])
             self.immediate_download = True
         if self.parsed_args['log_folder']:
-            self.log_dir = self.parsed_args['log_folder']
+            self.log_dir = Path(self.parsed_args['log_folder'])
+
+        if self.parsed_args['proxy']:
+            self.proxy = self.parsed_args['proxy']
 
         self.other_links = self.parsed_args['links']
 
         del self.parsed_args['download']
         del self.parsed_args['download_all_configs']
         del self.parsed_args['config']
+        del self.parsed_args['no_ui']
+        del self.parsed_args['retry_failed']
+        del self.parsed_args['input_file']
+        del self.parsed_args['output_folder']
+        del self.parsed_args['appdata_folder']
+        del self.parsed_args['config_file']
+        del self.parsed_args['log_folder']
+        del self.parsed_args['proxy']
         del self.parsed_args['links']

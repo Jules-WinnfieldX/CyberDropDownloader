@@ -35,7 +35,7 @@ class ClientManager:
 
         self.ssl_context = ssl.create_default_context(cafile=certifi.where()) if self.verify_ssl else False
         self.cookies = aiohttp.CookieJar(quote_cookie=False)
-        self.proxy = manager.config_manager.global_settings_data['General']['proxy']
+        self.proxy = manager.config_manager.global_settings_data['General']['proxy'] if not manager.args_manager.proxy else manager.args_manager.proxy
 
         self.domain_rate_limits = {
             "bunkrr": AsyncLimiter(5, 1),
