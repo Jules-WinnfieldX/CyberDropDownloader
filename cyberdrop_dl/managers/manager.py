@@ -159,8 +159,17 @@ class Manager:
         print_settings["Logs"]["log_folder"] = str(print_settings["Logs"]["log_folder"])
         print_settings['Sorting']['sort_folder'] = str(print_settings['Sorting']['sort_folder'])
 
+        input_file = str(self.config_manager.settings_data['Files']['input_file']) if not self.args_manager.input_file else str(self.args_manager.input_file)
+        download_dir = str(self.config_manager.settings_data['Files']['download_folder']) if not self.args_manager.download_dir else str(self.args_manager.download_dir)
+
         await log(f"Starting Cyberdrop-DL Process for {self.config_manager.loaded_config} Config", 10)
         await log(f"Running version {__version__}", 10)
+        await log(f"Using Config: {self.config_manager.loaded_config}", 10)
+        await log(f"Using Config File: {str(self.config_manager.settings)}", 10)
+        await log(f"Using Input File: {input_file}", 10)
+        await log(f"Using Download Folder: {download_dir}", 10)
+        await log(f"Using History File: {str(self.path_manager.history_db)}", 10)
+
         await log(f"Using Authentication: \n{json.dumps(auth_provided, indent=4, sort_keys=True)}", 10)
         await log(f"Using Settings: \n{json.dumps(print_settings, indent=4, sort_keys=True)}", 10)
         await log(f"Using Global Settings: \n{json.dumps(self.config_manager.global_settings_data, indent=4, sort_keys=True)}", 10)
