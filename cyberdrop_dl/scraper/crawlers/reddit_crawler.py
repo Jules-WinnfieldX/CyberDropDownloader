@@ -32,7 +32,7 @@ class RedditCrawler(Crawler):
 
         if not self.reddit_personal_use_script or not self.reddit_secret:
             await log("Reddit API credentials not found. Skipping.", 30)
-            await self.manager.progress_manager.scrape_stats_progress.add_failure(401)
+            await self.manager.progress_manager.scrape_stats_progress.add_failure("Failed Login")
             await self.scraping_progress.remove_task(task_id)
             return
 
@@ -103,10 +103,7 @@ class RedditCrawler(Crawler):
             media_url = URL(submission.url)
 
         if "v.redd.it" in media_url.host:
-            try:
-                filename, ext = await get_filename_and_ext(media_url.name)
-            except NoExtensionFailure:
-                raise ScrapeFailure(404, "Can't determine link")
+            filename, ext = await get_filename_and_ext(media_url.name)
 
         if "redd.it" in media_url.host:
             new_scrape_item = await self.create_new_scrape_item(media_url, scrape_item, title, date)

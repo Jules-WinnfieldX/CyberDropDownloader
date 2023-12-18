@@ -14,7 +14,7 @@ import aiohttp
 import filedate
 
 from cyberdrop_dl.clients.download_client import is_4xx_client_error
-from cyberdrop_dl.clients.errors import DownloadFailure
+from cyberdrop_dl.clients.errors import DownloadFailure, InvalidContentTypeFailure
 from cyberdrop_dl.utils.utilities import CustomHTTPStatus, FILE_FORMATS, log
 
 if TYPE_CHECKING:
@@ -32,6 +32,13 @@ def retry(f):
         while True:
             try:
                 return await f(self, *args, **kwargs)
+            except InvalidContentTypeFailure:
+                media_item = args[0]
+                await log(f"Download Failed: {media_item.url} received Invalid Content", 40)
+                await self.manager.progress_manager.download_stats_progress.add_failure("Invalid Content Type")
+                await self.manager.progress_manager.download_progress.add_failed()
+                break
+
             except DownloadFailure as e:
                 media_item = args[0]
                 if not isinstance(media_item.download_task_id, Field):

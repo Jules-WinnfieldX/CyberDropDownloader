@@ -70,7 +70,6 @@ class XBunkerCrawler(Crawler):
             await self.forum(scrape_item)
         else:
             await log("XBunker login failed. Skipping.", 40)
-            await self.manager.progress_manager.scrape_stats_progress.add_failure(401)
 
         await self.scraping_progress.remove_task(task_id)
 
