@@ -72,6 +72,7 @@ def program_ui(manager: Manager):
 
             manager.config_manager.settings_data['Files']['input_file'] = Path(input_file)
             manager.config_manager.settings_data['Files']['download_folder'] = Path(download_folder)
+            manager.config_manager.write_updated_settings_config()
 
         # Manage Configs
         elif action == 7:
