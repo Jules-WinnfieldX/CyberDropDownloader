@@ -62,7 +62,7 @@ class CoomerCrawler(Crawler):
                     break
 
             for post in JSON_Resp:
-                await self.handle_post_content(post, scrape_item, user, user_str)
+                await self.handle_post_content(scrape_item, post, user, user_str)
 
     @error_handling_wrapper
     async def post(self, scrape_item: ScrapeItem) -> None:
@@ -72,10 +72,10 @@ class CoomerCrawler(Crawler):
         api_call = self.api_url / service / "user" / user / "post" / post_id
         async with self.request_limiter:
             post = await self.client.get_json(self.domain, api_call)
-        await self.handle_post_content(post, scrape_item, user, user_str)
+        await self.handle_post_content(scrape_item, post, user, user_str)
 
     @error_handling_wrapper
-    async def handle_post_content(self, post: Dict, scrape_item: ScrapeItem, user: str, user_str: str) -> None:
+    async def handle_post_content(self, scrape_item: ScrapeItem, post: Dict, user: str, user_str: str) -> None:
         """Handles the content of a post"""
         if "#ad" in post['content'] and self.manager.config_manager.settings_data['Ignore_Options']['ignore_coomer_ads']:
             return

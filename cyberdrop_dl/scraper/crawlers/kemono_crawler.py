@@ -65,7 +65,7 @@ class KemonoCrawler(Crawler):
                     break
 
             for post in JSON_Resp:
-                await self.handle_post_content(post, scrape_item, user, user_str)
+                await self.handle_post_content(scrape_item, post, user, user_str)
 
     @error_handling_wrapper
     async def discord(self, scrape_item: ScrapeItem) -> None:
@@ -81,7 +81,7 @@ class KemonoCrawler(Crawler):
                     break
 
             for post in JSON_Resp:
-                await self.handle_post_content(post, scrape_item, channel, channel)
+                await self.handle_post_content(scrape_item, post, channel, channel)
 
     @error_handling_wrapper
     async def post(self, scrape_item: ScrapeItem) -> None:
@@ -91,10 +91,10 @@ class KemonoCrawler(Crawler):
         api_call = self.api_url / service / "user" / user / "post" / post_id
         async with self.request_limiter:
             post = await self.client.get_json("kemono", api_call)
-        await self.handle_post_content(post, scrape_item, user, user_str)
+        await self.handle_post_content(scrape_item, post, user, user_str)
 
     @error_handling_wrapper
-    async def handle_post_content(self, post: Dict, scrape_item: ScrapeItem, user: str, user_str: str) -> None:
+    async def handle_post_content(self, scrape_item: ScrapeItem, post: Dict, user: str, user_str: str) -> None:
         """Handles the content of a post"""
         date = post["published"].replace("T", " ")
         post_id = post["id"]
