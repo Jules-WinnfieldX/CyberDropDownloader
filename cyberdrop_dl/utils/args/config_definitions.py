@@ -122,7 +122,7 @@ settings: Dict = {
 global_settings: Dict = {
     "General": {
         "allow_insecure_connections": False,
-        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/112.0",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:120.0) Gecko/20100101 Firefox/120.0",
         "proxy": "",
         "max_file_name_length": 95,
         "max_folder_name_length": 60,
