@@ -6,7 +6,7 @@ import aiosqlite
 from typing import TYPE_CHECKING, Iterable
 from yarl import URL
 
-from cyberdrop_dl.utils.database.table_definitions import create_history
+from cyberdrop_dl.utils.database.table_definitions import create_history, create_fixed_history
 
 if TYPE_CHECKING:
     from cyberdrop_dl.utils.dataclasses.url_objects import MediaItem
@@ -43,6 +43,7 @@ class HistoryTable:
         await self.db_conn.execute(create_history)
         await self.db_conn.commit()
         await self.fix_bunkr_v4_entries()
+        await self.fix_primary_keys()
 
     async def check_complete(self, domain: str, url: URL) -> bool:
         """Checks whether an individual file has completed given its domain and url path"""
@@ -121,3 +122,21 @@ class HistoryTable:
     async def fix_bunkr_v4_entries(self) -> None:
         """Fixes bunkr v4 entries in the database"""
         await self.db_conn.execute("""UPDATE media SET domain = 'bunkrr' WHERE domain = 'bunkr'""")
+
+    async def fix_primary_keys(self) -> None:
+        cursor = await self.db_conn.cursor()
+        result = await cursor.execute("""pragma table_info(media)""")
+        result = await result.fetchall()
+        if result[0][5] == 0:
+            print("Fixing primary keys in the database: DO NOT EXIT THE PROGRAM")
+            await self.db_conn.execute(create_fixed_history)
+            await self.db_conn.commit()
+
+            await self.db_conn.execute("""INSERT INTO media_copy SELECT * FROM media""")
+            await self.db_conn.commit()
+
+            await self.db_conn.execute("""DROP TABLE media""")
+            await self.db_conn.commit()
+
+            await self.db_conn.execute("""ALTER TABLE media_copy RENAME TO media""")
+            await self.db_conn.commit()
