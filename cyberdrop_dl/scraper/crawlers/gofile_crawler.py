@@ -34,7 +34,7 @@ class GoFileCrawler(Crawler):
         """Determines where to send the scrape item based on the url"""
         task_id = await self.scraping_progress.add_task(scrape_item.url)
 
-        await self.get_token(self.client)
+        await self.get_token(self.api_address / "createAccount", self.client)
         await self.get_website_token(self.js_address, self.client)
 
         await self.album(scrape_item)
@@ -89,7 +89,7 @@ class GoFileCrawler(Crawler):
     """~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"""
 
     @error_handling_wrapper
-    async def get_token(self, session: ScraperClient) -> None:
+    async def get_token(self, create_acct_address: URL, session: ScraperClient) -> None:
         """Get the token for the API"""
         if self.token:
             return
@@ -102,7 +102,7 @@ class GoFileCrawler(Crawler):
 
         async with self.request_limiter:
             async with self.request_limiter:
-                JSON_Resp = await session.get_json(self.domain, self.api_address / "createAccount")
+                JSON_Resp = await session.get_json(self.domain, create_acct_address)
             if JSON_Resp["status"] == "ok":
                 self.token = JSON_Resp["data"]["token"]
                 await self.set_cookie(session)
