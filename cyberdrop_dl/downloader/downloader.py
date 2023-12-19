@@ -34,6 +34,8 @@ def retry(f):
                 return await f(self, *args, **kwargs)
             except InvalidContentTypeFailure:
                 media_item = args[0]
+                if not isinstance(media_item.download_task_id, Field):
+                    await self.manager.progress_manager.file_progress.remove_file(media_item.download_task_id)
                 await log(f"Download Failed: {media_item.url} received Invalid Content", 40)
                 await self.manager.progress_manager.download_stats_progress.add_failure("Invalid Content Type")
                 await self.manager.progress_manager.download_progress.add_failed()
