@@ -52,26 +52,26 @@ def error_handling_wrapper(func):
     """Wrapper handles errors for url scraping"""
     @wraps(func)
     async def wrapper(self, *args, **kwargs):
+        if isinstance(args[0], URL):
+            link = args[0]
+        else:
+            link = args[0].url
+
         try:
             return await func(self, *args, **kwargs)
         except NoExtensionFailure:
-            await log(f"Scrape Failed: {args[0].url} (No File Extension)", 40)
-            await self.manager.log_manager.write_scrape_error_log(args[0].url, " No File Extension")
+            await log(f"Scrape Failed: {link} (No File Extension)", 40)
+            await self.manager.log_manager.write_scrape_error_log(link, " No File Extension")
             await self.manager.progress_manager.scrape_stats_progress.add_failure("No File Extension")
         except FailedLoginFailure:
-            await log(f"Scrape Failed: {args[0].url} (Failed Login)", 40)
-            await self.manager.log_manager.write_scrape_error_log(args[0].url, " Failed Login")
+            await log(f"Scrape Failed: {link} (Failed Login)", 40)
+            await self.manager.log_manager.write_scrape_error_log(link, " Failed Login")
             await self.manager.progress_manager.scrape_stats_progress.add_failure("Failed Login")
         except InvalidContentTypeFailure:
-            await log(f"Scrape Failed: {args[0].url} (Invalid Content Type Received)", 40)
-            await self.manager.log_manager.write_scrape_error_log(args[0].url, " Invalid Content Type Received")
+            await log(f"Scrape Failed: {link} (Invalid Content Type Received)", 40)
+            await self.manager.log_manager.write_scrape_error_log(link, " Invalid Content Type Received")
             await self.manager.progress_manager.scrape_stats_progress.add_failure("Invalid Content Type")
         except Exception as e:
-            if isinstance(args[0], URL):
-                link = args[0]
-            else:
-                link = args[0].url
-
             if hasattr(e, 'status'):
                 if hasattr(e, 'message'):
                     await log(f"Scrape Failed: {link} ({e.status} - {e.message})", 40)
