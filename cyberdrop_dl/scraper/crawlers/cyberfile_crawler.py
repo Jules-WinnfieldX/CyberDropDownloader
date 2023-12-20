@@ -83,9 +83,12 @@ class CyberfileCrawler(Crawler):
         async with self.request_limiter:
             await self.client.get_BS4(self.domain, scrape_item.url)
 
+        new_folders = []
+        node_id = ''
+
         page = 1
         while True:
-            data = {"pageType": "nonaccountshared", "nodeId": '', "pageStart": page, "perPage": 0, "filterOrderBy": ""}
+            data = {"pageType": "nonaccountshared", "nodeId": node_id, "pageStart": page, "perPage": 0, "filterOrderBy": ""}
             async with self.request_limiter:
                 ajax_dict = await self.client.post_data("cyberfile", self.api_files, data=data)
                 ajax_soup = BeautifulSoup(ajax_dict['html'].replace("\\", ""), 'html.parser')
@@ -98,7 +101,8 @@ class CyberfileCrawler(Crawler):
                 file_id = tile.get('fileid')
 
                 if folder_id:
-                    link = URL(tile.get('sharing-url'))
+                    new_folders.append(folder_id)
+                    continue
                 elif file_id:
                     link = URL(tile.get('dtfullurl'))
                 else:
@@ -109,8 +113,13 @@ class CyberfileCrawler(Crawler):
                 self.manager.task_group.create_task(self.run(new_scrape_item))
 
             page += 1
-            if page >= num_pages:
+            if page > num_pages and not new_folders:
                 break
+
+            if page > num_pages and new_folders:
+                node_id = str(new_folders.pop(0))
+                page = 1
+
 
     @error_handling_wrapper
     async def file(self, scrape_item: ScrapeItem) -> None:
