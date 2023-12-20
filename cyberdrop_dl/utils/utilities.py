@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import logging
 import os
 import re
@@ -71,6 +72,10 @@ def error_handling_wrapper(func):
             await log(f"Scrape Failed: {link} (Invalid Content Type Received)", 40)
             await self.manager.log_manager.write_scrape_error_log(link, " Invalid Content Type Received")
             await self.manager.progress_manager.scrape_stats_progress.add_failure("Invalid Content Type")
+        except asyncio.TimeoutError:
+            await log(f"Scrape Failed: {link} (Timeout)", 40)
+            await self.manager.log_manager.write_scrape_error_log(link, " Timeout")
+            await self.manager.progress_manager.scrape_stats_progress.add_failure("Timeout")
         except Exception as e:
             if hasattr(e, 'status'):
                 if hasattr(e, 'message'):

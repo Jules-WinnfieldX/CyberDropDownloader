@@ -69,7 +69,7 @@ class Crawler(ABC):
         else:
             original_filename = filename
 
-        check_complete = await self.manager.db_manager.history_table.check_complete(self.domain, url)
+        check_complete = await self.manager.db_manager.history_table.check_complete(self.domain, url, scrape_item.url)
         if check_complete:
             await log(f"Skipping {url} as it has already been downloaded", 10)
             await self.manager.progress_manager.download_progress.add_previously_completed()
@@ -165,6 +165,9 @@ class Crawler(ABC):
 
     async def create_title(self, title: str, album_id: Optional[str], thread_id: Optional[str]) -> str:
         """Creates the title for the scrape item"""
+        if not title:
+            title = "Untitled"
+
         title = title.strip()
         if self.manager.config_manager.settings_data['Download_Options']['include_album_id_in_folder_name']:
             if album_id:

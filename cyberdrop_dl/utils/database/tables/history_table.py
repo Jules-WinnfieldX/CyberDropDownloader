@@ -9,7 +9,7 @@ from yarl import URL
 from cyberdrop_dl.utils.database.table_definitions import create_history, create_fixed_history
 
 if TYPE_CHECKING:
-    from cyberdrop_dl.utils.dataclasses.url_objects import MediaItem
+    from cyberdrop_dl.utils.dataclasses.url_objects import MediaItem, ScrapeItem
 
 
 async def get_db_path(url: URL, referer: str = "") -> str:
@@ -45,7 +45,7 @@ class HistoryTable:
         await self.fix_bunkr_v4_entries()
         await self.fix_primary_keys()
 
-    async def check_complete(self, domain: str, url: URL) -> bool:
+    async def check_complete(self, domain: str, url: URL, referer: URL) -> bool:
         """Checks whether an individual file has completed given its domain and url path"""
         if self.ignore_history:
             return False
@@ -56,7 +56,12 @@ class HistoryTable:
         cursor = await self.db_conn.cursor()
         result = await cursor.execute("""SELECT completed FROM media WHERE domain = ? and url_path = ?""", (domain, url_path))
         sql_file_check = await result.fetchone()
-        return sql_file_check and sql_file_check[0] != 0
+        if sql_file_check and sql_file_check[0] != 0:
+            # Update the referer if it has changed so that check_complete_by_referer can work
+            await cursor.execute("""UPDATE media SET referer = ? WHERE domain = ? and url_path = ?""", (str(referer), domain, url_path))
+            await self.db_conn.commit()
+            return True
+        return False
 
     async def check_complete_by_referer(self, domain: str, referer: URL) -> bool:
         """Checks whether an individual file has completed given its domain and url path"""
