@@ -378,7 +378,7 @@ class ScrapeMapper:
             await log(f"Skipping URL by Config Selections: {scrape_item.url}", 10)
 
         elif await self.extension_check(scrape_item.url):
-            check_complete = await self.manager.db_manager.history_table.check_complete("no_crawler", scrape_item.url)
+            check_complete = await self.manager.db_manager.history_table.check_complete("no_crawler", scrape_item.url, scrape_item.url)
             if check_complete:
                 await log(f"Skipping {scrape_item.url} as it has already been downloaded", 10)
                 await self.manager.progress_manager.download_progress.add_previously_completed()
