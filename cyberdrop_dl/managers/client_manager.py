@@ -82,7 +82,8 @@ class ClientManager:
 
         if download:
             if response_url in [URL("https://bnkr.b-cdn.net/maintenance-vid.mp4"),
-                                URL("https://bnkr.b-cdn.net/maintenance.mp4")]:
+                                URL("https://bnkr.b-cdn.net/maintenance.mp4"),
+                                URL("https://bunkrr.su/magic/lovely.mp4"),]:
                 raise DownloadFailure(status=HTTPStatus.SERVICE_UNAVAILABLE, message="Bunkr under maintenance")
             if "imgur.com/removed" in str(response_url):
                 raise DownloadFailure(status=HTTPStatus.NOT_FOUND, message="Imgur image has been removed")
