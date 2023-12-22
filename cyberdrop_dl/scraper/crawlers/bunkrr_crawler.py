@@ -67,7 +67,26 @@ class BunkrrCrawler(Crawler):
                 link = URL("https://" + scrape_item.url.host + link)
             link = URL(link)
             link = await self.get_stream_link(link)
-            self.manager.task_group.create_task(self.run(ScrapeItem(link, scrape_item.parent_title, True, date)))
+
+            try:
+                filename = card_listing.select_one("div[class*=details]").select_one("p").text
+                file_ext = "." + filename.split(".")[-1]
+                if file_ext.lower() not in FILE_FORMATS['Images'] and file_ext.lower() not in FILE_FORMATS['Videos']:
+                    raise Exception()
+                image_obj = file.select_one("img")
+                src = image_obj.get("src")
+                src = src.replace("/thumbs", "")
+                src = URL(src)
+                src = src.with_suffix(file_ext).with_query("download=true")
+                new_scrape_item = await self.create_scrape_item(scrape_item, link, "", True, date)
+
+                if await self.check_complete_from_referer(scrape_item):
+                    continue
+
+                filename, ext = await get_filename_and_ext(src.name)
+                await self.handle_file(src, new_scrape_item, filename, ext)
+            except Exception as e:
+                self.manager.task_group.create_task(self.run(ScrapeItem(link, scrape_item.parent_title, True, date)))
 
     @error_handling_wrapper
     async def video(self, scrape_item: ScrapeItem) -> None:
