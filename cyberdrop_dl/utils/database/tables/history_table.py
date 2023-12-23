@@ -42,8 +42,8 @@ class HistoryTable:
         """Startup process for the HistoryTable"""
         await self.db_conn.execute(create_history)
         await self.db_conn.commit()
-        await self.fix_bunkr_v4_entries()
         await self.fix_primary_keys()
+        await self.fix_bunkr_v4_entries()
 
     async def check_complete(self, domain: str, url: URL, referer: URL) -> bool:
         """Checks whether an individual file has completed given its domain and url path"""
@@ -127,7 +127,19 @@ class HistoryTable:
 
     async def fix_bunkr_v4_entries(self) -> None:
         """Fixes bunkr v4 entries in the database"""
-        await self.db_conn.execute("""UPDATE media SET domain = 'bunkrr' WHERE domain = 'bunkr'""")
+        cursor = await self.db_conn.cursor()
+        result = await cursor.execute("""SELECT * from media WHERE domain = 'bunkr' and completed = 1""")
+        bunkr_entries = await result.fetchall()
+
+        fixed_entries = []
+        for entry in bunkr_entries:
+            entry = list(entry)
+            entry[0] = "bunkrr"
+            await self.db_conn.execute("""INSERT or REPLACE INTO media VALUES (?, ?, ?, ?, ?, ?, ?)""", entry)
+        await self.db_conn.commit()
+
+        await self.db_conn.execute("""DELETE FROM media WHERE domain = 'bunkr'""")
+        await self.db_conn.commit()
 
     async def fix_primary_keys(self) -> None:
         cursor = await self.db_conn.cursor()
@@ -138,7 +150,7 @@ class HistoryTable:
             await self.db_conn.execute(create_fixed_history)
             await self.db_conn.commit()
 
-            await self.db_conn.execute("""INSERT INTO media_copy SELECT * FROM media""")
+            await self.db_conn.execute("""INSERT INTO media_copy SELECT * FROM media GROUP BY domain, url_path, original_filename;""")
             await self.db_conn.commit()
 
             await self.db_conn.execute("""DROP TABLE media""")
