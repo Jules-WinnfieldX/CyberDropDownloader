@@ -76,8 +76,10 @@ class BunkrrCrawler(Crawler):
                 image_obj = file.select_one("img")
                 src = image_obj.get("src")
                 src = src.replace("/thumbs", "")
-                src = URL(src)
-                src = src.with_suffix(file_ext).with_query("download=true")
+                src = URL(src, encoded=True)
+                src = src.with_suffix(file_ext)
+                src = src.with_query("download=true")
+                src = src.with_host(src.host.replace("i-", ""))
                 new_scrape_item = await self.create_scrape_item(scrape_item, link, "", True, date)
 
                 if await self.check_complete_from_referer(scrape_item):
