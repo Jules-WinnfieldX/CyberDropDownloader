@@ -358,6 +358,7 @@ class Downloader:
                         self._current_attempt_filesize[media_item.filename] = size
                     else:
                         raise DownloadFailure(status=getattr(e, "status", 1), message="Download timeout reached, retrying")
+                    media_item.current_attempt = 0
                     raise DownloadFailure(status=999, message="Download timeout reached, retrying")
 
             raise DownloadFailure(status=getattr(e, "status", 1), message=repr(e))

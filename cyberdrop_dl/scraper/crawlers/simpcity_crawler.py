@@ -30,7 +30,7 @@ class SimpCityCrawler(Crawler):
         self.posts_number_selector = "li[class=u-concealed] a"
         self.posts_number_attribute = "href"
         self.quotes_selector = "blockquote"
-        self.posts_content_selector = "div[class=bbWrapper]"
+        self.posts_content_selector = "div[class*=message-userContent]"
         self.next_page_selector = "a[class*=pageNav-jump--next]"
         self.next_page_attribute = "href"
         self.links_selector = "a"
