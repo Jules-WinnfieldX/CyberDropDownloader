@@ -35,7 +35,7 @@ class PathManager:
         self.download_error_log: Path = field(init=False)
         self.scrape_error_log: Path = field(init=False)
 
-    def pre_startup(self):
+    def pre_startup(self) -> None:
         if self.manager.args_manager.appdata_dir:
             global APP_STORAGE
             APP_STORAGE = Path(self.manager.args_manager.appdata_dir) / "AppData"
@@ -60,11 +60,7 @@ class PathManager:
         self.download_error_log = self.log_dir / self.manager.config_manager.settings_data['Logs']['download_error_urls_filename']
         self.scrape_error_log = self.log_dir / self.manager.config_manager.settings_data['Logs']['scrape_error_urls_filename']
 
-        self.download_dir.mkdir(parents=True, exist_ok=True)
-        if self.manager.config_manager.settings_data['Sorting']['sort_downloads']:
-            self.sorted_dir.mkdir(parents=True, exist_ok=True)
         self.log_dir.mkdir(parents=True, exist_ok=True)
-
         if not self.input_file.is_file() and not self.manager.args_manager.input_file:
             self.input_file.touch(exist_ok=True)
         self.history_db.touch(exist_ok=True)

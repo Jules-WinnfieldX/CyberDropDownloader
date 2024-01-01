@@ -109,6 +109,10 @@ class Downloader:
         await self.set_additional_headers()
         self._semaphore = asyncio.Semaphore(await self.manager.download_manager.get_download_limit(self.domain))
 
+        self.manager.path_manager.download_dir.mkdir(parents=True, exist_ok=True)
+        if not self.manager.config_manager.settings_data['Sorting']['sort_downloads']:
+            self.manager.path_manager.sorted_dir.mkdir(parents=True, exist_ok=True)
+
     async def run(self, media_item: MediaItem) -> None:
         """Runs the download loop"""
         self.waiting_items += 1
