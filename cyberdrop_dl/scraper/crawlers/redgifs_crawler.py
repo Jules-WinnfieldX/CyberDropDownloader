@@ -28,12 +28,13 @@ class RedGifsCrawler(Crawler):
         task_id = await self.scraping_progress.add_task(scrape_item.url)
 
         if not self.token:
-            await self.manage_token()
+            await self.manage_token(self.redgifs_api / "v2/auth/temporary")
 
-        if "users" in scrape_item.url.parts:
-            await self.user(scrape_item)
-        else:
-            await self.post(scrape_item)
+        if self.token:
+            if "users" in scrape_item.url.parts:
+                await self.user(scrape_item)
+            else:
+                await self.post(scrape_item)
 
         await self.scraping_progress.remove_task(task_id)
 
@@ -89,9 +90,10 @@ class RedGifsCrawler(Crawler):
 
     """~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"""
 
-    async def manage_token(self) -> None:
+    @error_handling_wrapper
+    async def manage_token(self, token_url: URL) -> None:
         """Gets/Sets the redgifs token and header"""
         async with self.request_limiter:
-            json_obj = await self.client.get_json(self.domain, self.redgifs_api / "v2/auth/temporary")
+            json_obj = await self.client.get_json(self.domain, )
         self.token = json_obj["token"]
         self.headers = {"Authorization": f"Bearer {self.token}"}
