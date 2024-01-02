@@ -87,6 +87,24 @@ class Crawler(ABC):
 
     """~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"""
 
+    async def check_post_number(self, post_number: int, current_post_number: int) -> (bool, bool):
+        """Checks if the program should scrape the current post"""
+        """Returns (scrape_post, continue_scraping)"""
+        scrape_single_forum_post = self.manager.config_manager.settings_data['Download_Options']['scrape_single_forum_post']
+
+        if scrape_single_forum_post:
+            if not post_number:
+                return True, False
+            if post_number == current_post_number:
+                return True, False
+            return False, True
+
+        elif post_number:
+            if post_number > current_post_number:
+                return False, True
+
+        return True, True
+
     async def handle_external_links(self, scrape_item: ScrapeItem) -> None:
         """Maps external links to the scraper class"""
         self.manager.task_group.create_task(self.manager.scrape_mapper.map_url(scrape_item))
