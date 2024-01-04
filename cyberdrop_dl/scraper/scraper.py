@@ -285,8 +285,6 @@ class ScrapeMapper:
     async def load_links(self) -> None:
         """Loads links from args / input file"""
         input_file = self.manager.path_manager.input_file
-        if self.manager.args_manager.input_file:
-            input_file = Path(self.manager.args_manager.input_file)
 
         links = []
         if not self.manager.args_manager.other_links:

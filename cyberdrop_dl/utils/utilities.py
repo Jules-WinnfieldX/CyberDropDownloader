@@ -158,8 +158,6 @@ async def get_filename_and_ext(filename: str, forum: bool = False) -> Tuple[str,
 async def get_download_path(manager: Manager, scrape_item: ScrapeItem, domain: str) -> Path:
     """Returns the path to the download folder"""
     download_dir = manager.path_manager.download_dir
-    if manager.args_manager.download_dir:
-        download_dir = Path(manager.args_manager.download_dir)
 
     if scrape_item.retry:
         return scrape_item.retry_path

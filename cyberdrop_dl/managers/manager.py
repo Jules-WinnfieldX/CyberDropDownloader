@@ -74,6 +74,8 @@ class Manager:
         self.download_manager = DownloadManager(self)
         self.progress_manager = ProgressManager(self)
 
+        # set files from args
+
         from cyberdrop_dl.utils.utilities import MAX_NAME_LENGTHS
         MAX_NAME_LENGTHS['FILE'] = int(self.config_manager.global_settings_data['General']['max_file_name_length'])
         MAX_NAME_LENGTHS['FOLDER'] = int(self.config_manager.global_settings_data['General']['max_folder_name_length'])
@@ -159,8 +161,8 @@ class Manager:
         print_settings["Logs"]["log_folder"] = str(print_settings["Logs"]["log_folder"])
         print_settings['Sorting']['sort_folder'] = str(print_settings['Sorting']['sort_folder'])
 
-        input_file = str(self.config_manager.settings_data['Files']['input_file']) if not self.args_manager.input_file else str(self.args_manager.input_file)
-        download_dir = str(self.config_manager.settings_data['Files']['download_folder']) if not self.args_manager.download_dir else str(self.args_manager.download_dir)
+        input_file = str(self.path_manager.input_file)
+        download_dir = str(self.path_manager.download_dir)
 
         await log(f"Starting Cyberdrop-DL Process for {self.config_manager.loaded_config} Config", 10)
         await log(f"Running version {__version__}", 10)
