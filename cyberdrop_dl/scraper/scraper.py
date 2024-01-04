@@ -31,14 +31,15 @@ class ScrapeMapper:
                         "imgur": self.imgur, "img.kiwi": self.imgwiki, "jpg.church": self.jpgchurch,
                         "jpg.homes": self.jpgchurch, "jpg.fish": self.jpgchurch, "jpg.fishing": self.jpgchurch,
                         "jpg.pet": self.jpgchurch, "jpeg.pet": self.jpgchurch, "jpg1.su": self.jpgchurch,
-                        "jpg2.su": self.jpgchurch, "jpg3.su": self.jpgchurch, "kemono": self.kemono,
-                        "leakedmodels": self.leakedmodels, "mediafire": self.mediafire, "nudostar.com": self.nudostar,
-                        "nudostar.tv": self.nudostartv, "omegascans": self.omegascans, "pimpandhost": self.pimpandhost,
-                        "pixeldrain": self.pixeldrain, "postimg": self.postimg, "reddit": self.reddit,
-                        "redd.it": self.reddit, "redgifs": self.redgifs, "rule34.xxx": self.rule34xxx,
-                        "rule34.xyz": self.rule34xyz, "saint": self.saint, "scrolller": self.scrolller,
-                        "simpcity": self.simpcity, "socialmediagirls": self.socialmediagirls,
-                        "toonily": self.toonily, "xbunker": self.xbunker, "xbunkr": self.xbunkr, "bunkr": self.bunkrr}
+                        "jpg2.su": self.jpgchurch, "jpg3.su": self.jpgchurch, "jpg4.su": self.jpgchurch,
+                        "kemono": self.kemono, "leakedmodels": self.leakedmodels, "mediafire": self.mediafire,
+                        "nudostar.com": self.nudostar, "nudostar.tv": self.nudostartv, "omegascans": self.omegascans,
+                        "pimpandhost": self.pimpandhost, "pixeldrain": self.pixeldrain, "postimg": self.postimg,
+                        "reddit": self.reddit, "redd.it": self.reddit, "redgifs": self.redgifs,
+                        "rule34.xxx": self.rule34xxx, "rule34.xyz": self.rule34xyz, "saint": self.saint,
+                        "scrolller": self.scrolller, "simpcity": self.simpcity,
+                        "socialmediagirls": self.socialmediagirls, "toonily": self.toonily, "xbunker": self.xbunker,
+                        "xbunkr": self.xbunkr, "bunkr": self.bunkrr}
         self.existing_crawlers = {}
         self.no_crawler_downloader = Downloader(self.manager, "no_crawler")
         self.jdownloader = JDownloader(self.manager)
@@ -136,6 +137,7 @@ class ScrapeMapper:
         self.existing_crawlers['jpg1.su'] = self.existing_crawlers['jpg.church']
         self.existing_crawlers['jpg2.su'] = self.existing_crawlers['jpg.church']
         self.existing_crawlers['jpg3.su'] = self.existing_crawlers['jpg.church']
+        self.existing_crawlers['jpg4.su'] = self.existing_crawlers['jpg.church']
 
     async def kemono(self) -> None:
         """Creates a Kemono Crawler instance"""

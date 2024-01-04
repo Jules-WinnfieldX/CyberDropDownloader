@@ -9,7 +9,7 @@ class SupportedDomains:
                                                   "e-hentai", "erome", "fapello", "f95zone", "gofile", "hotpic",
                                                   "ibb.co", "imageban", "imgbox", "imgur", "img.kiwi", "jpg.church",
                                                   "jpg.homes", "jpg.fish", "jpg.fishing", "jpg.pet", "jpeg.pet",
-                                                  "jpg1.su", "jpg2.su", "jpg3.su", "kemono", "leakedmodels",
+                                                  "jpg1.su", "jpg2.su", "jpg3.su", "jpg4.su", "kemono", "leakedmodels",
                                                   "mediafire", "nudostar.com", "nudostar.tv", "omegascans",
                                                   "pimpandhost", "pixeldrain", "postimg", "reddit", "redd.it",
                                                   "redgifs", "rule34.xxx", "rule34.xyz", "saint", "scrolller",

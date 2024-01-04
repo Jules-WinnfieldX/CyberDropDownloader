@@ -19,7 +19,7 @@ if TYPE_CHECKING:
 class JPGChurchCrawler(Crawler):
     def __init__(self, manager: Manager):
         super().__init__(manager, "jpg.church", "JPGChurch")
-        self.primary_base_domain = URL("https://jpg3.su")
+        self.primary_base_domain = URL("https://jpg4.su")
         self.request_limiter = AsyncLimiter(10, 1)
 
     """~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"""
