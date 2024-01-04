@@ -94,6 +94,6 @@ class RedGifsCrawler(Crawler):
     async def manage_token(self, token_url: URL) -> None:
         """Gets/Sets the redgifs token and header"""
         async with self.request_limiter:
-            json_obj = await self.client.get_json(self.domain, )
+            json_obj = await self.client.get_json(self.domain, token_url)
         self.token = json_obj["token"]
         self.headers = {"Authorization": f"Bearer {self.token}"}
