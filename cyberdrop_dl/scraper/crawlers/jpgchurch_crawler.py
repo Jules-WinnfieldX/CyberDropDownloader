@@ -89,11 +89,11 @@ class JPGChurchCrawler(Crawler):
         while True:
             async with self.request_limiter:
                 soup = await self.client.get_BS4(self.domain, link_next)
-            links = soup.select("a[href*=img]")
+            links = soup.select("a[href*=img] img")
             for link in links:
-                link = URL(link.get('href'))
+                link = URL(link.get('src'))
                 new_scrape_item = await self.create_scrape_item(scrape_item, link, title, True)
-                self.manager.task_group.create_task(self.run(new_scrape_item))
+                await self.handle_direct_link(new_scrape_item)
 
             link_next = soup.select_one('a[data-pagination=next]')
             if link_next is not None:
