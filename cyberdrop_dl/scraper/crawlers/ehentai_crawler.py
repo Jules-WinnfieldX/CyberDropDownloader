@@ -27,6 +27,7 @@ class EHentaiCrawler(Crawler):
         task_id = await self.scraping_progress.add_task(scrape_item.url)
 
         if "g" in scrape_item.url.parts:
+            scrape_item.url = URL(str(scrape_item.url) + "/").with_query("nw=session")
             await self.album(scrape_item)
         elif "s" in scrape_item.url.parts:
             await self.image(scrape_item)
