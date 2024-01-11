@@ -355,9 +355,10 @@ class ScrapeMapper:
                     skip = True
                     break
         if self.manager.config_manager.settings_data['Ignore_Options']['only_hosts']:
+            skip = True
             for only_host in self.manager.config_manager.settings_data['Ignore_Options']['only_hosts']:
-                if only_host not in scrape_item.url.host:
-                    skip = True
+                if only_host in scrape_item.url.host:
+                    skip = False
                     break
 
         if str(scrape_item.url).endswith("/"):
