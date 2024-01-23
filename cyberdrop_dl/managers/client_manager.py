@@ -81,11 +81,7 @@ class ClientManager:
             raise DownloadFailure(status=CustomHTTPStatus.IM_A_TEAPOT, message="No content-type in response header")
 
         if download:
-            if response_url in [URL("https://bnkr.b-cdn.net/maintenance-vid.mp4"),
-                                URL("https://bnkr.b-cdn.net/maintenance.mp4"),
-                                URL("https://bunkrr.su/magic/lovely.mp4"),
-                                URL("https://c.bunkr-cache.se/maintenance-vid.mp4"),
-                                URL("https://c.bunkr-cache.se/maintenance.jpg"),]:
+            if headers.get('ETag') in ['"eb669b6362e031fa2b0f1215480c4e30"', '"a9e4cee098dc6f1e09ec124299f26b30"']:
                 raise DownloadFailure(status="Bunkr Maintenance", message="Bunkr under maintenance")
             if "imgur.com/removed" in str(response_url):
                 raise DownloadFailure(status=HTTPStatus.NOT_FOUND, message="Imgur image has been removed")
