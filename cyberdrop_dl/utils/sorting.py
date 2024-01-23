@@ -133,7 +133,7 @@ class Sorter:
             width, height = image.size
             resolution = f"{width}x{height}"
             image.close()
-        except PIL.UnidentifiedImageError:
+        except (PIL.UnidentifiedImageError, PIL.Image.DecompressionBombError):
             resolution = "Unknown"
 
         file_date = filedate.File(str(file)).get()
