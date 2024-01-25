@@ -20,8 +20,8 @@ if TYPE_CHECKING:
 class BunkrrCrawler(Crawler):
     def __init__(self, manager: Manager):
         super().__init__(manager, "bunkrr", "Bunkrr")
-        self.primary_base_domain = URL("https://bunkrr.ru")
-        self.ddos_guard_domain = URL("https://*.bunkrr.ru")
+        self.primary_base_domain = URL("https://bunkr.sk")
+        self.ddos_guard_domain = URL("https://bunkr.sk")
         self.request_limiter = AsyncLimiter(10, 1)
 
         self.cookies_set = False
