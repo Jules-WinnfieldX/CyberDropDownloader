@@ -48,7 +48,7 @@ class GoFileCrawler(Crawler):
         params = {
             "token": self.token,
             "contentId": content_id,
-            "websiteToken": self.websiteToken,
+            "wt": self.websiteToken,
         }
         try:
             async with self.request_limiter:
@@ -123,7 +123,7 @@ class GoFileCrawler(Crawler):
         async with self.request_limiter:
             text = await session.get_text(self.domain, js_address)
         text = str(text)
-        self.websiteToken = re.search(r'fetchData\.websiteToken\s*=\s*"(.*?)"', text).group(1)
+        self.websiteToken = re.search(r'fetchData\.wt\s*=\s*"(.*?)"', text).group(1)
         if not self.websiteToken:
             raise ScrapeFailure(403, "Couldn't generate GoFile websiteToken")
         self.manager.cache_manager.save("gofile_website_token", self.websiteToken)
