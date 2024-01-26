@@ -55,8 +55,11 @@ class TransitionManager:
             (APP_STORAGE / "download_history.sqlite").rename(OLD_FILES / "download_history2.sqlite")
 
         if Path("./config.yaml").is_file():
-            self.transfer_v4_config(Path("./config.yaml"), "Imported V4")
-            self.update_default_config(APP_STORAGE / "Cache" / "cache.yaml", "Imported V4")
+            try:
+                self.transfer_v4_config(Path("./config.yaml"), "Imported V4")
+                self.update_default_config(APP_STORAGE / "Cache" / "cache.yaml", "Imported V4")
+            except Exception as e:
+                pass
             Path("./config.yaml").rename(OLD_FILES / "config.yaml")
 
         if Path("./downloader.log").is_file():
