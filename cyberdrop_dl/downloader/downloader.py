@@ -215,17 +215,19 @@ class Downloader:
             self._additional_headers["Authorization"] = await self.manager.download_manager.basic_auth("Cyberdrop-DL", self.manager.config_manager.authentication_data['PixelDrain']['pixeldrain_api_key'])
 
     async def get_final_file_info(self, complete_file: Path, partial_file: Path,
-                                  media_item: MediaItem) -> tuple[Path, Path, bool]:
+                                  media_item: MediaItem) -> tuple[Path, Path, bool, bool]:
         """Complicated checker for if a file already exists, and was already downloaded"""
         expected_size = media_item.filesize if isinstance(media_item.filesize, int) else None
         proceed = True
+        skip = False
         while True:
             if not expected_size:
                 media_item.filesize = await self.client.get_filesize(media_item)
                 file_size_check = await self.check_filesize_limits(media_item)
                 if not file_size_check:
                     proceed = False
-                    return complete_file, partial_file, proceed
+                    skip = True
+                    return complete_file, partial_file, proceed, skip
 
             if not complete_file.exists() and not partial_file.exists():
                 break
@@ -266,7 +268,7 @@ class Downloader:
             partial_file = complete_file.with_suffix(complete_file.suffix + '.part')
 
         media_item.download_filename = complete_file.name
-        return complete_file, partial_file, proceed
+        return complete_file, partial_file, proceed, skip
 
     async def iterate_filename(self, complete_file: Path, media_item: MediaItem) -> Tuple[Path, Path]:
         """Iterates the filename until it is unique"""
@@ -317,8 +319,12 @@ class Downloader:
             complete_file = download_dir / media_item.filename
             partial_file = complete_file.with_suffix(complete_file.suffix + '.part')
 
-            complete_file, partial_file, proceed = await self.get_final_file_info(complete_file, partial_file, media_item)
+            complete_file, partial_file, proceed, skip_by_config = await self.get_final_file_info(complete_file, partial_file, media_item)
             await self.mark_incomplete(media_item)
+
+            if skip_by_config:
+                await self.manager.progress_manager.download_progress.add_skipped()
+                return
 
             if not proceed:
                 await log(f"Skipping {media_item.url} as it has already been downloaded", 10)
