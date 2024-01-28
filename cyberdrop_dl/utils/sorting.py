@@ -15,7 +15,7 @@ if TYPE_CHECKING:
     from cyberdrop_dl.managers.manager import Manager
 
 
-def get_file_date_in_us_ca_formats(file: Path) -> tuple(str, str):
+def get_file_date_in_us_ca_formats(file: Path) -> tuple[str, str]:
     file_date = filedate.File(str(file)).get()
     file_date_us = file_date['modified'].strftime("%Y-%d-%m")
     file_date_ca = file_date['modified'].strftime("%Y-%m-%d")
