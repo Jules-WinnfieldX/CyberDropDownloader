@@ -147,7 +147,7 @@ class SimpCityCrawler(Crawler):
         links = post_content.select(self.links_selector)
         for link_obj in links:
             test_for_img = link_obj.select_one("img")
-            if test_for_img is not None:
+            if test_for_img is not None and self.attachment_url_part not in link_obj.get(self.links_attribute):
                 continue
 
             link = link_obj.get(self.links_attribute)
@@ -205,7 +205,7 @@ class SimpCityCrawler(Crawler):
                 new_scrape_item = await self.create_scrape_item(scrape_item, link, "")
                 await self.handle_external_links(new_scrape_item)
             elif self.attachment_url_part in link.parts:
-                await self.handle_internal_links(link, scrape_item)
+                continue
             else:
                 await log(f"Unknown image type: {link}", 30)
                 continue
