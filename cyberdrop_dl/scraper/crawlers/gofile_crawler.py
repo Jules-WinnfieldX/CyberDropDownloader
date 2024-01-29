@@ -58,7 +58,7 @@ class GoFileCrawler(Crawler):
                 self.websiteToken = ""
                 self.manager.cache_manager.remove("gofile_website_token")
                 await self.get_website_token(self.js_address, self.client)
-                params["websiteToken"] = self.websiteToken
+                params["wt"] = self.websiteToken
                 async with self.request_limiter:
                     JSON_Resp = await self.client.get_json(self.domain, self.api_address / "getContent", params)
 
