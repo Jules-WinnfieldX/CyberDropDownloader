@@ -9,7 +9,7 @@ import aiohttp.client_exceptions
 from aiolimiter import AsyncLimiter
 from yarl import URL
 
-from cyberdrop_dl.clients.errors import ScrapeFailure
+from cyberdrop_dl.clients.errors import ScrapeFailure, DownloadFailure
 from cyberdrop_dl.scraper.crawler import Crawler
 from cyberdrop_dl.utils.dataclasses.url_objects import ScrapeItem
 from cyberdrop_dl.utils.utilities import get_filename_and_ext, error_handling_wrapper
@@ -53,7 +53,7 @@ class GoFileCrawler(Crawler):
         try:
             async with self.request_limiter:
                 JSON_Resp = await self.client.get_json(self.domain, self.api_address / "getContent", params)
-        except aiohttp.client_exceptions.ClientResponseError as e:
+        except DownloadFailure as e:
             if e.status == http.HTTPStatus.UNAUTHORIZED:
                 self.websiteToken = ""
                 self.manager.cache_manager.remove("gofile_website_token")

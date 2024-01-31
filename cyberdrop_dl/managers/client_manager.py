@@ -4,6 +4,7 @@ import asyncio
 import ssl
 from http import HTTPStatus
 from typing import TYPE_CHECKING
+import os
 
 import aiohttp
 import certifi
@@ -14,7 +15,7 @@ from yarl import URL
 from cyberdrop_dl.clients.download_client import DownloadClient
 from cyberdrop_dl.clients.errors import DownloadFailure
 from cyberdrop_dl.clients.scraper_client import ScraperClient
-from cyberdrop_dl.utils.utilities import CustomHTTPStatus
+from cyberdrop_dl.utils.utilities import CustomHTTPStatus, log
 
 if TYPE_CHECKING:
     from cyberdrop_dl.managers.manager import Manager
@@ -77,6 +78,10 @@ class ClientManager:
         headers = response.headers
         response_url = response.url
 
+        if os.getenv("CYDL_ENABLE_SENSITIVE_HTTP_LOGS") == "2":
+            # Log all responses
+            await log(f"Response: {response}\nRequest: {response.request_info}", 10)
+
         if not headers.get('Content-Type'):
             raise DownloadFailure(status=CustomHTTPStatus.IM_A_TEAPOT, message="No content-type in response header")
 
@@ -88,6 +93,10 @@ class ClientManager:
 
         if HTTPStatus.OK <= status < HTTPStatus.BAD_REQUEST:
             return
+
+        if os.getenv("CYDL_ENABLE_SENSITIVE_HTTP_LOGS") == "1":
+            # Only log responses to unsuccessful requests
+            await log(f"Response: {response}\nRequest: {response.request_info}", 10)
 
         try:
             phrase = HTTPStatus(status).phrase
