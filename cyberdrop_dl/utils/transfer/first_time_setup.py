@@ -24,12 +24,10 @@ class TransitionManager:
         OLD_APP_STORAGE: Path = Path(platformdirs.user_config_dir("Cyberdrop-DL"))
         OLD_DOWNLOAD_STORAGE = Path(platformdirs.user_downloads_path()) / "Cyberdrop-DL Downloads"
 
-        check = False
         if APP_STORAGE.exists():
-            if (APP_STORAGE / "Cache" / "cache.yaml").is_file():
-                check = self.check_cache_for_moved(APP_STORAGE / "Cache" / "cache.yaml")
-        if check:
-            return
+            cache_file = APP_STORAGE / "Cache" / "cache.yaml"
+            if cache_file.is_file() and self.check_cache_for_moved(cache_file):
+                return
 
         OLD_FILES = Path("./Old Files")
         OLD_FILES.mkdir(parents=True, exist_ok=True)

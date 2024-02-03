@@ -24,7 +24,7 @@ def cookie_wrapper(func):
         except PermissionError:
             console = Console()
             console.clear()
-            console.print(f"We've encountered a Permissions Error. Please close all browsers and try again.", style="bold red")
+            console.print("We've encountered a Permissions Error. Please close all browsers and try again.", style="bold red")
             console.print("If you are still having issues, make sure all browsers processes are closed in a Task Manager.", style="bold red")
             console.print("Nothing has been saved.", style="bold red")
             inquirer.confirm(message="Press enter to return menu.").execute()

@@ -129,10 +129,8 @@ def main():
             asyncio.run(director(manager))
         except KeyboardInterrupt:
             print("\nTrying to Exit...")
-            try:
+            with contextlib.suppress(Exception):
                 asyncio.run(manager.close())
-            except Exception:
-                pass
             exit(1)
     sys.exit(0)
 

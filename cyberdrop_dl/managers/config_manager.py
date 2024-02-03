@@ -19,9 +19,8 @@ def _match_config_dicts(default: Dict, existing: Dict) -> Dict:
     """Matches the keys of two dicts and returns the default dict with the values of the existing dict"""
     for group in default:
         for key in default[group]:
-            if group in existing:
-                if key in existing[group]:
-                    default[group][key] = existing[group][key]
+            if group in existing and key in existing[group]:
+                default[group][key] = existing[group][key]
     return default
 
 

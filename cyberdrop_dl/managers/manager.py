@@ -86,7 +86,7 @@ class Manager:
 
     async def args_consolidation(self) -> None:
         """Consolidates runtime arguments with config values"""
-        for arg in self.args_manager.parsed_args.keys():
+        for arg in self.args_manager.parsed_args:
             if arg in config_definitions.settings['Download_Options']:
                 if self.args_manager.parsed_args[arg] != config_definitions.settings['Download_Options'][arg]:
                     self.config_manager.settings_data['Download_Options'][arg] = self.args_manager.parsed_args[arg]
@@ -116,7 +116,7 @@ class Manager:
             else:
                 forum_credentials_provided[f"{forum} Credentials Provided"] = False
 
-        gofile_credentials_provided = True if self.config_manager.authentication_data["GoFile"]['gofile_api_key'] else False
+        gofile_credentials_provided = bool(self.config_manager.authentication_data["GoFile"]["gofile_api_key"])
         bunkr_ddg_credentials_provided = False
         coomer_ddg_credentials_provided = False
         kemono_ddg_credentials_provided = False
@@ -128,13 +128,13 @@ class Manager:
         if self.config_manager.authentication_data["DDOS-Guard"]['kemono_ddg1']:
             kemono_ddg_credentials_provided = True
 
-        imgur_credentials_provided = True if self.config_manager.authentication_data["Imgur"]['imgur_client_id'] else False
+        imgur_credentials_provided = bool(self.config_manager.authentication_data["Imgur"]["imgur_client_id"])
         jdownloader_credentials_provided = False
 
         if self.config_manager.authentication_data["JDownloader"]['jdownloader_username'] and self.config_manager.authentication_data["JDownloader"]['jdownloader_password'] and self.config_manager.authentication_data["JDownloader"]['jdownloader_device']:
             jdownloader_credentials_provided = True
 
-        pixeldrain_credentials_provided = True if self.config_manager.authentication_data["PixelDrain"]['pixeldrain_api_key'] else False
+        pixeldrain_credentials_provided = bool(self.config_manager.authentication_data["PixelDrain"]["pixeldrain_api_key"])
         reddit_credentials_provided = False
 
         if self.config_manager.authentication_data["Reddit"]['reddit_personal_use_script'] and self.config_manager.authentication_data["Reddit"]['reddit_secret']:

@@ -21,7 +21,7 @@ console = Console()
 def create_new_config_prompt(manager: Manager) -> None:
     """Create a new config file"""
     console.clear()
-    console.print(f"Create a new config file")
+    console.print("Create a new config file")
     config_name = inquirer.text(
         message="Enter the name of the config:",
         validate=EmptyInputValidator("Input should not be empty")
@@ -40,7 +40,7 @@ def edit_config_values_prompt(manager: Manager) -> None:
 
     while True:
         console.clear()
-        console.print(f"Editing Config Values")
+        console.print("Editing Config Values")
         action = inquirer.select(
             message="What would you like to do?",
             choices=[
@@ -129,7 +129,7 @@ def edit_download_options_prompt(config: Dict) -> None:
         ], long_instruction="ARROW KEYS: Navigate | TAB: Select | ENTER: Confirm"
     ).execute()
 
-    for key in config["Download_Options"].keys():
+    for key in config["Download_Options"]:
         config["Download_Options"][key] = False
 
     for key in action:
@@ -272,7 +272,7 @@ def edit_ignore_options_prompt(config: Dict) -> None:
         ], long_instruction="ARROW KEYS: Move | TAB: Select | ENTER: Confirm",
     ).execute()
 
-    for key in config["Ignore_Options"].keys():
+    for key in config["Ignore_Options"]:
         config["Ignore_Options"][key] = False
 
     for key in action:
@@ -335,7 +335,7 @@ def edit_runtime_options_prompt(config: Dict) -> None:
         long_instruction="10 is the default (uses pythons logging numerical levels)",
     ).execute()
 
-    for key in config["Runtime_Options"].keys():
+    for key in config["Runtime_Options"]:
         config["Runtime_Options"][key] = False
 
     for key in action:

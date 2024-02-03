@@ -190,9 +190,8 @@ class SocialMediaGirlsCrawler(Crawler):
                 continue
 
             parent_simp_check = image.parent.get("data-simp")
-            if parent_simp_check:
-                if "init" in parent_simp_check:
-                    continue
+            if parent_simp_check and "init" in parent_simp_check:
+                continue
 
             link = link.replace(".th.", ".").replace(".md.", ".")
             if link.endswith("/"):
