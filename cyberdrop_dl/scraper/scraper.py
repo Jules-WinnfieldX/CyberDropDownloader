@@ -251,9 +251,8 @@ class ScrapeMapper:
 
     async def start_jdownloader(self) -> None:
         """Starts JDownloader"""
-        if self.jdownloader.enabled:
-            if isinstance(self.jdownloader.jdownloader_agent, Field):
-                await self.jdownloader.jdownloader_setup()
+        if self.jdownloader.enabled and isinstance(self.jdownloader.jdownloader_agent, Field):
+            await self.jdownloader.jdownloader_setup()
 
     async def start(self) -> None:
         """Starts the orchestra"""

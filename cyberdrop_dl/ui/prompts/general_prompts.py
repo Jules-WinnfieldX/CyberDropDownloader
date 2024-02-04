@@ -82,7 +82,7 @@ def import_cyberdrop_v4_items_prompt(manager: Manager) -> None:
     """Import Cyberdrop_V4 Items"""
     while True:
         console.clear()
-        console.print(f"Editing Config Values")
+        console.print("Editing Config Values")
         action = inquirer.select(
             message="What would you like to do?",
             choices=[

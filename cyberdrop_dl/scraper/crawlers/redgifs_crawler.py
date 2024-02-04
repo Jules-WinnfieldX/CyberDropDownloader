@@ -53,7 +53,7 @@ class RedGifsCrawler(Crawler):
             for gif in gifs:
                 links = gif["urls"]
                 date = gif["createDate"]
-                title_part = gif["title"] if "title" in gif else f"Loose Files"
+                title_part = gif.get("title", "Loose Files")
                 title = await self.create_title(title_part, None, None)
 
                 try:
@@ -74,15 +74,12 @@ class RedGifsCrawler(Crawler):
         async with self.request_limiter:
             JSON_Resp = await self.client.get_json(self.domain, self.redgifs_api / "v2/gifs" / post_id, headers_inc=self.headers)
 
-        title_part = JSON_Resp["gif"]["title"] if "title" in JSON_Resp["gif"] else "Loose Files"
+        title_part = JSON_Resp["gif"].get("title", "Loose Files")
         title = await self.create_title(title_part, None, None)
         links = JSON_Resp["gif"]["urls"]
         date = JSON_Resp["gif"]["createDate"]
 
-        if "hd" in links:
-            link = URL(links["hd"])
-        else:
-            link = URL(links["sd"])
+        link = URL(links["hd"] if "hd" in links else links["sd"])
 
         filename, ext = await get_filename_and_ext(link.name)
         new_scrape_item = await self.create_scrape_item(scrape_item, link, title, True, date)

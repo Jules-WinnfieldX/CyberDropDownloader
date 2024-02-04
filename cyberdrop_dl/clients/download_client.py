@@ -87,10 +87,9 @@ class DownloadClient:
             if any(s in content_type.lower() for s in ('html', 'text')) and ext not in FILE_FORMATS['Text']:
                 raise InvalidContentTypeFailure(message=f"Received {content_type}, was expecting other")
 
-            if resp.status != HTTPStatus.PARTIAL_CONTENT:
-                if file.is_file():
-                    await manager.progress_manager.file_progress.advance_file(file_task, -file.stat().st_size)
-                    file.unlink()
+            if resp.status != HTTPStatus.PARTIAL_CONTENT and file.is_file():
+                await manager.progress_manager.file_progress.advance_file(file_task, -file.stat().st_size)
+                file.unlink()
 
             await save_content(resp.content)
 

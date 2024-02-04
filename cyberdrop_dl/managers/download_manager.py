@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import shutil
 from base64 import b64encode
 from typing import TYPE_CHECKING
@@ -29,10 +30,8 @@ class FileLock:
 
     async def release_lock(self, filename: str) -> None:
         """Releases the file lock"""
-        try:
+        with contextlib.suppress(KeyError, RuntimeError):
             self._locked_files[filename].release()
-        except (KeyError, RuntimeError):
-            pass
 
 
 class DownloadManager:
@@ -70,11 +69,11 @@ class DownloadManager:
         """Checks if the file type is allowed to download"""
         if media_item.ext in FILE_FORMATS['Images'] and self.manager.config_manager.settings_data['Ignore_Options']['exclude_images']:
             return False
-        elif media_item.ext in FILE_FORMATS['Videos'] and self.manager.config_manager.settings_data['Ignore_Options']['exclude_videos']:
+        if media_item.ext in FILE_FORMATS['Videos'] and self.manager.config_manager.settings_data['Ignore_Options']['exclude_videos']:
             return False
-        elif media_item.ext in FILE_FORMATS['Audio'] and self.manager.config_manager.settings_data['Ignore_Options']['exclude_audio']:
+        if media_item.ext in FILE_FORMATS['Audio'] and self.manager.config_manager.settings_data['Ignore_Options']['exclude_audio']:
             return False
-        elif (self.manager.config_manager.settings_data['Ignore_Options']['exclude_other'] and
+        if (self.manager.config_manager.settings_data['Ignore_Options']['exclude_other'] and
               media_item.ext not in FILE_FORMATS['Images'] and media_item.ext not in FILE_FORMATS['Videos'] and
               media_item.ext not in FILE_FORMATS['Audio']):
             return False

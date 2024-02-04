@@ -98,16 +98,15 @@ class KemonoCrawler(Crawler):
         """Handles the content of a post"""
         date = post["published"].replace("T", " ")
         post_id = post["id"]
-        post_title = post["title"] if "title" in post else ""
+        post_title = post.get("title", "")
 
         async def handle_file(file_obj):
             link = self.primary_base_domain / ("data" + file_obj['path'])
             link = link.with_query({"f": file_obj['name']})
             await self.create_new_scrape_item(link, scrape_item, user_str, post_title, post_id, date)
 
-        if "file" in post:
-            if post['file']:
-                await handle_file(post['file'])
+        if post.get('file'):
+            await handle_file(post['file'])
 
         for file in post['attachments']:
             await handle_file(file)

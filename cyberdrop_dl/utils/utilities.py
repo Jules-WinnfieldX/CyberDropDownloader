@@ -53,10 +53,7 @@ def error_handling_wrapper(func):
     """Wrapper handles errors for url scraping"""
     @wraps(func)
     async def wrapper(self, *args, **kwargs):
-        if isinstance(args[0], URL):
-            link = args[0]
-        else:
-            link = args[0].url
+        link = args[0] if isinstance(args[0], URL) else args[0].url
 
         try:
             return await func(self, *args, **kwargs)

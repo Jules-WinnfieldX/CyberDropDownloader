@@ -187,13 +187,11 @@ class Crawler(ABC):
             title = "Untitled"
 
         title = title.strip()
-        if self.manager.config_manager.settings_data['Download_Options']['include_album_id_in_folder_name']:
-            if album_id:
-                title = f"{title} {album_id}"
+        if self.manager.config_manager.settings_data['Download_Options']['include_album_id_in_folder_name'] and album_id:
+            title = f"{title} {album_id}"
 
-        if self.manager.config_manager.settings_data['Download_Options']['include_thread_id_in_folder_name']:
-            if thread_id:
-                title = f"{title} {thread_id}"
+        if self.manager.config_manager.settings_data['Download_Options']['include_thread_id_in_folder_name'] and thread_id:
+            title = f"{title} {thread_id}"
 
         if not self.manager.config_manager.settings_data['Download_Options']['remove_domains_from_folder_names']:
             title = f"{title} ({self.folder_domain})"
