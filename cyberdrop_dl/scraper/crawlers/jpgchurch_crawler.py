@@ -127,8 +127,8 @@ class JPGChurchCrawler(Crawler):
     async def handle_direct_link(self, scrape_item: ScrapeItem) -> None:
         """Handles a direct link"""
         scrape_item.url = scrape_item.url.with_name(scrape_item.url.name.replace('.md.', '.').replace('.th.', '.'))
-        pattern = r"simp([1-5])\.jpg\.fish/"
-        scrape_item.url = URL(re.sub(pattern, r'simp\1.jpg.church/', str(scrape_item.url)))
+        pattern = r"(jpg\.fish/)|(jpg\.fishing/)|(jpg\.church/)"
+        scrape_item.url = URL(re.sub(pattern, r'host.church/', str(scrape_item.url)))
         filename, ext = await get_filename_and_ext(scrape_item.url.name)
         await self.handle_file(scrape_item.url, scrape_item, filename, ext)
 
@@ -141,7 +141,7 @@ class JPGChurchCrawler(Crawler):
 
     async def check_direct_link(self, url: URL) -> bool:
         """Determines if the url is a direct link or not"""
-        cdn_possibilities = r"^(?:(jpg.church\/images\/...)|(simp..jpg.church)|(jpg.fish\/images\/...)|(simp..jpg.fish)|(jpg.fishing\/images\/...)|(simp..jpg.fishing))"
+        cdn_possibilities = r"^(?:(jpg.church\/images\/...)|(simp..jpg.church)|(jpg.fish\/images\/...)|(simp..jpg.fish)|(jpg.fishing\/images\/...)|(simp..jpg.fishing)|(simp..host.church))"
         if not re.match(cdn_possibilities, url.host):
             return False
         return True

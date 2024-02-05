@@ -16,6 +16,7 @@ if TYPE_CHECKING:
 class SaintCrawler(Crawler):
     def __init__(self, manager: Manager):
         super().__init__(manager, "saint", "Saint")
+        self.primary_base_domain = URL("https://bunkr.sk")
         self.request_limiter = AsyncLimiter(10, 1)
 
     """~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"""
@@ -23,6 +24,7 @@ class SaintCrawler(Crawler):
     async def fetch(self, scrape_item: ScrapeItem) -> None:
         """Determines where to send the scrape item based on the url"""
         task_id = await self.scraping_progress.add_task(scrape_item.url)
+        scrape_item.url = self.primary_base_domain.with_path(scrape_item.url.path)
 
         await self.video(scrape_item)
 
