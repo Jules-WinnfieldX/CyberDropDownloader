@@ -35,6 +35,10 @@ class BunkrrCrawler(Crawler):
 
         await self.set_cookies()
 
+        if "get" in scrape_item.url.host:
+            scrape_item.url = await self.reinforced_link(scrape_item.url)
+            scrape_item.url = await self.get_stream_link(scrape_item.url)
+
         if "a" in scrape_item.url.parts:
             await self.album(scrape_item)
         elif "v" in scrape_item.url.parts:
@@ -112,6 +116,8 @@ class BunkrrCrawler(Crawler):
             except Exception as e:
                 if "get" in link.host:
                     link = await self.reinforced_link(link)
+                    if not link:
+                        return
                     filename, ext = await get_filename_and_ext(link.name)
                 else:
                     filename, ext = await get_filename_and_ext(scrape_item.url.name)
@@ -134,12 +140,15 @@ class BunkrrCrawler(Crawler):
         except NoExtensionFailure:
             if "get" in link.host:
                 link = await self.reinforced_link(link)
+                if not link:
+                    return
                 filename, ext = await get_filename_and_ext(link.name)
             else:
                 filename, ext = await get_filename_and_ext(scrape_item.url.name)
 
         await self.handle_file(link, scrape_item, filename, ext)
 
+    @error_handling_wrapper
     async def reinforced_link(self, url: URL) -> URL:
         """Gets the download link for a given reinforced URL"""
         """get.bunkr.su"""
