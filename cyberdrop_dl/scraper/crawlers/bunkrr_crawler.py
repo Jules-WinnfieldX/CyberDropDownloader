@@ -132,11 +132,14 @@ class BunkrrCrawler(Crawler):
         try:
             filename, ext = await get_filename_and_ext(link.name)
         except NoExtensionFailure:
-            filename, ext = await get_filename_and_ext(scrape_item.url.name)
+            if "get" in link.host:
+                link = await self.reinforced_link(link)
+                filename, ext = await get_filename_and_ext(link.name)
+            else:
+                filename, ext = await get_filename_and_ext(scrape_item.url.name)
 
         await self.handle_file(link, scrape_item, filename, ext)
 
-    @error_handling_wrapper
     async def reinforced_link(self, url: URL) -> URL:
         """Gets the download link for a given reinforced URL"""
         """get.bunkr.su"""
@@ -152,7 +155,7 @@ class BunkrrCrawler(Crawler):
 
     async def get_stream_link(self, url: URL) -> URL:
         """Gets the stream link for a given url"""
-        cdn_possibilities = r"^(?:(?:(?:media-files|cdn|c|pizza|cdn-burger)[0-9]{0,2})|(?:(?:big-taco-|cdn-pizza|cdn-meatballs|cdn-milkshake|meatballs|i.kebab|i.fries)[0-9]{0,2}(?:redir)?))\.bunkr?\.[a-z]{2,3}$"
+        cdn_possibilities = r"^(?:(?:(?:media-files|cdn|c|pizza|cdn-burger|burger|taquito|pizza|fries|meatballs|milkshake|kebab)[0-9]{0,2})|(?:(?:big-taco-|cdn-pizza|cdn-meatballs|cdn-milkshake|i.kebab|i.fries)[0-9]{0,2}(?:redir)?))\.bunkr?\.[a-z]{2,3}$"
 
         if not re.match(cdn_possibilities, url.host):
             return url
