@@ -76,9 +76,6 @@ class ClientManager:
         headers = response.headers
         response_url = response.url
 
-        if not headers.get('Content-Type'):
-            raise DownloadFailure(status=CustomHTTPStatus.IM_A_TEAPOT, message="No content-type in response header")
-
         if download:
             if headers.get('ETag') in ['"eb669b6362e031fa2b0f1215480c4e30"', '"a9e4cee098dc6f1e09ec124299f26b30"']:
                 raise DownloadFailure(status="Bunkr Maintenance", message="Bunkr under maintenance")
@@ -96,4 +93,8 @@ class ClientManager:
         response_text = await response.text()
         if "<title>DDoS-Guard</title>" in response_text:
             raise DownloadFailure(status="DDOS-Guard", message="DDoS-Guard detected")
+
+        if not headers.get('Content-Type'):
+            raise DownloadFailure(status=CustomHTTPStatus.IM_A_TEAPOT, message="No content-type in response header")
+
         raise DownloadFailure(status=status, message=f"HTTP status code {status}: {phrase}")
