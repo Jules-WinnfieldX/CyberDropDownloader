@@ -43,6 +43,9 @@ class Crawler(ABC):
 
     async def run(self, item: ScrapeItem) -> None:
         """Runs the crawler loop"""
+        if not item.url.host:
+            return
+
         self.waiting_items += 1
         await self._lock.acquire()
         self.waiting_items -= 1
