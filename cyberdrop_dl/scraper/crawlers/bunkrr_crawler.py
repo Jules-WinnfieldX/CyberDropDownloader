@@ -87,6 +87,9 @@ class BunkrrCrawler(Crawler):
                     src = src.with_host(src.host.replace("i-", ""))
                 new_scrape_item = await self.create_scrape_item(scrape_item, link, "", True, date)
 
+                if "no-image" in src.name:
+                    raise Exception("No image found, reverting to parent")
+
                 if await self.check_complete_from_referer(scrape_item):
                     continue
 
