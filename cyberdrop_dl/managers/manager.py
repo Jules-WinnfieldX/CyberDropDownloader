@@ -69,20 +69,21 @@ class Manager:
         await self.args_consolidation()
         await self.args_logging()
 
-        self.db_manager = DBManager(self, self.path_manager.history_db)
-        self.client_manager = ClientManager(self)
-        self.download_manager = DownloadManager(self)
+        if not isinstance(self.db_manager, DBManager):
+            self.db_manager = DBManager(self, self.path_manager.history_db)
+            self.db_manager.ignore_history = self.config_manager.settings_data['Runtime_Options']['ignore_history']
+            await self.db_manager.startup()
+        if not isinstance(self.client_manager, ClientManager):
+            self.client_manager = ClientManager(self)
+        if not isinstance(self.download_manager, DownloadManager):
+            self.download_manager = DownloadManager(self)
         self.progress_manager = ProgressManager(self)
+        await self.progress_manager.startup()
 
         # set files from args
-
         from cyberdrop_dl.utils.utilities import MAX_NAME_LENGTHS
         MAX_NAME_LENGTHS['FILE'] = int(self.config_manager.global_settings_data['General']['max_file_name_length'])
         MAX_NAME_LENGTHS['FOLDER'] = int(self.config_manager.global_settings_data['General']['max_folder_name_length'])
-
-        self.db_manager.ignore_history = self.config_manager.settings_data['Runtime_Options']['ignore_history']
-        await self.db_manager.startup()
-        await self.progress_manager.startup()
 
     async def args_consolidation(self) -> None:
         """Consolidates runtime arguments with config values"""
