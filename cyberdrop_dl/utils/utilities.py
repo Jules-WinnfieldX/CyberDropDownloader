@@ -100,7 +100,8 @@ async def log(message: [str, Exception], level: int) -> None:
 
 async def log_debug(message: [str, Exception], level: int) -> None:
     """Simple logging function"""
-    logger_debug.log(level, message)
+    if os.getenv("PYCHARM_HOSTED") is not None:
+        logger_debug.log(level, message)
 
 
 async def log_with_color(message: str, style: str, level: int) -> None:
