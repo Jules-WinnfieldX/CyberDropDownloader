@@ -18,6 +18,7 @@ class MediaItem:
         self.ext: str = ext
         self.download_filename: str = field(init=False)
         self.original_filename: str = original_filename
+        self.file_lock_reference_name: str = field(init=False)
         self.datetime: str = field(init=False)
         self.filesize: int = field(init=False)
         self.current_attempt: int = field(init=False)
