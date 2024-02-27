@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 
 from InquirerPy import inquirer
 from InquirerPy.base.control import Choice
-from InquirerPy.validator import EmptyInputValidator, NumberValidator
+from InquirerPy.validator import EmptyInputValidator
 from rich.console import Console
 
 if TYPE_CHECKING:

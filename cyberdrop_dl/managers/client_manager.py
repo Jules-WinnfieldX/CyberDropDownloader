@@ -74,7 +74,6 @@ class ClientManager:
         """Checks the HTTP status code and raises an exception if it's not acceptable"""
         status = response.status
         headers = response.headers
-        response_url = response.url
 
         if download:
             if headers.get('ETag') in ['"eb669b6362e031fa2b0f1215480c4e30"', '"a9e4cee098dc6f1e09ec124299f26b30"']:

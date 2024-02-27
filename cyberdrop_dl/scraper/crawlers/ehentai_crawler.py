@@ -95,4 +95,4 @@ class EHentaiCrawler(Crawler):
         self.warnings_set = True
         async with self.request_limiter:
             scrape_item.url = URL(str(scrape_item.url) + "/").update_query("nw=session")
-            soup = await self.client.get_BS4(self.domain, scrape_item.url)
+            await self.client.get_BS4(self.domain, scrape_item.url)

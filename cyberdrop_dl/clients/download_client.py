@@ -14,7 +14,7 @@ from aiohttp import ClientSession
 from rich.progress import TaskID
 
 from cyberdrop_dl.clients.errors import DownloadFailure, InvalidContentTypeFailure
-from cyberdrop_dl.utils.utilities import CustomHTTPStatus, FILE_FORMATS, log
+from cyberdrop_dl.utils.utilities import FILE_FORMATS, log
 
 if TYPE_CHECKING:
     from typing import Dict, Callable, Coroutine, Any

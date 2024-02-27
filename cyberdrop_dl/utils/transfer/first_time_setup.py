@@ -56,7 +56,7 @@ class TransitionManager:
             try:
                 self.transfer_v4_config(Path("./config.yaml"), "Imported V4")
                 self.update_default_config(APP_STORAGE / "Cache" / "cache.yaml", "Imported V4")
-            except Exception as e:
+            except Exception:
                 pass
             Path("./config.yaml").rename(OLD_FILES / "config.yaml")
 

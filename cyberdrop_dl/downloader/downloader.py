@@ -121,7 +121,7 @@ class Downloader:
 
         await self._semaphore.acquire()
         self.waiting_items -= 1
-        if not (media_item.url.path in self.processed_items):
+        if media_item.url.path not in self.processed_items:
             self.processed_items.append(media_item.url.path)
             await self.manager.progress_manager.download_progress.update_total()
 

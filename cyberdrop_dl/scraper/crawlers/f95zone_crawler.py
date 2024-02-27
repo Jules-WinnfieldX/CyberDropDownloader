@@ -289,7 +289,7 @@ class F95ZoneCrawler(Crawler):
     async def handle_link_confirmation(self, link: URL) -> Optional[URL]:
         """Handles link confirmation"""
         async with self.request_limiter:
-            soup = await self.client.get_BS4(self.domain, link)
+            await self.client.get_BS4(self.domain, link)
         async with self.request_limiter:
             JSON_Resp = await self.client.post_data(self.domain, link, data={"xhr": "1", "download": "1"})
 

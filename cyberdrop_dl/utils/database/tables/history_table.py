@@ -9,7 +9,7 @@ from yarl import URL
 from cyberdrop_dl.utils.database.table_definitions import create_history, create_fixed_history
 
 if TYPE_CHECKING:
-    from cyberdrop_dl.utils.dataclasses.url_objects import MediaItem, ScrapeItem
+    from cyberdrop_dl.utils.dataclasses.url_objects import MediaItem
 
 
 async def get_db_path(url: URL, referer: str = "") -> str:
@@ -131,7 +131,6 @@ class HistoryTable:
         result = await cursor.execute("""SELECT * from media WHERE domain = 'bunkr' and completed = 1""")
         bunkr_entries = await result.fetchall()
 
-        fixed_entries = []
         for entry in bunkr_entries:
             entry = list(entry)
             entry[0] = "bunkrr"

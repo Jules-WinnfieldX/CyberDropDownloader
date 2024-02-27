@@ -88,14 +88,14 @@ class BunkrrCrawler(Crawler):
                 new_scrape_item = await self.create_scrape_item(scrape_item, link, "", True, date)
 
                 if "no-image" in src.name:
-                    raise Exception("No image found, reverting to parent")
+                    raise FileNotFoundError("No image found, reverting to parent")
 
                 if await self.check_complete_from_referer(scrape_item):
                     continue
 
                 filename, ext = await get_filename_and_ext(src.name)
                 await self.handle_file(src, new_scrape_item, filename, ext)
-            except Exception as e:
+            except FileNotFoundError:
                 self.manager.task_group.create_task(self.run(ScrapeItem(link, scrape_item.parent_title, True, date)))
 
     @error_handling_wrapper
@@ -116,7 +116,7 @@ class BunkrrCrawler(Crawler):
                 link_container = soup.select_one("source")
                 link = URL(link_container.get('src'))
                 filename, ext = await get_filename_and_ext(link.name)
-            except Exception as e:
+            except NoExtensionFailure:
                 if "get" in link.host:
                     link = await self.reinforced_link(link)
                     if not link:

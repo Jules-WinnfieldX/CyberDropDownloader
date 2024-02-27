@@ -335,12 +335,12 @@ class ScrapeMapper:
         if not isinstance(scrape_item.url, URL):
             try:
                 scrape_item.url = URL(scrape_item.url)
-            except Exception as e:
+            except AttributeError:
                 return
         try:
             if not scrape_item.url.host:
                 return
-        except Exception as e:
+        except AttributeError:
             return
 
         # blocked domains

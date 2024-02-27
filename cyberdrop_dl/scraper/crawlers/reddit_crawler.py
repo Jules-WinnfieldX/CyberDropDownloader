@@ -112,7 +112,7 @@ class RedditCrawler(Crawler):
             new_scrape_item = await self.create_new_scrape_item(media_url, scrape_item, title, date)
             await self.gallery(new_scrape_item, submission, reddit)
         else:
-            if not "reddit.com" in media_url.host:
+            if "reddit.com" not in media_url.host:
                 new_scrape_item = await self.create_new_scrape_item(media_url, scrape_item, title, date)
                 await self.handle_external_links(new_scrape_item)
 

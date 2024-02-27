@@ -5,7 +5,6 @@ import re
 from copy import deepcopy
 from typing import TYPE_CHECKING
 
-import aiohttp.client_exceptions
 from aiolimiter import AsyncLimiter
 from yarl import URL
 
