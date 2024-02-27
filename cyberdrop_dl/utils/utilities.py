@@ -94,6 +94,8 @@ def error_handling_wrapper(func):
 async def log(message: [str, Exception], level: int) -> None:
     """Simple logging function"""
     logger.log(level, message)
+    if os.getenv("PYCHARM_HOSTED") is not None:
+        logger_debug.log(level, message)
 
 
 async def log_debug(message: [str, Exception], level: int) -> None:
@@ -104,6 +106,8 @@ async def log_debug(message: [str, Exception], level: int) -> None:
 async def log_with_color(message: str, style: str, level: int) -> None:
     """Simple logging function with color"""
     logger.log(level, message)
+    if os.getenv("PYCHARM_HOSTED") is not None:
+        logger_debug.log(level, message)
     rich.print(f"[{style}]{message}[/{style}]")
 
 

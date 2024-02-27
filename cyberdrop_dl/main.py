@@ -55,17 +55,15 @@ async def director(manager: Manager) -> None:
     logger_debug = logging.getLogger("cyberdrop_dl_debug")
     if os.getenv("PYCHARM_HOSTED") is not None:
         logger_debug.setLevel(manager.config_manager.settings_data['Runtime_Options']['log_level'])
-        file_handler = logging.FileHandler("../cyberdrop_dl_debug.log", mode="w")
-        file_handler.setLevel(manager.config_manager.settings_data['Runtime_Options']['log_level'])
+        file_handler_debug = logging.FileHandler("../cyberdrop_dl_debug.log", mode="w")
+        file_handler_debug.setLevel(manager.config_manager.settings_data['Runtime_Options']['log_level'])
         formatter = logging.Formatter("%(levelname)-8s : %(asctime)s : %(filename)s:%(lineno)d : %(message)s")
-        file_handler.setFormatter(formatter)
-        logger_debug.addHandler(file_handler)
+        file_handler_debug.setFormatter(formatter)
+        logger_debug.addHandler(file_handler_debug)
 
         aiosqlite_log = logging.getLogger("aiosqlite")
         aiosqlite_log.setLevel(manager.config_manager.settings_data['Runtime_Options']['log_level'])
-        aiosqlite_log.addHandler(file_handler)
-
-
+        aiosqlite_log.addHandler(file_handler_debug)
 
     while True:
         logger = logging.getLogger("cyberdrop_dl")
