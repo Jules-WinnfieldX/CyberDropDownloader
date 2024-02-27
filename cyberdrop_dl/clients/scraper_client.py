@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 
 import aiohttp
 from functools import wraps
@@ -12,6 +13,7 @@ from multidict import CIMultiDictProxy
 from yarl import URL
 
 from cyberdrop_dl.clients.errors import InvalidContentTypeFailure
+from cyberdrop_dl.utils.utilities import log
 
 if TYPE_CHECKING:
     from cyberdrop_dl.managers.client_manager import ClientManager
@@ -27,7 +29,8 @@ def limiter(func):
             await domain_limiter.acquire()
 
             async with aiohttp.ClientSession(headers=self._headers, raise_for_status=False,
-                                             cookie_jar=self.client_manager.cookies, timeout=self._timeouts) as client:
+                                             cookie_jar=self.client_manager.cookies, timeout=self._timeouts,
+                                             trace_configs=self.trace_configs) as client:
                 kwargs['client_session'] = client
                 return await func(self, *args, **kwargs)
     return wrapper
@@ -41,6 +44,20 @@ class ScraperClient:
         self._timeouts = aiohttp.ClientTimeout(total=client_manager.connection_timeout + 60,
                                                connect=client_manager.connection_timeout)
         self._global_limiter = self.client_manager.global_rate_limiter
+
+        self.trace_configs = []
+        if os.getenv("PYCHARM_HOSTED") is not None:
+            async def on_request_start(session, trace_config_ctx, params):
+                await log(f"Starting scrape {params.method} request to {params.url}", 40)
+
+            async def on_request_end(session, trace_config_ctx, params):
+                await log(f"Finishing scrape {params.method} request to {params.url}", 40)
+                await log(f"Response status for {params.url}: {params.response.status}", 40)
+
+            trace_config = aiohttp.TraceConfig()
+            trace_config.on_request_start.append(on_request_start)
+            trace_config.on_request_end.append(on_request_end)
+            self.trace_configs.append(trace_config)
 
     @limiter
     async def get_BS4(self, domain: str, url: URL, client_session: ClientSession) -> BeautifulSoup:

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import copy
+import os
 from http import HTTPStatus
 from functools import wraps, partial
 from pathlib import Path
@@ -13,7 +14,7 @@ from aiohttp import ClientSession
 from rich.progress import TaskID
 
 from cyberdrop_dl.clients.errors import DownloadFailure, InvalidContentTypeFailure
-from cyberdrop_dl.utils.utilities import CustomHTTPStatus, FILE_FORMATS
+from cyberdrop_dl.utils.utilities import CustomHTTPStatus, FILE_FORMATS, log
 
 if TYPE_CHECKING:
     from typing import Dict, Callable, Coroutine, Any
@@ -32,6 +33,7 @@ async def is_4xx_client_error(status_code: int) -> bool:
 
 def limiter(func):
     """Wrapper handles limits for download session"""
+
     @wraps(func)
     async def wrapper(self, *args, **kwargs):
         domain_limiter = await self.client_manager.get_rate_limiter(args[0])
@@ -40,7 +42,8 @@ def limiter(func):
         await domain_limiter.acquire()
 
         async with aiohttp.ClientSession(headers=self._headers, raise_for_status=False,
-                                         cookie_jar=self.client_manager.cookies, timeout=self._timeouts) as client:
+                                         cookie_jar=self.client_manager.cookies, timeout=self._timeouts,
+                                         trace_configs=self.trace_configs) as client:
             kwargs['client_session'] = client
             return await func(self, *args, **kwargs)
     return wrapper
@@ -54,6 +57,20 @@ class DownloadClient:
         self._timeouts = aiohttp.ClientTimeout(total=client_manager.read_timeout + client_manager.connection_timeout,
                                                connect=client_manager.connection_timeout)
         self._global_limiter = self.client_manager.global_rate_limiter
+
+        self.trace_configs = []
+        if os.getenv("PYCHARM_HOSTED") is not None:
+            async def on_request_start(session, trace_config_ctx, params):
+                await log(f"Starting download {params.method} request to {params.url}", 40)
+
+            async def on_request_end(session, trace_config_ctx, params):
+                await log(f"Finishing download {params.method} request to {params.url}", 40)
+                await log(f"Response status for {params.url}: {params.response.status}", 40)
+
+            trace_config = aiohttp.TraceConfig()
+            trace_config.on_request_start.append(on_request_start)
+            trace_config.on_request_end.append(on_request_end)
+            self.trace_configs.append(trace_config)
 
     @limiter
     async def get_filesize(self, media_item: MediaItem, client_session: ClientSession) -> int:
