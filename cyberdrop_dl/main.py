@@ -54,7 +54,7 @@ async def director(manager: Manager) -> None:
 
     logger_debug = logging.getLogger("cyberdrop_dl_debug")
     import cyberdrop_dl.utils.utilities
-    if manager.config_manager.settings_data['Runtime_Options']['log_level'] == -1:
+    if os.getenv("PYCHARM_HOSTED") is not None or manager.config_manager.settings_data['Runtime_Options']['log_level'] == -1:
         manager.config_manager.settings_data['Runtime_Options']['log_level'] = 10
         cyberdrop_dl.utils.utilities.DEBUG_VAR = True
         

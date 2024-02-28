@@ -68,7 +68,6 @@ def retry(f):
             
             except InvalidContentTypeFailure as e:
                 media_item = args[0]
-                await self._file_lock.release_lock(media_item.file_lock_reference_name)
                 if not isinstance(media_item.download_task_id, Field):
                     await self.manager.progress_manager.file_progress.remove_file(media_item.download_task_id)
                 await log(f"Download Failed: {media_item.url} received Invalid Content", 40)
@@ -79,7 +78,6 @@ def retry(f):
             
             except Exception as e:
                 media_item = args[0]
-                await self._file_lock.release_lock(media_item.file_lock_reference_name)
                 await log(f"Download Failed: {media_item.url} with error {e}", 40)
                 if not isinstance(media_item.download_task_id, Field):
                     await self.manager.progress_manager.file_progress.remove_file(media_item.download_task_id)
@@ -130,6 +128,10 @@ class Downloader:
             await log(f"Download Starting: {media_item.url}", 20)
             async with self.manager.client_manager.download_session_limit:
                 try:
+                    if isinstance(media_item.file_lock_reference_name, Field):
+                        media_item.file_lock_reference_name = media_item.filename
+                    await self._file_lock.check_lock(media_item.file_lock_reference_name)
+                    
                     await self.download(media_item)
                 except Exception as e:
                     await log(f"Download Failed: {media_item.url} with error {e}", 40)
@@ -138,6 +140,8 @@ class Downloader:
                     await self.manager.progress_manager.download_progress.add_failed()
                 else:
                     await log(f"Download Finished: {media_item.url}", 20)
+                finally:
+                    await self._file_lock.release_lock(media_item.file_lock_reference_name)
         self._semaphore.release()
 
     """~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"""
@@ -311,12 +315,8 @@ class Downloader:
 
         partial_file = None
         complete_file = None
-        if isinstance(media_item.file_lock_reference_name, Field):
-            media_item.file_lock_reference_name = media_item.filename
 
         try:
-            await self._file_lock.check_lock(media_item.file_lock_reference_name)
-
             if not isinstance(media_item.current_attempt, int):
                 media_item.current_attempt = 1
 
@@ -334,7 +334,6 @@ class Downloader:
                 await log(f"Skipping {media_item.url} as it has already been downloaded", 10)
                 await self.manager.progress_manager.download_progress.add_previously_completed(False)
                 await self.mark_completed(media_item)
-                await self._file_lock.release_lock(media_item.file_lock_reference_name)
                 return
 
             resume_point = partial_file.stat().st_size if partial_file.exists() else 0
@@ -357,12 +356,9 @@ class Downloader:
             await self.mark_completed(media_item)
             await self.manager.progress_manager.file_progress.mark_task_completed(media_item.download_task_id)
             await self.manager.progress_manager.download_progress.add_completed()
-            await self._file_lock.release_lock(media_item.file_lock_reference_name)
             return
 
         except (aiohttp.ServerDisconnectedError, asyncio.TimeoutError, aiohttp.ServerTimeoutError) as e:
-            await self._file_lock.release_lock(media_item.file_lock_reference_name)
-
             if partial_file and partial_file.is_file():
                 size = partial_file.stat().st_size
                 if partial_file.name in self._current_attempt_filesize and self._current_attempt_filesize[media_item.filename] >= size:
@@ -375,8 +371,6 @@ class Downloader:
 
         except (aiohttp.ClientPayloadError, aiohttp.ClientOSError, aiohttp.ClientResponseError, ConnectionResetError,
                 DownloadFailure, FileNotFoundError, PermissionError) as e:
-            await self._file_lock.release_lock(media_item.file_lock_reference_name)
-
             if hasattr(e, "status"):
                 if ((await is_4xx_client_error(e.status) and e.status != HTTPStatus.TOO_MANY_REQUESTS)
                         or e.status == HTTPStatus.SERVICE_UNAVAILABLE
