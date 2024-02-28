@@ -53,12 +53,12 @@ async def director(manager: Manager) -> None:
     manager.log_manager.startup()
 
     logger_debug = logging.getLogger("cyberdrop_dl_debug")
-    from cyberdrop_dl.utils.utilities import DEBUG_VAR
-    if os.getenv("PYCHARM_HOSTED") is not None or manager.config_manager.settings_data['Runtime_Options']['log_level'] == -1:
+    import cyberdrop_dl.utils.utilities
+    if manager.config_manager.settings_data['Runtime_Options']['log_level'] == -1:
         manager.config_manager.settings_data['Runtime_Options']['log_level'] = 10
-        DEBUG_VAR = True
+        cyberdrop_dl.utils.utilities.DEBUG_VAR = True
         
-    if DEBUG_VAR:
+    if cyberdrop_dl.utils.utilities.DEBUG_VAR:
         logger_debug.setLevel(manager.config_manager.settings_data['Runtime_Options']['log_level'])
         if os.getenv("PYCHARM_HOSTED") is not None:
             file_handler_debug = logging.FileHandler("../cyberdrop_dl_debug.log", mode="w")
@@ -91,7 +91,7 @@ async def director(manager: Manager) -> None:
         logger.setLevel(manager.config_manager.settings_data['Runtime_Options']['log_level'])
         file_handler = logging.FileHandler(manager.path_manager.main_log, mode="w")
         
-        if DEBUG_VAR:
+        if cyberdrop_dl.utils.utilities.DEBUG_VAR:
             manager.config_manager.settings_data['Runtime_Options']['log_level'] = 10
         file_handler.setLevel(manager.config_manager.settings_data['Runtime_Options']['log_level'])
 
