@@ -26,6 +26,8 @@ logger_debug = logging.getLogger("cyberdrop_dl_debug")
 
 MAX_NAME_LENGTHS = {"FILE": 95, "FOLDER": 60}
 
+DEBUG_VAR = False
+
 FILE_FORMATS = {
     'Images': {
         '.jpg', '.jpeg', '.png', '.gif',
@@ -94,20 +96,20 @@ def error_handling_wrapper(func):
 async def log(message: [str, Exception], level: int) -> None:
     """Simple logging function"""
     logger.log(level, message)
-    if os.getenv("PYCHARM_HOSTED") is not None:
+    if DEBUG_VAR:
         logger_debug.log(level, message)
 
 
 async def log_debug(message: [str, Exception], level: int) -> None:
     """Simple logging function"""
-    if os.getenv("PYCHARM_HOSTED") is not None:
+    if DEBUG_VAR:
         logger_debug.log(level, message)
 
 
 async def log_with_color(message: str, style: str, level: int) -> None:
     """Simple logging function with color"""
     logger.log(level, message)
-    if os.getenv("PYCHARM_HOSTED") is not None:
+    if DEBUG_VAR:
         logger_debug.log(level, message)
     rich.print(f"[{style}]{message}[/{style}]")
 

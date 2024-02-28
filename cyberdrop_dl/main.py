@@ -53,9 +53,17 @@ async def director(manager: Manager) -> None:
     manager.log_manager.startup()
 
     logger_debug = logging.getLogger("cyberdrop_dl_debug")
-    if os.getenv("PYCHARM_HOSTED") is not None:
+    from cyberdrop_dl.utils.utilities import DEBUG_VAR
+    if os.getenv("PYCHARM_HOSTED") is not None or manager.config_manager.settings_data['Runtime_Options']['log_level'] == -1:
+        manager.config_manager.settings_data['Runtime_Options']['log_level'] = 10
+        DEBUG_VAR = True
+        
+    if DEBUG_VAR:
         logger_debug.setLevel(manager.config_manager.settings_data['Runtime_Options']['log_level'])
-        file_handler_debug = logging.FileHandler("../cyberdrop_dl_debug.log", mode="w")
+        if os.getenv("PYCHARM_HOSTED") is not None:
+            file_handler_debug = logging.FileHandler("../cyberdrop_dl_debug.log", mode="w")
+        else:
+            file_handler_debug = logging.FileHandler("./cyberdrop_dl_debug.log", mode="w")
         file_handler_debug.setLevel(manager.config_manager.settings_data['Runtime_Options']['log_level'])
         formatter = logging.Formatter("%(levelname)-8s : %(asctime)s : %(filename)s:%(lineno)d : %(message)s")
         file_handler_debug.setFormatter(formatter)
@@ -82,6 +90,9 @@ async def director(manager: Manager) -> None:
 
         logger.setLevel(manager.config_manager.settings_data['Runtime_Options']['log_level'])
         file_handler = logging.FileHandler(manager.path_manager.main_log, mode="w")
+        
+        if DEBUG_VAR:
+            manager.config_manager.settings_data['Runtime_Options']['log_level'] = 10
         file_handler.setLevel(manager.config_manager.settings_data['Runtime_Options']['log_level'])
 
         formatter = logging.Formatter("%(levelname)-8s : %(asctime)s : %(filename)s:%(lineno)d : %(message)s")
