@@ -101,7 +101,7 @@ class DownloadClient:
             await self.client_manager.check_http_status(resp, download=True)
             content_type = resp.headers.get('Content-Type')
             ext = Path(media_item.filename).suffix.lower()
-            if any(s in content_type.lower() for s in ('html', 'text')) and ext not in FILE_FORMATS['Text']:
+            if content_type and any(s in content_type.lower() for s in ('html', 'text')) and ext not in FILE_FORMATS['Text']:
                 raise InvalidContentTypeFailure(message=f"Received {content_type}, was expecting other")
 
             if resp.status != HTTPStatus.PARTIAL_CONTENT and file.is_file():
