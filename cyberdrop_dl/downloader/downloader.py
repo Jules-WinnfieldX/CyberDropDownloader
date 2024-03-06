@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import copy
 import itertools
+import os
 import traceback
 from dataclasses import field, Field
 from functools import wraps
@@ -350,7 +351,9 @@ class Downloader:
             except FileExistsError:
                 complete_file, _partial_file = await self.iterate_filename(complete_file, media_item)
                 partial_file.rename(complete_file)
-
+            
+            os.chmod(complete_file, 0o666)
+            
             await self.set_file_datetime(media_item, complete_file)
 
             await self.mark_completed(media_item)
