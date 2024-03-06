@@ -3,7 +3,7 @@ from __future__ import annotations
 from sqlite3 import Row
 
 import aiosqlite
-from typing import TYPE_CHECKING, Iterable
+from typing import TYPE_CHECKING, Iterable, Any
 from yarl import URL
 
 from cyberdrop_dl.utils.database.table_definitions import create_history, create_fixed_history
@@ -43,6 +43,7 @@ class HistoryTable:
         await self.db_conn.execute(create_history)
         await self.db_conn.commit()
         await self.fix_primary_keys()
+        await self.add_columns()
         await self.fix_bunkr_v4_entries()
 
     async def check_complete(self, domain: str, url: URL, referer: URL) -> bool:
@@ -63,6 +64,25 @@ class HistoryTable:
                 await self.db_conn.commit()
             return True
         return False
+    
+    async def check_album(self, domain: str, album_id: str) -> bool | dict[Any, Any]:
+        """Checks whether an album has completed given its domain and album id"""
+        if self.ignore_history:
+            return False
+
+        domain = await get_db_domain(domain)
+        cursor = await self.db_conn.cursor()
+        result = await cursor.execute("""SELECT url_path, completed FROM media WHERE domain = ? and album_id = ?""", (domain, album_id))
+        result = await result.fetchall()
+        return {row[0]: row[1] for row in result}
+    
+    async def set_album_id(self, domain: str, media_item: MediaItem) -> None:
+        """Sets an album_id in the database"""
+        domain = await get_db_domain(domain)
+        url_path = await get_db_path(media_item.url, str(media_item.referer))
+        await self.db_conn.execute("""UPDATE media SET album_id = ? WHERE domain = ? and url_path = ?""",
+                                   (media_item.album_id, domain, url_path))
+        await self.db_conn.commit()
 
     async def check_complete_by_referer(self, domain: str, referer: URL) -> bool:
         """Checks whether an individual file has completed given its domain and url path"""
@@ -80,13 +100,10 @@ class HistoryTable:
         domain = await get_db_domain(domain)
         url_path = await get_db_path(media_item.url, str(media_item.referer))
         download_filename = media_item.download_filename if isinstance(media_item.download_filename, str) else ""
-        await self.db_conn.execute(
-            """UPDATE media SET domain = ? WHERE domain = 'no_crawler' and url_path = ? and referer = ?""",
-            (domain, url_path, str(media_item.referer)))
-        await self.db_conn.execute(
-            """INSERT OR IGNORE INTO media (domain, url_path, referer, download_path, download_filename, original_filename, completed) VALUES (?, ?, ?, ?, ?, ?, ?)""",
-            (domain, url_path, str(media_item.referer), str(media_item.download_folder), download_filename,
-             media_item.original_filename, 0))
+        await self.db_conn.execute("""UPDATE media SET domain = ?, album_id = ? WHERE domain = 'no_crawler' and url_path = ? and referer = ?""", 
+                                   (domain, media_item.album_id, url_path, str(media_item.referer)))
+        await self.db_conn.execute("""INSERT OR IGNORE INTO media (domain, url_path, referer, album_id, download_path, download_filename, original_filename, completed) VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+                                   (domain, url_path, str(media_item.referer), media_item.album_id, str(media_item.download_folder), download_filename, media_item.original_filename, 0))
         await self.db_conn.execute("""UPDATE media SET download_filename = ? WHERE domain = ? and url_path = ?""",
                                    (download_filename, domain, url_path))
         await self.db_conn.commit()
@@ -119,7 +136,7 @@ class HistoryTable:
     async def get_failed_items(self) -> Iterable[Row]:
         """Returns a list of failed items"""
         cursor = await self.db_conn.cursor()
-        result = await cursor.execute("""SELECT * FROM media WHERE completed = 0""")
+        result = await cursor.execute("""SELECT referer, download_path FROM media WHERE completed = 0""")
         failed_files = await result.fetchall()
         return failed_files
 
@@ -134,7 +151,7 @@ class HistoryTable:
         for entry in bunkr_entries:
             entry = list(entry)
             entry[0] = "bunkrr"
-            await self.db_conn.execute("""INSERT or REPLACE INTO media VALUES (?, ?, ?, ?, ?, ?, ?)""", entry)
+            await self.db_conn.execute("""INSERT or REPLACE INTO media VALUES (?, ?, ?, ?, ?, ?, ?, ?)""", entry)
         await self.db_conn.commit()
 
         await self.db_conn.execute("""DELETE FROM media WHERE domain = 'bunkr'""")
@@ -156,4 +173,14 @@ class HistoryTable:
             await self.db_conn.commit()
 
             await self.db_conn.execute("""ALTER TABLE media_copy RENAME TO media""")
+            await self.db_conn.commit()
+            
+    async def add_columns(self) -> None:
+        cursor = await self.db_conn.cursor()
+        result = await cursor.execute("""pragma table_info(media)""")
+        result = await result.fetchall()
+        current_cols = [col[1] for col in result]
+        
+        if "album_id" not in current_cols:
+            await self.db_conn.execute("""ALTER TABLE media ADD COLUMN album_id TEXT""")
             await self.db_conn.commit()

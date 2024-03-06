@@ -46,7 +46,7 @@ class PimpAndHostCrawler(Crawler):
         files = soup.select('a[class*="image-wrapper center-cropped im-wr"]')
         for file in files:
             link = URL(file.get("href"))
-            new_scrape_item = await self.create_scrape_item(scrape_item, link, title, True, date)
+            new_scrape_item = await self.create_scrape_item(scrape_item, link, title, True, None, date)
             self.manager.task_group.create_task(self.run(new_scrape_item))
 
         next_page = soup.select_one("li[class=next] a")
@@ -54,7 +54,7 @@ class PimpAndHostCrawler(Crawler):
             next_page = next_page.get("href")
             if next_page.startswith("/"):
                 next_page = URL("https://pimpandhost.com" + next_page)
-            new_scrape_item = await self.create_scrape_item(scrape_item, next_page, "", True, date)
+            new_scrape_item = await self.create_scrape_item(scrape_item, next_page, "", True, None, date)
             self.manager.task_group.create_task(self.run(new_scrape_item))
 
     @error_handling_wrapper
@@ -70,7 +70,7 @@ class PimpAndHostCrawler(Crawler):
         date = soup.select_one("span[class=date-time]").get("title")
         date = await self.parse_datetime(date)
 
-        new_scrape_item = await self.create_scrape_item(scrape_item, link, "", True, date)
+        new_scrape_item = await self.create_scrape_item(scrape_item, link, "", True, None, date)
         filename, ext = await get_filename_and_ext(link.name)
         await self.handle_file(link, new_scrape_item, filename, ext)
 

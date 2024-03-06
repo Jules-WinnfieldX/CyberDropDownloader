@@ -105,7 +105,7 @@ class XBunkerCrawler(Crawler):
 
                 if scrape_post:
                     date = int(post.select_one(self.post_date_selector).get(self.post_date_attribute))
-                    new_scrape_item = await self.create_scrape_item(scrape_item, thread_url, title, False, date)
+                    new_scrape_item = await self.create_scrape_item(scrape_item, thread_url, title, False, None, date)
 
                     for elem in post.find_all(self.quotes_selector):
                         elem.decompose()

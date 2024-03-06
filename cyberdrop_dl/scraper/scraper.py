@@ -308,8 +308,8 @@ class ScrapeMapper:
         """Loads failed links from db"""
         items = await self.manager.db_manager.history_table.get_failed_items()
         for item in items:
-            link = URL(item[2])
-            retry_path = Path(item[3])
+            link = URL(item[0])
+            retry_path = Path(item[1])
 
             item = ScrapeItem(link, parent_title="", part_of_album=True, retry=True, retry_path=retry_path)
             self.manager.task_group.create_task(self.map_url(item))
@@ -388,7 +388,7 @@ class ScrapeMapper:
             scrape_item.part_of_album = True
             download_folder = await get_download_path(self.manager, scrape_item, "no_crawler")
             filename, ext = await get_filename_and_ext(scrape_item.url.name)
-            media_item = MediaItem(scrape_item.url, scrape_item.url, download_folder, filename, ext, filename)
+            media_item = MediaItem(scrape_item.url, scrape_item.url, None, download_folder, filename, ext, filename)
             self.manager.task_group.create_task(self.no_crawler_downloader.run(media_item))
 
         elif self.jdownloader.enabled:

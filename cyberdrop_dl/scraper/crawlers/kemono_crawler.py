@@ -163,7 +163,7 @@ class KemonoCrawler(Crawler):
                 post_title = post_id + " - " + post_title
 
         new_title = await self.create_title(user, None, None)
-        new_scrape_item = await self.create_scrape_item(old_scrape_item, link, new_title, True, await self.parse_datetime(date))
+        new_scrape_item = await self.create_scrape_item(old_scrape_item, link, new_title, True, None, await self.parse_datetime(date))
         await new_scrape_item.add_to_parent_title(post_title)
         self.manager.task_group.create_task(self.run(new_scrape_item))
 

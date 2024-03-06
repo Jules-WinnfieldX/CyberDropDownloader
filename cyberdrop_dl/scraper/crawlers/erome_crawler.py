@@ -54,6 +54,9 @@ class EromeCrawler(Crawler):
     @error_handling_wrapper
     async def album(self, scrape_item: ScrapeItem) -> None:
         """Scrapes an album"""
+        album_id = scrape_item.url.parts[2]
+        results = await self.get_album_results(album_id)
+        
         async with self.request_limiter:
             soup = await self.client.get_BS4(self.domain, scrape_item.url)
 
@@ -69,9 +72,11 @@ class EromeCrawler(Crawler):
         for image in images:
             link = URL(image['data-src'])
             filename, ext = await get_filename_and_ext(link.name)
-            await self.handle_file(link, scrape_item, filename, ext)
+            if not self.check_album_results(link, results):
+                await self.handle_file(link, scrape_item, filename, ext)
 
         for video in vidoes:
             link = URL(video['src'])
             filename, ext = await get_filename_and_ext(link.name)
-            await self.handle_file(link, scrape_item, filename, ext)
+            if not self.check_album_results(link, results):
+                await self.handle_file(link, scrape_item, filename, ext)

@@ -152,7 +152,7 @@ class RedditCrawler(Crawler):
     async def create_new_scrape_item(self, link: URL, old_scrape_item: ScrapeItem, title: str, date: int) -> ScrapeItem:
         """Creates a new scrape item with the same parent as the old scrape item"""
 
-        new_scrape_item = await self.create_scrape_item(old_scrape_item, link, "", True, date)
+        new_scrape_item = await self.create_scrape_item(old_scrape_item, link, "", True, None, date)
         if self.manager.config_manager.settings_data['Download_Options']['separate_posts']:
             await new_scrape_item.add_to_parent_title(title)
         return new_scrape_item

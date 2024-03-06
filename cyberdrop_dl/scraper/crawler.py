@@ -4,13 +4,14 @@ import asyncio
 import copy
 from abc import ABC, abstractmethod
 from dataclasses import field
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Optional, Union, Any
 
 from bs4 import BeautifulSoup
 from yarl import URL
 
 from cyberdrop_dl.clients.errors import FailedLoginFailure
 from cyberdrop_dl.downloader.downloader import Downloader
+from cyberdrop_dl.utils.database.tables.history_table import get_db_path
 from cyberdrop_dl.utils.dataclasses.url_objects import MediaItem, ScrapeItem
 from cyberdrop_dl.utils.utilities import log, get_download_path, remove_id, error_handling_wrapper
 
@@ -72,16 +73,18 @@ class Crawler(ABC):
         else:
             original_filename = filename
 
+        download_folder = await get_download_path(self.manager, scrape_item, self.folder_domain)
+        media_item = MediaItem(url, scrape_item.url, scrape_item.album_id, download_folder, filename, ext, original_filename)
+        if scrape_item.possible_datetime:
+            media_item.datetime = scrape_item.possible_datetime
+
         check_complete = await self.manager.db_manager.history_table.check_complete(self.domain, url, scrape_item.url)
         if check_complete:
+            if media_item.album_id:
+                await self.manager.db_manager.history_table.set_album_id(self.domain, media_item)
             await log(f"Skipping {url} as it has already been downloaded", 10)
             await self.manager.progress_manager.download_progress.add_previously_completed()
             return
-
-        download_folder = await get_download_path(self.manager, scrape_item, self.folder_domain)
-        media_item = MediaItem(url, scrape_item.url, download_folder, filename, ext, original_filename)
-        if scrape_item.possible_datetime:
-            media_item.datetime = scrape_item.possible_datetime
 
         if await self.manager.download_manager.get_download_limit(self.domain) == 1:
             await self.downloader.run(media_item)
@@ -170,9 +173,23 @@ class Crawler(ABC):
             await self.manager.progress_manager.download_progress.add_previously_completed()
             return True
         return False
+    
+    async def get_album_results(self, album_id: str) -> bool | dict[Any, Any]:
+        """Checks whether an album has completed given its domain and album id"""
+        return await self.manager.db_manager.history_table.check_album(self.domain, album_id)
+    
+    async def check_album_results(self, url: URL, album_results: dict[Any, Any]) -> bool:
+        """Checks whether an album has completed given its domain and album id"""
+        url_path = await get_db_path(url.with_query(""), self.domain)
+        if album_results and url_path in album_results:
+            if album_results[url_path] != 0:
+                await log(f"Skipping {url} as it has already been downloaded", 10)
+                await self.manager.progress_manager.download_progress.add_previously_completed()
+                return True
+        return False
 
     async def create_scrape_item(self, parent_scrape_item: ScrapeItem, url: URL, new_title_part: str,
-                                 part_of_album: bool = False,
+                                 part_of_album: bool = False, album_id: Union[str, None] = None,
                                  possible_datetime: Optional[int] = None) -> ScrapeItem:
         """Creates a scrape item"""
         scrape_item = copy.deepcopy(parent_scrape_item)
@@ -182,6 +199,8 @@ class Crawler(ABC):
         scrape_item.part_of_album = part_of_album if part_of_album else scrape_item.part_of_album
         if possible_datetime:
             scrape_item.possible_datetime = possible_datetime
+        if album_id:
+            scrape_item.album_id = album_id
         return scrape_item
 
     async def create_title(self, title: str, album_id: Optional[str], thread_id: Optional[str]) -> str:

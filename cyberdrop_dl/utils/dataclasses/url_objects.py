@@ -1,6 +1,6 @@
 from dataclasses import field
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Union
 
 from cyberdrop_dl.utils.utilities import sanitize_folder
 
@@ -10,9 +10,10 @@ if TYPE_CHECKING:
 
 
 class MediaItem:
-    def __init__(self, url: "URL", referer: "URL", download_folder: Path, filename: str, ext: str, original_filename: str):
+    def __init__(self, url: "URL", referer: "URL", album_id: Union[str, None], download_folder: Path, filename: str, ext: str, original_filename: str):
         self.url: URL = url
         self.referer: URL = referer
+        self.album_id: Union[str, None] = album_id
         self.download_folder: Path = download_folder
         self.filename: str = filename
         self.ext: str = ext
@@ -26,11 +27,12 @@ class MediaItem:
 
 
 class ScrapeItem:
-    def __init__(self, url: "URL", parent_title: str, part_of_album: bool = False, possible_datetime: int = None,
+    def __init__(self, url: "URL", parent_title: str, part_of_album: bool = False, album_id: Union[str, None] = None, possible_datetime: int = None,
                  retry: bool = False, retry_path: Path = None):
         self.url: URL = url
         self.parent_title: str = parent_title
         self.part_of_album: bool = part_of_album
+        self.album_id: Union[str, None] = album_id
         self.possible_datetime: int = possible_datetime
         self.retry: bool = retry
         self.retry_path: Path = retry_path
