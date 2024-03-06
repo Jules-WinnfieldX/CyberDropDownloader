@@ -104,6 +104,7 @@ class BunkrrCrawler(Crawler):
     @error_handling_wrapper
     async def video(self, scrape_item: ScrapeItem) -> None:
         """Scrapes a video"""
+        scrape_item.url = self.primary_base_domain.with_path(scrape_item.url.path)
         if await self.check_complete_from_referer(scrape_item):
             return
 
@@ -133,6 +134,8 @@ class BunkrrCrawler(Crawler):
     @error_handling_wrapper
     async def other(self, scrape_item: ScrapeItem) -> None:
         """Scrapes an image/other file"""
+        scrape_item.url = self.primary_base_domain.with_path(scrape_item.url.path)
+        
         if await self.check_complete_from_referer(scrape_item):
             return
 
