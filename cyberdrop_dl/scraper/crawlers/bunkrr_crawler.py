@@ -21,10 +21,7 @@ class BunkrrCrawler(Crawler):
     def __init__(self, manager: Manager):
         super().__init__(manager, "bunkrr", "Bunkrr")
         self.primary_base_domain = URL("https://bunkr.sk")
-        self.ddos_guard_domain = URL("https://bunkr.sk")
         self.request_limiter = AsyncLimiter(10, 1)
-
-        self.cookies_set = False
 
     """~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"""
 
@@ -32,8 +29,6 @@ class BunkrrCrawler(Crawler):
         """Determines where to send the scrape item based on the url"""
         task_id = await self.scraping_progress.add_task(scrape_item.url)
         scrape_item.url = await self.get_stream_link(scrape_item.url)
-
-        await self.set_cookies()
 
         if scrape_item.url.host.startswith("get"):
             scrape_item.url = await self.reinforced_link(scrape_item.url)
@@ -194,19 +189,3 @@ class BunkrrCrawler(Crawler):
         """Parses a datetime string into a unix timestamp"""
         date = datetime.datetime.strptime(date, "%H:%M:%S %d/%m/%Y")
         return calendar.timegm(date.timetuple())
-
-    """~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"""
-
-    async def set_cookies(self):
-        """Sets the cookies for the client"""
-        if self.cookies_set:
-            return
-
-        if self.manager.config_manager.authentication_data['DDOS-Guard']['bunkrr_ddg1']:
-            self.client.client_manager.cookies.update_cookies({"__ddg1_": self.manager.config_manager.authentication_data['DDOS-Guard']['bunkrr_ddg1']}, response_url=self.ddos_guard_domain)
-        if self.manager.config_manager.authentication_data['DDOS-Guard']['bunkrr_ddg2']:
-            self.client.client_manager.cookies.update_cookies({"__ddg2_": self.manager.config_manager.authentication_data['DDOS-Guard']['bunkrr_ddg2']}, response_url=self.ddos_guard_domain)
-        if self.manager.config_manager.authentication_data['DDOS-Guard']['bunkrr_ddgid']:
-            self.client.client_manager.cookies.update_cookies({"__ddgid_": self.manager.config_manager.authentication_data['DDOS-Guard']['bunkrr_ddgid']}, response_url=self.ddos_guard_domain)
-
-        self.cookies_set = True

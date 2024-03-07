@@ -51,23 +51,6 @@ def get_forum_cookies(manager: Manager, browser: str) -> None:
     manager.cache_manager.save("browser", browser)
 
 
-# noinspection PyProtectedMember
-@cookie_wrapper
-def get_ddos_guard_cookies(manager: Manager, browser: str) -> None:
-    """Get the cookies for DDOS-Guard"""
-    auth_args: Dict = manager.config_manager.authentication_data
-    for ddos_guard in SupportedDomains.supported_ddos_guard:
-        try:
-            cookie = get_cookie(browser, ddos_guard)
-            auth_args['DDOS-Guard'][f'{SupportedDomains.supported_ddos_guard_map[ddos_guard]}_ddg1'] = cookie._cookies[ddos_guard]['/']['__ddg1_'].value
-            auth_args['DDOS-Guard'][f'{SupportedDomains.supported_ddos_guard_map[ddos_guard]}_ddg2'] = cookie._cookies[ddos_guard]['/']['__ddg2_'].value
-            auth_args['DDOS-Guard'][f'{SupportedDomains.supported_ddos_guard_map[ddos_guard]}_ddgid'] = cookie._cookies[ddos_guard]['/']['__ddgid_'].value
-        except KeyError:
-            pass
-
-    manager.cache_manager.save("browser", browser)
-
-
 def get_cookie(browser: str, domain: str):
     """Get the cookies for a specific domain"""
     if browser == 'chrome':
