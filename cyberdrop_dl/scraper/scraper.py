@@ -290,10 +290,13 @@ class ScrapeMapper:
 
         links = []
         if not self.manager.args_manager.other_links:
+            block_quote = False
             async with aiofiles.open(input_file, "r", encoding="utf8") as f:
                 async for line in f:
                     assert isinstance(line, str)
-                    links.extend(await self.regex_links(line))
+                    block_quote = not block_quote if line == "#\n" else block_quote
+                    if not block_quote:
+                        links.extend(await self.regex_links(line))
         else:
             links.extend(self.manager.args_manager.other_links)
         links = list(filter(None, links))
