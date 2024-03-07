@@ -118,16 +118,6 @@ class Manager:
                 forum_credentials_provided[f"{forum} Credentials Provided"] = False
 
         gofile_credentials_provided = bool(self.config_manager.authentication_data["GoFile"]["gofile_api_key"])
-        bunkr_ddg_credentials_provided = False
-        coomer_ddg_credentials_provided = False
-        kemono_ddg_credentials_provided = False
-
-        if self.config_manager.authentication_data["DDOS-Guard"]['bunkrr_ddg1'] and self.config_manager.authentication_data["DDOS-Guard"]['bunkrr_ddg2'] and self.config_manager.authentication_data["DDOS-Guard"]['bunkrr_ddgid']:
-            bunkr_ddg_credentials_provided = True
-        if self.config_manager.authentication_data["DDOS-Guard"]['coomer_ddg1']:
-            coomer_ddg_credentials_provided = True
-        if self.config_manager.authentication_data["DDOS-Guard"]['kemono_ddg1']:
-            kemono_ddg_credentials_provided = True
 
         imgur_credentials_provided = bool(self.config_manager.authentication_data["Imgur"]["imgur_client_id"])
         jdownloader_credentials_provided = False
@@ -145,11 +135,6 @@ class Manager:
             "Forums Credentials": forum_credentials_provided,
             "Forums XF Cookies": forum_xf_cookies_provided,
             "GoFile Provided": gofile_credentials_provided,
-            "DDOS-Guard": {
-                "Bunkrr Provided": bunkr_ddg_credentials_provided,
-                "Coomer Provided": coomer_ddg_credentials_provided,
-                "Kemono Provided": kemono_ddg_credentials_provided
-            },
             "Imgur Provided": imgur_credentials_provided,
             "JDownloader Provided": jdownloader_credentials_provided,
             "PixelDrain Provided": pixeldrain_credentials_provided,
