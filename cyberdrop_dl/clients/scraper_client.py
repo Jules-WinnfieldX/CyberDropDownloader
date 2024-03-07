@@ -84,7 +84,7 @@ class ScraperClient:
             try:
                 await self.client_manager.check_http_status(response)
             except DDOSGuardFailure:
-                response = await self.flaresolverr(domain, url, client_session)
+                response = await self.flaresolverr(domain, url)
             content_type = response.headers.get('Content-Type')
             assert content_type is not None
             if not any(s in content_type.lower() for s in ("html", "text")):
@@ -100,7 +100,7 @@ class ScraperClient:
             try:
                 await self.client_manager.check_http_status(response)
             except DDOSGuardFailure:
-                response = await self.flaresolverr(domain, url, client_session)
+                response = await self.flaresolverr(domain, url)
             content_type = response.headers.get('Content-Type')
             assert content_type is not None
             if not any(s in content_type.lower() for s in ("html", "text")):
@@ -118,7 +118,7 @@ class ScraperClient:
             try:
                 await self.client_manager.check_http_status(response)
             except DDOSGuardFailure:
-                response = await self.flaresolverr(domain, url, client_session)
+                response = await self.flaresolverr(domain, url)
             content_type = response.headers.get('Content-Type')
             assert content_type is not None
             if 'json' not in content_type.lower():
@@ -133,7 +133,7 @@ class ScraperClient:
             try:
                 await self.client_manager.check_http_status(response)
             except DDOSGuardFailure:
-                response = await self.flaresolverr(domain, url, client_session)
+                response = await self.flaresolverr(domain, url)
             text = await response.text()
             return text
 
@@ -145,7 +145,7 @@ class ScraperClient:
             try:
                 await self.client_manager.check_http_status(response)
             except DDOSGuardFailure:
-                response = await self.flaresolverr(domain, url, client_session)
+                response = await self.flaresolverr(domain, url)
             if req_resp:
                 return json.loads(await response.content.read())
             else:
