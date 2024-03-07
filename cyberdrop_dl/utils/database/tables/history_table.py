@@ -166,7 +166,7 @@ class HistoryTable:
             await self.db_conn.execute(create_fixed_history)
             await self.db_conn.commit()
 
-            await self.db_conn.execute("""INSERT INTO media_copy (domain, url_path, referer, album_id, download_path, download_filename, original_filename, completed) SELECT * FROM media GROUP BY domain, url_path, original_filename;""")
+            await self.db_conn.execute("""INSERT INTO media_copy (domain, url_path, referer, download_path, download_filename, original_filename, completed) SELECT * FROM media GROUP BY domain, url_path, original_filename;""")
             await self.db_conn.commit()
 
             await self.db_conn.execute("""DROP TABLE media""")
