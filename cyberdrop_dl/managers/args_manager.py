@@ -10,6 +10,7 @@ class ArgsManager:
         self.parsed_args = {}
 
         self.proxy = ""
+        self.flaresolverr = ""
 
         self.all_configs = False
         self.retry = False
@@ -67,6 +68,8 @@ class ArgsManager:
 
         if self.parsed_args['proxy']:
             self.proxy = self.parsed_args['proxy']
+        if self.parsed_args['flaresolverr']:
+            self.flaresolverr = self.parsed_args['flaresolverr']
 
         self.other_links = self.parsed_args['links']
 

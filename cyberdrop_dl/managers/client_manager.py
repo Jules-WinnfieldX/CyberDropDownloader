@@ -11,7 +11,7 @@ from aiohttp import ClientResponse
 from aiolimiter import AsyncLimiter
 
 from cyberdrop_dl.clients.download_client import DownloadClient
-from cyberdrop_dl.clients.errors import DownloadFailure
+from cyberdrop_dl.clients.errors import DownloadFailure, DDOSGuardFailure
 from cyberdrop_dl.clients.scraper_client import ScraperClient
 from cyberdrop_dl.utils.utilities import CustomHTTPStatus
 
@@ -35,6 +35,7 @@ class ClientManager:
         self.ssl_context = ssl.create_default_context(cafile=certifi.where()) if self.verify_ssl else False
         self.cookies = aiohttp.CookieJar(quote_cookie=False)
         self.proxy = manager.config_manager.global_settings_data['General']['proxy'] if not manager.args_manager.proxy else manager.args_manager.proxy
+        self.flaresolverr = manager.config_manager.global_settings_data['General']['flaresolverr'] if not manager.args_manager.flaresolverr else manager.args_manager.flaresolverr
 
         self.domain_rate_limits = {
             "bunkrr": AsyncLimiter(5, 1),
@@ -91,7 +92,7 @@ class ClientManager:
 
         response_text = await response.text()
         if "<title>DDoS-Guard</title>" in response_text:
-            raise DownloadFailure(status="DDOS-Guard", message="DDoS-Guard detected")
+            raise DDOSGuardFailure(status="DDOS-Guard", message="DDoS-Guard detected")
 
         if not headers.get('Content-Type'):
             raise DownloadFailure(status=CustomHTTPStatus.IM_A_TEAPOT, message="No content-type in response header")

@@ -10,6 +10,16 @@ class NoExtensionFailure(Exception):
     def __init__(self, *, message: str = "Extension missing for file"):
         self.message = message
         super().__init__(self.message)
+        
+
+class DDOSGuardFailure(Exception):
+    """This error will be thrown when DDoS-Guard is detected"""
+
+    def __init__(self, status: int, message: str = "DDoS-Guard detected"):
+        self.status = status
+        self.message = message
+        super().__init__(self.message)
+        super().__init__(self.status)
 
 
 class DownloadFailure(Exception):

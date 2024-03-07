@@ -7,12 +7,12 @@ import aiohttp
 from functools import wraps
 from typing import TYPE_CHECKING, Dict, Optional
 
-from aiohttp import ClientSession
+from aiohttp import ClientSession, ClientResponse
 from bs4 import BeautifulSoup
 from multidict import CIMultiDictProxy
 from yarl import URL
 
-from cyberdrop_dl.clients.errors import InvalidContentTypeFailure
+from cyberdrop_dl.clients.errors import InvalidContentTypeFailure, DDOSGuardFailure, ScrapeFailure
 from cyberdrop_dl.utils.utilities import log
 
 if TYPE_CHECKING:
@@ -58,13 +58,33 @@ class ScraperClient:
             trace_config.on_request_start.append(on_request_start)
             trace_config.on_request_end.append(on_request_end)
             self.trace_configs.append(trace_config)
+            
+    @limiter
+    async def flaresolverr(self, domain: str, url: URL, client_session: ClientSession) -> ClientResponse:
+        """Returns the resolved URL from the given URL"""
+        if not self.client_manager.flaresolverr:
+            raise ScrapeFailure(status="DDOS-Guard", message="FlareSolverr is not configured")
+        
+        headers = {**self._headers, **{"Content-Type": "application/json"}}
+        data = {"cmd": "request.get", "url": str(url), "maxTimeout": 60000}
+        
+        async with client_session.post(url, headers=headers, ssl=self.client_manager.ssl_context,
+                                       proxy=self.client_manager.proxy, data=data) as response:
+            try:
+                await self.client_manager.check_http_status(response)
+            except DDOSGuardFailure:
+                raise ScrapeFailure(status="DDOS-Guard", message="Failed to resolve URL with flaresolverr")
+            return response
 
     @limiter
     async def get_BS4(self, domain: str, url: URL, client_session: ClientSession) -> BeautifulSoup:
         """Returns a BeautifulSoup object from the given URL"""
         async with client_session.get(url, headers=self._headers, ssl=self.client_manager.ssl_context,
                                       proxy=self.client_manager.proxy) as response:
-            await self.client_manager.check_http_status(response)
+            try:
+                await self.client_manager.check_http_status(response)
+            except DDOSGuardFailure:
+                response = await self.flaresolverr(domain, url, client_session)
             content_type = response.headers.get('Content-Type')
             assert content_type is not None
             if not any(s in content_type.lower() for s in ("html", "text")):

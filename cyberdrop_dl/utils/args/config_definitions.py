@@ -124,6 +124,7 @@ global_settings: Dict = {
         "allow_insecure_connections": False,
         "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:120.0) Gecko/20100101 Firefox/120.0",
         "proxy": "",
+        "flaresolverr": "",
         "max_file_name_length": 95,
         "max_folder_name_length": 60,
         "required_free_space": 5,
