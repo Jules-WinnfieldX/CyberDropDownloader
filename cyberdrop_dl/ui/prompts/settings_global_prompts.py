@@ -55,6 +55,10 @@ def edit_general_settings_prompt(manager: Manager) -> None:
         message="Proxy:",
         default=manager.config_manager.global_settings_data['General']['proxy']
     ).execute()
+    flaresolverr = inquirer.text(
+        message="FlareSolverr (IP:PORT):",
+        default=manager.config_manager.global_settings_data['General']['flaresolverr']
+    ).execute()
     max_filename_length = inquirer.number(
         message="Max Filename Length:",
         default=int(manager.config_manager.global_settings_data['General']['max_file_name_length']),
@@ -74,6 +78,7 @@ def edit_general_settings_prompt(manager: Manager) -> None:
     manager.config_manager.global_settings_data['General']['allow_insecure_connections'] = allow_insecure_connections
     manager.config_manager.global_settings_data['General']['user_agent'] = user_agent
     manager.config_manager.global_settings_data['General']['proxy'] = proxy
+    manager.config_manager.global_settings_data['General']['flaresolverr'] = flaresolverr
     manager.config_manager.global_settings_data['General']['max_filename_length'] = int(max_filename_length)
     manager.config_manager.global_settings_data['General']['max_folder_name_length'] = int(max_folder_name_length)
     manager.config_manager.global_settings_data['General']['required_free_space'] = int(required_free_space)
