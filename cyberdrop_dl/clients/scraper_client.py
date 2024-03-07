@@ -68,7 +68,7 @@ class ScraperClient:
         headers = {**self._headers, **{"Content-Type": "application/json"}}
         data = {"cmd": "request.get", "url": str(url), "maxTimeout": 60000}
         
-        async with client_session.post(url, headers=headers, ssl=self.client_manager.ssl_context,
+        async with client_session.post(f"http://{self.client_manager.flaresolverr}/v1", headers=headers, ssl=self.client_manager.ssl_context,
                                        proxy=self.client_manager.proxy, data=data) as response:
             try:
                 await self.client_manager.check_http_status(response)
