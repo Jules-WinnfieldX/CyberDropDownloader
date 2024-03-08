@@ -96,7 +96,7 @@ class JPGChurchCrawler(Crawler):
             for link in links:
                 link = URL(link.get('src'))
                 new_scrape_item = await self.create_scrape_item(scrape_item, link, title, True, album_id)
-                if not self.check_album_results(link, results):
+                if not await self.check_album_results(link, results):
                     await self.handle_direct_link(new_scrape_item)
 
             link_next = soup.select_one('a[data-pagination=next]')

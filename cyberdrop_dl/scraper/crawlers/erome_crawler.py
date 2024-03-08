@@ -72,11 +72,11 @@ class EromeCrawler(Crawler):
         for image in images:
             link = URL(image['data-src'])
             filename, ext = await get_filename_and_ext(link.name)
-            if not self.check_album_results(link, results):
+            if not await self.check_album_results(link, results):
                 await self.handle_file(link, scrape_item, filename, ext)
 
         for video in vidoes:
             link = URL(video['src'])
             filename, ext = await get_filename_and_ext(link.name)
-            if not self.check_album_results(link, results):
+            if not await self.check_album_results(link, results):
                 await self.handle_file(link, scrape_item, filename, ext)

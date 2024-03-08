@@ -86,13 +86,10 @@ class BunkrrCrawler(Crawler):
 
                 if "no-image" in src.name:
                     raise FileNotFoundError("No image found, reverting to parent")
-                
-                album_check = await self.check_album_results(src, results)
-                if album_check:
-                    continue
 
                 filename, ext = await get_filename_and_ext(src.name)
-                await self.handle_file(src, new_scrape_item, filename, ext)
+                if not await self.check_album_results(src, results):
+                    await self.handle_file(src, new_scrape_item, filename, ext)
             except FileNotFoundError:
                 self.manager.task_group.create_task(self.run(ScrapeItem(link, scrape_item.parent_title, True, album_id, date)))
 

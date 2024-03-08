@@ -50,7 +50,7 @@ class PixelDrainCrawler(Crawler):
             date = await self.parse_datetime(file['date_upload'].replace("T", " ").split(".")[0].strip("Z"))
             filename, ext = await get_filename_and_ext(file['name'])
             new_scrape_item = await self.create_scrape_item(scrape_item, link, title, True, None, date)
-            if not self.check_album_results(link, results):
+            if not await self.check_album_results(link, results):
                 await self.handle_file(link, new_scrape_item, filename, ext)
 
     @error_handling_wrapper
