@@ -28,7 +28,9 @@ def program_ui(manager: Manager):
         console.clear()
         console.print(f"[bold]Cyberdrop Downloader (V{str(__version__)})[/bold]")
         console.print(f"[bold]Current Config:[/bold] {manager.config_manager.loaded_config}")
-
+        
+        #vi_mode = manager.config_manager.settings_data['General']['input_file'] if not manager.args_manager.vi_mode else manager.args_manager.vi_mode
+            
         action = main_prompt(manager)
 
         # Download
@@ -48,12 +50,12 @@ def program_ui(manager: Manager):
         # Edit URLs
         elif action == 4:
             input_file = manager.config_manager.settings_data['Files']['input_file'] if not manager.args_manager.input_file else manager.args_manager.input_file
-            edit_urls_prompt(input_file)
+            edit_urls_prompt(input_file, manager.vi_mode)
 
         # Select Config
         elif action == 5:
             configs = manager.config_manager.get_configs()
-            selected_config = select_config_prompt(configs)
+            selected_config = select_config_prompt(manager, configs)
             manager.config_manager.change_config(selected_config)
 
         elif action == 6:
@@ -62,12 +64,14 @@ def program_ui(manager: Manager):
             input_file = inquirer.filepath(
                 message="Enter the input file path:",
                 default=str(manager.config_manager.settings_data['Files']['input_file']),
-                validate=PathValidator(is_file=True, message="Input is not a file")
+                validate=PathValidator(is_file=True, message="Input is not a file"),
+                vi_mode=manager.vi_mode,
             ).execute()
             download_folder = inquirer.text(
                 message="Enter the download folder path:",
                 default=str(manager.config_manager.settings_data['Files']['download_folder']),
-                validate=PathValidator(is_dir=True, message="Input is not a directory")
+                validate=PathValidator(is_dir=True, message="Input is not a directory"),
+                vi_mode=manager.vi_mode,
             ).execute()
 
             manager.config_manager.settings_data['Files']['input_file'] = Path(input_file)
@@ -81,7 +85,7 @@ def program_ui(manager: Manager):
                 console.print("[bold]Manage Configs[/bold]")
                 console.print(f"[bold]Current Config:[/bold] {manager.config_manager.loaded_config}")
 
-                action = manage_configs_prompt()
+                action = manage_configs_prompt(manager)
 
                 # Change Default Config
                 if action == 1:
@@ -102,6 +106,7 @@ def program_ui(manager: Manager):
                             inquirer.confirm(
                                 message="You cannot delete the currently active config, press enter to continue.",
                                 default=False,
+                                vi_mode=manager.vi_mode,
                             ).execute()
                             continue
                         manager.config_manager.delete_config(selected_config)
@@ -109,6 +114,7 @@ def program_ui(manager: Manager):
                         inquirer.confirm(
                             message="There is only one config, press enter to continue.",
                             default=False,
+                            vi_mode=manager.vi_mode,
                         ).execute()
 
                 # Edit Config
@@ -133,7 +139,7 @@ def program_ui(manager: Manager):
 
         # Donate
         elif action == 9:
-            donations_prompt()
+            donations_prompt(manager)
 
         # Exit
         elif action == 10:

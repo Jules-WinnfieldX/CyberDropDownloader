@@ -16,6 +16,7 @@ def parse_args() -> argparse.Namespace:
     general.add_argument("--download", action="store_true", help="Skip the UI and go straight to downloading", default=False)
     general.add_argument("--download-all-configs", action="store_true", help="Skip the UI and go straight to downloading (runs all configs sequentially)", default=False)
     general.add_argument("--retry-failed", action="store_true", help="retry failed downloads", default=False)
+    general.add_argument("--vi-mode", action="store_true", help="enable VIM keybindings for UI", default=None)
 
     # File Paths
     file_paths = parser.add_argument_group("File_Paths")

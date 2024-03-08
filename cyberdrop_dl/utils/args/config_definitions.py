@@ -121,6 +121,7 @@ global_settings: Dict = {
         "max_file_name_length": 95,
         "max_folder_name_length": 60,
         "required_free_space": 5,
+        "vi_mode": False,
     },
     "Rate_Limiting_Options": {
         "connection_timeout": 15,

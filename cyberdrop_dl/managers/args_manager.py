@@ -19,6 +19,7 @@ class ArgsManager:
         self.no_ui = False
         self.load_config_from_args = False
         self.load_config_name = ""
+        self.vi_mode = None
 
         self.other_links: list = []
 
@@ -38,7 +39,8 @@ class ArgsManager:
 
         self.immediate_download = self.parsed_args['download']
         self.load_config_name = self.parsed_args['config']
-
+        self.vi_mode = self.parsed_args['vi_mode']
+        
         if self.parsed_args['no_ui']:
             self.immediate_download = True
             self.no_ui = True

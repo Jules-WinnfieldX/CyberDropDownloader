@@ -34,7 +34,8 @@ def edit_authentication_values_prompt(manager: Manager) -> None:
                 Choice(5, "Edit Imgur Client ID"),
                 Choice(6, "Edit PixelDrain API Key"),
                 Choice(7, "Done"),
-            ], long_instruction="ARROW KEYS: Navigate | ENTER: Select"
+            ], long_instruction="ARROW KEYS: Navigate | ENTER: Select",
+            vi_mode=manager.vi_mode,
         ).execute()
 
         # Edit Forums
@@ -56,6 +57,7 @@ def edit_authentication_values_prompt(manager: Manager) -> None:
                 message="Enter the GoFile API Key:",
                 default=auth["GoFile"]["gofile_api_key"],
                 long_instruction="You can get your premium GoFile API Key from https://gofile.io/myProfile",
+                vi_mode=manager.vi_mode,
             ).execute()
             auth["GoFile"]["gofile_api_key"] = gofile_api_key
 
@@ -66,7 +68,8 @@ def edit_authentication_values_prompt(manager: Manager) -> None:
                 message="Enter the Imgur Client ID:",
                 default=auth["Imgur"]["imgur_client_id"],
                 long_instruction="You can create an app and get your client ID "
-                                 "from https://imgur.com/account/settings/apps"
+                                 "from https://imgur.com/account/settings/apps",
+                vi_mode=manager.vi_mode,
             ).execute()
             auth["Imgur"]["imgur_client_id"] = imgur_client_id
 
@@ -76,7 +79,8 @@ def edit_authentication_values_prompt(manager: Manager) -> None:
             pixeldrain_api_key = inquirer.text(
                 message="Enter the PixelDrain API Key:",
                 default=auth["PixelDrain"]["pixeldrain_api_key"],
-                long_instruction="You can get your premium API Key from https://pixeldrain.com/user/api_keys"
+                long_instruction="You can get your premium API Key from https://pixeldrain.com/user/api_keys",
+                vi_mode=manager.vi_mode,
             ).execute()
             auth["PixelDrain"]["pixeldrain_api_key"] = pixeldrain_api_key
 
@@ -97,7 +101,8 @@ def edit_forum_authentication_values_prompt(manager: Manager) -> None:
                 Choice(1, "Browser Cookie Extraction"),
                 Choice(2, "Enter Cookie Values Manually"),
                 Choice(3, "Done"),
-            ], long_instruction="ARROW KEYS: Navigate | ENTER: Select"
+            ], long_instruction="ARROW KEYS: Navigate | ENTER: Select",
+            vi_mode=manager.vi_mode,
         ).execute()
 
         # Browser Cookie Extraction
@@ -112,7 +117,8 @@ def edit_forum_authentication_values_prompt(manager: Manager) -> None:
                     Choice("opera", "Opera"),
                     Choice("brave", "Brave"),
                     Choice(1, "Done"),
-                ], long_instruction="ARROW KEYS: Navigate | ENTER: Select"
+                ], long_instruction="ARROW KEYS: Navigate | ENTER: Select",
+                vi_mode=manager.vi_mode,
             ).execute()
 
             # Done
@@ -139,64 +145,78 @@ def edit_forum_authentication_values_prompt(manager: Manager) -> None:
             celebforum_username = inquirer.text(
                 message="Enter your CelebForum Username:",
                 default=manager.config_manager.authentication_data["Forums"]["celebforum_username"],
+                vi_mode=manager.vi_mode,
             ).execute()
             celebforum_password = inquirer.text(
                 message="Enter your CelebForum Password:",
                 default=manager.config_manager.authentication_data["Forums"]["celebforum_password"],
+                vi_mode=manager.vi_mode,
             ).execute()
 
             f95zone_username = inquirer.text(
                 message="Enter your F95Zone Username:",
                 default=manager.config_manager.authentication_data["Forums"]["f95zone_username"],
+                vi_mode=manager.vi_mode,
             ).execute()
             f95zone_password = inquirer.text(
                 message="Enter your F95Zone Password:",
                 default=manager.config_manager.authentication_data["Forums"]["f95zone_password"],
+                vi_mode=manager.vi_mode,
             ).execute()
 
             leakedmodels_username = inquirer.text(
                 message="Enter your LeakedModels Username:",
                 default=manager.config_manager.authentication_data["Forums"]["leakedmodels_username"],
+                vi_mode=manager.vi_mode,
             ).execute()
             leakedmodels_password = inquirer.text(
                 message="Enter your LeakedModels Password:",
                 default=manager.config_manager.authentication_data["Forums"]["leakedmodels_password"],
+                vi_mode=manager.vi_mode,
             ).execute()
 
             nudostar_username = inquirer.text(
                 message="Enter your NudoStar Username:",
                 default=manager.config_manager.authentication_data["Forums"]["nudostar_username"],
+                vi_mode=manager.vi_mode,
             ).execute()
             nudostar_password = inquirer.text(
                 message="Enter your NudoStar Password:",
                 default=manager.config_manager.authentication_data["Forums"]["nudostar_password"],
+                vi_mode=manager.vi_mode,
             ).execute()
 
             simpcity_username = inquirer.text(
                 message="Enter your SimpCity Username:",
                 default=manager.config_manager.authentication_data["Forums"]["simpcity_username"],
+                vi_mode=manager.vi_mode,
             ).execute()
             simpcity_password = inquirer.text(
                 message="Enter your SimpCity Password:",
                 default=manager.config_manager.authentication_data["Forums"]["simpcity_password"],
+                vi_mode=manager.vi_mode,
             ).execute()
 
             socialmediagirls_username = inquirer.text(
                 message="Enter your SocialMediaGirls Username:",
                 default=manager.config_manager.authentication_data["Forums"]["socialmediagirls_username"],
+                vi_mode=manager.vi_mode,
             ).execute()
             socialmediagirls_password = inquirer.text(
                 message="Enter your SocialMediaGirls Password:",
                 default=manager.config_manager.authentication_data["Forums"]["socialmediagirls_password"],
+                vi_mode=manager.vi_mode,
             ).execute()
 
             xbunker_username = inquirer.text(
                 message="Enter your XBunker Username:",
                 default=manager.config_manager.authentication_data["Forums"]["xbunker_username"],
+                vi_mode=manager.vi_mode,
             ).execute()
             xbunker_password = inquirer.text(
                 message="Enter your XBunker Password:",
                 default=manager.config_manager.authentication_data["Forums"]["xbunker_password"],
+                vi_mode=manager.vi_mode,
             ).execute()
 
             manager.config_manager.authentication_data["Forums"]["celebforum_username"] = celebforum_username
