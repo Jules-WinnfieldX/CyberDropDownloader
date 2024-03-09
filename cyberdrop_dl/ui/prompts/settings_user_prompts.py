@@ -59,31 +59,31 @@ def edit_config_values_prompt(manager: Manager) -> None:
 
         # Edit Download Options
         if action == 1:
-            edit_download_options_prompt(config)
+            edit_download_options_prompt(manager, config)
 
         # Edit Input / Output File Paths
         elif action == 2:
-            edit_input_output_file_paths_prompt(config)
+            edit_input_output_file_paths_prompt(manager, config)
 
         # Edit Log File Naming / Path
         elif action == 3:
-            edit_log_file_naming_path_prompt(config)
+            edit_log_file_naming_path_prompt(manager, config)
 
         # Edit File Size Limits
         elif action == 4:
-            edit_file_size_limits_prompt(config)
+            edit_file_size_limits_prompt(manager, config)
 
         # Edit Ignore Options
         elif action == 5:
-            edit_ignore_options_prompt(config)
+            edit_ignore_options_prompt(manager, config)
 
         # Edit Runtime Options
         elif action == 6:
-            edit_runtime_options_prompt(config)
+            edit_runtime_options_prompt(manager, config)
 
         # Edit Sorting Options
         elif action == 7:
-            edit_sort_options_prompt(config)
+            edit_sort_options_prompt(manager, config)
 
         # Done
         elif action == 8:
@@ -92,7 +92,7 @@ def edit_config_values_prompt(manager: Manager) -> None:
             return
 
 
-def edit_download_options_prompt(config: Dict) -> None:
+def edit_download_options_prompt(manager: Manager, config: Dict) -> None:
     """Edit the download options"""
     console.clear()
     action = inquirer.checkbox(
@@ -139,7 +139,7 @@ def edit_download_options_prompt(config: Dict) -> None:
         config["Download_Options"][key] = True
 
 
-def edit_input_output_file_paths_prompt(config: Dict) -> None:
+def edit_input_output_file_paths_prompt(manager: Manager, config: Dict) -> None:
     """Edit the input / output file paths"""
     console.clear()
     console.print("Editing Input / Output File Paths")
@@ -160,7 +160,7 @@ def edit_input_output_file_paths_prompt(config: Dict) -> None:
     config['Files']['download_folder'] = Path(download_folder)
 
 
-def edit_log_file_naming_path_prompt(config: Dict) -> None:
+def edit_log_file_naming_path_prompt(manager: Manager, config: Dict) -> None:
     """Edit the log file naming / path"""
     console.clear()
     console.print("Editing Log File Naming / Path")
@@ -209,7 +209,7 @@ def edit_log_file_naming_path_prompt(config: Dict) -> None:
     config['Logs']['scrape_error_urls_filename'] = scrape_error_urls_filename
 
 
-def edit_file_size_limits_prompt(config: Dict) -> None:
+def edit_file_size_limits_prompt(manager: Manager, config: Dict) -> None:
     """Edit the file size limits"""
     console.clear()
     console.print("Editing File Size Limits")
@@ -264,7 +264,7 @@ def edit_file_size_limits_prompt(config: Dict) -> None:
     config['File_Size_Limits']['minimum_other_size'] = int(minimum_other_size)
 
 
-def edit_ignore_options_prompt(config: Dict) -> None:
+def edit_ignore_options_prompt(manager: Manager, config: Dict) -> None:
     """Edit the ignore options"""
     console.clear()
     console.print("Editing Ignore Options")
@@ -323,7 +323,7 @@ def edit_ignore_options_prompt(config: Dict) -> None:
     config["Ignore_Options"]["only_hosts"] = only_hosts
 
 
-def edit_runtime_options_prompt(config: Dict) -> None:
+def edit_runtime_options_prompt(manager: Manager, config: Dict) -> None:
     """Edit the runtime options"""
     console.clear()
     console.print("Editing Runtime Options")
@@ -366,7 +366,7 @@ def edit_runtime_options_prompt(config: Dict) -> None:
     config['Runtime_Options']['log_level'] = int(log_level)
 
 
-def edit_sort_options_prompt(config: Dict) -> None:
+def edit_sort_options_prompt(manager: Manager, config: Dict) -> None:
     """Edit the sort options"""
     console.clear()
     console.print("Editing Sort Options")
