@@ -13,6 +13,19 @@ Brand new and improved! Cyberdrop-DL now has an updated paint job, fantastic new
 
 ![Screenshot 2023-12-03 190747](https://github.com/Jules-WinnfieldX/CyberDropDownloader/assets/61347133/aa6b7e21-a039-42e9-9308-ca62750a49cf)
 
+## Supported Sites
+
+bunkr, bunkrr, celebforum, coomer, cyberdrop, cyberfile,
+e-hentai, erome, fapello, f95zone, gofile, hotpic,
+ibb.co, imageban, imgbox, imgur, img.kiwi, jpg.church,
+jpg.homes, jpg.fish, jpg.fishing, jpg.pet, jpeg.pet,
+jpg1.su, jpg2.su, jpg3.su, jpg4.su, host.church, kemono,
+leakedmodels, mediafire, nudostar.com, nudostar.tv,
+omegascans, pimpandhost, pixeldrain, postimg, reddit,
+redd.it, redgifs, rule34.xxx, rule34.xyz, saint,
+scrolller, simpcity, socialmediagirls, toonily, xbunker,
+xbunkr
+
 ## Support Cyberdrop-DL Development
 
 <a href="https://www.buymeacoffee.com/juleswinnft" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
