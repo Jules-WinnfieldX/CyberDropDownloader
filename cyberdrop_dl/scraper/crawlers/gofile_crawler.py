@@ -25,6 +25,7 @@ class GoFileCrawler(Crawler):
         self.js_address = URL("https://gofile.io/dist/js/alljs.js")
         self.token = ""
         self.websiteToken = ""
+        self.headers = {}
         self.request_limiter = AsyncLimiter(10, 1)
 
     """~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"""
@@ -44,22 +45,17 @@ class GoFileCrawler(Crawler):
     async def album(self, scrape_item: ScrapeItem) -> None:
         """Scrapes an album"""
         content_id = scrape_item.url.name
-        params = {
-            "token": self.token,
-            "contentId": content_id,
-            "wt": self.websiteToken,
-        }
+
         try:
             async with self.request_limiter:
-                JSON_Resp = await self.client.get_json(self.domain, self.api_address / "getContent", params)
+                JSON_Resp = await self.client.get_json(self.domain, (self.api_address / "contents" / content_id).with_query({"wt": self.websiteToken}), headers_inc=self.headers)
         except DownloadFailure as e:
             if e.status == http.HTTPStatus.UNAUTHORIZED:
                 self.websiteToken = ""
                 self.manager.cache_manager.remove("gofile_website_token")
                 await self.get_website_token(self.js_address, self.client)
-                params["wt"] = self.websiteToken
                 async with self.request_limiter:
-                    JSON_Resp = await self.client.get_json(self.domain, self.api_address / "getContent", params)
+                    JSON_Resp = await self.client.get_json(self.domain, (self.api_address / "contents" / content_id).with_query({"wt": self.websiteToken}), headers_inc=self.headers)
 
         if JSON_Resp["status"] != "ok":
             raise ScrapeFailure(404, "Does Not Exist")
@@ -67,7 +63,7 @@ class GoFileCrawler(Crawler):
         JSON_Resp = JSON_Resp['data']
         title = await self.create_title(JSON_Resp["name"], content_id, None)
 
-        contents = JSON_Resp["contents"]
+        contents = JSON_Resp["children"]
         for content_id in contents:
             content = contents[content_id]
             if content["type"] == "folder":
@@ -91,11 +87,13 @@ class GoFileCrawler(Crawler):
     async def get_token(self, create_acct_address: URL, session: ScraperClient) -> None:
         """Get the token for the API"""
         if self.token:
+            self.headers["Authorization"] = f"Bearer {self.token}"
             return
 
         api_token = self.manager.config_manager.authentication_data["GoFile"]["gofile_api_key"]
         if api_token:
             self.token = api_token
+            self.headers["Authorization"] = f"Bearer {self.token}"
             await self.set_cookie(session)
             return
 
@@ -104,6 +102,7 @@ class GoFileCrawler(Crawler):
                 JSON_Resp = await session.get_json(self.domain, create_acct_address)
             if JSON_Resp["status"] == "ok":
                 self.token = JSON_Resp["data"]["token"]
+                self.headers["Authorization"] = f"Bearer {self.token}"
                 await self.set_cookie(session)
             else:
                 raise ScrapeFailure(403, "Couldn't generate GoFile token")
@@ -122,7 +121,7 @@ class GoFileCrawler(Crawler):
         async with self.request_limiter:
             text = await session.get_text(self.domain, js_address)
         text = str(text)
-        self.websiteToken = re.search(r'fetchData\.wt\s*=\s*"(.*?)"', text).group(1)
+        self.websiteToken = re.search(r'fetchData\s=\s\{\swt:\s"(.*?)"', text).group(1)
         if not self.websiteToken:
             raise ScrapeFailure(403, "Couldn't generate GoFile websiteToken")
         self.manager.cache_manager.save("gofile_website_token", self.websiteToken)
