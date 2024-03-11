@@ -73,12 +73,18 @@ class Rule34XYZCrawler(Crawler):
 
         image = soup.select_one('img[class*="img shadow-base"]')
         if image:
-            link = self.primary_base_url.with_path(image.get('src'))
+            link = image.get('src')
+            if link.startswith("/"):
+                link = f"{self.primary_base_url}{link}"
+            link = URL(link)
             filename, ext = await get_filename_and_ext(link.name)
             await self.handle_file(link, scrape_item, filename, ext)
         video = soup.select_one("video source")
         if video:
-            link = self.primary_base_url.with_path(video.get('src'))
+            link = video.get('src')
+            if link.startswith("/"):
+                link = f"{self.primary_base_url}{link}"
+            link = URL(link)
             filename, ext = await get_filename_and_ext(link.name)
             await self.handle_file(link, scrape_item, filename, ext)
 
