@@ -219,8 +219,9 @@ class Downloader:
 
     async def set_additional_headers(self) -> None:
         """Sets additional headers for the download session"""
-        if self.manager.config_manager.authentication_data['PixelDrain']['pixeldrain_api_key']:
-            self._additional_headers["Authorization"] = await self.manager.download_manager.basic_auth("Cyberdrop-DL", self.manager.config_manager.authentication_data['PixelDrain']['pixeldrain_api_key'])
+        if self.domain == "pixeldrain":
+            if self.manager.config_manager.authentication_data['PixelDrain']['pixeldrain_api_key']:
+                self._additional_headers["Authorization"] = await self.manager.download_manager.basic_auth("Cyberdrop-DL", self.manager.config_manager.authentication_data['PixelDrain']['pixeldrain_api_key'])
 
     async def get_final_file_info(self, complete_file: Path, partial_file: Path,
                                   media_item: MediaItem) -> tuple[Path, Path, bool, bool]:
