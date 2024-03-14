@@ -73,10 +73,11 @@ class DownloadClient:
             self.trace_configs.append(trace_config)
 
     @limiter
-    async def get_filesize(self, media_item: MediaItem, client_session: ClientSession) -> int:
+    async def get_filesize(self, media_item: MediaItem, headers_inc: Dict, client_session: ClientSession) -> int:
         """Returns the file size of the media item"""
         headers = copy.deepcopy(self._headers)
         headers['Referer'] = str(media_item.referer)
+        headers.update(headers_inc)
 
         async with client_session.get(media_item.url, headers=headers, ssl=self.client_manager.ssl_context,
                                       proxy=self.client_manager.proxy) as resp:

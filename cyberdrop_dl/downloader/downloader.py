@@ -231,7 +231,7 @@ class Downloader:
         skip = False
         while True:
             if not expected_size:
-                media_item.filesize = await self.client.get_filesize(media_item)
+                media_item.filesize = await self.client.get_filesize(media_item, self._additional_headers)
                 file_size_check = await self.check_filesize_limits(media_item)
                 if not file_size_check:
                     proceed = False
