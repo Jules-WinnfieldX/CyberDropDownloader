@@ -90,7 +90,7 @@ def program_ui(manager: Manager):
                 # Change Default Config
                 if action == 1:
                     configs = manager.config_manager.get_configs()
-                    selected_config = select_config_prompt(configs)
+                    selected_config = select_config_prompt(manager, configs)
                     manager.config_manager.change_default_config(selected_config)
 
                 # Create A Config
@@ -101,7 +101,7 @@ def program_ui(manager: Manager):
                 elif action == 3:
                     configs = manager.config_manager.get_configs()
                     if len(configs) != 1:
-                        selected_config = select_config_prompt(configs)
+                        selected_config = select_config_prompt(manager, configs)
                         if selected_config == manager.config_manager.loaded_config:
                             inquirer.confirm(
                                 message="You cannot delete the currently active config, press enter to continue.",
