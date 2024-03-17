@@ -54,7 +54,7 @@ class Manager:
         self.cache_manager.startup(self.path_manager.cache_dir / "cache.yaml")
         self.config_manager = ConfigManager(self)
         self.config_manager.startup()
-        self.vi_mode = self.config_manager.global_settings_data['General']['vi_mode'] if self.args_manager.vi_mode == None else self.args_manager.vi_mode
+        self.vi_mode = self.config_manager.global_settings_data['General']['vi_mode'] if self.args_manager.vi_mode is None else self.args_manager.vi_mode
 
         self.path_manager.startup()
         self.log_manager = LogManager(self)
