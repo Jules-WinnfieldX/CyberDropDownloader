@@ -362,19 +362,9 @@ class Downloader:
             await self.manager.progress_manager.download_progress.add_completed()
             return
 
-        except (aiohttp.ServerDisconnectedError, asyncio.TimeoutError, aiohttp.ServerTimeoutError) as e:
-            if partial_file and partial_file.is_file():
-                size = partial_file.stat().st_size
-                if partial_file.name in self._current_attempt_filesize and self._current_attempt_filesize[media_item.filename] >= size:
-                    raise DownloadFailure(status=getattr(e, "status", 1), message="Download timeout reached, retrying")
-                self._current_attempt_filesize[media_item.filename] = size
-                media_item.current_attempt = 0
-                raise DownloadFailure(status=999, message="Download timeout reached, retrying")
-
-            raise DownloadFailure(status=getattr(e, "status", 1), message=repr(e))
-
         except (aiohttp.ClientPayloadError, aiohttp.ClientOSError, aiohttp.ClientResponseError, ConnectionResetError,
-                DownloadFailure, FileNotFoundError, PermissionError) as e:
+                DownloadFailure, FileNotFoundError, PermissionError, aiohttp.ServerDisconnectedError, 
+                asyncio.TimeoutError, aiohttp.ServerTimeoutError) as e:
             if hasattr(e, "status"):
                 if ((await is_4xx_client_error(e.status) and e.status != HTTPStatus.TOO_MANY_REQUESTS)
                         or e.status == HTTPStatus.SERVICE_UNAVAILABLE
@@ -392,7 +382,14 @@ class Downloader:
                     else:
                         await log(f"Download Failed: {media_item.url} with status {e.status}", 40)
                         await self.manager.log_manager.write_download_error_log(media_item.url, f" {e.status}")
-
                     return
 
-            raise DownloadFailure(status=getattr(e, "status", 1), message=getattr(e, "message", repr(e)))
+            if partial_file and partial_file.is_file():
+                size = partial_file.stat().st_size
+                if partial_file.name in self._current_attempt_filesize and self._current_attempt_filesize[media_item.filename] >= size:
+                    raise DownloadFailure(status=getattr(e, "status", type(e).__name__), message="Download failed")
+                self._current_attempt_filesize[media_item.filename] = size
+                media_item.current_attempt = 0
+                raise DownloadFailure(status=999, message="Download timeout reached, retrying")
+
+            raise DownloadFailure(status=getattr(e, "status", type(e).__name__), message=repr(e))
