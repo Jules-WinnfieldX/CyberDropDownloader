@@ -386,7 +386,7 @@ class Downloader:
 
             if partial_file and partial_file.is_file():
                 size = partial_file.stat().st_size
-                if partial_file.name in self._current_attempt_filesize and self._current_attempt_filesize[media_item.filename] >= size:
+                if media_item.filename in self._current_attempt_filesize and self._current_attempt_filesize[media_item.filename] >= size:
                     raise DownloadFailure(status=getattr(e, "status", type(e).__name__), message="Download failed")
                 self._current_attempt_filesize[media_item.filename] = size
                 media_item.current_attempt = 0
