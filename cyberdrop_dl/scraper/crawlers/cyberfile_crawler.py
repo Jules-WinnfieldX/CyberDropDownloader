@@ -74,7 +74,7 @@ class CyberfileCrawler(Crawler):
                 self.manager.task_group.create_task(self.run(new_scrape_item))
 
             page += 1
-            if page >= num_pages:
+            if page > num_pages:
                 break
 
     @error_handling_wrapper
