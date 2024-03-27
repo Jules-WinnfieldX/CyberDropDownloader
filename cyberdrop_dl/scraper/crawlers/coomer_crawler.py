@@ -21,7 +21,7 @@ class CoomerCrawler(Crawler):
         self.primary_base_domain = URL("https://coomer.su")
         self.ddos_guard_domain = URL("https://*.coomer.su")
         self.api_url = URL("https://coomer.su/api/v1")
-        self.request_limiter = AsyncLimiter(10, 1)
+        self.request_limiter = AsyncLimiter(4, 1)
 
     """~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"""
 
@@ -106,7 +106,6 @@ class CoomerCrawler(Crawler):
         date = datetime.datetime.strptime(date, "%Y-%m-%d %H:%M:%S")
         return calendar.timegm(date.timetuple())
 
-    @error_handling_wrapper
     async def get_user_str_from_post(self, scrape_item: ScrapeItem) -> str:
         """Gets the user string from a scrape item"""
         async with self.request_limiter:
@@ -114,7 +113,6 @@ class CoomerCrawler(Crawler):
         user = soup.select_one("a[class=post__user-name]").text
         return user
 
-    @error_handling_wrapper
     async def get_user_str_from_profile(self, scrape_item: ScrapeItem) -> str:
         """Gets the user string from a scrape item"""
         async with self.request_limiter:
