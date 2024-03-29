@@ -5,6 +5,7 @@ import copy
 from abc import ABC, abstractmethod
 from dataclasses import field
 from typing import TYPE_CHECKING, Optional
+from os.path import exists
 
 from bs4 import BeautifulSoup
 from yarl import URL
@@ -78,6 +79,11 @@ class Crawler(ABC):
         check_complete = await self.manager.db_manager.history_table.check_complete(self.domain, url)
         if check_complete:
             await log(f"Skipping {url} as it has already been downloaded")
+            await self.manager.progress_manager.download_progress.add_previously_completed()
+            return
+
+        if exists(f"{str(download_folder)}/{filename}"):
+            await log(f"Skipping {url} as it has already been downloaded", 10)
             await self.manager.progress_manager.download_progress.add_previously_completed()
             return
 
