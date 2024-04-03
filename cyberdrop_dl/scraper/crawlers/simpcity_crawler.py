@@ -103,8 +103,8 @@ class SimpCityCrawler(Crawler):
                     date = int(post.select_one(self.post_date_selector).get(self.post_date_attribute))
                     new_scrape_item = await self.create_scrape_item(scrape_item, thread_url, title, False, None, date)
 
-                    for elem in post.find_all(self.quotes_selector):
-                        elem.decompose()
+                    # for elem in post.find_all(self.quotes_selector):
+                    #     elem.decompose()
                     post_content = post.select_one(self.posts_content_selector)
                     await self.post(new_scrape_item, post_content, current_post_number)
 
