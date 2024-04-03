@@ -32,6 +32,8 @@ class BunkrrCrawler(Crawler):
 
         if scrape_item.url.host.startswith("get"):
             scrape_item.url = await self.reinforced_link(scrape_item.url)
+            if not scrape_item.url:
+                return
             scrape_item.url = await self.get_stream_link(scrape_item.url)
 
         if "a" in scrape_item.url.parts:
