@@ -23,6 +23,7 @@ class GoFileCrawler(Crawler):
         super().__init__(manager, "gofile", "GoFile")
         self.api_address = URL("https://api.gofile.io")
         self.js_address = URL("https://gofile.io/dist/js/alljs.js")
+        self.primary_base_domain = URL("https://gofile.io")
         self.token = ""
         self.websiteToken = ""
         self.headers = {}
@@ -69,7 +70,7 @@ class GoFileCrawler(Crawler):
         for content_id in contents:
             content = contents[content_id]
             if content["type"] == "folder":
-                new_scrape_item = await self.create_scrape_item(scrape_item, URL(content["name"]), title, True)
+                new_scrape_item = await self.create_scrape_item(scrape_item, self.primary_base_domain / "d" / content["code"], title, True)
                 self.manager.task_group.create_task(self.run(new_scrape_item))
                 continue
             if content["link"] == "overloaded":

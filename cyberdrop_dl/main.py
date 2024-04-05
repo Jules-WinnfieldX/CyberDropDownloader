@@ -69,9 +69,9 @@ async def director(manager: Manager) -> None:
         file_handler_debug.setFormatter(formatter)
         logger_debug.addHandler(file_handler_debug)
 
-        aiosqlite_log = logging.getLogger("aiosqlite")
-        aiosqlite_log.setLevel(manager.config_manager.settings_data['Runtime_Options']['log_level'])
-        aiosqlite_log.addHandler(file_handler_debug)
+        # aiosqlite_log = logging.getLogger("aiosqlite")
+        # aiosqlite_log.setLevel(manager.config_manager.settings_data['Runtime_Options']['log_level'])
+        # aiosqlite_log.addHandler(file_handler_debug)
 
     while True:
         logger = logging.getLogger("cyberdrop_dl")
