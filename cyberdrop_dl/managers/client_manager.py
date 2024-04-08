@@ -7,11 +7,11 @@ from typing import TYPE_CHECKING
 
 import aiohttp
 import certifi
-from aiohttp import ClientResponse
+from aiohttp import ClientResponse, ContentTypeError
 from aiolimiter import AsyncLimiter
 
 from cyberdrop_dl.clients.download_client import DownloadClient
-from cyberdrop_dl.clients.errors import DownloadFailure, DDOSGuardFailure
+from cyberdrop_dl.clients.errors import DownloadFailure, DDOSGuardFailure, ScrapeFailure
 from cyberdrop_dl.clients.scraper_client import ScraperClient
 from cyberdrop_dl.utils.utilities import CustomHTTPStatus
 
@@ -84,6 +84,14 @@ class ClientManager:
 
         if HTTPStatus.OK <= status < HTTPStatus.BAD_REQUEST:
             return
+        
+        if "gofile" in response.url.host.lower():
+            try:
+                JSON_Resp = await response.json()
+                if "notFound" in JSON_Resp["status"]:
+                    raise ScrapeFailure(404, "Does Not Exist")
+            except ContentTypeError:
+                pass
 
         try:
             phrase = HTTPStatus(status).phrase

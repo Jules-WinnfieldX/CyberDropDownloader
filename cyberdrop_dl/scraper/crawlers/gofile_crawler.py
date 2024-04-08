@@ -60,9 +60,6 @@ class GoFileCrawler(Crawler):
             else:
                 raise ScrapeFailure(e.status, e.message)
 
-        if JSON_Resp["status"] != "ok":
-            raise ScrapeFailure(404, "Does Not Exist")
-
         JSON_Resp = JSON_Resp['data']
         title = await self.create_title(JSON_Resp["name"], content_id, None)
 
