@@ -50,10 +50,10 @@ class PixelDrainCrawler(Crawler):
             link = await self.create_download_link(file['id'])
             date = await self.parse_datetime(file['date_upload'].replace("T", " ").split(".")[0].strip("Z"))
             try:
-                filename, ext = await get_filename_and_ext(JSON_Resp['name'])
+                filename, ext = await get_filename_and_ext(file['name'])
             except NoExtensionFailure:
                 if "image" or "video" in file["mime_type"]:
-                    filename, ext = await get_filename_and_ext(JSON_Resp['name'] + "." + file["mime_type"].split("/")[-1])
+                    filename, ext = await get_filename_and_ext(file['name'] + "." + file["mime_type"].split("/")[-1])
                 else:
                     raise NoExtensionFailure()
             new_scrape_item = await self.create_scrape_item(scrape_item, link, title, True, None, date)
