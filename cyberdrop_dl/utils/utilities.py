@@ -13,7 +13,8 @@ from typing import TYPE_CHECKING
 import rich
 from yarl import URL
 
-from cyberdrop_dl.clients.errors import NoExtensionFailure, FailedLoginFailure, InvalidContentTypeFailure
+from cyberdrop_dl.clients.errors import NoExtensionFailure, FailedLoginFailure, InvalidContentTypeFailure, \
+    PasswordProtected
 
 if TYPE_CHECKING:
     from typing import Tuple
@@ -64,6 +65,10 @@ def error_handling_wrapper(func):
             await log(f"Scrape Failed: {link} (No File Extension)", 40)
             await self.manager.log_manager.write_scrape_error_log(link, " No File Extension")
             await self.manager.progress_manager.scrape_stats_progress.add_failure("No File Extension")
+        except PasswordProtected:
+            await log(f"Scrape Failed: {link} (Password Protected)", 40)
+            await self.manager.log_manager.write_unsupported_urls_log(link)
+            await self.manager.progress_manager.scrape_stats_progress.add_failure("Password Protected")
         except FailedLoginFailure:
             await log(f"Scrape Failed: {link} (Failed Login)", 40)
             await self.manager.log_manager.write_scrape_error_log(link, " Failed Login")
