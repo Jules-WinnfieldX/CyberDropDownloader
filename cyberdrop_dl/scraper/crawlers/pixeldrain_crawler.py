@@ -55,7 +55,7 @@ class PixelDrainCrawler(Crawler):
                 if "image" or "video" in file["mime_type"]:
                     filename, ext = await get_filename_and_ext(JSON_Resp['name'] + "." + file["mime_type"].split("/")[-1])
                 else:
-                    raise NoExtensionFailure
+                    raise NoExtensionFailure()
             new_scrape_item = await self.create_scrape_item(scrape_item, link, title, True, None, date)
             if not await self.check_album_results(link, results):
                 await self.handle_file(link, new_scrape_item, filename, ext)
@@ -74,7 +74,7 @@ class PixelDrainCrawler(Crawler):
             if "image" or "video" in JSON_Resp["mime_type"]:
                 filename, ext = await get_filename_and_ext(JSON_Resp['name'] + "." + JSON_Resp["mime_type"].split("/")[-1])
             else:
-                raise NoExtensionFailure
+                raise NoExtensionFailure()
         new_scrape_item = await self.create_scrape_item(scrape_item, link, "", False, None, date)
         await self.handle_file(link, new_scrape_item, filename, ext)
 
