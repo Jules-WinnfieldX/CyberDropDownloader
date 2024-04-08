@@ -12,6 +12,13 @@ class NoExtensionFailure(Exception):
         super().__init__(self.message)
         
 
+class PasswordProtected(Exception):
+    """This error will be thrown when a file is password protected"""
+    def __init__(self, *, message: str = "File/Folder is password protected"):
+        self.message = message
+        super().__init__(self.message)
+        
+
 class DDOSGuardFailure(Exception):
     """This error will be thrown when DDoS-Guard is detected"""
 
