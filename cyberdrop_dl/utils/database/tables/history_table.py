@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from sqlite3 import Row
+from sqlite3 import Row, IntegrityError
 
 import aiosqlite
 from typing import TYPE_CHECKING, Iterable, Any
@@ -100,8 +100,11 @@ class HistoryTable:
         domain = await get_db_domain(domain)
         url_path = await get_db_path(media_item.url, str(media_item.referer))
         download_filename = media_item.download_filename if isinstance(media_item.download_filename, str) else ""
-        await self.db_conn.execute("""UPDATE media SET domain = ?, album_id = ? WHERE domain = 'no_crawler' and url_path = ? and referer = ?""", 
-                                   (domain, media_item.album_id, url_path, str(media_item.referer)))
+        try:
+            await self.db_conn.execute("""UPDATE media SET domain = ?, album_id = ? WHERE domain = 'no_crawler' and url_path = ? and referer = ?""", 
+                                       (domain, media_item.album_id, url_path, str(media_item.referer)))
+        except IntegrityError:
+            await self.db_conn.execute("""DELETE FROM media WHERE domain = 'no_crawler' and url_path = ?""", (url_path,))
         await self.db_conn.execute("""INSERT OR IGNORE INTO media (domain, url_path, referer, album_id, download_path, download_filename, original_filename, completed) VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
                                    (domain, url_path, str(media_item.referer), media_item.album_id, str(media_item.download_folder), download_filename, media_item.original_filename, 0))
         await self.db_conn.execute("""UPDATE media SET download_filename = ? WHERE domain = ? and url_path = ?""",
