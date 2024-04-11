@@ -15,7 +15,7 @@ import aiohttp
 import filedate
 
 from cyberdrop_dl.clients.download_client import is_4xx_client_error
-from cyberdrop_dl.clients.errors import DownloadFailure, InvalidContentTypeFailure
+from cyberdrop_dl.clients.errors import DownloadFailure, InvalidContentTypeFailure, DDOSGuardFailure
 from cyberdrop_dl.utils.utilities import CustomHTTPStatus, FILE_FORMATS, log
 
 if TYPE_CHECKING:
@@ -66,6 +66,16 @@ def retry(f):
                 else:
                     await log(f"Download Failed: {media_item.url} with error {e}", 40)
                 await log(f"Download Retrying: {media_item.url} with attempt {media_item.current_attempt}", 20)
+            
+            except DDOSGuardFailure as e:
+                media_item = args[0]
+                if not isinstance(media_item.download_task_id, Field):
+                    await self.manager.progress_manager.file_progress.remove_file(media_item.download_task_id)
+                await log(f"Download Failed: {media_item.url} with error {e}", 40)
+                await log(traceback.format_exc(), 40)
+                await self.manager.progress_manager.download_stats_progress.add_failure("DDOSGuard")
+                await self.manager.progress_manager.download_progress.add_failed()
+                break
             
             except InvalidContentTypeFailure as e:
                 media_item = args[0]
