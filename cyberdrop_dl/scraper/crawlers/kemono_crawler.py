@@ -2,11 +2,13 @@ from __future__ import annotations
 
 import calendar
 import datetime
+import re
 from typing import TYPE_CHECKING, Tuple, Dict
 
 from aiolimiter import AsyncLimiter
 from yarl import URL
 
+from cyberdrop_dl.clients.errors import NoExtensionFailure
 from cyberdrop_dl.scraper.crawler import Crawler
 from cyberdrop_dl.utils.dataclasses.url_objects import ScrapeItem
 from cyberdrop_dl.utils.utilities import get_filename_and_ext, error_handling_wrapper
@@ -95,6 +97,8 @@ class KemonoCrawler(Crawler):
         post_id = post["id"]
         post_title = post.get("title", "")
 
+        await self.get_content_links(scrape_item, post)
+
         async def handle_file(file_obj):
             link = self.primary_base_domain / ("data" + file_obj['path'])
             link = link.with_query({"f": file_obj['name']})
@@ -106,10 +110,30 @@ class KemonoCrawler(Crawler):
         for file in post['attachments']:
             await handle_file(file)
 
+    async def get_content_links(self, scrape_item: ScrapeItem, post: Dict) -> None:
+        """Gets links out of content in post"""
+        content = post.get("content", "")
+        if not content:
+            return
+
+        yarl_links = []
+        all_links = [x.group().replace(".md.", ".") for x in re.finditer(r"(?:http.*?)(?=($|\n|\r\n|\r|\s|\"|\[/URL]|']\[|]\[|\[/img]|</a>|</p>))", content)]
+        for link in all_links:
+            yarl_links.append(URL(link))
+
+        for link in yarl_links:
+            if "kemono" in link.host:
+                continue
+            scrape_item = await self.create_scrape_item(scrape_item, link, "")
+            await self.handle_external_links(scrape_item)
+
     @error_handling_wrapper
     async def handle_direct_link(self, scrape_item: ScrapeItem) -> None:
         """Handles a direct link"""
-        filename, ext = await get_filename_and_ext(scrape_item.url.query["f"])
+        try:
+            filename, ext = await get_filename_and_ext(scrape_item.url.query["f"])
+        except NoExtensionFailure:
+            filename, ext = await get_filename_and_ext(scrape_item.url.name)
         await self.handle_file(scrape_item.url, scrape_item, filename, ext)
 
     """~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"""
