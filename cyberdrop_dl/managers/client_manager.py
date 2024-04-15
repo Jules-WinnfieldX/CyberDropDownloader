@@ -93,6 +93,14 @@ class ClientManager:
             except ContentTypeError:
                 pass
 
+        if "imgur" in response.url.host.lower():
+            try:
+                JSON_Resp = await response.json()
+                if "status" in JSON_Resp:
+                    raise ScrapeFailure(JSON_Resp['status'], JSON_Resp['data']['error'])
+            except ContentTypeError:
+                pass
+
         try:
             phrase = HTTPStatus(status).phrase
         except ValueError:
