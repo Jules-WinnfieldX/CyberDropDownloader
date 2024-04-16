@@ -97,7 +97,7 @@ class KemonoCrawler(Crawler):
         post_id = post["id"]
         post_title = post.get("title", "")
 
-        await self.get_content_links(scrape_item, post)
+        await self.get_content_links(scrape_item, post, user_str)
 
         async def handle_file(file_obj):
             link = self.primary_base_domain / ("data" + file_obj['path'])
@@ -110,11 +110,26 @@ class KemonoCrawler(Crawler):
         for file in post['attachments']:
             await handle_file(file)
 
-    async def get_content_links(self, scrape_item: ScrapeItem, post: Dict) -> None:
+    async def get_content_links(self, scrape_item: ScrapeItem, post: Dict, user: str) -> None:
         """Gets links out of content in post"""
         content = post.get("content", "")
         if not content:
             return
+
+        date = post["published"].replace("T", " ")
+        post_id = post["id"]
+        title = post.get("title", "")
+
+        post_title = None
+        if self.manager.config_manager.settings_data['Download_Options']['separate_posts']:
+            post_title = f"{date} - {title}"
+            if self.manager.config_manager.settings_data['Download_Options']['include_album_id_in_folder_name']:
+                post_title = post_id + " - " + post_title
+
+        new_title = await self.create_title(user, None, None)
+        scrape_item = await self.create_scrape_item(scrape_item, scrape_item.url, new_title, True, None, await self.parse_datetime(date))
+        await scrape_item.add_to_parent_title(post_title)
+        await scrape_item.add_to_parent_title("Loose Files")
 
         yarl_links = []
         all_links = [x.group().replace(".md.", ".") for x in re.finditer(r"(?:http.*?)(?=($|\n|\r\n|\r|\s|\"|\[/URL]|']\[|]\[|\[/img]|</a>|</p>))", content)]
