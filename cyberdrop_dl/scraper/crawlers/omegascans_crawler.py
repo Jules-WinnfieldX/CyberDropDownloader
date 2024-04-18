@@ -20,6 +20,7 @@ class OmegaScansCrawler(Crawler):
     def __init__(self, manager: Manager):
         super().__init__(manager, "omegascans", "OmegaScans")
         self.primary_base_domain = URL("https://omegascans.org")
+        self.api_url = "https://api.omegascans.org/chapter/query?page={}&perPage={}&series_id={}"
         self.request_limiter = AsyncLimiter(10, 1)
 
     """~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"""
@@ -30,10 +31,42 @@ class OmegaScansCrawler(Crawler):
 
         if "chapter" in scrape_item.url.name:
             await self.chapter(scrape_item)
+        elif "series" in scrape_item.url.parts:
+            await self.series(scrape_item)
         else:
             await self.handle_direct_link(scrape_item)
 
         await self.scraping_progress.remove_task(task_id)
+
+    @error_handling_wrapper
+    async def series(self, scrape_item: ScrapeItem) -> None:
+        """Scrapes an album"""
+        async with self.request_limiter:
+            soup = await self.client.get_BS4(self.domain, scrape_item.url)
+
+        scripts = soup.select("script")
+        for script in scripts:
+            if "series_id" in script.get_text():
+                series_id = script.get_text().split('series_id\\":')[1].split(",")[0]
+                break
+
+        page_number = 1
+        number_per_page = 30
+        while True:
+            api_url = URL(self.api_url.format(page_number, number_per_page, series_id))
+            async with self.request_limiter:
+                JSON_Obj = await self.client.get_json(self.domain, api_url)
+            if not JSON_Obj:
+                break
+
+            for chapter in JSON_Obj['data']:
+                chapter_url = scrape_item.url / chapter['chapter_slug']
+                new_scrape_item = await self.create_scrape_item(scrape_item, chapter_url, "", True)
+                self.manager.task_group.create_task(self.run(new_scrape_item))
+
+            if JSON_Obj['meta']['current_page'] == JSON_Obj['meta']['last_page']:
+                break
+            page_number += 1
 
     @error_handling_wrapper
     async def chapter(self, scrape_item: ScrapeItem) -> None:
