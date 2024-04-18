@@ -30,28 +30,10 @@ class OmegaScansCrawler(Crawler):
 
         if "chapter" in scrape_item.url.name:
             await self.chapter(scrape_item)
-        elif "series" in scrape_item.url.parts:
-            await self.series(scrape_item)
         else:
             await self.handle_direct_link(scrape_item)
 
         await self.scraping_progress.remove_task(task_id)
-
-    @error_handling_wrapper
-    async def series(self, scrape_item: ScrapeItem) -> None:
-        """Scrapes an album"""
-        async with self.request_limiter:
-            soup = await self.client.get_BS4(self.domain, scrape_item.url)
-
-        chapters = soup.select("a[class*=text-gray-50]")
-        for chapter in chapters:
-            chapter_path = chapter.get("href")
-            if chapter_path.startswith("/"):
-                chapter_path = self.primary_base_domain / chapter_path[1:]
-            else:
-                chapter_path = URL(chapter_path)
-            new_scrape_item = await self.create_scrape_item(scrape_item, chapter_path, "", True)
-            self.manager.task_group.create_task(self.run(new_scrape_item))
 
     @error_handling_wrapper
     async def chapter(self, scrape_item: ScrapeItem) -> None:
@@ -70,7 +52,7 @@ class OmegaScansCrawler(Crawler):
         await scrape_item.add_to_parent_title(series_title)
         await scrape_item.add_to_parent_title(chapter_title)
 
-        date = soup.select_one('h2[class="font-semibold font-sans text-gray-400 text-xs"]').get_text()
+        date = soup.select('h2[class="font-semibold font-sans text-muted-foreground text-xs"]')[-1].get_text()
         try:
             date = await self.parse_datetime_standard(date)
         except ValueError:
