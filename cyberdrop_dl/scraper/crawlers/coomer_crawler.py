@@ -96,7 +96,10 @@ class CoomerCrawler(Crawler):
     @error_handling_wrapper
     async def handle_direct_link(self, scrape_item: ScrapeItem) -> None:
         """Handles a direct link"""
-        filename, ext = await get_filename_and_ext(scrape_item.url.query["f"])
+        try:
+            filename, ext = await get_filename_and_ext(scrape_item.url.query["f"])
+        except KeyError:
+            filename, ext = await get_filename_and_ext(scrape_item.url.name)
         await self.handle_file(scrape_item.url, scrape_item, filename, ext)
 
     """~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"""
