@@ -14,6 +14,7 @@ class ArgsManager:
         self.flaresolverr = ""
 
         self.all_configs = False
+        self.sort_all_configs = False
         self.retry = False
 
         self.immediate_download = False

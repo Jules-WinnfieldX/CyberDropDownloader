@@ -46,19 +46,25 @@ def program_ui(manager: Manager):
         elif action == 3:
             manager.args_manager.retry = True
             break
+            
+        # Sort All Configs
+        elif action == 4:
+            manager.args_manager.sort_all_configs = True
+            manager.args_manager.all_configs = True
+            break
 
         # Edit URLs
-        elif action == 4:
+        elif action == 5:
             input_file = manager.config_manager.settings_data['Files']['input_file'] if not manager.args_manager.input_file else manager.args_manager.input_file
             edit_urls_prompt(input_file, manager.vi_mode)
 
         # Select Config
-        elif action == 5:
+        elif action == 6:
             configs = manager.config_manager.get_configs()
             selected_config = select_config_prompt(manager, configs)
             manager.config_manager.change_config(selected_config)
 
-        elif action == 6:
+        elif action == 7:
             console.clear()
             console.print("Editing Input / Output File Paths")
             input_file = inquirer.filepath(
@@ -79,7 +85,7 @@ def program_ui(manager: Manager):
             manager.config_manager.write_updated_settings_config()
 
         # Manage Configs
-        elif action == 7:
+        elif action == 8:
             while True:
                 console.clear()
                 console.print("[bold]Manage Configs[/bold]")
@@ -134,13 +140,13 @@ def program_ui(manager: Manager):
                     break
 
         # Import Cyberdrop_V4 Items
-        elif action == 8:
+        elif action == 9:
             import_cyberdrop_v4_items_prompt(manager)
 
         # Donate
-        elif action == 9:
+        elif action == 10:
             donations_prompt(manager)
 
         # Exit
-        elif action == 10:
+        elif action == 11:
             exit(0)

@@ -103,17 +103,18 @@ async def director(manager: Manager) -> None:
         await manager.async_startup()
 
         await log("Starting UI...", 20)
-        try:
-            if not manager.args_manager.no_ui:
-                with Live(manager.progress_manager.layout, refresh_per_second=manager.config_manager.settings_data['Runtime_Options']['ui_refresh_rate']):
+        if not manager.args_manager.sort_all_configs:
+            try:
+                if not manager.args_manager.no_ui:
+                    with Live(manager.progress_manager.layout, refresh_per_second=manager.config_manager.settings_data['Runtime_Options']['ui_refresh_rate']):
+                        await runtime(manager)
+                else:
                     await runtime(manager)
-            else:
-                await runtime(manager)
-        except Exception as e:
-            print("\nAn error occurred, please report this to the developer")
-            print(e)
-            print(traceback.format_exc())
-            exit(1)
+            except Exception as e:
+                print("\nAn error occurred, please report this to the developer")
+                print(e)
+                print(traceback.format_exc())
+                exit(1)
 
         clear_screen_proc = await asyncio.create_subprocess_shell('cls' if os.name == 'nt' else 'clear')
         await clear_screen_proc.wait()
