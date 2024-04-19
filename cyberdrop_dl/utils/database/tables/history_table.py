@@ -105,7 +105,7 @@ class HistoryTable:
                                        (domain, media_item.album_id, url_path, str(media_item.referer)))
         except IntegrityError:
             await self.db_conn.execute("""DELETE FROM media WHERE domain = 'no_crawler' and url_path = ?""", (url_path,))
-        await self.db_conn.execute("""INSERT OR IGNORE INTO media (domain, url_path, referer, album_id, download_path, download_filename, original_filename, completed) VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+        await self.db_conn.execute("""INSERT OR IGNORE INTO media (domain, url_path, referer, album_id, download_path, download_filename, original_filename, completed, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)""",
                                    (domain, url_path, str(media_item.referer), media_item.album_id, str(media_item.download_folder), download_filename, media_item.original_filename, 0))
         await self.db_conn.execute("""UPDATE media SET download_filename = ? WHERE domain = ? and url_path = ?""",
                                    (download_filename, domain, url_path))
@@ -115,7 +115,7 @@ class HistoryTable:
         """Mark a download as completed in the database"""
         domain = await get_db_domain(domain)
         url_path = await get_db_path(media_item.url, str(media_item.referer))
-        await self.db_conn.execute("""UPDATE media SET completed = 1 WHERE domain = ? and url_path = ?""",
+        await self.db_conn.execute("""UPDATE media SET completed = 1, completed_at = CURRENT_TIMESTAMP WHERE domain = ? and url_path = ?""",
                                    (domain, url_path))
         await self.db_conn.commit()
 
@@ -154,7 +154,7 @@ class HistoryTable:
         for entry in bunkr_entries:
             entry = list(entry)
             entry[0] = "bunkrr"
-            await self.db_conn.execute("""INSERT or REPLACE INTO media VALUES (?, ?, ?, ?, ?, ?, ?, ?)""", entry)
+            await self.db_conn.execute("""INSERT or REPLACE INTO media VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""", entry)
         await self.db_conn.commit()
 
         await self.db_conn.execute("""DELETE FROM media WHERE domain = 'bunkr'""")
@@ -177,7 +177,7 @@ class HistoryTable:
 
             await self.db_conn.execute("""ALTER TABLE media_copy RENAME TO media""")
             await self.db_conn.commit()
-            
+
     async def add_columns(self) -> None:
         cursor = await self.db_conn.cursor()
         result = await cursor.execute("""pragma table_info(media)""")
@@ -186,4 +186,12 @@ class HistoryTable:
         
         if "album_id" not in current_cols:
             await self.db_conn.execute("""ALTER TABLE media ADD COLUMN album_id TEXT""")
+            await self.db_conn.commit()
+
+        if "created_at" not in current_cols:
+            await self.db_conn.execute("""ALTER TABLE media ADD COLUMN created_at TIMESTAMP""")
+            await self.db_conn.commit()
+
+        if "completed_at" not in current_cols:
+            await self.db_conn.execute("""ALTER TABLE media ADD COLUMN completed_at TIMESTAMP""")
             await self.db_conn.commit()
