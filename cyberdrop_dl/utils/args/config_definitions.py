@@ -99,6 +99,7 @@ settings: Dict = {
         "skip_check_for_empty_folders": False,
         "delete_partial_files": False,
         "send_unsupported_to_jdownloader": False,
+        "ui_refresh_rate": 10,
     },
     "Sorting": {
         "sort_downloads": False,

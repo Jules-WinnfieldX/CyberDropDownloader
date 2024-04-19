@@ -61,6 +61,7 @@ def parse_args() -> argparse.Namespace:
     runtime_options.add_argument("--skip-check-for-empty-folders", action="store_true", help="skip check (and removal) for empty folders", default=False)
     runtime_options.add_argument("--delete-partial-files", action="store_true", help="delete partial downloads", default=False)
     runtime_options.add_argument("--send-unsupported-to-jdownloader", action="store_true", help="send unsupported urls to jdownloader", default=False)
+    runtime_options.add_argument("--ui-refresh-rate", type=int, help="set the UI refresh rate (default: %(default)s)", default=10)
 
     sorting_options = parser.add_argument_group("Sorting")
     sorting_options.add_argument("--sort-downloads", action="store_true", help="sort downloads into folders", default=False)

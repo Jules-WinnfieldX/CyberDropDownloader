@@ -105,7 +105,7 @@ async def director(manager: Manager) -> None:
         await log("Starting UI...", 20)
         try:
             if not manager.args_manager.no_ui:
-                with Live(manager.progress_manager.layout, refresh_per_second=10):
+                with Live(manager.progress_manager.layout, refresh_per_second=manager.config_manager.settings_data['Runtime_Options']['ui_refresh_rate']):
                     await runtime(manager)
             else:
                 await runtime(manager)
