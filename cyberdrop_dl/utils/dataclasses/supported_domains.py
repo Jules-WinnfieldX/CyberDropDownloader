@@ -11,8 +11,8 @@ class SupportedDomains:
                                                   "jpg.homes", "jpg.fish", "jpg.fishing", "jpg.pet", "jpeg.pet",
                                                   "jpg1.su", "jpg2.su", "jpg3.su", "jpg4.su", "host.church", "kemono",
                                                   "leakedmodels", "mediafire", "nudostar.com", "nudostar.tv",
-                                                  "omegascans", "pimpandhost", "pixeldrain", "postimg", "reddit",
-                                                  "redd.it", "redgifs", "rule34.xxx", "rule34.xyz", "saint",
+                                                  "omegascans", "pimpandhost", "pixeldrain", "postimg", "realbooru", 
+                                                  "reddit", "redd.it", "redgifs", "rule34.xxx", "rule34.xyz", "saint",
                                                   "scrolller", "simpcity", "socialmediagirls", "toonily", "xbunker",
                                                   "xbunkr")
 

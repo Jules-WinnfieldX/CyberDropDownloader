@@ -35,11 +35,11 @@ class ScrapeMapper:
                         "host.church": self.jpgchurch, "kemono": self.kemono, "leakedmodels": self.leakedmodels,
                         "mediafire": self.mediafire, "nudostar.com": self.nudostar, "nudostar.tv": self.nudostartv,
                         "omegascans": self.omegascans, "pimpandhost": self.pimpandhost, "pixeldrain": self.pixeldrain,
-                        "postimg": self.postimg, "reddit": self.reddit, "redd.it": self.reddit, "redgifs": self.redgifs,
-                        "rule34.xxx": self.rule34xxx, "rule34.xyz": self.rule34xyz, "saint": self.saint,
-                        "scrolller": self.scrolller, "simpcity": self.simpcity,
-                        "socialmediagirls": self.socialmediagirls, "toonily": self.toonily, "xbunker": self.xbunker,
-                        "xbunkr": self.xbunkr, "bunkr": self.bunkrr}
+                        "postimg": self.postimg, "realbooru": self.realbooru, "reddit": self.reddit, 
+                        "redd.it": self.reddit, "redgifs": self.redgifs, "rule34.xxx": self.rule34xxx, 
+                        "rule34.xyz": self.rule34xyz, "saint": self.saint, "scrolller": self.scrolller, 
+                        "simpcity": self.simpcity, "socialmediagirls": self.socialmediagirls, "toonily": self.toonily, 
+                        "xbunker": self.xbunker, "xbunkr": self.xbunkr, "bunkr": self.bunkrr}
         self.existing_crawlers = {}
         self.no_crawler_downloader = Downloader(self.manager, "no_crawler")
         self.jdownloader = JDownloader(self.manager)
@@ -184,6 +184,11 @@ class ScrapeMapper:
         """Creates a PostImg Crawler instance"""
         from cyberdrop_dl.scraper.crawlers.postimg_crawler import PostImgCrawler
         self.existing_crawlers['postimg'] = PostImgCrawler(self.manager)
+        
+    async def realbooru(self) -> None:
+        """Creates a RealBooru Crawler instance"""
+        from cyberdrop_dl.scraper.crawlers.realbooru_crawler import RealBooruCrawler
+        self.existing_crawlers['realbooru'] = RealBooruCrawler(self.manager)
 
     async def reddit(self) -> None:
         """Creates a Reddit Crawler instance"""
