@@ -22,7 +22,4 @@ class SupportedDomains:
                             "nudostar.com": "nudostar", "simpcity.su": "simpcity",
                             "forums.socialmediagirls.com": "socialmediagirls", "xbunker.nu": "xbunker"}
 
-    supported_ddos_guard: ClassVar[Tuple[str, ...]] = (".bunkrr.su", ".coomer.su", ".kemono.su")
-    supported_ddos_guard_map = {".bunkrr.su": "bunkrr", ".coomer.su": "coomer", ".kemono.su": "kemono"}
-
     sites: List[str]
