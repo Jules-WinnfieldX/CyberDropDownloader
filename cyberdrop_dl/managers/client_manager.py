@@ -81,6 +81,8 @@ class ClientManager:
                 raise DownloadFailure(status="Bunkr Maintenance", message="Bunkr under maintenance")
             if headers.get('ETag') == '"d835884373f4d6c8f24742ceabe74946"':
                 raise DownloadFailure(status=HTTPStatus.NOT_FOUND, message="Imgur image has been removed")
+            if headers.get('ETag') == '"65b7753c-528a"':
+                raise DownloadFailure(status=HTTPStatus.NOT_FOUND, message="SC Scrape Image")
 
         if HTTPStatus.OK <= status < HTTPStatus.BAD_REQUEST:
             return
