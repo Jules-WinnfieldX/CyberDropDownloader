@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import field
 from pathlib import Path
 
 from cyberdrop_dl.utils.args.args import parse_args
@@ -29,6 +30,10 @@ class ArgsManager:
         self.config_file = None
         self.appdata_dir = None
         self.log_dir = None
+        
+        # Sorting
+        self.sort_downloads = field(init=False)
+        self.sort_folder = None
 
     def startup(self) -> None:
         """Parses arguments and sets variables accordingly"""
@@ -67,6 +72,11 @@ class ArgsManager:
             self.immediate_download = True
         if self.parsed_args['log_folder']:
             self.log_dir = Path(self.parsed_args['log_folder'])
+            
+        if self.parsed_args['sort_downloads']:
+            self.sort_downloads = True
+        if self.parsed_args['sort_folder']:
+            self.sort_folder = Path(self.parsed_args['sort_folder'])
 
         if self.parsed_args['proxy']:
             self.proxy = self.parsed_args['proxy']

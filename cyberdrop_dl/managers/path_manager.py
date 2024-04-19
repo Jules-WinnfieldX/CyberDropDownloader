@@ -49,7 +49,7 @@ class PathManager:
     def startup(self) -> None:
         """Startup process for the Directory Manager"""
         self.download_dir = self.manager.config_manager.settings_data['Files']['download_folder'] if not self.manager.args_manager.download_dir else self.manager.args_manager.download_dir
-        self.sorted_dir = self.manager.config_manager.settings_data['Sorting']['sort_folder']
+        self.sorted_dir = self.manager.config_manager.settings_data['Sorting']['sort_folder'] if not self.manager.args_manager.sort_folder else self.manager.args_manager.sort_folder
         self.log_dir = self.manager.config_manager.settings_data['Logs']['log_folder'] if not self.manager.args_manager.log_dir else self.manager.args_manager.log_dir
         self.input_file = self.manager.config_manager.settings_data['Files']['input_file'] if not self.manager.args_manager.input_file else self.manager.args_manager.input_file
         self.history_db = self.cache_dir / "cyberdrop.db"

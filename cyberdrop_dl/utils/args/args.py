@@ -62,6 +62,10 @@ def parse_args() -> argparse.Namespace:
     runtime_options.add_argument("--delete-partial-files", action="store_true", help="delete partial downloads", default=False)
     runtime_options.add_argument("--send-unsupported-to-jdownloader", action="store_true", help="send unsupported urls to jdownloader", default=False)
 
+    sorting_options = parser.add_argument_group("Sorting")
+    sorting_options.add_argument("--sort-downloads", action="store_true", help="sort downloads into folders", default=False)
+    sorting_options.add_argument("--sort_folder", type=str, help="path to where you want CDL to store it's log files", default="")
+
     # Links
     parser.add_argument("links", metavar="link", nargs="*", help="link to content to download (passing multiple links is supported)", default=[])
     return parser.parse_args()
