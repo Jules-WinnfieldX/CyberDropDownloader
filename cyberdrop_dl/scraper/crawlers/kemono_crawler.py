@@ -56,7 +56,7 @@ class KemonoCrawler(Crawler):
         api_call = self.api_url / service / "user" / user
         while True:
             async with self.request_limiter:
-                JSON_Resp = await self.client.get_json("kemono", api_call.with_query({"o": offset}))
+                JSON_Resp = await self.client.get_json(self.domain, api_call.with_query({"o": offset}))
                 offset += 50
                 if not JSON_Resp:
                     break
@@ -72,7 +72,7 @@ class KemonoCrawler(Crawler):
         api_call = self.api_url / "discord/channel" / channel
         while True:
             async with self.request_limiter:
-                JSON_Resp = await self.client.get_json("kemono", api_call.with_query({"o": offset}))
+                JSON_Resp = await self.client.get_json(self.domain, api_call.with_query({"o": offset}))
                 offset += 150
                 if not JSON_Resp:
                     break
@@ -87,7 +87,7 @@ class KemonoCrawler(Crawler):
         user_str = await self.get_user_str_from_post(scrape_item)
         api_call = self.api_url / service / "user" / user / "post" / post_id
         async with self.request_limiter:
-            post = await self.client.get_json("kemono", api_call)
+            post = await self.client.get_json(self.domain, api_call)
         await self.handle_post_content(scrape_item, post, user, user_str)
 
     @error_handling_wrapper
