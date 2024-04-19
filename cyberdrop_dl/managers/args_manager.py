@@ -34,6 +34,13 @@ class ArgsManager:
         # Sorting
         self.sort_downloads = field(init=False)
         self.sort_folder = None
+        
+        # Logs
+        self.main_log_filename = None
+        self.last_forum_post_filename = None
+        self.unsupported_urls_filename = None
+        self.download_error_urls_filename = None
+        self.scrape_error_urls_filename = None
 
     def startup(self) -> None:
         """Parses arguments and sets variables accordingly"""
@@ -72,7 +79,6 @@ class ArgsManager:
             self.immediate_download = True
         if self.parsed_args['log_folder']:
             self.log_dir = Path(self.parsed_args['log_folder'])
-            
         if self.parsed_args['sort_downloads']:
             self.sort_downloads = True
         if self.parsed_args['sort_folder']:
@@ -97,3 +103,5 @@ class ArgsManager:
         del self.parsed_args['log_folder']
         del self.parsed_args['proxy']
         del self.parsed_args['links']
+        del self.parsed_args['sort_downloads']
+        del self.parsed_args['sort_folder']

@@ -25,6 +25,11 @@ def parse_args() -> argparse.Namespace:
     file_paths.add_argument("--config-file", type=str, help="path to the CDL settings.yaml file to load", default="")
     file_paths.add_argument("--appdata-folder", type=str, help="path to where you want CDL to store it's AppData folder", default="")
     file_paths.add_argument("--log-folder", type=str, help="path to where you want CDL to store it's log files", default="")
+    file_paths.add_argument("--main-log-filename", type=str, help="filename for the main log file", default="")
+    file_paths.add_argument("--last-forum-post-filename", type=str, help="filename for the last forum post log file", default="")
+    file_paths.add_argument("--unsupported-urls-filename", type=str, help="filename for the unsupported urls log file", default="")
+    file_paths.add_argument("--download-error-urls-filename", type=str, help="filename for the download error urls log file", default="")
+    file_paths.add_argument("--scrape-error-urls-filename", type=str, help="filename for the scrape error urls log file", default="")
 
     # Settings
     download_options = parser.add_argument_group("Download_Options")
@@ -35,6 +40,8 @@ def parse_args() -> argparse.Namespace:
     download_options.add_argument("--include-thread-id-in-folder-name", action="store_true", help="include thread id in folder name", default=False)
     download_options.add_argument("--remove-domains-from-folder-names", action="store_true", help="remove website domains from folder names", default=False)
     download_options.add_argument("--remove-generated-id-from-filenames", action="store_true", help="remove site generated id from filenames", default=False)
+    download_options.add_argument("--scrape-single-forum-post", action="store_true", help="scrape single forum post", default=False)
+    download_options.add_argument("--separate-posts", action="store_true", help="separate posts into folders", default=False)
     download_options.add_argument("--skip-download-mark-completed", action="store_true", help="skip download and mark as completed in history", default=False)
 
     file_size_limits = parser.add_argument_group("File_Size_Limits")

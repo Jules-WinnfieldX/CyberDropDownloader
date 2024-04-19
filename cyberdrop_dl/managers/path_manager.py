@@ -54,11 +54,16 @@ class PathManager:
         self.input_file = self.manager.config_manager.settings_data['Files']['input_file'] if not self.manager.args_manager.input_file else self.manager.args_manager.input_file
         self.history_db = self.cache_dir / "cyberdrop.db"
 
-        self.main_log = self.log_dir / self.manager.config_manager.settings_data['Logs']['main_log_filename']
-        self.last_post_log = self.log_dir / self.manager.config_manager.settings_data['Logs']['last_forum_post_filename']
-        self.unsupported_urls_log = self.log_dir / self.manager.config_manager.settings_data['Logs']['unsupported_urls_filename']
-        self.download_error_log = self.log_dir / self.manager.config_manager.settings_data['Logs']['download_error_urls_filename']
-        self.scrape_error_log = self.log_dir / self.manager.config_manager.settings_data['Logs']['scrape_error_urls_filename']
+        self.main_log = self.log_dir / (self.manager.config_manager.settings_data['Logs']['main_log_filename']
+                                        if not self.manager.args_manager.main_log_filename else self.manager.args_manager.main_log_filename)
+        self.last_post_log = self.log_dir / (self.manager.config_manager.settings_data['Logs']['last_forum_post_filename']
+                                             if not self.manager.args_manager.last_forum_post_filename else self.manager.args_manager.last_forum_post_filename)
+        self.unsupported_urls_log = self.log_dir / (self.manager.config_manager.settings_data['Logs']['unsupported_urls_filename']
+                                                    if not self.manager.args_manager.unsupported_urls_filename else self.manager.args_manager.unsupported_urls_filename)
+        self.download_error_log = self.log_dir / (self.manager.config_manager.settings_data['Logs']['download_error_urls_filename']
+                                                  if not self.manager.args_manager.download_error_urls_filename else self.manager.args_manager.download_error_urls_filename)
+        self.scrape_error_log = self.log_dir / (self.manager.config_manager.settings_data['Logs']['scrape_error_urls_filename']
+                                                if not self.manager.args_manager.scrape_error_urls_filename else self.manager.args_manager.scrape_error_urls_filename)
 
         self.log_dir.mkdir(parents=True, exist_ok=True)
         if not self.input_file.is_file():
