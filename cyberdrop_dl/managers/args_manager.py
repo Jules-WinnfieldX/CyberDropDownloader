@@ -64,6 +64,11 @@ class ArgsManager:
         if self.parsed_args['download_all_configs']:
             self.all_configs = True
             self.immediate_download = True
+        
+        if self.parsed_args['sort_all_configs']:
+            self.sort_all_configs = True
+            self.all_configs = True
+            self.immediate_download = True
 
         if self.parsed_args['retry_failed']:
             self.retry = True

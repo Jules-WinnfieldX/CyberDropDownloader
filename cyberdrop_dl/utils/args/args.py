@@ -15,6 +15,7 @@ def parse_args() -> argparse.Namespace:
     general.add_argument("--no-ui", action="store_true", help="Disables the UI/Progress view entirely", default=False)
     general.add_argument("--download", action="store_true", help="Skip the UI and go straight to downloading", default=False)
     general.add_argument("--download-all-configs", action="store_true", help="Skip the UI and go straight to downloading (runs all configs sequentially)", default=False)
+    general.add_argument("--sort-all-configs", action="store_true", help="Sort all configs sequentially", default=False)
     general.add_argument("--retry-failed", action="store_true", help="retry failed downloads", default=False)
     general.add_argument("--vi-mode", action="store_true", help="enable VIM keybindings for UI", default=None)
 
