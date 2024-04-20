@@ -18,6 +18,7 @@ if TYPE_CHECKING:
 class ImgBoxCrawler(Crawler):
     def __init__(self, manager: Manager):
         super().__init__(manager, "imgbox", "ImgBox")
+        self.primary_base_domain = URL("https://imgbox.com")
         self.request_limiter = AsyncLimiter(10, 1)
 
     """~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"""
@@ -27,7 +28,10 @@ class ImgBoxCrawler(Crawler):
         task_id = await self.scraping_progress.add_task(scrape_item.url)
 
         if "t" in scrape_item.url.host or "_" in scrape_item.url.name:
-            scrape_item.url = URL("https://imgbox.com") / scrape_item.url.name.split("_")[0]
+            scrape_item.url = self.primary_base_domain / scrape_item.url.name.split("_")[0]
+            
+        if "gallery/edit" in str(scrape_item.url):
+            scrape_item.url = self.primary_base_domain / "g" / scrape_item.url.parts[-2]
 
         if "g" in scrape_item.url.parts:
             await self.album(scrape_item)
