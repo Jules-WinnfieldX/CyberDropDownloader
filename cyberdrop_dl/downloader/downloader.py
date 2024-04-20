@@ -72,6 +72,7 @@ def retry(f):
                 if not isinstance(media_item.download_task_id, Field):
                     await self.manager.progress_manager.file_progress.remove_file(media_item.download_task_id)
                 await log(f"Download Failed: {media_item.url} with error {e}", 40)
+                await self.manager.log_manager.write_download_error_log(media_item.url, " DDOSGuard")
                 await log(traceback.format_exc(), 40)
                 await self.manager.progress_manager.download_stats_progress.add_failure("DDOSGuard")
                 await self.manager.progress_manager.download_progress.add_failed()
@@ -82,8 +83,9 @@ def retry(f):
                 if not isinstance(media_item.download_task_id, Field):
                     await self.manager.progress_manager.file_progress.remove_file(media_item.download_task_id)
                 await log(f"Download Failed: {media_item.url} received Invalid Content", 40)
+                await self.manager.log_manager.write_download_error_log(media_item.url, "Invalid Content Received")
                 await log(e.message, 40)
-                await self.manager.progress_manager.download_stats_progress.add_failure("Invalid Content Type")
+                await self.manager.progress_manager.download_stats_progress.add_failure(" Invalid Content Type")
                 await self.manager.progress_manager.download_progress.add_failed()
                 break
             
@@ -93,6 +95,7 @@ def retry(f):
                 if not isinstance(media_item.download_task_id, Field):
                     await self.manager.progress_manager.file_progress.remove_file(media_item.download_task_id)
                 await log(traceback.format_exc(), 40)
+                await self.manager.log_manager.write_download_error_log(media_item.url, " See Log For Details")
                 await self.manager.progress_manager.download_stats_progress.add_failure("Unknown")
                 await self.manager.progress_manager.download_progress.add_failed()
                 break
