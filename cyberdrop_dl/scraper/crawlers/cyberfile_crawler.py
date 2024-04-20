@@ -8,6 +8,7 @@ from aiolimiter import AsyncLimiter
 from bs4 import BeautifulSoup
 from yarl import URL
 
+from cyberdrop_dl.clients.errors import PasswordProtected
 from cyberdrop_dl.scraper.crawler import Crawler
 from cyberdrop_dl.utils.dataclasses.url_objects import ScrapeItem
 from cyberdrop_dl.utils.utilities import error_handling_wrapper, log, get_filename_and_ext
@@ -145,6 +146,10 @@ class CyberfileCrawler(Crawler):
         async with self.request_limiter:
             ajax_dict = await self.client.post_data(self.domain, self.api_details, data=data)
             ajax_soup = BeautifulSoup(ajax_dict['html'].replace("\\", ""), 'html.parser')
+            
+        if "albumPasswordModel" in ajax_dict['html']:
+            await log(f"Album is password protected: {scrape_item.url}", 30)
+            raise PasswordProtected()
 
         file_menu = ajax_soup.select_one('ul[class="dropdown-menu dropdown-info account-dropdown-resize-menu"] li a')
         file_button = ajax_soup.select_one('div[class="btn-group responsiveMobileMargin"] button')
@@ -154,7 +159,7 @@ class CyberfileCrawler(Crawler):
             html_download_text = file_button.get("onclick")
         link = URL(html_download_text.split("'")[1])
 
-        file_detail_table = ajax_soup.select_one('table[class="table table-bordered table-striped"]')
+        file_detail_table = ajax_soup.select('table[class="table table-bordered table-striped"]')[-1]
         uploaded_row = file_detail_table.select('tr')[-2]
         uploaded_date = uploaded_row.select_one('td[class=responsiveTable]').text.strip()
         uploaded_date = await self.parse_datetime(uploaded_date)
