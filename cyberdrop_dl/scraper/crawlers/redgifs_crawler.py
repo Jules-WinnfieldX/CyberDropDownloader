@@ -53,8 +53,7 @@ class RedGifsCrawler(Crawler):
             for gif in gifs:
                 links = gif["urls"]
                 date = gif["createDate"]
-                title_part = gif.get("title", "Loose Files")
-                title = await self.create_title(title_part, None, None)
+                title = await self.create_title(user_id, None, None)
 
                 try:
                     link = URL(links["hd"])
