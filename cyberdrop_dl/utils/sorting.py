@@ -76,6 +76,10 @@ class Sorter:
 
         if await self.check_dir_parents():
             return
+        
+        if not self.download_dir.is_dir():
+            await log_with_color("Download Directory does not exist", "red", 40)
+            return
 
         for folder in self.download_dir.iterdir():
             if not folder.is_dir():
