@@ -118,6 +118,9 @@ class ConfigManager:
         self.settings_data['File_Size_Limits']['minimum_image_size'] = int(self.settings_data['File_Size_Limits']['minimum_image_size'])
         self.settings_data['File_Size_Limits']['minimum_video_size'] = int(self.settings_data['File_Size_Limits']['minimum_video_size'])
         self.settings_data['File_Size_Limits']['minimum_other_size'] = int(self.settings_data['File_Size_Limits']['minimum_other_size'])
+        
+        self.settings_data['Runtime_Options']['ui_refresh_rate'] = int(self.settings_data['Runtime_Options']['ui_refresh_rate'])
+        self.settings_data['Runtime_Options']['log_level'] = int(self.settings_data['Runtime_Options']['log_level'])
 
         self.global_settings_data['General']['max_file_name_length'] = int(self.global_settings_data['General']['max_file_name_length'])
         self.global_settings_data['General']['max_folder_name_length'] = int(self.global_settings_data['General']['max_folder_name_length'])

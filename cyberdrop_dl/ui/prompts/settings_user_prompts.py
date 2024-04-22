@@ -357,6 +357,14 @@ def edit_runtime_options_prompt(manager: Manager, config: Dict) -> None:
         vi_mode=manager.vi_mode,
     ).execute()
 
+    log_level = inquirer.number(
+        message="Enter the desired UI refresh rate:",
+        default=int(config['Runtime_Options']['ui_refresh_rate']),
+        validate=NumberValidator(),
+        long_instruction="10 is the default",
+        vi_mode=manager.vi_mode,
+    ).execute()
+
     for key in config["Runtime_Options"]:
         config["Runtime_Options"][key] = False
 
@@ -364,6 +372,7 @@ def edit_runtime_options_prompt(manager: Manager, config: Dict) -> None:
         config["Runtime_Options"][key] = True
 
     config['Runtime_Options']['log_level'] = int(log_level)
+    config['Runtime_Options']['ui_refresh_rate'] = int(log_level)
 
 
 def edit_sort_options_prompt(manager: Manager, config: Dict) -> None:
