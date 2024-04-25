@@ -85,7 +85,7 @@ def retry(f):
                 await log(f"Download Failed: {media_item.url} received Invalid Content", 40)
                 await self.manager.log_manager.write_download_error_log(media_item.url, "Invalid Content Received")
                 await log(e.message, 40)
-                await self.manager.progress_manager.download_stats_progress.add_failure(" Invalid Content Type")
+                await self.manager.progress_manager.download_stats_progress.add_failure("Invalid Content Type")
                 await self.manager.progress_manager.download_progress.add_failed()
                 break
             
