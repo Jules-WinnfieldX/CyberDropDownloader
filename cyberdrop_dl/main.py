@@ -128,7 +128,11 @@ async def director(manager: Manager) -> None:
             sorter = Sorter(manager)
             await sorter.sort()
         await check_partials_and_empty_folders(manager)
-
+        
+        if manager.config_manager.settings_data['Runtime_Options']['update_last_forum_post']:
+            await log("Updating Last Forum Post...", 20)
+            await manager.log_manager.update_last_forum_post()
+            
         await log("Printing Stats...", 20)
         await manager.progress_manager.print_stats()
 

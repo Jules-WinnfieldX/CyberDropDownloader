@@ -345,6 +345,9 @@ def edit_runtime_options_prompt(manager: Manager, config: Dict) -> None:
             Choice(value="send_unsupported_to_jdownloader",
                    name="Send unsupported urls to JDownloader to download",
                    enabled=config["Runtime_Options"]["send_unsupported_to_jdownloader"]),
+            Choice(value="update_last_forum_post",
+                   name="Update the last forum post after scraping",
+                   enabled=config["Runtime_Options"]["update_last_forum_post"]),
         ], long_instruction="ARROW KEYS: Move | TAB: Select | ENTER: Confirm",
         vi_mode=manager.vi_mode,
     ).execute()

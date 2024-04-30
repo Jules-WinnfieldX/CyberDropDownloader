@@ -100,6 +100,7 @@ settings: Dict = {
         "delete_partial_files": False,
         "send_unsupported_to_jdownloader": False,
         "ui_refresh_rate": 10,
+        "update_last_forum_post": False,
     },
     "Sorting": {
         "sort_downloads": False,
