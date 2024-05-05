@@ -355,7 +355,7 @@ class Downloader:
             headers = copy.deepcopy(self._additional_headers)
             headers['Range'] = f'bytes={resume_point}-'
 
-            media_item.download_task_id = await self.manager.progress_manager.file_progress.add_task(media_item.filename, media_item.filesize)
+            media_item.download_task_id = await self.manager.progress_manager.file_progress.add_task(f"({self.domain.upper()}) {media_item.filename}", media_item.filesize)
             await self.manager.progress_manager.file_progress.advance_file(media_item.download_task_id, resume_point)
 
             await self.client.download_file(self.manager, self.domain, media_item, partial_file, headers, media_item.download_task_id)
