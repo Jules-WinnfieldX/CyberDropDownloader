@@ -157,8 +157,11 @@ class BunkrrCrawler(Crawler):
         """get.bunkr.su"""
         async with self.request_limiter:
             soup = await self.client.get_BS4(self.domain, url)
-
-        link_container = soup.select('a[download*=""]')[-1]
+        
+        try:
+            link_container = soup.select('a[download*=""]')[-1]
+        except IndexError:
+            link_container = soup.select('a[class*=download]')[-1]
         link = URL(link_container.get('href'))
         return link
 
