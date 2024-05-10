@@ -33,7 +33,8 @@ def _save_yaml(file: Path, data: Dict) -> None:
 def _load_yaml(file: Path) -> Dict:
     """Loads a yaml file and returns it as a dict"""
     with open(file, 'r') as yaml_file:
-        return yaml.load(yaml_file.read(), Loader=yaml.FullLoader)
+        yaml_values = yaml.load(yaml_file.read(), Loader=yaml.FullLoader)
+        return yaml_values if yaml_values else {}
 
 
 class ConfigManager:
@@ -100,6 +101,7 @@ class ConfigManager:
         existing_auth_data = _load_yaml(self.authentication_settings)
         
         if default_auth_data.keys() == existing_auth_data.keys():
+            self.authentication_data = existing_auth_data
             return
         
         self.authentication_data = _match_config_dicts(default_auth_data, existing_auth_data)
@@ -152,6 +154,7 @@ class ConfigManager:
         existing_global_settings_data = _load_yaml(self.global_settings)
         
         if default_global_settings_data.keys() == existing_global_settings_data.keys():
+            self.global_settings_data = existing_global_settings_data
             return
         
         self.global_settings_data = _match_config_dicts(default_global_settings_data, existing_global_settings_data)
