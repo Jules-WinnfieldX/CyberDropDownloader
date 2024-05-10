@@ -98,6 +98,10 @@ class ConfigManager:
         """Verifies the authentication config file and creates it if it doesn't exist"""
         default_auth_data = copy.deepcopy(authentication_settings)
         existing_auth_data = _load_yaml(self.authentication_settings)
+        
+        if default_auth_data.keys() == existing_auth_data.keys():
+            return
+        
         self.authentication_data = _match_config_dicts(default_auth_data, existing_auth_data)
         _save_yaml(self.authentication_settings, self.authentication_data)
 
@@ -132,6 +136,9 @@ class ConfigManager:
         self.global_settings_data['Rate_Limiting_Options']['rate_limit'] = int(self.global_settings_data['Rate_Limiting_Options']['rate_limit'])
         self.global_settings_data['Rate_Limiting_Options']['read_timeout'] = int(self.global_settings_data['Rate_Limiting_Options']['read_timeout'])
 
+        if default_settings_data.keys() == existing_settings_data.keys():
+            return
+        
         save_data = copy.deepcopy(self.settings_data)
         save_data['Files']['input_file'] = str(save_data['Files']['input_file'])
         save_data['Files']['download_folder'] = str(save_data['Files']['download_folder'])
@@ -143,6 +150,10 @@ class ConfigManager:
         """Verifies the global settings config file and creates it if it doesn't exist"""
         default_global_settings_data = copy.deepcopy(global_settings)
         existing_global_settings_data = _load_yaml(self.global_settings)
+        
+        if default_global_settings_data.keys() == existing_global_settings_data.keys():
+            return
+        
         self.global_settings_data = _match_config_dicts(default_global_settings_data, existing_global_settings_data)
         _save_yaml(self.global_settings, self.global_settings_data)
 
