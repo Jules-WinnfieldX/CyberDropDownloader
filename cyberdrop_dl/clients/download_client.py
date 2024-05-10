@@ -79,8 +79,8 @@ class DownloadClient:
         headers['Referer'] = str(media_item.referer)
         headers.update(headers_inc)
 
-        async with client_session.get(media_item.url, headers=headers, ssl=self.client_manager.ssl_context,
-                                      proxy=self.client_manager.proxy) as resp:
+        async with client_session.head(media_item.url, headers=headers, ssl=self.client_manager.ssl_context,
+                                       proxy=self.client_manager.proxy) as resp:
             await self.client_manager.check_http_status(resp)
             return int(resp.headers.get('Content-Length', '0'))
 
