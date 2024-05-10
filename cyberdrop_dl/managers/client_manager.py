@@ -53,7 +53,7 @@ class ClientManager:
         self.download_session_limit = asyncio.Semaphore(self.manager.config_manager.global_settings_data['Rate_Limiting_Options']['max_simultaneous_downloads'])
 
         self.scraper_session = ScraperClient(self)
-        self.downloader_session = DownloadClient(self)
+        self.downloader_session = DownloadClient(manager, self)
 
     """~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"""
 

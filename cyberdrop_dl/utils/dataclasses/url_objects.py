@@ -21,9 +21,13 @@ class MediaItem:
         self.original_filename: str = original_filename
         self.file_lock_reference_name: str = field(init=False)
         self.datetime: str = field(init=False)
+        
         self.filesize: int = field(init=False)
         self.current_attempt: int = field(init=False)
-        self.download_task_id: TaskID = field(init=False)
+        
+        self.partial_file: Path = field(init=False)
+        self.complete_file: Path = field(init=False)
+        self.task_id: TaskID = field(init=False)
 
 
 class ScrapeItem:
