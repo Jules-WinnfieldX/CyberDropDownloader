@@ -146,6 +146,12 @@ class DownloadClient:
 
     async def download_file(self, manager: Manager, domain: str, media_item: MediaItem) -> None:
         """Starts a file"""
+        if self.manager.config_manager.settings_data['Download_Options']['skip_download_mark_completed']:
+            await log(f"Download Skip {media_item.url} due to mark completed option", 10)
+            await self.mark_incomplete(media_item, domain)
+            await self.mark_completed(media_item, domain)
+            return
+        
         async def save_content(content: aiohttp.StreamReader) -> None:
             await self._append_content(media_item, content, partial(manager.progress_manager.file_progress.advance_file, media_item.task_id))
 

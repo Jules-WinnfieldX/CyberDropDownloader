@@ -159,11 +159,6 @@ class Downloader:
         if not await self.manager.download_manager.check_allowed_filetype(media_item):
             await log(f"Download Skip {media_item.url} due to filetype restrictions", 10)
             return False
-        if self.manager.config_manager.settings_data['Download_Options']['skip_download_mark_completed']:
-            await log(f"Download Skip {media_item.url} due to mark completed option", 10)
-            await self.mark_incomplete(media_item)
-            await self.mark_completed(media_item)
-            return False
         return True
 
     async def set_file_datetime(self, media_item: MediaItem, complete_file: Path) -> None:
