@@ -199,14 +199,13 @@ class Downloader:
                 await self.manager.progress_manager.download_progress.add_skipped()
                 return
 
-            await self.client.download_file(self.manager, self.domain, media_item)
+            downloaded = await self.client.download_file(self.manager, self.domain, media_item)
             
-            os.chmod(media_item.complete_file, 0o666)
-            
-            await self.set_file_datetime(media_item, media_item.complete_file)
-            await self.attempt_task_removal(media_item)
-            await self.manager.progress_manager.download_progress.add_completed()
-            return
+            if downloaded:
+                os.chmod(media_item.complete_file, 0o666)
+                await self.set_file_datetime(media_item, media_item.complete_file)
+                await self.attempt_task_removal(media_item)
+                await self.manager.progress_manager.download_progress.add_completed()
 
         except (aiohttp.ClientPayloadError, aiohttp.ClientOSError, aiohttp.ClientResponseError, ConnectionResetError,
                 DownloadFailure, FileNotFoundError, PermissionError, aiohttp.ServerDisconnectedError, 
