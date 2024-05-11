@@ -149,6 +149,7 @@ class DownloadClient:
         """Starts a file"""
         if self.manager.config_manager.settings_data['Download_Options']['skip_download_mark_completed']:
             await log(f"Download Skip {media_item.url} due to mark completed option", 10)
+            await self.manager.progress_manager.download_progress.add_skipped()
             await self.mark_incomplete(media_item, domain)
             await self.mark_completed(media_item, domain)
             return False
