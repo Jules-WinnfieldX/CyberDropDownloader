@@ -140,6 +140,9 @@ class DownloadClient:
                 await asyncio.sleep(0)
                 await f.write(chunk)
                 await update_progress(len(chunk))
+        if not content.total_bytes and not media_item.partial_file.stat().st_size:
+            media_item.partial_file.unlink()
+            raise DownloadFailure(status=HTTPStatus.NOT_FOUND, message="File is empty")
 
     async def download_file(self, manager: Manager, domain: str, media_item: MediaItem) -> None:
         """Starts a file"""
