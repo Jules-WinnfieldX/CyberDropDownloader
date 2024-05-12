@@ -37,6 +37,16 @@ def _load_yaml(file: Path) -> Dict:
         return yaml_values if yaml_values else {}
 
 
+def get_keys(dl, keys=None):
+    keys = keys or []
+    if isinstance(dl, dict):
+        keys += dl.keys()
+        _ = [get_keys(x, keys) for x in dl.values()]
+    elif isinstance(dl, list):
+        _ = [get_keys(x, keys) for x in dl]
+    return list(set(keys))
+
+
 class ConfigManager:
     def __init__(self, manager: 'Manager'):
         self.manager = manager
@@ -99,11 +109,11 @@ class ConfigManager:
         """Verifies the authentication config file and creates it if it doesn't exist"""
         default_auth_data = copy.deepcopy(authentication_settings)
         existing_auth_data = _load_yaml(self.authentication_settings)
-        
-        if default_auth_data.keys() == existing_auth_data.keys():
+
+        if get_keys(default_auth_data) == get_keys(existing_auth_data):
             self.authentication_data = existing_auth_data
             return
-        
+
         self.authentication_data = _match_config_dicts(default_auth_data, existing_auth_data)
         _save_yaml(self.authentication_settings, self.authentication_data)
 
@@ -118,29 +128,45 @@ class ConfigManager:
         self.settings_data['Sorting']['sort_folder'] = Path(self.settings_data['Sorting']['sort_folder'])
 
         # change to ints
-        self.settings_data['File_Size_Limits']['maximum_image_size'] = int(self.settings_data['File_Size_Limits']['maximum_image_size'])
-        self.settings_data['File_Size_Limits']['maximum_video_size'] = int(self.settings_data['File_Size_Limits']['maximum_video_size'])
-        self.settings_data['File_Size_Limits']['maximum_other_size'] = int(self.settings_data['File_Size_Limits']['maximum_other_size'])
-        self.settings_data['File_Size_Limits']['minimum_image_size'] = int(self.settings_data['File_Size_Limits']['minimum_image_size'])
-        self.settings_data['File_Size_Limits']['minimum_video_size'] = int(self.settings_data['File_Size_Limits']['minimum_video_size'])
-        self.settings_data['File_Size_Limits']['minimum_other_size'] = int(self.settings_data['File_Size_Limits']['minimum_other_size'])
-        
-        self.settings_data['Runtime_Options']['ui_refresh_rate'] = int(self.settings_data['Runtime_Options']['ui_refresh_rate'])
+        self.settings_data['File_Size_Limits']['maximum_image_size'] = int(
+            self.settings_data['File_Size_Limits']['maximum_image_size'])
+        self.settings_data['File_Size_Limits']['maximum_video_size'] = int(
+            self.settings_data['File_Size_Limits']['maximum_video_size'])
+        self.settings_data['File_Size_Limits']['maximum_other_size'] = int(
+            self.settings_data['File_Size_Limits']['maximum_other_size'])
+        self.settings_data['File_Size_Limits']['minimum_image_size'] = int(
+            self.settings_data['File_Size_Limits']['minimum_image_size'])
+        self.settings_data['File_Size_Limits']['minimum_video_size'] = int(
+            self.settings_data['File_Size_Limits']['minimum_video_size'])
+        self.settings_data['File_Size_Limits']['minimum_other_size'] = int(
+            self.settings_data['File_Size_Limits']['minimum_other_size'])
+
+        self.settings_data['Runtime_Options']['ui_refresh_rate'] = int(
+            self.settings_data['Runtime_Options']['ui_refresh_rate'])
         self.settings_data['Runtime_Options']['log_level'] = int(self.settings_data['Runtime_Options']['log_level'])
 
-        self.global_settings_data['General']['max_file_name_length'] = int(self.global_settings_data['General']['max_file_name_length'])
-        self.global_settings_data['General']['max_folder_name_length'] = int(self.global_settings_data['General']['max_folder_name_length'])
-        self.global_settings_data['Rate_Limiting_Options']['connection_timeout'] = int(self.global_settings_data['Rate_Limiting_Options']['connection_timeout'])
-        self.global_settings_data['Rate_Limiting_Options']['download_attempts'] = int(self.global_settings_data['Rate_Limiting_Options']['download_attempts'])
-        self.global_settings_data['Rate_Limiting_Options']['download_delay'] = int(self.global_settings_data['Rate_Limiting_Options']['download_delay'])
-        self.global_settings_data['Rate_Limiting_Options']['max_simultaneous_downloads'] = int(self.global_settings_data['Rate_Limiting_Options']['max_simultaneous_downloads'])
-        self.global_settings_data['Rate_Limiting_Options']['max_simultaneous_downloads_per_domain'] = int(self.global_settings_data['Rate_Limiting_Options']['max_simultaneous_downloads_per_domain'])
-        self.global_settings_data['Rate_Limiting_Options']['rate_limit'] = int(self.global_settings_data['Rate_Limiting_Options']['rate_limit'])
-        self.global_settings_data['Rate_Limiting_Options']['read_timeout'] = int(self.global_settings_data['Rate_Limiting_Options']['read_timeout'])
+        self.global_settings_data['General']['max_file_name_length'] = int(
+            self.global_settings_data['General']['max_file_name_length'])
+        self.global_settings_data['General']['max_folder_name_length'] = int(
+            self.global_settings_data['General']['max_folder_name_length'])
+        self.global_settings_data['Rate_Limiting_Options']['connection_timeout'] = int(
+            self.global_settings_data['Rate_Limiting_Options']['connection_timeout'])
+        self.global_settings_data['Rate_Limiting_Options']['download_attempts'] = int(
+            self.global_settings_data['Rate_Limiting_Options']['download_attempts'])
+        self.global_settings_data['Rate_Limiting_Options']['download_delay'] = int(
+            self.global_settings_data['Rate_Limiting_Options']['download_delay'])
+        self.global_settings_data['Rate_Limiting_Options']['max_simultaneous_downloads'] = int(
+            self.global_settings_data['Rate_Limiting_Options']['max_simultaneous_downloads'])
+        self.global_settings_data['Rate_Limiting_Options']['max_simultaneous_downloads_per_domain'] = int(
+            self.global_settings_data['Rate_Limiting_Options']['max_simultaneous_downloads_per_domain'])
+        self.global_settings_data['Rate_Limiting_Options']['rate_limit'] = int(
+            self.global_settings_data['Rate_Limiting_Options']['rate_limit'])
+        self.global_settings_data['Rate_Limiting_Options']['read_timeout'] = int(
+            self.global_settings_data['Rate_Limiting_Options']['read_timeout'])
 
-        if default_settings_data.keys() == existing_settings_data.keys():
+        if get_keys(default_settings_data) == get_keys(existing_settings_data):
             return
-        
+
         save_data = copy.deepcopy(self.settings_data)
         save_data['Files']['input_file'] = str(save_data['Files']['input_file'])
         save_data['Files']['download_folder'] = str(save_data['Files']['download_folder'])
@@ -152,11 +178,11 @@ class ConfigManager:
         """Verifies the global settings config file and creates it if it doesn't exist"""
         default_global_settings_data = copy.deepcopy(global_settings)
         existing_global_settings_data = _load_yaml(self.global_settings)
-        
-        if default_global_settings_data.keys() == existing_global_settings_data.keys():
+
+        if get_keys(default_global_settings_data) == get_keys(existing_global_settings_data):
             self.global_settings_data = existing_global_settings_data
             return
-        
+
         self.global_settings_data = _match_config_dicts(default_global_settings_data, existing_global_settings_data)
         _save_yaml(self.global_settings, self.global_settings_data)
 
