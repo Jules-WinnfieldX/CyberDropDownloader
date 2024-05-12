@@ -85,7 +85,11 @@ class DownloadClient:
         if domain == "pixeldrain":
             if self.manager.config_manager.authentication_data['PixelDrain']['pixeldrain_api_key']:
                 headers["Authorization"] = await self.manager.download_manager.basic_auth("Cyberdrop-DL", self.manager.config_manager.authentication_data['PixelDrain']['pixeldrain_api_key'])
-        if isinstance(media_item.partial_file, Path):
+
+        downloaded_filename = await self.manager.db_manager.history_table.get_downloaded_filename(domain, media_item)
+        download_dir = await self.get_download_dir(media_item)
+        media_item.partial_file = download_dir / f"{downloaded_filename}.part"
+        if isinstance(media_item.partial_file, Path) and media_item.partial_file.exists():
             resume_point = media_item.partial_file.stat().st_size if media_item.partial_file.exists() else 0
             headers['Range'] = f'bytes={resume_point}-'
 
@@ -101,7 +105,7 @@ class DownloadClient:
             
             if not isinstance(media_item.filesize, int):
                 media_item.filesize = int(resp.headers.get('Content-Length', '0'))
-            if not isinstance(media_item.partial_file, Path):
+            if not isinstance(media_item.complete_file, Path):
                 proceed, skip = await self.get_final_file_info(media_item, domain)
                 await self.mark_incomplete(media_item, domain)
                 if skip:
