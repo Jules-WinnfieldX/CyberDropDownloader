@@ -89,6 +89,8 @@ class DownloadClient:
         downloaded_filename = await self.manager.db_manager.history_table.get_downloaded_filename(domain, media_item)
         download_dir = await self.get_download_dir(media_item)
         media_item.partial_file = download_dir / f"{downloaded_filename}.part"
+        
+        resume_point = 0
         if isinstance(media_item.partial_file, Path) and media_item.partial_file.exists():
             resume_point = media_item.partial_file.stat().st_size if media_item.partial_file.exists() else 0
             headers['Range'] = f'bytes={resume_point}-'
@@ -103,8 +105,7 @@ class DownloadClient:
             await self.client_manager.check_http_status(resp, download=True)
             content_type = resp.headers.get('Content-Type')
             
-            if not isinstance(media_item.filesize, int):
-                media_item.filesize = int(resp.headers.get('Content-Length', '0'))
+            media_item.filesize = int(resp.headers.get('Content-Length', '0'))
             if not isinstance(media_item.complete_file, Path):
                 proceed, skip = await self.get_final_file_info(media_item, domain)
                 await self.mark_incomplete(media_item, domain)
@@ -124,7 +125,7 @@ class DownloadClient:
             if resp.status != HTTPStatus.PARTIAL_CONTENT and media_item.partial_file.is_file():
                 media_item.partial_file.unlink()
                 
-            media_item.task_id = await self.manager.progress_manager.file_progress.add_task(f"({domain.upper()}) {media_item.filename}", media_item.filesize)
+            media_item.task_id = await self.manager.progress_manager.file_progress.add_task(f"({domain.upper()}) {media_item.filename}", media_item.filesize + resume_point)
             if media_item.partial_file.is_file():
                 resume_point = media_item.partial_file.stat().st_size
                 await self.manager.progress_manager.file_progress.advance_file(media_item.task_id, resume_point)
