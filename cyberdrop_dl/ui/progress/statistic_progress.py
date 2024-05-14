@@ -44,7 +44,7 @@ class DownloadStatsProgress:
         failures = {}
         for key, value in self.failure_types.items():
             failures[key] = self.progress.tasks[value].completed
-        return failures
+        return dict(sorted(failures.items()))
 
 
 class ScrapeStatsProgress:
@@ -86,4 +86,4 @@ class ScrapeStatsProgress:
         failures = {}
         for key, value in self.failure_types.items():
             failures[key] = self.progress.tasks[value].completed
-        return failures
+        return dict(sorted(failures.items()))
