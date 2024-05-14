@@ -45,8 +45,7 @@ class ClientManager:
             "pixeldrain": AsyncLimiter(10, 1),
             "other": AsyncLimiter(25, 1)
         }
-        self.download_spacer = {'bunkr': 0.5, 'bunkrr': 0.5, 'cyberdrop': 0, 'coomer': 0.5, 'cyberfile': 0, 'kemono': 0.5,
-                                "pixeldrain": 0}
+        self.download_spacer = {'bunkr': 0.5, 'bunkrr': 0.5, 'cyberdrop': 0, 'coomer': 0, 'cyberfile': 0, "pixeldrain": 0}
 
         self.global_rate_limiter = AsyncLimiter(self.rate_limit, 1)
         self.session_limit = asyncio.Semaphore(50)
