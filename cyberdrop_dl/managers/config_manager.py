@@ -141,14 +141,13 @@ class ConfigManager:
         self.settings_data['File_Size_Limits']['minimum_other_size'] = int(
             self.settings_data['File_Size_Limits']['minimum_other_size'])
 
-        self.settings_data['Runtime_Options']['ui_refresh_rate'] = int(
-            self.settings_data['Runtime_Options']['ui_refresh_rate'])
         self.settings_data['Runtime_Options']['log_level'] = int(self.settings_data['Runtime_Options']['log_level'])
 
         self.global_settings_data['General']['max_file_name_length'] = int(
             self.global_settings_data['General']['max_file_name_length'])
         self.global_settings_data['General']['max_folder_name_length'] = int(
             self.global_settings_data['General']['max_folder_name_length'])
+
         self.global_settings_data['Rate_Limiting_Options']['connection_timeout'] = int(
             self.global_settings_data['Rate_Limiting_Options']['connection_timeout'])
         self.global_settings_data['Rate_Limiting_Options']['download_attempts'] = int(
@@ -164,6 +163,13 @@ class ConfigManager:
         self.global_settings_data['Rate_Limiting_Options']['read_timeout'] = int(
             self.global_settings_data['Rate_Limiting_Options']['read_timeout'])
 
+        self.global_settings_data['UI_Options']['refresh_rate'] = int(
+            self.global_settings_data['UI_Options']['refresh_rate'])
+        self.global_settings_data['UI_Options']['scraping_item_limit'] = int(
+            self.global_settings_data['UI_Options']['scraping_item_limit'])
+        self.global_settings_data['UI_Options']['downloading_item_limit'] = int(
+            self.global_settings_data['UI_Options']['downloading_item_limit'])
+        
         if get_keys(default_settings_data) == get_keys(existing_settings_data):
             return
 

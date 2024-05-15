@@ -17,7 +17,6 @@ def parse_args() -> argparse.Namespace:
     general.add_argument("--download-all-configs", action="store_true", help="Skip the UI and go straight to downloading (runs all configs sequentially)", default=False)
     general.add_argument("--sort-all-configs", action="store_true", help="Sort all configs sequentially", default=False)
     general.add_argument("--retry-failed", action="store_true", help="retry failed downloads", default=False)
-    general.add_argument("--vi-mode", action="store_true", help="enable VIM keybindings for UI", default=None)
 
     # File Paths
     file_paths = parser.add_argument_group("File_Paths")
@@ -69,12 +68,19 @@ def parse_args() -> argparse.Namespace:
     runtime_options.add_argument("--skip-check-for-empty-folders", action="store_true", help="skip check (and removal) for empty folders", default=False)
     runtime_options.add_argument("--delete-partial-files", action="store_true", help="delete partial downloads", default=False)
     runtime_options.add_argument("--send-unsupported-to-jdownloader", action="store_true", help="send unsupported urls to jdownloader", default=False)
-    runtime_options.add_argument("--ui-refresh-rate", type=int, help="set the UI refresh rate (default: %(default)s)", default=10)
     runtime_options.add_argument("--update-last-forum-post", action="store_true", help="update the last forum post", default=False)
 
     sorting_options = parser.add_argument_group("Sorting")
     sorting_options.add_argument("--sort-downloads", action="store_true", help="sort downloads into folders", default=False)
     sorting_options.add_argument("--sort_folder", type=str, help="path to where you want CDL to store it's log files", default="")
+    
+    ui_options = parser.add_argument_group("UI_Options")
+    ui_options.add_argument("--vi-mode", action="store_true", help="enable VIM keybindings for UI", default=None)
+    ui_options.add_argument("--refresh-rate", type=int, help="refresh rate for the UI (default: %(default)s)", default=10)
+    ui_options.add_argument("--scraping-item-limit", type=int, help="number of lines to allow for scraping items before overflow (default: %(default)s)", default=5)
+    ui_options.add_argument("--downloading-item-limit", type=int, help="number of lines to allow for downloading items before overflow (default: %(default)s)", default=5)
+    
+    
 
     # Links
     parser.add_argument("links", metavar="link", nargs="*", help="link to content to download (passing multiple links is supported)", default=[])

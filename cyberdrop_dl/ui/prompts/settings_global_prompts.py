@@ -23,7 +23,8 @@ def edit_global_settings_prompt(manager: Manager) -> None:
             choices=[
                 Choice(1, "Edit General Settings"),
                 Choice(2, "Edit Rate Limiting Settings"),
-                Choice(3, "Done"),
+                Choice(3, "Edit UI Options"),
+                Choice(4, "Done"),
             ],
             vi_mode=manager.vi_mode,
         ).execute()
@@ -35,9 +36,13 @@ def edit_global_settings_prompt(manager: Manager) -> None:
         # Edit Rate Limiting Settings
         elif action == 2:
             edit_rate_limiting_settings_prompt(manager)
+            
+        # Edit UI Settings
+        elif action == 3:
+            edit_progress_settings_prompt(manager)
 
         # Done
-        elif action == 3:
+        elif action == 4:
             manager.config_manager.write_updated_global_settings_config()
             break
 
@@ -81,11 +86,6 @@ def edit_general_settings_prompt(manager: Manager) -> None:
         float_allowed=False,
         vi_mode=manager.vi_mode,
     ).execute()
-    manager.vi_mode = inquirer.confirm(
-        message="Enable VI/VIM keybindings?",
-        default=bool(manager.config_manager.global_settings_data['General']['vi_mode']),
-        vi_mode=manager.vi_mode,
-    ).execute()
 
     manager.config_manager.global_settings_data['General']['allow_insecure_connections'] = allow_insecure_connections
     manager.config_manager.global_settings_data['General']['user_agent'] = user_agent
@@ -94,7 +94,7 @@ def edit_general_settings_prompt(manager: Manager) -> None:
     manager.config_manager.global_settings_data['General']['max_filename_length'] = int(max_filename_length)
     manager.config_manager.global_settings_data['General']['max_folder_name_length'] = int(max_folder_name_length)
     manager.config_manager.global_settings_data['General']['required_free_space'] = int(required_free_space)
-    manager.config_manager.global_settings_data['General']['vi_mode'] = manager.vi_mode
+
 
 def edit_progress_settings_prompt(manager: Manager) -> None:
     """Edit the progress settings"""
@@ -102,12 +102,34 @@ def edit_progress_settings_prompt(manager: Manager) -> None:
     console.print("Editing Progress Settings")
     refresh_rate = inquirer.number(
         message="Refresh Rate:",
-        default=int(manager.config_manager.global_settings_data['Progress_Options']['refresh_rate']),
+        default=int(manager.config_manager.global_settings_data['UI_Options']['refresh_rate']),
         float_allowed=False,
         vi_mode=manager.vi_mode,
     ).execute()
+    scraping_item_limit = inquirer.number(
+        message="Number of lines to allow for scraping items before overflow:",
+        default=int(manager.config_manager.global_settings_data['UI_Options']['scraping_item_limit']),
+        float_allowed=False,
+        vi_mode=manager.vi_mode,
+    ).execute()
+    downloading_item_limit = inquirer.number(
+        message="Refresh Rate:",
+        default=int(manager.config_manager.global_settings_data['UI_Options']['downloading_item_limit']),
+        float_allowed=False,
+        vi_mode=manager.vi_mode,
+    ).execute()
+    
+    vi_mode = inquirer.confirm(
+        message="Enable VI/VIM keybindings?",
+        default=bool(manager.config_manager.global_settings_data['UI_Options']['vi_mode']),
+        vi_mode=manager.vi_mode,
+    ).execute()
 
-    manager.config_manager.global_settings_data['Progress_Options']['refresh_rate'] = int(refresh_rate)
+    manager.config_manager.global_settings_data['UI_Options']['refresh_rate'] = int(refresh_rate)
+    manager.config_manager.global_settings_data['UI_Options']['scraping_item_limit'] = int(scraping_item_limit)
+    manager.config_manager.global_settings_data['UI_Options']['downloading_item_limit'] = int(downloading_item_limit)
+    manager.config_manager.global_settings_data['UI_Options']['vi_mode'] = vi_mode
+    manager.vi_mode = vi_mode
 
 
 def edit_rate_limiting_settings_prompt(manager: Manager) -> None:

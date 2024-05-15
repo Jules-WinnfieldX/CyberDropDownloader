@@ -99,7 +99,6 @@ settings: Dict = {
         "skip_check_for_empty_folders": False,
         "delete_partial_files": False,
         "send_unsupported_to_jdownloader": False,
-        "ui_refresh_rate": 10,
         "update_last_forum_post": False,
     },
     "Sorting": {
@@ -123,7 +122,6 @@ global_settings: Dict = {
         "max_file_name_length": 95,
         "max_folder_name_length": 60,
         "required_free_space": 5,
-        "vi_mode": False,
     },
     "Rate_Limiting_Options": {
         "connection_timeout": 15,
@@ -134,5 +132,11 @@ global_settings: Dict = {
         "max_simultaneous_downloads": 15,
         "max_simultaneous_downloads_per_domain": 5,
     },
+    "UI_Options": {
+        "vi_mode": False,
+        "refresh_rate": 10,
+        "scraping_item_limit": 5,
+        "downloading_item_limit": 5,
+    }
 }
 

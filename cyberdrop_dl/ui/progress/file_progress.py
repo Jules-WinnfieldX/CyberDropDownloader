@@ -60,7 +60,7 @@ class FileProgress:
 
         return total
 
-    async def redraw(self) -> None:
+    async def redraw(self, passed=False) -> None:
         """Redraws the progress bar"""
         while len(self.visible_tasks) > self.tasks_visibility_limit:
             task_id = self.visible_tasks.pop(0)
@@ -81,6 +81,9 @@ class FileProgress:
             self.queue.update(self.queue_task_id, description=self.queue_str.format(color=self.color, number=queue_length, type_str=self.type_str), visible=True)
         else:
             self.queue.update(self.queue_task_id, visible=False)
+        
+        if not passed:
+            await self.manager.progress_manager.scraping_progress.redraw(True)
 
     async def add_task(self, file: str, expected_size: Optional[int]) -> TaskID:
         """Adds a new task to the progress bar"""

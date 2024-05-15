@@ -21,8 +21,6 @@ class ArgsManager:
         self.no_ui = False
         self.load_config_from_args = False
         self.load_config_name = ""
-        self.vi_mode = None
-
         self.other_links: list = []
 
         # Files
@@ -42,6 +40,9 @@ class ArgsManager:
         self.unsupported_urls_filename = None
         self.download_error_urls_filename = None
         self.scrape_error_urls_filename = None
+        
+        # UI
+        self.vi_mode = None
 
     def startup(self) -> None:
         """Parses arguments and sets variables accordingly"""

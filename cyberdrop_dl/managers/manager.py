@@ -39,6 +39,7 @@ class Manager:
         self.task_group: asyncio.TaskGroup = field(init=False)
         self.task_list: list = []
         self.scrape_mapper = field(init=False)
+        
         self.vi_mode: bool = None
 
     def startup(self) -> None:
@@ -54,7 +55,7 @@ class Manager:
         self.cache_manager.startup(self.path_manager.cache_dir / "cache.yaml")
         self.config_manager = ConfigManager(self)
         self.config_manager.startup()
-        self.vi_mode = self.config_manager.global_settings_data['General']['vi_mode'] if self.args_manager.vi_mode is None else self.args_manager.vi_mode
+        self.vi_mode = self.config_manager.global_settings_data['UI_Options']['vi_mode'] if self.args_manager.vi_mode is None else self.args_manager.vi_mode
 
         self.path_manager.startup()
         self.log_manager = LogManager(self)
