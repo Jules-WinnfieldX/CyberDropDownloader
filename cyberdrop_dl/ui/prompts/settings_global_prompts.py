@@ -39,7 +39,7 @@ def edit_global_settings_prompt(manager: Manager) -> None:
             
         # Edit UI Settings
         elif action == 3:
-            edit_progress_settings_prompt(manager)
+            edit_ui_settings_prompt(manager)
 
         # Done
         elif action == 4:
@@ -96,10 +96,10 @@ def edit_general_settings_prompt(manager: Manager) -> None:
     manager.config_manager.global_settings_data['General']['required_free_space'] = int(required_free_space)
 
 
-def edit_progress_settings_prompt(manager: Manager) -> None:
+def edit_ui_settings_prompt(manager: Manager) -> None:
     """Edit the progress settings"""
     console.clear()
-    console.print("Editing Progress Settings")
+    console.print("Editing UI Settings")
     refresh_rate = inquirer.number(
         message="Refresh Rate:",
         default=int(manager.config_manager.global_settings_data['UI_Options']['refresh_rate']),
