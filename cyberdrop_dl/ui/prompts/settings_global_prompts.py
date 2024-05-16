@@ -113,7 +113,7 @@ def edit_ui_settings_prompt(manager: Manager) -> None:
         vi_mode=manager.vi_mode,
     ).execute()
     downloading_item_limit = inquirer.number(
-        message="Refresh Rate:",
+        message="Number of lines to allow for download items before overflow:",
         default=int(manager.config_manager.global_settings_data['UI_Options']['downloading_item_limit']),
         float_allowed=False,
         vi_mode=manager.vi_mode,
