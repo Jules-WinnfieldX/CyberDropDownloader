@@ -37,14 +37,14 @@ def _load_yaml(file: Path) -> Dict:
         return yaml_values if yaml_values else {}
 
 
-def get_keys(dl, keys=None):
+def get_keys(dl, keys=None) -> set:
     keys = keys or []
     if isinstance(dl, dict):
         keys += dl.keys()
         _ = [get_keys(x, keys) for x in dl.values()]
     elif isinstance(dl, list):
         _ = [get_keys(x, keys) for x in dl]
-    return list(set(keys))
+    return set(keys)
 
 
 class ConfigManager:
