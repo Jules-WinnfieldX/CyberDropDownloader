@@ -121,7 +121,6 @@ class CyberfileCrawler(Crawler):
                 node_id = str(new_folders.pop(0))
                 page = 1
 
-
     @error_handling_wrapper
     async def file(self, scrape_item: ScrapeItem) -> None:
         """Scrapes a file"""

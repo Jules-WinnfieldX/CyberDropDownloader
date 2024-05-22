@@ -80,8 +80,6 @@ def parse_args() -> argparse.Namespace:
     ui_options.add_argument("--scraping-item-limit", type=int, help="number of lines to allow for scraping items before overflow (default: %(default)s)", default=5)
     ui_options.add_argument("--downloading-item-limit", type=int, help="number of lines to allow for downloading items before overflow (default: %(default)s)", default=5)
     
-    
-
     # Links
     parser.add_argument("links", metavar="link", nargs="*", help="link to content to download (passing multiple links is supported)", default=[])
     return parser.parse_args()

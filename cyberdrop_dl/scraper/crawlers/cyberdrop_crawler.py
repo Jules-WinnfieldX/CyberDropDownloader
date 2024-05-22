@@ -18,7 +18,7 @@ if TYPE_CHECKING:
 class CyberdropCrawler(Crawler):
     def __init__(self, manager: Manager):
         super().__init__(manager, "cyberdrop", "Cyberdrop")
-        self.api_url = URL("https://cyberdrop.me/api/")
+        self.api_url = URL("https://api.cyberdrop.me/api/")
         self.primary_base_url = URL("https://cyberdrop.me/")
         self.request_limiter = AsyncLimiter(1.0, 2.0)
 
@@ -62,9 +62,13 @@ class CyberdropCrawler(Crawler):
             return
 
         async with self.request_limiter:
-            JSON_Resp = await self.client.get_json(self.domain, self.api_url / "f" / scrape_item.url.path[3:])
+            JSON_Resp = await self.client.get_json(self.domain, self.api_url / "file" / "info" / scrape_item.url.path[3:])
 
         filename, ext = await get_filename_and_ext(JSON_Resp["name"])
+        
+        async with self.request_limiter:
+            JSON_Resp = await self.client.get_json(self.domain, self.api_url / "file" / "auth" / scrape_item.url.path[3:])
+        
         link = URL(JSON_Resp['url'])
         await self.handle_file(link, scrape_item, filename, ext)
 
