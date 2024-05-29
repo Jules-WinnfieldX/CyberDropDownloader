@@ -79,7 +79,8 @@ async def director(manager: Manager) -> None:
             if len(logger.handlers) > 0:
                 await log("Picking new config...", 20)
 
-            configs_to_run = list(set(configs) - set(configs_ran)).sort()
+            configs_to_run = list(set(configs) - set(configs_ran))
+            configs_to_run.sort()
             manager.config_manager.change_config(configs_to_run[0])
             configs_ran.append(configs_to_run[0])
             if len(logger.handlers) > 0:
