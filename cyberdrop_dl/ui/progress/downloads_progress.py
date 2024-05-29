@@ -1,14 +1,18 @@
-from typing import Tuple
+from typing import Tuple, TYPE_CHECKING
 
 from rich.console import Group
 from rich.panel import Panel
 from rich.progress import Progress, BarColumn
 
+if TYPE_CHECKING:
+    from cyberdrop_dl.managers.manager import Manager
+
 
 class DownloadsProgress:
     """Class that keeps track of completed, skipped and failed files"""
 
-    def __init__(self):
+    def __init__(self, manager: 'Manager'):
+        self.manager = manager
         self.progress = Progress("[progress.description]{task.description}",
                                  BarColumn(bar_width=None),
                                  "[progress.percentage]{task.percentage:>3.2f}%",
@@ -27,7 +31,7 @@ class DownloadsProgress:
 
     async def get_progress(self) -> Panel:
         """Returns the progress bar"""
-        return Panel(self.progress_group, title="Files", border_style="green", padding=(1, 1))
+        return Panel(self.progress_group, title=f"Config: {self.manager.config_manager.loaded_config}", border_style="green", padding=(1, 1))
 
     async def update_total(self) -> None:
         """Updates the total number of files to be downloaded"""

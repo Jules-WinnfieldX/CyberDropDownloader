@@ -79,7 +79,7 @@ async def director(manager: Manager) -> None:
             if len(logger.handlers) > 0:
                 await log("Picking new config...", 20)
 
-            configs_to_run = list(set(configs) - set(configs_ran))
+            configs_to_run = list(set(configs) - set(configs_ran)).sort()
             manager.config_manager.change_config(configs_to_run[0])
             configs_ran.append(configs_to_run[0])
             if len(logger.handlers) > 0:
@@ -119,7 +119,7 @@ async def director(manager: Manager) -> None:
         clear_screen_proc = await asyncio.create_subprocess_shell('cls' if os.name == 'nt' else 'clear')
         await clear_screen_proc.wait()
 
-        await log("Running Post-Download Processes...", 20)
+        await log(f"Running Post-Download Processes For Config: {manager.config_manager.loaded_config}...", 20)
         if isinstance(manager.args_manager.sort_downloads, bool):
             if manager.args_manager.sort_downloads:
                 sorter = Sorter(manager)

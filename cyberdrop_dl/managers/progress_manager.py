@@ -16,13 +16,14 @@ if TYPE_CHECKING:
 class ProgressManager:
     def __init__(self, manager: 'Manager'):
         # File Download Bars
+        self.manager = manager
         self.file_progress: FileProgress = FileProgress(manager.config_manager.global_settings_data['UI_Options']['downloading_item_limit'], manager)
 
         # Scraping Printout
         self.scraping_progress: ScrapingProgress = ScrapingProgress(manager.config_manager.global_settings_data['UI_Options']['scraping_item_limit'], manager)
 
         # Overall Progress Bars & Stats
-        self.download_progress: DownloadsProgress = DownloadsProgress()
+        self.download_progress: DownloadsProgress = DownloadsProgress(manager)
         self.download_stats_progress: DownloadStatsProgress = DownloadStatsProgress()
         self.scrape_stats_progress: ScrapeStatsProgress = ScrapeStatsProgress()
         
