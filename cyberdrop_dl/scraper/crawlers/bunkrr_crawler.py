@@ -78,7 +78,7 @@ class BunkrrCrawler(Crawler):
                     raise FileNotFoundError()
                 image_obj = file.select_one("img")
                 src = image_obj.get("src")
-                src = src.replace("/thumbs", "")
+                src = src.replace("/thumbs/", "/")
                 src = URL(src, encoded=True)
                 src = src.with_suffix(file_ext)
                 src = src.with_query("download=true")
