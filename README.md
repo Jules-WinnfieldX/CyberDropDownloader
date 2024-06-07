@@ -1,3 +1,11 @@
+# Retirement
+
+Hey all. I'm officially retiring from this project. It's time I move on.
+
+I am however looking for people to take up the mantle. If you are interesting in helping with that, please join the discord below and send me a message.
+
+
+
 # `cyberdrop-dl`
 
 **Bulk downloader for multiple file hosts**
@@ -25,18 +33,6 @@ omegascans, pimpandhost, pixeldrain, postimg, reddit,
 redd.it, redgifs, rule34.xxx, rule34.xyz, saint,
 scrolller, simpcity, socialmediagirls, toonily, xbunker,
 xbunkr
-
-## Support Cyberdrop-DL Development
-
-<a href="https://www.buymeacoffee.com/juleswinnft" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
-
-If you want to support me and my effort you can buy me a coffee or send me some crypto:
-
-BTC: bc1qzw7l9d8ju2qnag3skfarrd0t5mkn0zyapnrcsn
-
-ETH: 0xf36ef155C43Ed220BfBb2CBe9c5Ae172A8640e9B
-
-XMR: 46vMP5MXVZqQeGzkA1mbX9WQKU8fbWRBJGAktDcjYkCMRDY7HMdLzi1DFsHCPLgms968cyUz1gCWVhy9cZir9Ae7M6anQ8Q
 
 ## Installation and More Information
 
