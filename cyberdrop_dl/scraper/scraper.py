@@ -36,8 +36,8 @@ class ScrapeMapper:
                         "mediafire": self.mediafire, "nudostar.com": self.nudostar, "nudostar.tv": self.nudostartv,
                         "omegascans": self.omegascans, "pimpandhost": self.pimpandhost, "pixeldrain": self.pixeldrain,
                         "postimg": self.postimg, "realbooru": self.realbooru, "reddit": self.reddit, 
-                        "redd.it": self.reddit, "redgifs": self.redgifs, "rule34.xxx": self.rule34xxx, 
-                        "rule34.xyz": self.rule34xyz, "saint": self.saint, "scrolller": self.scrolller, 
+                        "redd.it": self.reddit, "redgifs": self.redgifs, "rule34vault": self.rule34vault, "rule34.xxx": self.rule34xxx,
+                        "rule34.xyz": self.rule34xyz, "saint": self.saint, "scrolller": self.scrolller,
                         "simpcity": self.simpcity, "socialmediagirls": self.socialmediagirls, "toonily": self.toonily, 
                         "xbunker": self.xbunker, "xbunkr": self.xbunkr, "bunkr": self.bunkrr}
         self.existing_crawlers = {}
@@ -200,6 +200,11 @@ class ScrapeMapper:
         """Creates a RedGifs Crawler instance"""
         from cyberdrop_dl.scraper.crawlers.redgifs_crawler import RedGifsCrawler
         self.existing_crawlers['redgifs'] = RedGifsCrawler(self.manager)
+
+    async def rule34vault(self) -> None:
+        """Creates a Rule34Vault Crawler instance"""
+        from cyberdrop_dl.scraper.crawlers.rule34vault_crawler import Rule34VaultCrawler
+        self.existing_crawlers['rule34vault'] = Rule34VaultCrawler(self.manager)
 
     async def rule34xxx(self) -> None:
         """Creates a Rule34XXX Crawler instance"""
