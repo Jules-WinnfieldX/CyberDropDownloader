@@ -60,6 +60,9 @@ class GoFileCrawler(Crawler):
             else:
                 raise ScrapeFailure(e.status, e.message)
 
+        if JSON_Resp["status"] == "error-notFound":
+            raise ScrapeFailure(404, "Album not found")
+
         JSON_Resp = JSON_Resp['data']
         
         if "password" in JSON_Resp:
