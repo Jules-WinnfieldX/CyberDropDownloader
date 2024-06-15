@@ -26,6 +26,7 @@ If applicable, add screenshots to help explain your problem.
 
 **Downloader.log file**
 You need to include the downloader.log file after the issue occurs. Majority of the time it's the only way to diagnose issues. 
+If you open a bug report and don't include the log file, it will be closed.
 
 **Additional context**
 Add any other context about the problem here.
