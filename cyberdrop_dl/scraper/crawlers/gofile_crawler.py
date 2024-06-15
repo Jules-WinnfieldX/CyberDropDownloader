@@ -8,10 +8,10 @@ from typing import TYPE_CHECKING
 from aiolimiter import AsyncLimiter
 from yarl import URL
 
-from cyberdrop_dl.clients.errors import ScrapeFailure, DownloadFailure, PasswordProtected
+from cyberdrop_dl.clients.errors import ScrapeFailure, DownloadFailure, PasswordProtected, NoExtensionFailure
 from cyberdrop_dl.scraper.crawler import Crawler
 from cyberdrop_dl.utils.dataclasses.url_objects import ScrapeItem
-from cyberdrop_dl.utils.utilities import get_filename_and_ext, error_handling_wrapper
+from cyberdrop_dl.utils.utilities import get_filename_and_ext, error_handling_wrapper, log
 
 if TYPE_CHECKING:
     from cyberdrop_dl.clients.scraper_client import ScraperClient
@@ -78,7 +78,13 @@ class GoFileCrawler(Crawler):
                 link = URL(content["directLink"])
             else:
                 link = URL(content["link"])
-            filename, ext = await get_filename_and_ext(link.name)
+            try:
+                filename, ext = await get_filename_and_ext(link.name)
+            except NoExtensionFailure:
+                await log(f"Scrape Failed: {link} (No File Extension)", 40)
+                await self.manager.log_manager.write_scrape_error_log(link, " No File Extension")
+                await self.manager.progress_manager.scrape_stats_progress.add_failure("No File Extension")
+                continue
             duplicate_scrape_item = deepcopy(scrape_item)
             duplicate_scrape_item.possible_datetime = content["createTime"]
             duplicate_scrape_item.part_of_album = True

@@ -1,11 +1,3 @@
-# Retirement
-
-Hey all. I'm officially retiring from this project. It's time I move on.
-
-I am however looking for people to take up the mantle. If you are interesting in helping with that, please join the discord below and send me a message.
-
-
-
 # `cyberdrop-dl`
 
 **Bulk downloader for multiple file hosts**
