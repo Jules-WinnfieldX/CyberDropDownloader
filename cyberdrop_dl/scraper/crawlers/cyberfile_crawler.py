@@ -8,7 +8,7 @@ from aiolimiter import AsyncLimiter
 from bs4 import BeautifulSoup
 from yarl import URL
 
-from cyberdrop_dl.clients.errors import PasswordProtected
+from cyberdrop_dl.clients.errors import PasswordProtected, ScrapeFailure
 from cyberdrop_dl.scraper.crawler import Crawler
 from cyberdrop_dl.utils.dataclasses.url_objects import ScrapeItem
 from cyberdrop_dl.utils.utilities import error_handling_wrapper, log, get_filename_and_ext
@@ -152,10 +152,14 @@ class CyberfileCrawler(Crawler):
 
         file_menu = ajax_soup.select_one('ul[class="dropdown-menu dropdown-info account-dropdown-resize-menu"] li a')
         file_button = ajax_soup.select_one('div[class="btn-group responsiveMobileMargin"] button')
-        if file_menu:
-            html_download_text = file_menu.get("onclick")
-        else:
-            html_download_text = file_button.get("onclick")
+        try:
+            if file_menu:
+                html_download_text = file_menu.get("onclick")
+            else:
+                html_download_text = file_button.get("onclick")
+        except AttributeError:
+            await log(f"Couldn't find download button for {scrape_item.url}", 30)
+            raise ScrapeFailure(422, "Couldn't find download button")
         link = URL(html_download_text.split("'")[1])
 
         file_detail_table = ajax_soup.select('table[class="table table-bordered table-striped"]')[-1]
