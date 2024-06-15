@@ -141,10 +141,6 @@ def program_ui(manager: Manager):
         elif action == 9:
             import_cyberdrop_v4_items_prompt(manager)
 
-        # Donate
-        elif action == 10:
-            donations_prompt(manager)
-
         # Exit
-        elif action == 11:
+        elif action == 10:
             exit(0)

@@ -37,8 +37,7 @@ def main_prompt(manager: Manager) -> int:
             Choice(8, "Manage Configs"),
             Separator(),
             Choice(9, "Import Cyberdrop_V4 Items"),
-            Choice(10, "Donate"),
-            Choice(11, "Exit"),
+            Choice(10, "Exit"),
         ], long_instruction="ARROW KEYS: Navigate | ENTER: Select",
         vi_mode=manager.vi_mode,
     ).execute()
