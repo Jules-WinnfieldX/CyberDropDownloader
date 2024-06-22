@@ -15,16 +15,7 @@ Brand new and improved! Cyberdrop-DL now has an updated paint job, fantastic new
 
 ## Supported Sites
 
-bunkr, bunkrr, celebforum, coomer, cyberdrop, cyberfile,
-e-hentai, erome, fapello, f95zone, gofile, hotpic,
-ibb.co, imageban, imgbox, imgur, img.kiwi, jpg.church,
-jpg.homes, jpg.fish, jpg.fishing, jpg.pet, jpeg.pet,
-jpg1.su, jpg2.su, jpg3.su, jpg4.su, host.church, kemono,
-leakedmodels, mediafire, nudostar.com, nudostar.tv,
-omegascans, pimpandhost, pixeldrain, postimg, reddit,
-redd.it, redgifs, rule34.xxx, rule34.xyz, saint,
-scrolller, simpcity, socialmediagirls, toonily, xbunker,
-xbunkr
+bunkr, bunkrr, celebforum, coomer, cyberdrop, cyberfile, e-hentai, erome, fapello, f95zone, gofile, hotpic, ibb.co, imageban, imgbox, imgur, img.kiwi, jpg.church, jpg.homes, jpg.fish, jpg.fishing, jpg.pet, jpeg.pet, jpg1.su, jpg2.su, jpg3.su, jpg4.su, host.church, kemono, leakedmodels, mediafire, nudostar.com, nudostar.tv, omegascans, pimpandhost, pixeldrain, postimg, realbooru, reddit, redd.it, redgifs, rule34.xxx, rule34.xyz, rule34vault, saint, scrolller, simpcity, socialmediagirls, toonily, xbunker, xbunkr
 
 ## Installation and More Information
 
