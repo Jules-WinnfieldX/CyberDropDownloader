@@ -37,7 +37,7 @@ class SocialMediaGirlsCrawler(Crawler):
         self.links_attribute = "href"
         self.attachment_url_part = "attachments"
         self.images_selector = "img[class*=bbImage]"
-        self.images_attribute = "src"
+        self.images_attribute = "data-src"
         self.videos_selector = "video source"
         self.iframe_selector = "iframe[class=saint-iframe]"
         self.videos_attribute = "src"
