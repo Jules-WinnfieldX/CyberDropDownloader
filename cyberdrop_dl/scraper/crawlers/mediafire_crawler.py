@@ -5,9 +5,10 @@ import datetime
 from typing import TYPE_CHECKING
 
 from aiolimiter import AsyncLimiter
-from mediafire import MediaFireApi
+from mediafire import MediaFireApi, api
 from yarl import URL
 
+from cyberdrop_dl.clients.errors import ScrapeFailure
 from cyberdrop_dl.scraper.crawler import Crawler
 from cyberdrop_dl.utils.dataclasses.url_objects import ScrapeItem
 from cyberdrop_dl.utils.utilities import error_handling_wrapper, get_filename_and_ext
@@ -46,7 +47,10 @@ class MediaFireCrawler(Crawler):
         chunk = 1
         chunk_size = 100
         while True:
-            folder_contents = self.api.folder_get_content(folder_key=folder_key, content_type='files', chunk=chunk, chunk_size=chunk_size)
+            try:
+                folder_contents = self.api.folder_get_content(folder_key=folder_key, content_type='files', chunk=chunk, chunk_size=chunk_size)
+            except api.MediaFireConnectionError:
+                raise ScrapeFailure(500, "MediaFire connection closed")
             files = folder_contents['folder_content']['files']
 
             for file in files:
