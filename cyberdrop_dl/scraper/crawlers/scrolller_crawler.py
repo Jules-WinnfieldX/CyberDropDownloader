@@ -90,7 +90,7 @@ class ScrolllerCrawler(Crawler):
                 items = data["data"]["getSubreddit"]["children"]["items"]
 
                 for item in items:
-                    media_sources = item['mediaSources']
+                    media_sources = [item for item in item['mediaSources'] if ".webp" not in item['url']]
                     if media_sources:
                         highest_res_image_url = URL(media_sources[-1]['url'])
                         filename, ext = await get_filename_and_ext(highest_res_image_url.name)
